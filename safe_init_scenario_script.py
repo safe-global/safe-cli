@@ -1,40 +1,35 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 
-from core.utils.gnosis_safe_setup import GnosisSafeModule
-from core.console_truffle_interface import ConsoleTruffleInterface
-from core.utils.provider.ganache_provider import GanacheProvider
-import os
+# -*- coding: utf-8 -*-
+from core.utils.build_contract_reader import ContractReader
+from gnosis.eth.ethereum_client import EthereumClient
+from gnosis.safe import Safe, ProxyFactory
+from eth_account import Account
+from gnosis.eth.contracts import (
+    get_safe_contract
+)
+
+class ContractArtifact:
+    def __init__(self, contract_name, contract_instance, contract_abi, contract_bytecode, contract_address):
+        self.contract_name = contract_name
+        self.contract_instance = contract_instance
+        self.contract_abi = contract_abi
+        self.contract_bytecode = contract_bytecode
+        self.contract_address = contract_address
+        self.data = {
+            'name': self.contract_name,
+            'instance': self.contract_instance,
+            'abi': self.contract_abi,
+            'bytecode': self.contract_bytecode,
+            'address': self.contract_address
+        }
+
+# ethereum_client.w3.eth.contract(abi=safe_v101_abi, address=safe_v101_deployment_data.contract_address)
 
 def gnosis_py_init_scenario():
-    from core.utils.build_contract_reader import ContractReader
-    from gnosis.eth.ethereum_client import EthereumClient
-    from gnosis.safe import Safe, ProxyFactory
-    from gnosis.safe.safe_creation_tx import SafeCreationTx
-    from eth_account import Account
-    from gnosis.eth.contracts import (
-        get_safe_contract, get_safe_V1_0_0_contract, get_safe_V0_0_1_contract,
-        get_proxy_factory_contract, get_proxy_factory_V1_0_0_contract, get_proxy_contract
-    )
-
-    class ContractArtifact:
-        def __init__(self, contract_name, contract_instance, contract_abi, contract_bytecode, contract_address):
-            self.contract_name = contract_name
-            self.contract_instance = contract_instance
-            self.contract_abi = contract_abi
-            self.contract_bytecode = contract_bytecode
-            self.contract_address = contract_address
-            self.data = {
-                'name': self.contract_name,
-                'instance': self.contract_instance,
-                'abi': self.contract_abi,
-                'bytecode': self.contract_bytecode,
-                'address': self.contract_address
-            }
-
-    # Example: (load other contract from here).
-    # ethereum_client.w3.eth.contract(abi=safe_v101_abi, address=safe_v101_deployment_data.contract_address)
-
+    print('+' + '---------' * 10 + '+')
+    print('Gnosis Py Init Scenario')
+    print('+' + '---------' * 10 + '+')
     # Get new Ethereum Provider & ContractReader
     ethereum_client = EthereumClient()
     contract_reader = ContractReader()
@@ -96,44 +91,14 @@ def gnosis_py_init_scenario():
     # print('Successfully Retrieved', safe_v001, 'Contract Instance', safe_v001_contract_instance)
 
     # remark: Test Commands For Each Safe Version 1.1.0
-    print('---------' * 10)
+    print('+' + '---------' * 10 + '+')
     print(safe_v101_contract_instance.functions.NAME().call(), safe_v101_contract_instance.functions.VERSION().call())
     print(safe_v101_contract_instance.functions.isOwner(ethereum_client.w3.eth.accounts[0]).call())
     print(safe_v101_contract_instance.functions.getThreshold().call())
     print(safe_v101_contract_instance.functions.getOwners().call())
-
+    print('+' + '---------' * 10 + '+')
     # (self, contract_name, contract_instance, contract_abi, contract_bytecode, contract_address):
     safe_v101_artifacts = ContractArtifact(safe_v101, safe_v101_contract_instance, safe_v101_abi, safe_v101_bytecode,
                                            safe_v101_object.address)
 
     return safe_v101_artifacts.data
-
-
-def truffle_init_scenario():
-    print('---------' * 10)
-    print('Init of the Contract Scenario')
-    print('---------' * 10)
-    PROJECT_DIRECTORY = os.getcwd() + '/assets/safe-contracts-1.1.0/'
-    ganache_provider = GanacheProvider()
-
-    provider = ganache_provider.get_provider()
-    contract_interface = ConsoleTruffleInterface(provider, PROJECT_DIRECTORY, ['GnosisSafe'], ['Proxy'])
-    contract_artifacts = contract_interface.deploy_contract()
-
-    # remark: Get Contract Artifacts for the Proxy & GnosisSafe
-    safe_instance = contract_interface.get_new_instance(contract_artifacts['GnosisSafe'])
-    proxy_instance = contract_interface.get_new_instance(contract_artifacts['Proxy'])
-
-    # remark: Get Interface to interact with the contract
-    gnosis_safe_module = GnosisSafeModule(provider, contract_artifacts)
-    functional_safe = gnosis_safe_module.setup(safe_instance, proxy_instance)
-
-    print('---------' * 10)
-    tmp_contract_artifacts = {
-        'instance': functional_safe,
-        'abi': contract_artifacts['GnosisSafe']['abi'],
-        'bytecode': contract_artifacts['GnosisSafe']['bytecode'],
-        'address': contract_artifacts['GnosisSafe']['address']
-    }
-
-    return tmp_contract_artifacts

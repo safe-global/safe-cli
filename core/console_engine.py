@@ -124,13 +124,13 @@ class GnosisConsoleEngine:
         """
         self.contract_artifacts = contract_artifacts
         # remark: Pre-Loading of the Contract Assets (Safe v1.1.0, Safe v1.0.0, Safe v-0.0.1)
-        print('Pre-Loading of the Contract Assets Here')
         # remark: Map the Artifacts of the Assets
         # note: method 1, with alias
         self.contract_console_data.add_artifact(contract_artifacts, alias=contract_artifacts['name'])
         # note: method 2, wihout alias
         for contract_artifacts_item in [contract_artifacts]:
             self.contract_console_data.add_artifact(contract_artifacts_item)
+        print('Pre-Loading Done.')
 
     def command_set_network(self, value):
         """ Command Set Network
