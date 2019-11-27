@@ -1,0 +1,358 @@
+{
+  "contractName": "MultiSend",
+  "abi": [
+    {
+      "constant": false,
+      "inputs": [
+        {
+          "name": "transactions",
+          "type": "bytes"
+        }
+      ],
+      "name": "multiSend",
+      "outputs": [],
+      "payable": false,
+      "stateMutability": "nonpayable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x608060405234801561001057600080fd5b506101a3806100206000396000f3fe608060405234801561001057600080fd5b506004361061002b5760003560e01c80638d80ff0a14610030575b600080fd5b6100e96004803603602081101561004657600080fd5b810190808035906020019064010000000081111561006357600080fd5b82018360208201111561007557600080fd5b8035906020019184600183028401116401000000008311171561009757600080fd5b91908080601f016020809104026020016040519081016040528093929190818152602001838380828437600081840152601f19601f8201169050808301925050505050505091929192905050506100eb565b005b805160205b81811015610172578083015160f81c6001820184015160601c601583018501516035840186015160558501870160008560008114610135576001811461014557610150565b6000808585888a5af19150610150565b6000808585895af491505b50600081141561015f57600080fd5b82605501870196505050505050506100f0565b50505056fea165627a7a72305820006744fee21c3396bfcae6ec5f76f06721713e70e465c0041ecbe4c6435633550029",
+  "deployedBytecode": "0x608060405234801561001057600080fd5b506004361061002b5760003560e01c80638d80ff0a14610030575b600080fd5b6100e96004803603602081101561004657600080fd5b810190808035906020019064010000000081111561006357600080fd5b82018360208201111561007557600080fd5b8035906020019184600183028401116401000000008311171561009757600080fd5b91908080601f016020809104026020016040519081016040528093929190818152602001838380828437600081840152601f19601f8201169050808301925050505050505091929192905050506100eb565b005b805160205b81811015610172578083015160f81c6001820184015160601c601583018501516035840186015160558501870160008560008114610135576001811461014557610150565b6000808585888a5af19150610150565b6000808585895af491505b50600081141561015f57600080fd5b82605501870196505050505050506100f0565b50505056fea165627a7a72305820006744fee21c3396bfcae6ec5f76f06721713e70e465c0041ecbe4c6435633550029",
+  "sourceMap": "304:2438:18:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;304:2438:18;;;;;;;",
+  "deployedSourceMap": "304:2438:18:-;;;;8:9:-1;5:2;;;30:1;27;20:12;5:2;304:2438:18;;;;;;;;;;;;;;;;;;;925:1815;;;;;;13:2:-1;8:3;5:11;2:2;;;29:1;26;19:12;2:2;925:1815:18;;;;;;;;;;21:11:-1;8;5:28;2:2;;;46:1;43;36:12;2:2;925:1815:18;;35:9:-1;28:4;12:14;8:25;5:40;2:2;;;58:1;55;48:12;2:2;925:1815:18;;;;;;100:9:-1;95:1;81:12;77:20;67:8;63:35;60:50;39:11;25:12;22:29;11:107;8:2;;;131:1;128;121:12;8:2;925:1815:18;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;30:3:-1;22:6;14;1:33;99:1;93:3;85:6;81:16;74:27;137:4;133:9;126:4;121:3;117:14;113:30;106:37;;169:3;161:6;157:16;147:26;;925:1815:18;;;;;;;;;;;;;;;:::i;:::-;;;1107:12;1101:19;1142:4;1159:1565;1173:6;1170:1;1167:13;1159:1565;;;1494:1;1480:12;1476:20;1470:27;1464:4;1460:38;1768:4;1765:1;1761:12;1747;1743:31;1737:38;1731:4;1727:49;1930:4;1927:1;1923:12;1909;1905:31;1899:38;2113:4;2110:1;2106:12;2092;2088:31;2082:38;2307:4;2304:1;2300:12;2286;2282:31;2345:1;2370:9;2401:1;2396:66;;;;2484:1;2479:67;;;;2363:183;;2396:66;2458:1;2455;2443:10;2437:4;2430:5;2426:2;2421:3;2416:44;2405:55;;2396:66;;2479:67;2542:1;2539;2527:10;2521:4;2517:2;2512:3;2499:45;2488:56;;2363:183;;2578:1;2569:7;2566:14;2563:2;;;2593:1;2590;2583:12;2563:2;2698:10;2692:4;2688:21;2685:1;2681:29;2676:34;;1185:1539;;;;;;1159:1565;;;1073:1661;;;:::o",
+  "source": "pragma solidity ^0.5.0;\n\n\n/// @title Multi Send - Allows to batch multiple transactions into one.\n/// @author Nick Dodson - <nick.dodson@consensys.net>\n/// @author Gonçalo Sá - <goncalo.sa@consensys.net>\n/// @author Stefan George - <stefan@gnosis.io>\n/// @author Richard Meissner - <richard@gnosis.io>\ncontract MultiSend {\n\n    /// @dev Sends multiple transactions and reverts all if one fails.\n    /// @param transactions Encoded transactions. Each transaction is encoded as a packed bytes of\n    ///                     operation as a uint8 with 0 for a call or 1 for a delegatecall (=> 1 byte),\n    ///                     to as a address (=> 20 bytes),\n    ///                     value as a uint256 (=> 32 bytes),\n    ///                     data length as a uint256 (=> 32 bytes),\n    ///                     data as bytes.\n    ///                     see abi.encodePacked for more information on packed encoding\n    function multiSend(bytes memory transactions)\n        public\n    {\n        // solium-disable-next-line security/no-inline-assembly\n        assembly {\n            let length := mload(transactions)\n            let i := 0x20\n            for { } lt(i, length) { } {\n                // First byte of the data is the operation.\n                // We shift by 248 bits (256 - 8 [operation byte]) it right since mload will always load 32 bytes (a word).\n                // This will also zero out unused data.\n                let operation := shr(0xf8, mload(add(transactions, i)))\n                // We offset the load address by 1 byte (operation byte)\n                // We shift it right by 96 bits (256 - 160 [20 address bytes]) to right-align the data and zero out unused data.\n                let to := shr(0x60, mload(add(transactions, add(i, 0x01))))\n                // We offset the load address by 21 byte (operation byte + 20 address bytes)\n                let value := mload(add(transactions, add(i, 0x15)))\n                // We offset the load address by 53 byte (operation byte + 20 address bytes + 32 value bytes)\n                let dataLength := mload(add(transactions, add(i, 0x35)))\n                // We offset the load address by 85 byte (operation byte + 20 address bytes + 32 value bytes + 32 data length bytes)\n                let data := add(transactions, add(i, 0x55))\n                let success := 0\n                switch operation\n                case 0 { success := call(gas, to, value, data, dataLength, 0, 0) }\n                case 1 { success := delegatecall(gas, to, data, dataLength, 0, 0) }\n                if eq(success, 0) { revert(0, 0) }\n                // Next entry starts at 85 byte + data length\n                i := add(i, add(0x55, dataLength))\n            }\n        }\n    }\n}\n",
+  "sourcePath": "/home/uxio/gnosis/dev/safe-contracts/contracts/libraries/MultiSend.sol",
+  "ast": {
+    "absolutePath": "/home/uxio/gnosis/dev/safe-contracts/contracts/libraries/MultiSend.sol",
+    "exportedSymbols": {
+      "MultiSend": [
+        2276
+      ]
+    },
+    "id": 2277,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 2268,
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:23:18"
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": "@title Multi Send - Allows to batch multiple transactions into one.\n @author Nick Dodson - <nick.dodson@consensys.net>\n @author Gonçalo Sá - <goncalo.sa@consensys.net>\n @author Stefan George - <stefan@gnosis.io>\n @author Richard Meissner - <richard@gnosis.io>",
+        "fullyImplemented": true,
+        "id": 2276,
+        "linearizedBaseContracts": [
+          2276
+        ],
+        "name": "MultiSend",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "body": {
+              "id": 2274,
+              "nodeType": "Block",
+              "src": "990:1750:18",
+              "statements": [
+                {
+                  "externalReferences": [
+                    {
+                      "transactions": {
+                        "declaration": 2270,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "1107:12:18",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "transactions": {
+                        "declaration": 2270,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "1480:12:18",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "transactions": {
+                        "declaration": 2270,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "1747:12:18",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "transactions": {
+                        "declaration": 2270,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "1909:12:18",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "transactions": {
+                        "declaration": 2270,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "2092:12:18",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "transactions": {
+                        "declaration": 2270,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "2286:12:18",
+                        "valueSize": 1
+                      }
+                    }
+                  ],
+                  "id": 2273,
+                  "nodeType": "InlineAssembly",
+                  "operations": "{\n    let length := mload(transactions)\n    let i := 0x20\n    for {\n    }\n    lt(i, length)\n    {\n    }\n    {\n        let operation := shr(0xf8, mload(add(transactions, i)))\n        let to := shr(0x60, mload(add(transactions, add(i, 0x01))))\n        let value := mload(add(transactions, add(i, 0x15)))\n        let dataLength := mload(add(transactions, add(i, 0x35)))\n        let data := add(transactions, add(i, 0x55))\n        let success := 0\n        switch operation\n        case 0 {\n            success := call(gas(), to, value, data, dataLength, 0, 0)\n        }\n        case 1 {\n            success := delegatecall(gas(), to, data, dataLength, 0, 0)\n        }\n        if eq(success, 0)\n        {\n            revert(0, 0)\n        }\n        i := add(i, add(0x55, dataLength))\n    }\n}",
+                  "src": "1064:1676:18"
+                }
+              ]
+            },
+            "documentation": "@dev Sends multiple transactions and reverts all if one fails.\n @param transactions Encoded transactions. Each transaction is encoded as a packed bytes of\n                     operation as a uint8 with 0 for a call or 1 for a delegatecall (=> 1 byte),\n                     to as a address (=> 20 bytes),\n                     value as a uint256 (=> 32 bytes),\n                     data length as a uint256 (=> 32 bytes),\n                     data as bytes.\n                     see abi.encodePacked for more information on packed encoding",
+            "id": 2275,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "multiSend",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 2271,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2270,
+                  "name": "transactions",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2275,
+                  "src": "944:25:18",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 2269,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "944:5:18",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "943:27:18"
+            },
+            "returnParameters": {
+              "id": 2272,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "990:0:18"
+            },
+            "scope": 2276,
+            "src": "925:1815:18",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "public"
+          }
+        ],
+        "scope": 2277,
+        "src": "304:2438:18"
+      }
+    ],
+    "src": "0:2743:18"
+  },
+  "legacyAST": {
+    "absolutePath": "/home/uxio/gnosis/dev/safe-contracts/contracts/libraries/MultiSend.sol",
+    "exportedSymbols": {
+      "MultiSend": [
+        2276
+      ]
+    },
+    "id": 2277,
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 2268,
+        "literals": [
+          "solidity",
+          "^",
+          "0.5",
+          ".0"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "0:23:18"
+      },
+      {
+        "baseContracts": [],
+        "contractDependencies": [],
+        "contractKind": "contract",
+        "documentation": "@title Multi Send - Allows to batch multiple transactions into one.\n @author Nick Dodson - <nick.dodson@consensys.net>\n @author Gonçalo Sá - <goncalo.sa@consensys.net>\n @author Stefan George - <stefan@gnosis.io>\n @author Richard Meissner - <richard@gnosis.io>",
+        "fullyImplemented": true,
+        "id": 2276,
+        "linearizedBaseContracts": [
+          2276
+        ],
+        "name": "MultiSend",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "body": {
+              "id": 2274,
+              "nodeType": "Block",
+              "src": "990:1750:18",
+              "statements": [
+                {
+                  "externalReferences": [
+                    {
+                      "transactions": {
+                        "declaration": 2270,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "1107:12:18",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "transactions": {
+                        "declaration": 2270,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "1480:12:18",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "transactions": {
+                        "declaration": 2270,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "1747:12:18",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "transactions": {
+                        "declaration": 2270,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "1909:12:18",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "transactions": {
+                        "declaration": 2270,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "2092:12:18",
+                        "valueSize": 1
+                      }
+                    },
+                    {
+                      "transactions": {
+                        "declaration": 2270,
+                        "isOffset": false,
+                        "isSlot": false,
+                        "src": "2286:12:18",
+                        "valueSize": 1
+                      }
+                    }
+                  ],
+                  "id": 2273,
+                  "nodeType": "InlineAssembly",
+                  "operations": "{\n    let length := mload(transactions)\n    let i := 0x20\n    for {\n    }\n    lt(i, length)\n    {\n    }\n    {\n        let operation := shr(0xf8, mload(add(transactions, i)))\n        let to := shr(0x60, mload(add(transactions, add(i, 0x01))))\n        let value := mload(add(transactions, add(i, 0x15)))\n        let dataLength := mload(add(transactions, add(i, 0x35)))\n        let data := add(transactions, add(i, 0x55))\n        let success := 0\n        switch operation\n        case 0 {\n            success := call(gas(), to, value, data, dataLength, 0, 0)\n        }\n        case 1 {\n            success := delegatecall(gas(), to, data, dataLength, 0, 0)\n        }\n        if eq(success, 0)\n        {\n            revert(0, 0)\n        }\n        i := add(i, add(0x55, dataLength))\n    }\n}",
+                  "src": "1064:1676:18"
+                }
+              ]
+            },
+            "documentation": "@dev Sends multiple transactions and reverts all if one fails.\n @param transactions Encoded transactions. Each transaction is encoded as a packed bytes of\n                     operation as a uint8 with 0 for a call or 1 for a delegatecall (=> 1 byte),\n                     to as a address (=> 20 bytes),\n                     value as a uint256 (=> 32 bytes),\n                     data length as a uint256 (=> 32 bytes),\n                     data as bytes.\n                     see abi.encodePacked for more information on packed encoding",
+            "id": 2275,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "multiSend",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 2271,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 2270,
+                  "name": "transactions",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 2275,
+                  "src": "944:25:18",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes_memory_ptr",
+                    "typeString": "bytes"
+                  },
+                  "typeName": {
+                    "id": 2269,
+                    "name": "bytes",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "944:5:18",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes_storage_ptr",
+                      "typeString": "bytes"
+                    }
+                  },
+                  "value": null,
+                  "visibility": "internal"
+                }
+              ],
+              "src": "943:27:18"
+            },
+            "returnParameters": {
+              "id": 2272,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "990:0:18"
+            },
+            "scope": 2276,
+            "src": "925:1815:18",
+            "stateMutability": "nonpayable",
+            "superFunction": null,
+            "visibility": "public"
+          }
+        ],
+        "scope": 2277,
+        "src": "304:2438:18"
+      }
+    ],
+    "src": "0:2743:18"
+  },
+  "compiler": {
+    "name": "solc",
+    "version": "0.5.7+commit.6da8b019.Emscripten.clang"
+  },
+  "networks": {},
+  "schemaVersion": "2.0.2",
+  "updatedAt": "2019-07-22T10:39:57.431Z"
+}
