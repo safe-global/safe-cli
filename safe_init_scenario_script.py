@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-
 # -*- coding: utf-8 -*-
+
 from core.utils.build_contract_reader import ContractReader
 from gnosis.eth.ethereum_client import EthereumClient
 from gnosis.safe import Safe, ProxyFactory
@@ -67,7 +67,7 @@ def gnosis_py_init_scenario():
     ethereum_tx_sent = Safe.create(ethereum_client, local_account, safe_v101_deployment_data.contract_address, owners,
                                     threshold, proxy_factory_address=proxy_v101_deployment_data.contract_address)
     safe_v101_object = Safe(ethereum_tx_sent.contract_address, ethereum_client)
-
+    print('compare:', ethereum_tx_sent.contract_address)
     # remark: Setup Another Safe Account
     local_account1 = Account.privateKeyToAccount('0xadd53f9a7e588d003326d1cbf9e4a43c061aadd9bc938c843a79e7b4fd2ad743')
     owners_aux = [ethereum_client.w3.eth.accounts[4], ethereum_client.w3.eth.accounts[5], ethereum_client.w3.eth.accounts[6], ethereum_client.w3.eth.accounts[7], ethereum_client.w3.eth.accounts[8]]

@@ -1,16 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Todo: Lexer per init of console, type of session, so emun to flag the type focusing on usability in the future
-# Todo: Module loader, so it can run the setup for the contract you want to operate with
-# Todo: Report the pos of the word to the lexer so it can know if it's dealing with a call to a function or an param
-# Todo: Build the suffix + affix list for the management of simple contracts
-# Todo: Improve function mapping so it can properly separate Events(Emit's) from the contract methods from the actual functions
 # Todo: Maybe Add a listener for the Events done by the contract atleast locally so it can be studied how it behaves
-# Todo: Add Interface for the Common Contract Operations Setup(), Transact() etc etc so it can be called from the console
-#   If None are provided, the console will assume an standar way of operation for the basic known transaction procedures
-# Todo: Move Current "Setup" for the GnosisSafe to it's proper module
-# Todo: Move Current "Transact" overrider to the GnosisSafe module
 # Todo: Only add to the temporal lexer valid addresses (it has been operated with)
 
 # validator = Validator.from_callable(
@@ -22,37 +13,9 @@ execute_swap_owner = 'swapOwner --address=0x00000000000000000000000000000000 --a
 query_get_owners = 'getOwners --query'
 query_execTransaction_not_enough_args = 'execTransaction --queue --address=0x00000000000000000000000000000000 --address=0x00000000000000000000000000000001 --address=0x00000000000000000000000000000002'
 
-
-# # remark: transact with arguments
-# # note: could be autofilled if not provided and set in the console session
-# #
-#
-# # kwown arguments gas:, gasPrices:, nonce:, from:
-#
-# #     # nonce = functional_safe.functions.nonce().call()
-# #     # transaction = functional_safe.functions.changeThreshold(3).buildTransaction({'from': orderred_signers[0].address})
-# #     # transaction.update({'gas': base_gas})
-# #     # transaction.update({'gasPrice': gas_price})
-# #     # transaction.update({'nonce': nonce})
-#
-# # note: --from=, --gas=, nonce=, gasprice=
-#
-# import re
-#
-# def is_alphanumeric_addres(stream):
-#     data = re.search(r'^(0x)?[0-9a-f]{40}$', stream).group(0)
-#     print('data', data)
-#     return
-#
-# # def validated(stream):
-# #     # remark: evaluate the data been passed to the contracts by searching it's current value,key
-# #     if is_alphanumeric_addres(stream):
-# #         return
-# #     return
-#
 # is_valid_address = r'^(0x)?[0-9a-f]{40}$'
 # is_62_valid_address = r'^(0x)?[0-9a-f]{62}$'
-#
+
 # def print_kwargs(**kwargs):
 #     new_values = ''
 #     for key, value in kwargs.items():
@@ -60,62 +23,113 @@ query_execTransaction_not_enough_args = 'execTransaction --queue --address=0x000
 #             new_values += '\'{0}\':{1},'.format(key.strip('_'), value)
 #             print(new_values)
 #     return new_values
-#
 # aux = print_kwargs(_from="Shark", gas=4.5)
-#
 # data_to_print = 'data_to_be_printed.transact{%s}' % (aux[:-1])
-# print(data_to_print)
-#
-# from ethereum import utils
-#
-# def checksum_encode(addr): # Takes a 20-byte binary address as input
-#     o = ''
-#     v = utils.big_endian_to_int(utils.sha3(addr.hex()))
-#     for i, c in enumerate(addr.hex()):
-#         if c in '0123456789':
-#             o += c
-#         else:
-#             o += c.upper() if (v & (2**(255 - 4*i))) else c.lower()
-#         print(o)
-#     return '0x'+o
-#
-# def some_args(arg_1, arg_2, arg_3):
-#     print("arg_1:", arg_1)
-#     print("arg_2:", arg_2)
-#     print("arg_3:", arg_3)
-#
-# my_list = [2, 3]
-# some_args(1, *my_list)
-#
-# # Doble input:
-# # for i in range(0, n):
-# #     ele = [input(), int(input())]
-#
-# # https://ethereum.stackexchange.com/questions/1374/how-can-i-check-if-an-ethereum-address-is-valid
-# # ^(0x)?[0-9a-f]{40}$
-# # https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md#implementation
-#
-# from hexbytes import HexBytes
-# from web3 import Web3
-#
-# def test(addrstr):
-#     assert(addrstr == Web3.toChecksumAddress(addrstr))
-#
-# print(Web3.toChecksumAddress('0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed'))
-# print(Web3.toChecksumAddress('0xfB6916095ca1df60bB79Ce92cE3Ea74c37c5d359'))
-# print(Web3.toChecksumAddress('0xdbF03B407c01E7cD3CBea99509d93f8DDDC8C6FB'))
-# print(Web3.toChecksumAddress('0xD1220A0cf47c7B9Be7A2E6BA89F429762e7b9aDb'))
-#
-# from web3 import Web3
-# execute = True
-#
-# # Currency Utility
-# # Gather all the --Gwei, --Kwei etc etc sum up them and give the ''
+
+# reference: https://ethereum.stackexchange.com/questions/1374/how-can-i-check-if-an-ethereum-address-is-valid
+# reference: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md#implementation
+
+# Currency Utility
+# Gather all the --Gwei, --Kwei etc etc sum up them and give the ''
 # if execute:
 #     Web3.fromWei(1000000000000000000, 'Gwei')
 # #Web3.toWei()
 # #Web3.fromWei()
-#
+
 # # Address Utility
 # Web3.isAddress('0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed')
 # Web3.isChecksumAddress('0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed')
+
+# remark: transact with arguments
+# note: could be autofilled if not provided and set in the console session
+
+from eth_account import Account
+from gnosis.safe.safe_tx import SafeTx
+from gnosis.safe.safe_signature import SafeSignature
+from gnosis.safe.safe import Safe, SafeOperation
+from gnosis.eth.ethereum_client import EthereumClient
+from safe_init_scenario_script import gnosis_py_init_scenario
+
+contract_artifacts = gnosis_py_init_scenario()
+NULL_ADDRESS = '0x' + '0'*40
+command_argument = 'changeOwner'
+argument_list = ''
+ethereum_client = EthereumClient()
+
+private_key_account0 = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
+private_key_account1 = '0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1'
+private_key_account2 = '0x6370fd033278c143179d81c5526140625662b8daa446c22ee2d73db3707e620c'
+owners_list = [Account.privateKeyToAccount(private_key_account0), Account.privateKeyToAccount(private_key_account1), Account.privateKeyToAccount(private_key_account2)]
+print('[ Accounts ]:', owners_list)
+
+orderred_signers = sorted(owners_list, key=lambda v: v.address.lower())
+safe_operator = Safe(contract_artifacts['address'], ethereum_client)
+functional_safe = contract_artifacts['instance']
+safe_contract = safe_operator.get_contract()
+from hexbytes import HexBytes
+
+
+if command_argument == 'isOwner':
+    # safe_operator.retrieve_is_owner()
+    print()
+elif command_argument == 'nonce':
+    safe_operator.retrieve_nonce()
+elif command_argument == 'code':
+    safe_operator.retrieve_code()
+elif command_argument == 'VERSION':
+    safe_operator.retrieve_version()
+elif command_argument == 'changeOwner':
+    # SafeSignature(signature, safe_tx_hash)
+    nonce = safe_operator.retrieve_nonce()
+    payload_data = HexBytes(safe_contract.functions.changeThreshold(4).buildTransaction({'from': owners_list[0].address, 'gasPrice': 0, 'gas': 200000})['data'])
+    safe_tx_gas = 300000
+    base_gas = 200000
+    gas_price = 0
+    to = ''
+    value = 0
+    safe_tx = SafeTx(ethereum_client, safe_operator.address, safe_operator.address, value, payload_data, SafeOperation.DELEGATE_CALL.value, safe_tx_gas, base_gas, gas_price, NULL_ADDRESS, NULL_ADDRESS, safe_nonce=nonce)
+    safe_tx.sign(private_key_account0)
+    safe_tx.sign(private_key_account1)
+    safe_tx.sign(private_key_account2)
+    tx_hash, _ = safe_tx.execute(tx_sender_private_key=private_key_account0)
+    receipt = ethereum_client.get_transaction_receipt(tx_hash, timeout=60)
+    print('Tx Receipt:\n', receipt)
+    current_owners = safe_contract.functions.getThreshold().call()
+    print('\nCurrent Owners of the Safe:\n', current_owners)
+
+    # tx_change_threshold = functional_safe.functions.getTransactionHash(
+    #     transaction['to'], 0, transaction['data'], 0, safe_tx_gas, base_gas, gas_price, NULL_ADDRESS, NULL_ADDRESS, nonce
+    # ).call()
+
+    # SafeSignature()
+    # signature_bytes = b''
+    # for signers in orderred_signers:
+    #     tx_signature = signers.signHash(tx_change_threshold)
+    #     signature_bytes += tx_signature['signature']
+    # print('[ Output Signature ]: ' + signature_bytes.hex())
+
+    # try:
+    #     change_treshold_hash = functional_safe.functions.execTransaction(
+    #         transaction['to'], 0, transaction['data'], 0, safe_tx_gas, base_gas, gas_price, NULL_ADDRESS, NULL_ADDRESS, signature_bytes
+    #     ).transact({'from': orderred_signers[0].address, 'gas': safe_tx_gas + base_gas})
+    #     receipt_for_change_threshold = ethereum_client.get_transaction_receipt(change_treshold_hash)
+    #     print('Tx Receipt:\n', receipt_for_change_threshold)
+    # except Exception as err:
+    #     print(err)
+
+
+    # safe_operator.retrieve_is_hash_approved()
+    # to = transaction['to']
+    # value = transaction['value']
+    # data = transaction['data']
+    # operation = SafeOperation.CALL.value
+    # safe_tx_gas = 300000
+    # base_gas = 200000
+    # gas_price = transaction['gasPrice']
+    # gas_token = NULL_ADDRESS
+    # refund_reciever = NULL_ADDRESS
+    # signatures = b''
+    # sender_private_key = b''
+    # tx_gas = transaction['gas']
+    # tx_gas_price = transaction['gasPrice']
+    # safe_operator.send_multisig_tx(to, value, data, operation, safe_tx_gas, base_gas, gas_price, gas_token, refund_reciever, signatures, tx_gas, tx_gas_price)

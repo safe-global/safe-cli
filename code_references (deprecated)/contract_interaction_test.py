@@ -146,7 +146,7 @@ def gnosis_test():
 
     # remark: Sign Transaction Hash
     signature_bytes = b''
-    for signers in orderred_signers[1:]:
+    for signers in orderred_signers:
         tx_signature = signers.signHash(tx_change_threshold)
         signature_bytes += tx_signature['signature']
     print('[ Output Signature ]: ' + signature_bytes.hex())
