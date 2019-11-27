@@ -40,7 +40,7 @@ Python 3 gnosis-cli focuses on the development of a console to operate with the 
 + viewNetwork, viewPayloads, viewAccounts, viewContracts
 + (Preloaded Contract without name) loadContract --alias=uContract1
 + (Preloaded Contract with name) loadContract --alias=GnosisSafeV1.1.0
-+ loadSafe --address=0x0... will search in the abi assets to find the one that fits the address 
++ (Developing) loadSafe --address=0x0... will search in the abi assets to find the one that fits the address 
 
 
 ### [ Partial Functioning ]
