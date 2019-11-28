@@ -57,6 +57,7 @@ class SafeConsoleMethods:
         self.gas_price = 0
         self.value = 0
 
+    # review: use the master copy function to retrieve the true version for the proxy contract
     @staticmethod
     def _setup_safe_resolver(safe_address):
         aux_safe_operator = Safe(safe_address, ethereum_client)

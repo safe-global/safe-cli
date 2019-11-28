@@ -9,6 +9,8 @@ from gnosis.eth.contracts import (
     get_safe_contract, get_safe_V1_0_0_contract, get_safe_V0_0_1_contract
 )
 
+
+
 class ContractArtifact:
     def __init__(self, contract_name, contract_instance, contract_abi, contract_bytecode, contract_address):
         self.contract_name = contract_name

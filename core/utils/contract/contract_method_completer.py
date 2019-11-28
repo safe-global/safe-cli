@@ -5,7 +5,7 @@ from prompt_toolkit.completion import Completer, Completion
 from core.utils.contract.contract_console_constants import *
 
 
-class ContractFunctionCompleter(Completer):
+class ContractMethodCompleter(Completer):
     def get_completions(self, document, complete_event):
         """ Get Completions
         This will function will provide the completions for param types and function name

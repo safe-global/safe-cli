@@ -3,15 +3,17 @@
 
 # Import Pygments Package
 from core.console_session_accounts import ConsoleSessionAccounts
-from core.utils.contract.contract_console_lexer import ContractLexer
-from core.utils.contract.contract_console_function_completer import ContractFunctionCompleter
+from core.utils.contract.contract_syntax_lexer import ContractSyntaxLexer
+from core.utils.contract.contract_method_completer import ContractMethodCompleter
 from core.utils.contract.contract_console_artifacts import ContractConsoleArtifacts
-from core.utils.contract.contract_console_payloads import ContractConsolePayloads
+from core.utils.contract.contract_payload_artifacts import ContractPayloadArtifacts
 
 # Import PromptToolkit Package
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit import PromptSession
 from prompt_toolkit import HTML, prompt
+
+
 
 # Import Os Package
 import os
@@ -23,12 +25,14 @@ import os
 #     'scrollbar.button': 'bg:#222222',
 # })
 
+from core.utils.contract.contract_payload_artifacts import ContractPayloadArtifacts
+
 # todo: move to constants class
 QUOTE = '\''
 COMA = ','
 PROJECT_DIRECTORY = os.getcwd() + '/assets/safe-contracts-1.1.0/'
-payload_options = ['alias', 'from', 'gas', 'gasPrice']
-payload_tx_options = ['alias', 'from', 'gas', 'gasPrice', 'value', 'nonce', 'safe_tx_gas']
+
+from core.utils.contract.contract_method_artifacts import ContractMethodArtifacts
 
 class GnosisConsoleEngine:
     def __init__(self):
@@ -41,15 +45,16 @@ class GnosisConsoleEngine:
         self.contract_artifacts = None
         self.network = 'ganache'
         self.contract_console_data = ContractConsoleArtifacts()
-        self.console_payloads = ContractConsolePayloads()
+        self.console_payloads = ContractPayloadArtifacts()
         self.default_auto_fill = False
         self.default_owner = ''
         self.default_owner_list = []
 
+
         self.session_config = {
             'prompt': self._get_prompt_text(stream=self.prompt_text),
-            'contract_lexer': ContractLexer(),
-            'contract_completer': ContractFunctionCompleter(),
+            'contract_lexer': ContractSyntaxLexer(),
+            'contract_completer': ContractMethodCompleter(),
             'gnosis_lexer': None,
             'style': 'Empty',
             'completer': WordCompleter(
@@ -152,55 +157,10 @@ class GnosisConsoleEngine:
     def command_view_default_owner(self):
         print('Default Owner:', self.default_owner)
 
-    def _new_payload_helper(self, payload_options):
-        alias = ''
-        compose_answer = '{'
-        for item in payload_options:
-            text = ('\'%s\' : ' % (item)).rjust(20)
-            answer = prompt(HTML(' <strong>%s</strong> ') % text)
-            if answer == '':
-                if (item == 'gas') or (item == 'gasPrice') or (item == 'nonce') or (item == 'safe_tx_gas'):
-                    compose_answer += '\'%s\' : %s' % (item, str(0)) + ', '
-                elif item == 'alias':
-                    continue
-                else:
-                    # todo: here check if setDefaultOwner is active, if it's empty, fill the current defaultOwner
-                    #  same goes if you put defaultOwner this should be transcribed to the proper address
-                    compose_answer += '\'%s\' : \'%s\'' % (item, '') + ', '
-            else:
-                if item == 'alias':
-                    alias = answer
-                else:
-                    compose_answer += '\'%s\' : %s' % (item, answer) + ', '
-
-        return alias, compose_answer[:-2] + '}'
-
-    def command_new_payload(self, command_argument, argument_list):
-        """ Command New Payload
-
-        :param command_argument:
-        :param argument_list:
-        :return:
-        """
-        if command_argument == 'newPayload' and argument_list == []:
-            alias, composed_payload = self._new_payload_helper(payload_options)
-            print('newPayload:', alias, composed_payload)
-            return self.console_payloads.add_payload(composed_payload, alias)
-
-        elif command_argument == 'newTxPayload' and argument_list == []:
-            alias, composed_payload = self._new_payload_helper(payload_tx_options)
-            print('newTxPayload:', alias, composed_payload)
-            return self.console_payloads.add_payload(composed_payload, alias)
-        else:
-            print('input for argument --nonce=, --gas=, --gasPrice=, --value=')
-
-
     def command_view_network(self):
         print('Current_Network:', self.network)
 
-    def command_view_payloads(self):
-        for item in self.console_payloads.payload_data:
-            print(item, self.console_payloads.payload_data[item])
+
 
     def command_view_accounts(self):
         for item in self.console_accounts.account_data:
@@ -253,7 +213,7 @@ class GnosisConsoleEngine:
                                                             ['--alias=', '--abi=', '--bytecode=', '--address='])
         try:
             contract_instance = self.contract_console_data.get_value_from_alias(tmp_alias, 'instance')
-            contract_methods = self.map_contract_methods(contract_instance)
+            contract_methods = ContractMethodArtifacts().map_contract_methods(contract_instance)
             self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='./', stream=tmp_alias),
                                      previous_session=previous_session, contract_methods=contract_methods,
                                      contract_instance=contract_instance)
@@ -261,16 +221,14 @@ class GnosisConsoleEngine:
             print(type(err), err)
 
     def _eval_stored_arguments(self, argument_item, storage_item):
+        stored_index = argument_item.split('.')
+        print('stored_argument', stored_index[0], stored_index[1])
         try:
-            stored_index = argument_item.split('.')
-            print('stored_argument', stored_index[0], stored_index[1])
-            try:
-                tmp_address = storage_item[stored_index[0]][stored_index[1]]
-                return tmp_address
-            except KeyError as err:
-                print('Key Error here', err)
-        except Exception:
-            return '*'
+            tmp_address = storage_item[stored_index[0]][stored_index[1]]
+            return tmp_address
+        except KeyError as err:
+            print('Key Error here', err)
+
 
     def _get_gnosis_input_command_argument(self, command_argument, argument_list, checklist):
         """ Get Gnosis Input Command Arguments
@@ -338,9 +296,9 @@ class GnosisConsoleEngine:
             # Add Ethereum money conversion for all types of coins
             print('newAccount <Address> or <PK> or <PK + Address>')
         elif command_argument == 'newPayload':
-            self.command_new_payload(command_argument, argument_list)
+            self.console_payloads.command_new_payload(command_argument, argument_list)
         elif command_argument == 'newTxPayload':
-            self.command_new_payload(command_argument, argument_list)
+            self.console_payloads.command_new_payload(command_argument, argument_list)
         elif command_argument == 'setDefaultOwner':
             self.command_set_default_owner(argument_list)
         elif command_argument == 'setDefaultOwnerList':
@@ -354,60 +312,60 @@ class GnosisConsoleEngine:
         elif command_argument == 'dummyCommand':
             self._get_gnosis_input_command_argument(command_argument, argument_list, [])
 
-    def map_contract_methods(self, contract_instance):
-        """ Map Contract functions
-        This function will map Events, Functions ( call , transact ), make distintions beetwen them? no input automatic query like function
-        input but not output + doble Mayus name Event, otherwise functions with input,output transact it's required
-        :param contract_instance:
-        :return:
-        """
-        item_name = ''
-        item_input = ''
-        contract_methods = {}
-        try:
-            # Retrieve methods presents in the provided abi file
-            for index, item in enumerate(contract_instance.functions.__dict__['abi']):
-                try:
-                    item_name = item['name']
-                except KeyError:
-                    continue
-                try:
-                    item_input = item['inputs']
-                except KeyError:
-                    item_input = ''
-                try:
-                    # <>
-                    metadata_arguments = []
-                    metadata_information = []
-                    stream_input = ''
-                    if len(item_input) >= 1:
-                        for data_index, data in enumerate(item_input):
-                            metadata_information.append({data_index: str(data['type']) + ' ' + str(data['name'])})
-                            metadata_arguments.append({data_index: str(data['type'])})
-                            stream_input += '{' + str(data_index) + '},'
-
-                        contract_methods[index] = {
-                            'name': item_name,
-                            'arguments': metadata_arguments,
-                            'argument_block': stream_input[:-1],
-                            'metadata': metadata_information,
-                            'call': 'contract_instance.functions.{0}('.format(item_name) + '{0}).call({1})',
-                            'transact': 'contract_instance.functions.{0}('.format(item_name) + '{0}).transact({1})',
-                        }
-                    else:
-                        contract_methods[index] = {
-                            'name': item_name,
-                            'arguments': metadata_arguments,
-                            'argument_block': stream_input,
-                            'metadata': metadata_information,
-                            'call': 'contract_instance.functions.{0}('.format(item_name) + '{0}).call({1})',
-                            'transact': 'contract_instance.functions.{0}('.format(item_name) + '{0}).transact({1})',
-                        }
-                except Exception as err:
-                    print(type(err), err)
-            return contract_methods
-        except Exception as err:
-            print(err)
+    # def map_contract_methods(self, contract_instance):
+    #     """ Map Contract functions
+    #     This function will map Events, Functions ( call , transact ), make distintions beetwen them? no input automatic query like function
+    #     input but not output + doble Mayus name Event, otherwise functions with input,output transact it's required
+    #     :param contract_instance:
+    #     :return:
+    #     """
+    #     item_name = ''
+    #     item_input = ''
+    #     contract_methods = {}
+    #     try:
+    #         # Retrieve methods presents in the provided abi file
+    #         for index, item in enumerate(contract_instance.functions.__dict__['abi']):
+    #             try:
+    #                 item_name = item['name']
+    #             except KeyError:
+    #                 continue
+    #             try:
+    #                 item_input = item['inputs']
+    #             except KeyError:
+    #                 item_input = ''
+    #             try:
+    #                 # <>
+    #                 metadata_arguments = []
+    #                 metadata_information = []
+    #                 stream_input = ''
+    #                 if len(item_input) >= 1:
+    #                     for data_index, data in enumerate(item_input):
+    #                         metadata_information.append({data_index: str(data['type']) + ' ' + str(data['name'])})
+    #                         metadata_arguments.append({data_index: str(data['type'])})
+    #                         stream_input += '{' + str(data_index) + '},'
+    #
+    #                     contract_methods[index] = {
+    #                         'name': item_name,
+    #                         'arguments': metadata_arguments,
+    #                         'argument_block': stream_input[:-1],
+    #                         'metadata': metadata_information,
+    #                         'call': 'contract_instance.functions.{0}('.format(item_name) + '{0}).call({1})',
+    #                         'transact': 'contract_instance.functions.{0}('.format(item_name) + '{0}).transact({1})',
+    #                     }
+    #                 else:
+    #                     contract_methods[index] = {
+    #                         'name': item_name,
+    #                         'arguments': metadata_arguments,
+    #                         'argument_block': stream_input,
+    #                         'metadata': metadata_information,
+    #                         'call': 'contract_instance.functions.{0}('.format(item_name) + '{0}).call({1})',
+    #                         'transact': 'contract_instance.functions.{0}('.format(item_name) + '{0}).transact({1})',
+    #                     }
+    #             except Exception as err:
+    #                 print(type(err), err)
+    #         return contract_methods
+    #     except Exception as err:
+    #         print(err)
 
     def _get_input_method_arguments(self, argument_list, function_arguments):
         """ Get Input Method Arguments

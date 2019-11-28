@@ -15,7 +15,7 @@ from core.utils.contract.contract_console_constants import (
 import re
 
 
-class ContractLexer(Lexer):
+class ContractSyntaxLexer(Lexer):
     """ Contract Lexer
 
     """
@@ -24,6 +24,7 @@ class ContractLexer(Lexer):
         """ Is Valid Argument
         This function will try to retrieve a piece of input stream, if group(0) does not raise AttributeError it will
         return True, otherwise False
+
         :param regular_expresion:
         :param stream:
         :return:
@@ -36,9 +37,9 @@ class ContractLexer(Lexer):
 
     def lex_document(self, document):
         """ Lex Document
-
-        :param document:
-        :return:
+        This function will change the color of the document text to fit the proper syntax highlight
+        :param document: stream input provided by the console user
+        :return: output colored syntax
         """
         # remark: Color Palette
         # Todo: Make a proper Color Scheme for the params and function_names
