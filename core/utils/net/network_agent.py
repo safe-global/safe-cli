@@ -7,10 +7,11 @@ from logging import INFO
 import logging
 
 # Import Socket Exceptions
-from core.utils.net.exceptions import NetworkAgentFatalException
+# from core.utils.net.exceptions import NetworkAgentFatalException
 
 # Import Socket Module
 import socket
+
 
 class NetworkAgent:
     """ Network Agent

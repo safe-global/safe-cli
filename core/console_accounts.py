@@ -16,7 +16,7 @@ class TypeOfNetworkAccount(Enum):
     RINKEBY_ACCOUNT = 'RinkebyAccount'
     MAINNET_ACCOUNT = 'MainnetAccount'
 
-class ConsoleSessionAccounts:
+class ConsoleAccounts:
     """ ConsoleSessionAccounts
 
     """

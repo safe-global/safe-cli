@@ -236,8 +236,10 @@ class ConsoleInputGetter:
         :return:
         """
         command_argument, argument_list = self._get_input_console_arguments(stream)
+        print('+' + '---------' * 10 + '+')
         print('| Command:', command_argument, '| Argument:', argument_list, '| ')
         desired_parsed_item_list, priority_group = self.evaluate_arguments_based_on_priority(command_argument, argument_list)
         print('| Argument Resolution:', desired_parsed_item_list, '| Priority Group:', priority_group, '| ')
+        print('+' + '---------' * 10 + '+')
         return desired_parsed_item_list, priority_group, command_argument, argument_list
 

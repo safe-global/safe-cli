@@ -40,8 +40,6 @@ def gnosis_py_init_old_master_copies_scenario():
     # safe_v001_deployment_data = Safe.deploy_old_master_contract(ethereum_client, local_account)
     # print('Successfully Deployed', safe_v001, 'with Address:', safe_v001_deployment_data.contract_address)
 
-
-
     # remark Loading Older Versions for the Safe Contract
     # ethereum_tx_sent1 = Safe.create(ethereum_client, local_account, safe_v100_deployment_data.contract_address, owners, threshold, proxy_factory_address=proxy_v100_deployment_data.contract_address)
     # safe_v100_object = Safe(ethereum_tx_sent1.contract_address, ethereum_client)
@@ -97,16 +95,18 @@ def gnosis_py_init_scenario():
     print('+' + '---------' * 10 + '+')
 
     # remark: Setup Another Safe Account
-    # local_account1 = Account.privateKeyToAccount('0xadd53f9a7e588d003326d1cbf9e4a43c061aadd9bc938c843a79e7b4fd2ad743')
-    # owners_aux = [ethereum_client.w3.eth.accounts[4], ethereum_client.w3.eth.accounts[5], ethereum_client.w3.eth.accounts[6], ethereum_client.w3.eth.accounts[7], ethereum_client.w3.eth.accounts[8]]
-    # threshold_aux = 5
-    # ethereum_tx_sent_aux = Safe.create(ethereum_client, local_account1, safe_v101_deployment_data.contract_address, owners_aux, threshold_aux, proxy_factory_address=proxy_v101_deployment_data.contract_address)
-    # safe_v101_object_0 = Safe(ethereum_tx_sent_aux.contract_address, ethereum_client)
-    # print('+' + '---------' * 10 + '+')
-    # print('Test Address to loadContract --addres=%s' % (ethereum_tx_sent_aux.contract_address))
-    # print('+' + '---------' * 10 + '+')
+    local_account4 = Account.privateKeyToAccount('0xadd53f9a7e588d003326d1cbf9e4a43c061aadd9bc938c843a79e7b4fd2ad743')
+    owners_aux = [ethereum_client.w3.eth.accounts[4], ethereum_client.w3.eth.accounts[5], ethereum_client.w3.eth.accounts[6], ethereum_client.w3.eth.accounts[7], ethereum_client.w3.eth.accounts[8]]
+    threshold_aux = 5
+    ethereum_tx_sent_aux = Safe.create(ethereum_client, local_account4, safe_v101_deployment_data.contract_address, owners_aux, threshold_aux, proxy_factory_address=proxy_v101_deployment_data.contract_address)
+    safe_v101_object_0 = Safe(ethereum_tx_sent_aux.contract_address, ethereum_client)
+    print('Test Address to loadSafe --address=%s' % (ethereum_tx_sent_aux.contract_address))
+    print('+' + '---------' * 10 + '+')
 
     safe_v101_artifacts = ContractArtifact(safe_v101, safe_v101_contract_instance, safe_v101_abi, safe_v101_bytecode,
                                            safe_v101_object.address)
 
     return safe_v101_artifacts.data
+
+
+

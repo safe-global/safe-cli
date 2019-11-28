@@ -13,7 +13,13 @@ from core.utils.contract.contract_console_constants import (
 
 # Import Re Package
 import re
-
+BASIC_TEXT = 'LightGray'
+BASE_HIGHLIGHT_COLOR = 'MidnightBlue'
+PARAM_COLOR = 'SlateBlue'
+EXIT_COLOR = 'Tomato'
+CONTRACT_METHODS_COLOR = 'DarkOrange'
+CONSOLE_COMMANDS = 'SaddleBrown'
+CONTRACT_EXEC_CALL_QUEUE = 'DarkSalmon'
 
 class ContractSyntaxLexer(Lexer):
     """ Contract Lexer
@@ -48,21 +54,15 @@ class ContractSyntaxLexer(Lexer):
         def get_line(lineno):
             aux_list = []
             for index, word in enumerate(document.lines[lineno].split(' ')):
-                current_color = colors[10 % len(colors)]
+                current_color = BASIC_TEXT
                 if self.__is_valid_argument(simple_function_name, word):
-                    current_color = colors[50 % len(colors)]
-                elif self.__is_valid_argument(normal_address, word):
-                    current_color = colors[250 % len(colors)]
-                elif self.__is_valid_argument(uint_data, word):
-                    current_color = colors[110 % len(colors)]
-                elif self.__is_valid_argument(bytecode_data, word):
-                    current_color = colors[140 % len(colors)]
-                elif self.__is_valid_argument(execute, word):
-                    current_color = colors[170 % len(colors)]
-                elif self.__is_valid_argument(queue, word):
-                    current_color = colors[200 % len(colors)]
-                elif self.__is_valid_argument(_exit, word):
-                    current_color = colors[230 % len(colors)]
+                    current_color = CONTRACT_METHODS_COLOR
+                elif self.__is_valid_argument(normal_address, word) or self.__is_valid_argument(uint_data, word) or self.__is_valid_argument(bytecode_data, word):
+                    current_color = PARAM_COLOR
+                elif self.__is_valid_argument(queue, word) or self.__is_valid_argument(execute, word):
+                    current_color = CONSOLE_COMMANDS
+                elif self.__is_valid_argument(_exit, word) or self.__is_valid_argument('close', word) or self.__is_valid_argument('quit', word):
+                    current_color = EXIT_COLOR
                 aux_list.append((current_color, word + ' '))
             return aux_list
         return get_line

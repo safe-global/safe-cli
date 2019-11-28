@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Import Pygments Package
-from core.console_session_accounts import ConsoleSessionAccounts
+from core.console_accounts import ConsoleAccounts
 from core.utils.contract.contract_syntax_lexer import ContractSyntaxLexer
 from core.utils.contract.contract_method_completer import ContractMethodCompleter
 from core.utils.contract.contract_console_artifacts import ContractConsoleArtifacts
@@ -23,9 +23,12 @@ import os
 #     'scrollbar.button': 'bg:#222222',
 # })
 
+
+from prompt_toolkit.styles import Style
 from core.console_input_getter import ConsoleInputGetter
 from core.utils.contract.contract_payload_artifacts import ContractPayloadArtifacts
 from core.utils.contract.console_help import ConsoleInformation
+from core.utils.contract.console_safe_methods import ConsoleSafeMethods
 
 # todo: move to constants class
 QUOTE = '\''
@@ -43,7 +46,7 @@ class GnosisConsoleEngine:
         self.prompt_text = 'GNOSIS-CLI v0.0.1a'
         self.network = 'ganache'
 
-        self.console_accounts = ConsoleSessionAccounts()
+        self.console_accounts = ConsoleAccounts()
         self.console_payloads = ContractPayloadArtifacts()
         self.console_artifacts = ContractConsoleArtifacts()
         self.console_information = ConsoleInformation()
@@ -64,12 +67,12 @@ class GnosisConsoleEngine:
                     'about', 'info', 'help', 'newContract', 'loadContract', 'setNetwork', 'viewNetwork',
                     'close', 'quit', 'viewContracts', 'viewAccounts', 'newAccount', 'setAutofill',
                     'viewPayloads', 'newPayload', 'newTxPayload', 'setDefaultOwner', 'setDefaultOwnerList',
-                    'viewOwner', 'viewOwnerList', 'dummyCommand'
+                    'viewOwner', 'viewOwnerList', 'dummyCommand', 'loadSafe'
                  ],
                 ignore_case=True)
         }
 
-    def run_console_session(self, prompt_text='', previous_session=None, contract_methods=None, contract_instance=None):
+    def run_console_session(self, prompt_text='', previous_session=None, contract_methods=None, contract_instance=None, safe_interface=None):
         """ Run Console Session
 
         :param prompt_text:
@@ -89,7 +92,11 @@ class GnosisConsoleEngine:
                         self.operate_with_console(stream, session)
                     else:
                         # remark: eval contract-cli arguments
-                        self.operate_with_contract(stream, contract_methods, contract_instance)
+                        if safe_interface is not None:
+                            print('entra en safe')
+                            safe_interface.operate_with_safe(stream)
+                        else:
+                            self.operate_with_contract(stream, contract_methods, contract_instance)
                     # remark: If you are in a sub session of the console return to gnosis-cli session
                     command_argument, argument_list = self.console_getter._get_input_console_arguments(stream)
                     if (command_argument == 'close') or (command_argument == 'quit') or (command_argument == 'exit'):
@@ -164,6 +171,17 @@ class GnosisConsoleEngine:
     def command_view_network(self):
         print('Current_Network:', self.network)
 
+    def command_load_safe(self, desired_parsed_item_list, priority_group, command_argument, argument_list, previous_session):
+        print('Data:', desired_parsed_item_list, priority_group, command_argument, argument_list)
+        if priority_group == 0:
+            print('Do Nothing')
+        elif priority_group == 1:
+            tmp_address = desired_parsed_item_list[0][1][0]
+            print()
+            safe_interface = ConsoleSafeMethods(tmp_address)
+            self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='./', stream='SafeTest(' + tmp_address + ')'),
+                                    previous_session=previous_session, safe_interface=safe_interface)
+
     # note: Future command to it's own funciton
     def command_load_contract(self, desired_parsed_item_list, priority_group, command_argument, argument_list, previous_session):
         """ Command Load Contract
@@ -177,8 +195,8 @@ class GnosisConsoleEngine:
         """
         print('Data:', desired_parsed_item_list, priority_group, command_argument, argument_list)
         if priority_group == 0:
-            tmp_alias = desired_parsed_item_list[0][1]
-            print(tmp_alias)
+            tmp_alias = desired_parsed_item_list[0][1][0]
+            print('alias:', tmp_alias)
             try:
                 contract_instance = self.console_artifacts.get_value_from_alias(tmp_alias, 'instance')
                 contract_methods = ContractMethodArtifacts().map_contract_methods(contract_instance)
@@ -191,9 +209,7 @@ class GnosisConsoleEngine:
             print(command_argument, argument_list)
 
     def operate_with_console(self, stream, previous_session):
-
         desired_parsed_item_list, priority_group, command_argument, argument_list = self.console_getter.get_gnosis_input_command_argument(stream)
-        print('Commnand:', command_argument, 'Arguments:', argument_list)
         if command_argument == 'loadContract':
             self.command_load_contract(desired_parsed_item_list, priority_group, command_argument, argument_list, previous_session)
         elif command_argument == 'setNetwork':
@@ -230,6 +246,8 @@ class GnosisConsoleEngine:
             self.command_view_default_owner_list()
         elif command_argument == 'dummyCommand':
             self.console_getter.get_gnosis_input_command_argument(stream)
+        elif command_argument == 'loadSafe':
+            self.command_load_safe(desired_parsed_item_list, priority_group, command_argument, argument_list, previous_session)
 
     def operate_with_contract(self, stream, contract_methods, contract_instance):
         """ Operate With Contract
@@ -240,7 +258,9 @@ class GnosisConsoleEngine:
         :return: if method found, a method from the current contract will be triggered, success or not depends on the establishing of the proper values.
         """
         try:
-            print('Call operate_with_contract:', stream)
+            # print('Call operate_with_contract:', stream)
+            # print('Contract Methods', contract_methods)
+            # print('Contract Instance', contract_instance)
             for item in contract_methods:
                 if contract_methods[item]['name'] in stream:
                     splitted_stream = stream.split(' ')
@@ -275,7 +295,7 @@ class GnosisConsoleEngine:
                     else:
                         print('WARNING: --execute, --query or --queue flag needed!')
         except Exception as err:
-            print(type(err), err)
+            print('here:!!', type(err), err)
 
     def _get_prompt_text(self, affix_stream='', stream=''):
         """ Get Prompt Text
