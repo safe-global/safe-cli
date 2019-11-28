@@ -13,8 +13,6 @@ from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit import PromptSession
 from prompt_toolkit import HTML, prompt
 
-
-
 # Import Os Package
 import os
 
@@ -25,7 +23,9 @@ import os
 #     'scrollbar.button': 'bg:#222222',
 # })
 
+from core.console_input_getter import ConsoleInputGetter
 from core.utils.contract.contract_payload_artifacts import ContractPayloadArtifacts
+from core.utils.contract.console_help import ConsoleInformation
 
 # todo: move to constants class
 QUOTE = '\''
@@ -38,18 +38,20 @@ class GnosisConsoleEngine:
     def __init__(self):
         self.name = self.__class__.__name__
         self.console_session = PromptSession()
-        self.contract_console_session = []
-        self.console_accounts = ConsoleSessionAccounts()
         self.previous_session = None
+
         self.prompt_text = 'GNOSIS-CLI v0.0.1a'
-        self.contract_artifacts = None
         self.network = 'ganache'
-        self.contract_console_data = ContractConsoleArtifacts()
+
+        self.console_accounts = ConsoleSessionAccounts()
         self.console_payloads = ContractPayloadArtifacts()
+        self.console_artifacts = ContractConsoleArtifacts()
+        self.console_information = ConsoleInformation()
+        self.console_getter = ConsoleInputGetter()
+
         self.default_auto_fill = False
         self.default_owner = ''
         self.default_owner_list = []
-
 
         self.session_config = {
             'prompt': self._get_prompt_text(stream=self.prompt_text),
@@ -89,9 +91,9 @@ class GnosisConsoleEngine:
                         # remark: eval contract-cli arguments
                         self.operate_with_contract(stream, contract_methods, contract_instance)
                     # remark: If you are in a sub session of the console return to gnosis-cli session
-                    command_argument, argument_list = self._get_input_console_arguments(stream)
+                    command_argument, argument_list = self.console_getter(stream)
                     if (command_argument == 'close') or (command_argument == 'quit') or (command_argument == 'exit'):
-                        return self._close_console_session(previous_session)
+                        return self.close_console_session(previous_session)
                 except KeyboardInterrupt:
                     continue  # remark: Control-C pressed. Try again.
                 except EOFError:
@@ -111,7 +113,8 @@ class GnosisConsoleEngine:
         else:
             return PromptSession(prompt_text, completer=self.session_config['contract_completer'], lexer=self.session_config['contract_lexer'])
 
-    def _close_console_session(self, previous_session=None):
+    @staticmethod
+    def close_console_session(previous_session=None):
         """ Close Console Session
         This function will return the previous session otherwise it will exit the gnosis-cli
         :param previous_session:
@@ -131,11 +134,12 @@ class GnosisConsoleEngine:
         # remark: Pre-Loading of the Contract Assets (Safe v1.1.0, Safe v1.0.0, Safe v-0.0.1)
         # remark: Map the Artifacts of the Assets
         # note: method 1, with alias
-        self.contract_console_data.add_artifact(contract_artifacts, alias=contract_artifacts['name'])
+        self.console_artifacts.add_artifact(contract_artifacts, alias=contract_artifacts['name'])
         # note: method 2, wihout alias
         for contract_artifacts_item in [contract_artifacts]:
-            self.contract_console_data.add_artifact(contract_artifacts_item)
+            self.console_artifacts.add_artifact(contract_artifacts_item)
         print('Pre-Loading Done.')
+        print('+' + '---------' * 10 + '+')
 
     def command_set_network(self, value):
         """ Command Set Network
@@ -160,46 +164,6 @@ class GnosisConsoleEngine:
     def command_view_network(self):
         print('Current_Network:', self.network)
 
-
-
-    def command_view_accounts(self):
-        for item in self.console_accounts.account_data:
-            print(item, self.console_accounts.account_data[item]['address'],
-                  self.console_accounts.account_data[item]['private_key'])
-
-    def command_view_contracts(self):
-        for item in self.contract_console_data.contract_data:
-            print(item, self.contract_console_data.contract_data[item]['address'],
-                  self.contract_console_data.contract_data[item]['instance'])
-
-    def command_view_about(self):
-        print('Prototype for Gnosis Console')
-        print('Version: 0.0.1a')
-
-    def command_view_help(self):
-        print('---------' * 10)
-        print('Console Command List')
-        print('---------' * 10)
-        print(' (+) loadContract: --alias= ')
-        print('---------' * 10)
-        print(' (+) setNetwork: command to set current network')
-        print(' (+) setAutofill: Command to set auto fill option')
-        print(' (+) setDefaultOwner: Command to set default owner')
-        print(' (+) setDefaultOwnerList: Command to set default owner list')
-        print('---------' * 10)
-        print(' (+) viewNetwork: Command to get current and available network')
-        print(' (+) viewAccounts: Command to get available Accounts')
-        print(' (+) viewContracts: Command to get available Contracts')
-        print(' (+) viewOwnerList: Command to get default owner list')
-        print(' (+) viewOwner: Command to get default owner')
-        print(' (+) viewPayloads: Command to get available Payloads')
-        print('---------' * 10)
-        print(' (+) newContract: --address= --abi= | --abi= --bytecode=')
-        print(' (+) newAccount: --alias= --address= --private_key=')
-        print(' (+) newPayload: Command to create a new payload to be stored, used in call() & transact()')
-        print(' (+) newTxPayload: Command to create a new tx payload to be stored')
-        print(' (+) quit|close|exit: Command to exit gnosis-cli & contract-cli')
-
     # note: Future command to it's own funciton
     def command_load_contract(self, command_argument, argument_list, previous_session):
         """ Command Load Contract
@@ -212,7 +176,7 @@ class GnosisConsoleEngine:
         tmp_alias = self._get_gnosis_input_command_argument(command_argument, argument_list,
                                                             ['--alias=', '--abi=', '--bytecode=', '--address='])
         try:
-            contract_instance = self.contract_console_data.get_value_from_alias(tmp_alias, 'instance')
+            contract_instance = self.console_artifacts.get_value_from_alias(tmp_alias, 'instance')
             contract_methods = ContractMethodArtifacts().map_contract_methods(contract_instance)
             self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='./', stream=tmp_alias),
                                      previous_session=previous_session, contract_methods=contract_methods,
@@ -229,69 +193,57 @@ class GnosisConsoleEngine:
         except KeyError as err:
             print('Key Error here', err)
 
-
-    def _get_gnosis_input_command_argument(self, command_argument, argument_list, checklist):
-        """ Get Gnosis Input Command Arguments
-        This function will get the input arguments provided in the gnosis-cli
-        :param command_argument:
-        :param argument_list:
-        :param checklist:
-        :return:
-        """
-        print('Command:', command_argument)
-        for sub_index, argument_item in enumerate(argument_list):
-            if argument_item.startswith('--alias='):
-                alias = self._get_method_argument_value(argument_item, quote=False)
-                return alias
-            elif argument_item.startswith('--name='):
-                name = self._get_method_argument_value(argument_item, quote=False)
-                return name
-            elif argument_item.startswith('--id='):
-                id = self._get_method_argument_value(argument_item, quote=False)
-            elif argument_item.startswith('--abi='):
-                contract_abi = self._get_method_argument_value(argument_item, quote=False)
-            elif argument_item.startswith('--address='):
-                tmp_address = self._get_method_argument_value(argument_item, quote=False)
-                aux_tmp_address = self._eval_stored_arguments(tmp_address, self.console_accounts.account_data)
-                # aux2_tmp_address = self._eval_stored_arguments(tmp_address, self.contract_console_data.contract_data)
-                print(aux_tmp_address)
-            elif argument_item.startswith('--bytecode='):
-                contract_bytecode = self._get_method_argument_value(argument_item, quote=False)
-            else:
-                continue
-            print(' (+) Argument:', argument_item)
-
-    def _get_input_console_arguments(self, stream):
-        argument_list = []
-        command_argument = ''
-        try:
-            split_input = stream.split(' ')
-            command_argument = split_input[0]
-            argument_list = split_input[1:]
-            return command_argument, argument_list
-        except Exception as err:
-            print('get_input_console_arguments', type(err), err)
-            return command_argument, argument_list
+    # def _get_gnosis_input_command_argument(self, command_argument, argument_list, checklist):
+    #     """ Get Gnosis Input Command Arguments
+    #     This function will get the input arguments provided in the gnosis-cli
+    #     :param command_argument:
+    #     :param argument_list:
+    #     :param checklist:
+    #     :return:
+    #     """
+    #     print('Command:', command_argument)
+    #     for sub_index, argument_item in enumerate(argument_list):
+    #         if argument_item.startswith('--alias='):
+    #             alias = self._get_method_argument_value(argument_item, quote=False)
+    #             return alias
+    #         elif argument_item.startswith('--name='):
+    #             name = self._get_method_argument_value(argument_item, quote=False)
+    #             return name
+    #         elif argument_item.startswith('--id='):
+    #             id = self._get_method_argument_value(argument_item, quote=False)
+    #         elif argument_item.startswith('--abi='):
+    #             contract_abi = self._get_method_argument_value(argument_item, quote=False)
+    #         elif argument_item.startswith('--address='):
+    #             tmp_address = self._get_method_argument_value(argument_item, quote=False)
+    #             aux_tmp_address = self._eval_stored_arguments(tmp_address, self.console_accounts.account_data)
+    #             # aux2_tmp_address = self._eval_stored_arguments(tmp_address, self.contract_console_data.contract_data)
+    #             print(aux_tmp_address)
+    #         elif argument_item.startswith('--bytecode='):
+    #             contract_bytecode = self._get_method_argument_value(argument_item, quote=False)
+    #         else:
+    #             continue
+    #         print(' (+) Argument:', argument_item)
 
     def _evaluate_console_command(self, stream, previous_session):
-        command_argument, argument_list = self._get_input_console_arguments(stream)
+        command_argument, argument_list = self.console_getter.get_gnosis_input_command_argument(stream)
         print('Commnand:', command_argument, 'Arguments:', argument_list)
         if command_argument == 'loadContract':
             self.command_load_contract(command_argument, argument_list, previous_session)
         elif command_argument == 'setNetwork':
-            self.command_set_network(self._get_gnosis_input_command_argument(command_argument, argument_list, ['--name=']))
+            print('setNetwork')
+            # self.command_set_network(self.console_getter.get_gnosis_input_command_argument(command_argument, argument_list))
         elif command_argument == 'viewNetwork':
             self.command_view_network()
         elif command_argument == 'viewContracts':
-            self.command_view_contracts()
+            self.console_artifacts.command_view_contracts()
         elif command_argument == 'viewAccounts':
-            self.command_view_accounts()
+            self.console_accounts.command_view_accounts()
         elif command_argument == 'viewPayloads':
-            self.command_view_payloads()
+            self.console_payloads.command_view_payloads()
         elif command_argument == 'about':
-            self.command_view_about()
+            self.console_information.command_view_about()
         elif (command_argument == 'info') or (command_argument == 'help'):
-            self.command_view_help()
+            self.console_information.command_view_help()
         elif command_argument == 'newAccount':
             # Add Ethereum money conversion for all types of coins
             print('newAccount <Address> or <PK> or <PK + Address>')
@@ -311,61 +263,6 @@ class GnosisConsoleEngine:
             self.command_view_default_owner_list()
         elif command_argument == 'dummyCommand':
             self._get_gnosis_input_command_argument(command_argument, argument_list, [])
-
-    # def map_contract_methods(self, contract_instance):
-    #     """ Map Contract functions
-    #     This function will map Events, Functions ( call , transact ), make distintions beetwen them? no input automatic query like function
-    #     input but not output + doble Mayus name Event, otherwise functions with input,output transact it's required
-    #     :param contract_instance:
-    #     :return:
-    #     """
-    #     item_name = ''
-    #     item_input = ''
-    #     contract_methods = {}
-    #     try:
-    #         # Retrieve methods presents in the provided abi file
-    #         for index, item in enumerate(contract_instance.functions.__dict__['abi']):
-    #             try:
-    #                 item_name = item['name']
-    #             except KeyError:
-    #                 continue
-    #             try:
-    #                 item_input = item['inputs']
-    #             except KeyError:
-    #                 item_input = ''
-    #             try:
-    #                 # <>
-    #                 metadata_arguments = []
-    #                 metadata_information = []
-    #                 stream_input = ''
-    #                 if len(item_input) >= 1:
-    #                     for data_index, data in enumerate(item_input):
-    #                         metadata_information.append({data_index: str(data['type']) + ' ' + str(data['name'])})
-    #                         metadata_arguments.append({data_index: str(data['type'])})
-    #                         stream_input += '{' + str(data_index) + '},'
-    #
-    #                     contract_methods[index] = {
-    #                         'name': item_name,
-    #                         'arguments': metadata_arguments,
-    #                         'argument_block': stream_input[:-1],
-    #                         'metadata': metadata_information,
-    #                         'call': 'contract_instance.functions.{0}('.format(item_name) + '{0}).call({1})',
-    #                         'transact': 'contract_instance.functions.{0}('.format(item_name) + '{0}).transact({1})',
-    #                     }
-    #                 else:
-    #                     contract_methods[index] = {
-    #                         'name': item_name,
-    #                         'arguments': metadata_arguments,
-    #                         'argument_block': stream_input,
-    #                         'metadata': metadata_information,
-    #                         'call': 'contract_instance.functions.{0}('.format(item_name) + '{0}).call({1})',
-    #                         'transact': 'contract_instance.functions.{0}('.format(item_name) + '{0}).transact({1})',
-    #                     }
-    #             except Exception as err:
-    #                 print(type(err), err)
-    #         return contract_methods
-    #     except Exception as err:
-    #         print(err)
 
     def _get_input_method_arguments(self, argument_list, function_arguments):
         """ Get Input Method Arguments

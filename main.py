@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# number_of_elements = [([*aux_value_retainer.keys()][index], item, len(item)) for index, item in enumerate(aux_value_retainer.values())]
+
 from eth_account import Account
 from safe_init_scenario_script import gnosis_py_init_scenario
 from gnosis.safe.safe_tx import SafeTx

@@ -20,6 +20,11 @@ class ConsoleSessionAccounts:
         self._setup_random_accounts()
         # todo: web3.eth.getBalance(address)
 
+    def command_view_accounts(self):
+        for item in self.account_data:
+            print(item, self.account_data[item]['address'],
+                  self.account_data[item]['private_key'])
+
     def add_account(self, address, private_key='', alias='uAccount'):
         """ Add Account
 
