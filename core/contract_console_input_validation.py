@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Importing Constants
-from core.constants.default_values import CONTRACT_ADDRESS_LENGTH, TX_ADDRESS_LENGTH, INFURA_API_KEY_LENGTH, ETHERSCAN_API_KEY_LENGTH
+from core.constants.console_constant import CONTRACT_ADDRESS_LENGTH, TX_ADDRESS_LENGTH, INFURA_API_KEY_LENGTH, ETHERSCAN_API_KEY_LENGTH
 
 # Importing Re Package
 import re

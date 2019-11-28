@@ -2,9 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Import API Key
-from core.constants.api_keys import api_key_dict
-
-# Import Web3 Module
+from core.constants.console_constant import API_KEY_DICT
 
 # Importing Custom Logger & Logging Modules
 from core.logger.custom_logger import CustomLogger
@@ -69,5 +67,5 @@ class InfuraProvider:
         :return:
         """
         if _api_key == '':
-            return api_key_dict['API_KEY']['infura']['0']
+            return API_KEY_DICT['API_KEY']['infura']['0']
         return _api_key

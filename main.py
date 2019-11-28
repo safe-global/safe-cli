@@ -1,22 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from eth_account import Account
+from safe_init_scenario_script import gnosis_py_init_scenario
+from gnosis.safe.safe_tx import SafeTx
+from gnosis.safe.safe import Safe, SafeOperation
+from gnosis.eth.ethereum_client import EthereumClient
+from gnosis.safe.safe_signature import SafeSignature
+from gnosis.eth.contracts import (
+    get_safe_contract, get_safe_V1_0_0_contract, get_safe_V0_0_1_contract
+)
+
+# remark: transact with arguments
+# note: could be autofilled if not provided and set in the console session
+NULL_ADDRESS = '0x' + '0'*40
+
 # Todo: Maybe Add a listener for the Events done by the contract atleast locally so it can be studied how it behaves
 # Todo: Only add to the temporal lexer valid addresses (it has been operated with)
 # reference: https://ethereum.stackexchange.com/questions/1374/how-can-i-check-if-an-ethereum-address-is-valid
 # reference: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md#implementation
 
-from eth_account import Account
-from gnosis.safe.safe_tx import SafeTx
-from gnosis.safe.safe_signature import SafeSignature
-from gnosis.safe.safe import Safe, SafeOperation
-from gnosis.eth.ethereum_client import EthereumClient
-from safe_init_scenario_script import gnosis_py_init_scenario
-
-query_is_owner = 'isOwner --address=0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1 --query'
-execute_swap_owner = 'swapOwner --address=0x00000000000000000000000000000000 --address=0x00000000000000000000000000000001 --address=0x00000000000000000000000000000002 --from=0x00000000000000000000000000000003 --execute'
-query_get_owners = 'getOwners --query'
 query_execTransaction_not_enough_args = 'execTransaction --queue --address=0x00000000000000000000000000000000 --address=0x00000000000000000000000000000001 --address=0x00000000000000000000000000000002'
+execute_swap_owner = 'swapOwner --address=0x00000000000000000000000000000000 --address=0x00000000000000000000000000000001 --address=0x00000000000000000000000000000002 --from=0x00000000000000000000000000000003 --execute'
+query_is_owner = 'isOwner --address=0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1 --query'
+query_get_owners = 'getOwners --query'
 
 # is_valid_address = r'^(0x)?[0-9a-f]{40}$'
 # is_62_valid_address = r'^(0x)?[0-9a-f]{62}$'
@@ -26,35 +33,20 @@ query_execTransaction_not_enough_args = 'execTransaction --queue --address=0x000
 # Web3.isAddress('0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed')
 # Web3.isChecksumAddress('0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed')
 
-
-# remark: transact with arguments
-# note: could be autofilled if not provided and set in the console session
-NULL_ADDRESS = '0x' + '0'*40
-
 # remark: COMMAND ARGUMENT HERE
 command_argument = 'changeThreshold'
 argument_list = ''
 
-contract_artifacts = gnosis_py_init_scenario()
-ethereum_client = EthereumClient()
-
+# remark: Init Accounts
 private_key_account0 = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
 private_key_account1 = '0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1'
 private_key_account2 = '0x6370fd033278c143179d81c5526140625662b8daa446c22ee2d73db3707e620c'
 new_account = Account.privateKeyToAccount('0xadd53f9a7e588d003326d1cbf9e4a43c061aadd9bc938c843a79e7b4fd2ad743')
 owners_list = [Account.privateKeyToAccount(private_key_account0), Account.privateKeyToAccount(private_key_account1), Account.privateKeyToAccount(private_key_account2)]
-print('[ Accounts ]:', owners_list)
 
-orderred_signers = sorted(owners_list, key=lambda v: v.address.lower())
-safe_operator = Safe(contract_artifacts['address'], ethereum_client)
-safe_contract = safe_operator.get_contract()
-
-from hexbytes import HexBytes
-
-
-from gnosis.eth.contracts import (
-    get_safe_contract, get_safe_V1_0_0_contract, get_safe_V0_0_1_contract
-)
+# remark: Init of the Gnosis Init Scenario
+contract_artifacts = gnosis_py_init_scenario()
+ethereum_client = EthereumClient()
 
 class SafeConsoleMethods:
     def __init__(self, safe_address):
@@ -65,32 +57,39 @@ class SafeConsoleMethods:
         self.gas_price = 0
         self.value = 0
 
-    def _setup_safe_resolver(self, safe_address):
-        safe_operator = Safe(safe_address, ethereum_client)
-        safe_version = str(safe_operator.retrieve_version())
+    @staticmethod
+    def _setup_safe_resolver(safe_address):
+        aux_safe_operator = Safe(safe_address, ethereum_client)
+        safe_version = str(aux_safe_operator.retrieve_version())
         if safe_version == '1.1.0':
-            print('version 1.1.0')
-            return safe_operator.get_contract()
+            return aux_safe_operator.get_contract()
         elif safe_version == '1.0.0':
-            print('version 1.0.0')
             return get_safe_V1_0_0_contract(ethereum_client.w3, safe_address)
         else:
-            print('version 0.0.1')
             return get_safe_V0_0_1_contract(ethereum_client.w3, safe_address)
 
-
     def multi_sign_safe_tx(self, safe_tx, signers_list):
+        """ Multi Sign SafeTx Object
+        This function will apply the sign for every member in the signer_list to the current SafeTx Object.
+        :param safe_tx:
+        :param signers_list:
+        :return:
+        """
         try:
             ordered_signers = sorted(signers_list, key=lambda signer: signer.address.lower())
-            for account_address in ordered_signers:
-                safe_tx.sign(account_address.privateKey)
+            for signer in ordered_signers:
+                safe_tx.sign(signer.privateKey)
+
+            # remark: Check if the message/tx is properly signed by the user
+            if self.safe_operator.retrieve_is_message_signed(safe_tx.safe_tx_hash):
+                print(safe_tx.safe_tx_hash, '\n', 'Message has been successfully \'Signed\' by the Owners')
             return safe_tx
         except Exception as err:
             print(type(err), err)
 
-    def perform_transaction(self, payload_data, nonce, sender_private_key, signers_list, approval=False):
+    def perform_transaction(self, sender_private_key, signers_list, payload_data, nonce, approval=False):
         """
-
+        This function will perform the transaction to the safe we have currently load.
         :param payload_data:
         :param nonce:
         :param sender_private_key:
@@ -106,6 +105,9 @@ class SafeConsoleMethods:
         if approval:
             for signer in signers_list:
                 self.safe_instance.functions.approveHash(safe_tx.safe_tx_hash).transact({'from': signer.address})
+                if self.safe_operator.retrieve_is_hash_approved(signer, safe_tx.safe_tx_hash):
+                    # remark: Check if the message/tx is properly approved by the user
+                    print(safe_tx.safe_tx_hash, '\n', 'Hash has been successfully \'Approved\' by the Owner with Address [ {0} ]'.format(signer.address))
 
         tx_hash, _ = safe_tx.execute(sender_private_key, self.base_gas + self.safe_tx_gas)
         tx_receipt = ethereum_client.get_transaction_receipt(tx_hash, timeout=60)
@@ -113,11 +115,24 @@ class SafeConsoleMethods:
         return tx_receipt
 
     def _eval_arguments(self, command_argument, argument_list=[]):
-        print(safe_operator.retrieve_master_copy_address())
-        if command_argument == 'isOwner':
-            print(safe_operator.retrieve_is_owner(owners_list[0].address))
-            print(safe_operator.retrieve_is_owner(owners_list[1].address))
-            print(safe_operator.retrieve_is_owner(owners_list[2].address))
+        """
+        This function will evaluate the arguments been send by the user
+        :param command_argument:
+        :param argument_list:
+        :return:
+        """
+
+        if command_argument == 'info':
+            print('+------------------------------------------------------------------------------------------+')
+            print(' MasterCopy Address:', self.safe_operator.retrieve_master_copy_address())
+            print(' Proxy Address:', self.safe_operator.address)
+            print(' Safe Nonce:', self.safe_operator.retrieve_nonce())
+            print(' Safe Version:', self.safe_operator.retrieve_version())
+            print('+------------------------------------------------------------------------------------------+')
+        elif command_argument == 'isOwner':
+            print(self.safe_operator.retrieve_is_owner(owners_list[0].address))
+            print(self.safe_operator.retrieve_is_owner(owners_list[1].address))
+            print(self.safe_operator.retrieve_is_owner(owners_list[2].address))
 
         elif command_argument == 'nonce':
             self.safe_instance.functions.nonce().call()
@@ -133,33 +148,43 @@ class SafeConsoleMethods:
                 nonce = self.safe_instance.functions.nonce().call()
                 payload_data = self.safe_instance.functions.changeThreshold(5).buildTransaction({'from': owners_list[0].address, 'gas': 200000, 'gasPrice': 0})['data']
                 print('Payload:\n', payload_data)
-                self.perform_transaction(payload_data, nonce, owners_list[0].privateKey, owners_list, approval=False)
-                print(safe_contract.functions.getThreshold().call())
+                self.perform_transaction(owners_list[0].privateKey, owners_list, payload_data, nonce, approval=True)
+                print(self.safe_instance.functions.getThreshold().call())
             except Exception as err:
                 print(type(err), err)
+
         elif command_argument == 'addOwnerWithThreshold':
-            nonce = self.safe_instance.functions.nonce().call()
-            payload_data = self.safe_instance.functions.addOwnerWithThreshold(new_account.address, 4).buildTransaction({'from': owners_list[0].address, 'gas': 200000, 'gasPrice': 0})['data']
-            print('Payload:\n', payload_data)
-            self.perform_transaction(payload_data, nonce, owners_list[0].privateKey, owners_list, approval=True)
-            print(safe_contract.functions.getOwners().call())
-            print(safe_contract.functions.getThreshold().call())
+            try:
+                nonce = self.safe_instance.functions.nonce().call()
+                payload_data = self.safe_instance.functions.addOwnerWithThreshold(new_account.address, 4).buildTransaction({'from': owners_list[0].address, 'gas': 200000, 'gasPrice': 0})['data']
+                print('Payload:\n', payload_data)
+                self.perform_transaction(owners_list[0].privateKey, owners_list, payload_data, nonce, approval=False)
+                print(self.safe_instance.functions.getOwners().call())
+                print(self.safe_instance.functions.getThreshold().call())
+            except Exception as err:
+                print(type(err), err)
 
         elif command_argument == 'removeOwner':
-            nonce = self.safe_instance.functions.nonce().call()
-            payload_data = self.safe_instance.functions.removeOwner(owners_list[0].address, owners_list[1].address, 2).buildTransaction(
-                {'from': owners_list[0].address, 'gas': 200000, 'gasPrice': 0})['data']
-            print('Payload:\n', payload_data)
-            self.perform_transaction(payload_data, nonce, owners_list[0].privateKey, owners_list, approval=True)
-            print(safe_contract.functions.getOwners().call())
+            try:
+                nonce = self.safe_instance.functions.nonce().call()
+                payload_data = self.safe_instance.functions.removeOwner(owners_list[0].address, owners_list[1].address, 2).buildTransaction(
+                    {'from': owners_list[0].address, 'gas': 200000, 'gasPrice': 0})['data']
+                print('Payload:\n', payload_data)
+                self.perform_transaction(owners_list[0].privateKey, owners_list, payload_data, nonce, approval=False)
+                print(self.safe_instance.functions.getOwners().call())
+            except Exception as err:
+                print(type(err), err)
 
         elif command_argument == 'swapOwner':
-            nonce = self.safe_instance.functions.nonce().call()
-            payload_data = self.safe_instance.functions.swapOwner(owners_list[0].address, owners_list[1].address, new_account.address).buildTransaction(
-                {'from': owners_list[0].address, 'gas': 200000, 'gasPrice': 0})['data']
-            print('Payload:\n', payload_data)
-            self.perform_transaction(payload_data, nonce, owners_list[0].privateKey, owners_list, approval=True)
-            print(safe_contract.functions.getOwners().call())
+            try:
+                nonce = self.safe_instance.functions.nonce().call()
+                payload_data = self.safe_instance.functions.swapOwner(owners_list[0].address, owners_list[1].address, new_account.address).buildTransaction(
+                    {'from': owners_list[0].address, 'gas': 200000, 'gasPrice': 0})['data']
+                print('Payload:\n', payload_data)
+                self.perform_transaction(payload_data, nonce, owners_list[0].privateKey, owners_list, approval=True)
+                print(self.safe_instance.functions.getOwners().call())
+            except Exception as err:
+                print(type(err), err)
 
         elif command_argument == 'sendToken':
             print('sendToken Operation')
@@ -168,26 +193,11 @@ class SafeConsoleMethods:
             print('sendEther Operation')
 
 
-
 safe_methods = SafeConsoleMethods(contract_artifacts['address'])
-safe_methods._eval_arguments('swapOwner')
+safe_methods._eval_arguments('info')
 
-# # remark: hardcoded private keys for ganache provider
-# private_key_account0 = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-# private_key_account1 = '0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1'
-# private_key_account2 = '0x6370fd033278c143179d81c5526140625662b8daa446c22ee2d73db3707e620c'
-# # remark: get Account instances from every private key
-# users_to_sign = [Account.privateKeyToAccount(private_key_account0), Account.privateKeyToAccount(private_key_account1),
-#                  Account.privateKeyToAccount(private_key_account2)]
-# print('[ Accounts ]:', users_to_sign)
-# orderred_signers = sorted(users_to_sign, key=lambda v: v.address.lower())
-# print(orderred_signers[0].address, 'is Owner?',
-#       safe_contract.functions.isOwner(orderred_signers[0].address).call())
-# print(orderred_signers[1].address, 'is Owner?',
-#       safe_contract.functions.isOwner(orderred_signers[1].address).call())
-# print(orderred_signers[2].address, 'is Owner?',
-#       safe_contract.functions.isOwner(orderred_signers[2].address).call())
-#
+
+# orderred_signers = sorted(owners_list, key=lambda v: v.address.lower())
 # # remark: Data to ve used in the Transaction
 # new_account_to_add = Account.create()
 # new_account_address = new_account_to_add.address

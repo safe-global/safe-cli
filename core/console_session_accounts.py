@@ -5,7 +5,7 @@
 from eth_account import Account
 
 # Import Deterministic Ganache Account Information (Address, Private Key)
-from core.constants.ganache_constants import DETERMINISTIC_ACCOUNT_INFORMATION as ganache_data
+from core.constants.console_constant import DETERMINISTIC_ACCOUNT_INFORMATION as ganache_data
 
 # Import HexBytes Package
 from hexbytes import HexBytes

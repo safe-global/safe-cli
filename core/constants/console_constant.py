@@ -1,6 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+NULL_ADDRESS = '0x' + '0'*40
+# String Size Of Diferent Type of Addresses
+CONTRACT_ADDRESS_LENGTH = 42
+TX_ADDRESS_LENGTH = 66
+
+# String Size of API Keys
+INFURA_API_KEY_LENGTH = 32
+ETHERSCAN_API_KEY_LENGTH = 34
+
+# API_POOL with gnosis_asociated accounts 100 calls per day * 10 atleast
+API_KEY_DICT = {
+    'API_KEY': {
+        'etherscan': {
+            '0': 'A1T1PKJXZJC1T4RJZK4ZMZH4JEYTUGAA6G',
+        },
+        'infura': {
+            '0': 'b3fa360a82cd459e8f1b459b3cf9127c',
+        }
+    }
+}
+
 DETERMINISTIC_MNEMONIC = 'myth like bonus scare over problem client lizard pioneer submit female collect'
 
 DETERMINISTIC_ACCOUNT_INFORMATION = {

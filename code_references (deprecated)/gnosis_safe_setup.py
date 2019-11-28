@@ -8,7 +8,7 @@
 # Import Web3 Module
 
 # Import Constant
-from core.constants.contract_contants import NULL_ADDRESS
+from core.constants.console_constant import NULL_ADDRESS
 
 # Import Contract Reader
 from core.utils.build_contract_reader import ContractReader

@@ -6,7 +6,7 @@ from gnosis.eth.ethereum_client import EthereumClient
 from gnosis.safe import Safe, ProxyFactory
 from eth_account import Account
 from gnosis.eth.contracts import (
-    get_safe_contract
+    get_safe_contract, get_safe_V1_0_0_contract, get_safe_V0_0_1_contract
 )
 
 class ContractArtifact:
@@ -38,7 +38,7 @@ def gnosis_py_init_scenario():
     local_account = Account.privateKeyToAccount('0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d')
 
     safe_v101_abi, safe_v101_bytecode, safe_v101 = contract_reader.read_from(
-        './assets/contracts/safe/GnosisSafeV1.1.0.json')
+        './assets/contracts/safe/GnosisSafeV1.0.0.json')
     # safe_v100_abi, safe_v100_bytecode, safe_v100 = contract_reader.read_from('./assets/contracts/safe/GnosisSafeV1.0.0.json')
     # safe_v001_abi, safe_v001_bytecode, safe_v001 = contract_reader.read_from('./assets/contracts/safe/GnosisSafeV0.0.1.json')
 
@@ -69,14 +69,14 @@ def gnosis_py_init_scenario():
     safe_v101_object = Safe(ethereum_tx_sent.contract_address, ethereum_client)
     print('compare:', ethereum_tx_sent.contract_address)
     # remark: Setup Another Safe Account
-    local_account1 = Account.privateKeyToAccount('0xadd53f9a7e588d003326d1cbf9e4a43c061aadd9bc938c843a79e7b4fd2ad743')
-    owners_aux = [ethereum_client.w3.eth.accounts[4], ethereum_client.w3.eth.accounts[5], ethereum_client.w3.eth.accounts[6], ethereum_client.w3.eth.accounts[7], ethereum_client.w3.eth.accounts[8]]
-    threshold_aux = 5
-    ethereum_tx_sent_aux = Safe.create(ethereum_client, local_account1, safe_v101_deployment_data.contract_address, owners_aux, threshold_aux, proxy_factory_address=proxy_v101_deployment_data.contract_address)
-    safe_v101_object_0 = Safe(ethereum_tx_sent_aux.contract_address, ethereum_client)
-    print('+' + '---------' * 10 + '+')
-    print('Test Address to loadContract --addres=%s' % (ethereum_tx_sent_aux.contract_address))
-    print('+' + '---------' * 10 + '+')
+    # local_account1 = Account.privateKeyToAccount('0xadd53f9a7e588d003326d1cbf9e4a43c061aadd9bc938c843a79e7b4fd2ad743')
+    # owners_aux = [ethereum_client.w3.eth.accounts[4], ethereum_client.w3.eth.accounts[5], ethereum_client.w3.eth.accounts[6], ethereum_client.w3.eth.accounts[7], ethereum_client.w3.eth.accounts[8]]
+    # threshold_aux = 5
+    # ethereum_tx_sent_aux = Safe.create(ethereum_client, local_account1, safe_v101_deployment_data.contract_address, owners_aux, threshold_aux, proxy_factory_address=proxy_v101_deployment_data.contract_address)
+    # safe_v101_object_0 = Safe(ethereum_tx_sent_aux.contract_address, ethereum_client)
+    # print('+' + '---------' * 10 + '+')
+    # print('Test Address to loadContract --addres=%s' % (ethereum_tx_sent_aux.contract_address))
+    # print('+' + '---------' * 10 + '+')
 
     # remark Loading Older Versions for the Safe Contract
     # ethereum_tx_sent1 = Safe.create(ethereum_client, local_account, safe_v100_deployment_data.contract_address, owners, threshold, proxy_factory_address=proxy_v100_deployment_data.contract_address)

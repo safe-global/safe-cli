@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from core.constants.api_keys import api_key_dict
+from core.constants.console_constant import API_KEY_DICT
 from core.data_struct.blk_instance import BlkInstance
 import etherscan
 
@@ -23,7 +23,7 @@ def main():
 
     # re.search('[aA-zZ,0-9]')
     # re.search('[A-Z,0-9]')
-    ETHERSCAN_API_KEY = api_key_dict['API_KEY']['etherscan']['0']
+    ETHERSCAN_API_KEY = API_KEY_DICT['API_KEY']['etherscan']['0']
 
     es = etherscan.Client(api_key=ETHERSCAN_API_KEY, cache_expire_after=5)
 

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-from core.constants.contract_contants import NULL_ADDRESS
+from core.constants.console_constant import NULL_ADDRESS
 
 # Import GnosisSafe Module
 from core.utils.gnosis_safe_setup import GnosisSafeModule
@@ -27,7 +27,7 @@ from eth_account import Account
 
 # Todo: This should be moved to the ganache_provider.
 # Import default deterministic account information for Ganache Provider
-from core.constants.ganache_constants import DETERMINISTIC_ACCOUNT_INFORMATION
+from core.constants.console_constant import DETERMINISTIC_ACCOUNT_INFORMATION
 
 PROJECT_DIRECTORY = os.getcwd() + '/assets/safe-contracts-1.1.0/'
 CONTRACT_SOL_DIRECTORY = PROJECT_DIRECTORY + 'contracts/'
