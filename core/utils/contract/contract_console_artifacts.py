@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
 class ContractConsoleArtifacts:
     def __init__(self, contract_artifact_list=None):
         self.contract_artifact_list = contract_artifact_list

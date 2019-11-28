@@ -81,6 +81,15 @@ class ConsoleInputGetter:
             print('_get_input_console_arguments unable to properly parse', type(err), err)
             return command_argument, argument_list
 
+    def _get_stored_arguments(self, argument_item, storage_item):
+        stored_index = argument_item.split('.')
+        print('stored_argument', stored_index[0], stored_index[1])
+        try:
+            tmp_address = storage_item[stored_index[0]][stored_index[1]]
+            return tmp_address
+        except KeyError as err:
+            print('Key Error here', err)
+
     def _get_method_argument_value(self, value, quote=True):
         """ Get Method Argument Value
 
@@ -90,6 +99,53 @@ class ConsoleInputGetter:
         if quote:
             return self._get_quoted_argument(value.split('=')[1])
         return value.split('=')[1]
+
+    def get_input_method_arguments(self, argument_list, function_arguments):
+        """ Get Input Method Arguments
+
+        :param argument_list:
+        :param function_arguments:
+        :return:
+        """
+        arguments_to_fill = ''
+        execute_value = False
+        to_queue = False
+        to_query = False
+        address_from = ''
+
+        # Control for number of input arguments
+        argument_positions_to_fill = len(function_arguments)
+        argument_positions_filled = 0
+
+        for sub_index, argument_item in enumerate(argument_list):
+            if '--from=' in argument_item:
+                address_from = self._get_method_argument_value(argument_item)
+            elif '--execute' == argument_item:
+                if to_queue or to_query:
+                    print('--queue|--query value already parsed, this value will be ignored')
+                else:
+                    execute_value = True
+            elif '--query' == argument_item:
+                if execute_value or to_queue:
+                    print('--execute|--queue value already parsed, this value will be ignored')
+                else:
+                    to_query = True
+            elif '--queue' == argument_item:
+                if execute_value or to_query:
+                    print('--execute|--query value already parsed, this value will be ignored')
+                else:
+                    to_queue = True
+            else:
+                for sub_index, argument_type in enumerate(function_arguments):
+                    if argument_type[sub_index] in argument_item \
+                            and argument_positions_to_fill != 0 \
+                            and argument_positions_to_fill > argument_positions_filled:
+                        arguments_to_fill += self._get_method_argument_value(argument_item) + COMA
+                        argument_positions_filled += 1
+
+                arguments_to_fill = arguments_to_fill[:-1]
+
+        return argument_list[0], arguments_to_fill, address_from, execute_value, to_queue, to_query
 
     def evaluate_arguments_based_on_priority(self, command_argument, argument_list):
         """ Get Arguments Based on Priority
@@ -183,4 +239,5 @@ class ConsoleInputGetter:
         print('| Command:', command_argument, '| Argument:', argument_list, '| ')
         desired_parsed_item_list, priority_group = self.evaluate_arguments_based_on_priority(command_argument, argument_list)
         print('| Argument Resolution:', desired_parsed_item_list, '| Priority Group:', priority_group, '| ')
-        return desired_parsed_item_list, priority_group
+        return desired_parsed_item_list, priority_group, command_argument, argument_list
+

@@ -9,6 +9,12 @@ from core.constants.console_constant import DETERMINISTIC_ACCOUNT_INFORMATION as
 
 # Import HexBytes Package
 from hexbytes import HexBytes
+from enum import Enum
+
+class TypeOfNetworkAccount(Enum):
+    GANACHE_ACCOUNT = 'LocalAccount'
+    RINKEBY_ACCOUNT = 'RinkebyAccount'
+    MAINNET_ACCOUNT = 'MainnetAccount'
 
 class ConsoleSessionAccounts:
     """ ConsoleSessionAccounts
@@ -34,7 +40,7 @@ class ConsoleSessionAccounts:
         :return:
         """
         if private_key != '':
-            tmp_account = Account.from_key(private_key)
+            tmp_account = Account.privateKeyToAccount(private_key)
             self.account_data[alias + str(len(self.account_data)-1)] = {'address': tmp_account.address, 'private_key': tmp_account.privateKey}
             return self.account_data
         else:   # Todo: Validate Address

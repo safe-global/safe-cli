@@ -11,7 +11,7 @@ from core.utils.contract.contract_payload_artifacts import ContractPayloadArtifa
 # Import PromptToolkit Package
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit import PromptSession
-from prompt_toolkit import HTML, prompt
+
 
 # Import Os Package
 import os
@@ -86,12 +86,12 @@ class GnosisConsoleEngine:
                     stream = session.prompt()
                     if previous_session is None:
                         # remark: eval gnosis-cli arguments
-                        self._evaluate_console_command(stream, session)
+                        self.operate_with_console(stream, session)
                     else:
                         # remark: eval contract-cli arguments
                         self.operate_with_contract(stream, contract_methods, contract_instance)
                     # remark: If you are in a sub session of the console return to gnosis-cli session
-                    command_argument, argument_list = self.console_getter(stream)
+                    command_argument, argument_list = self.console_getter._get_input_console_arguments(stream)
                     if (command_argument == 'close') or (command_argument == 'quit') or (command_argument == 'exit'):
                         return self.close_console_session(previous_session)
                 except KeyboardInterrupt:
@@ -165,70 +165,37 @@ class GnosisConsoleEngine:
         print('Current_Network:', self.network)
 
     # note: Future command to it's own funciton
-    def command_load_contract(self, command_argument, argument_list, previous_session):
+    def command_load_contract(self, desired_parsed_item_list, priority_group, command_argument, argument_list, previous_session):
         """ Command Load Contract
 
+        :param desired_parsed_item_list:
+        :param priority_group:
         :param command_argument:
         :param argument_list:
         :param previous_session:
         :return:
         """
-        tmp_alias = self._get_gnosis_input_command_argument(command_argument, argument_list,
-                                                            ['--alias=', '--abi=', '--bytecode=', '--address='])
-        try:
-            contract_instance = self.console_artifacts.get_value_from_alias(tmp_alias, 'instance')
-            contract_methods = ContractMethodArtifacts().map_contract_methods(contract_instance)
-            self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='./', stream=tmp_alias),
-                                     previous_session=previous_session, contract_methods=contract_methods,
-                                     contract_instance=contract_instance)
-        except KeyError as err:
-            print(type(err), err)
+        print('Data:', desired_parsed_item_list, priority_group, command_argument, argument_list)
+        if priority_group == 0:
+            tmp_alias = desired_parsed_item_list[0][1]
+            print(tmp_alias)
+            try:
+                contract_instance = self.console_artifacts.get_value_from_alias(tmp_alias, 'instance')
+                contract_methods = ContractMethodArtifacts().map_contract_methods(contract_instance)
+                self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='./', stream=tmp_alias),
+                                         previous_session=previous_session, contract_methods=contract_methods,
+                                         contract_instance=contract_instance)
+            except KeyError as err:
+                print(command_argument, type(err), err)
+        elif priority_group == 1:
+            print(command_argument, argument_list)
 
-    def _eval_stored_arguments(self, argument_item, storage_item):
-        stored_index = argument_item.split('.')
-        print('stored_argument', stored_index[0], stored_index[1])
-        try:
-            tmp_address = storage_item[stored_index[0]][stored_index[1]]
-            return tmp_address
-        except KeyError as err:
-            print('Key Error here', err)
+    def operate_with_console(self, stream, previous_session):
 
-    # def _get_gnosis_input_command_argument(self, command_argument, argument_list, checklist):
-    #     """ Get Gnosis Input Command Arguments
-    #     This function will get the input arguments provided in the gnosis-cli
-    #     :param command_argument:
-    #     :param argument_list:
-    #     :param checklist:
-    #     :return:
-    #     """
-    #     print('Command:', command_argument)
-    #     for sub_index, argument_item in enumerate(argument_list):
-    #         if argument_item.startswith('--alias='):
-    #             alias = self._get_method_argument_value(argument_item, quote=False)
-    #             return alias
-    #         elif argument_item.startswith('--name='):
-    #             name = self._get_method_argument_value(argument_item, quote=False)
-    #             return name
-    #         elif argument_item.startswith('--id='):
-    #             id = self._get_method_argument_value(argument_item, quote=False)
-    #         elif argument_item.startswith('--abi='):
-    #             contract_abi = self._get_method_argument_value(argument_item, quote=False)
-    #         elif argument_item.startswith('--address='):
-    #             tmp_address = self._get_method_argument_value(argument_item, quote=False)
-    #             aux_tmp_address = self._eval_stored_arguments(tmp_address, self.console_accounts.account_data)
-    #             # aux2_tmp_address = self._eval_stored_arguments(tmp_address, self.contract_console_data.contract_data)
-    #             print(aux_tmp_address)
-    #         elif argument_item.startswith('--bytecode='):
-    #             contract_bytecode = self._get_method_argument_value(argument_item, quote=False)
-    #         else:
-    #             continue
-    #         print(' (+) Argument:', argument_item)
-
-    def _evaluate_console_command(self, stream, previous_session):
-        command_argument, argument_list = self.console_getter.get_gnosis_input_command_argument(stream)
+        desired_parsed_item_list, priority_group, command_argument, argument_list = self.console_getter.get_gnosis_input_command_argument(stream)
         print('Commnand:', command_argument, 'Arguments:', argument_list)
         if command_argument == 'loadContract':
-            self.command_load_contract(command_argument, argument_list, previous_session)
+            self.command_load_contract(desired_parsed_item_list, priority_group, command_argument, argument_list, previous_session)
         elif command_argument == 'setNetwork':
             print('setNetwork')
             # self.command_set_network(self.console_getter.get_gnosis_input_command_argument(command_argument, argument_list))
@@ -262,54 +229,7 @@ class GnosisConsoleEngine:
         elif command_argument == 'viewOwners':
             self.command_view_default_owner_list()
         elif command_argument == 'dummyCommand':
-            self._get_gnosis_input_command_argument(command_argument, argument_list, [])
-
-    def _get_input_method_arguments(self, argument_list, function_arguments):
-        """ Get Input Method Arguments
-
-        :param argument_list:
-        :param function_arguments:
-        :return:
-        """
-        arguments_to_fill = ''
-        execute_value = False
-        to_queue = False
-        to_query = False
-        address_from = ''
-
-        # Control for number of input arguments
-        argument_positions_to_fill = len(function_arguments)
-        argument_positions_filled = 0
-
-        for sub_index, argument_item in enumerate(argument_list):
-            if '--from=' in argument_item:
-                address_from = self._get_method_argument_value(argument_item)
-            elif '--execute' == argument_item:
-                if to_queue or to_query:
-                    print('--queue|--query value already parsed, this value will be ignored')
-                else:
-                    execute_value = True
-            elif '--query' == argument_item:
-                if execute_value or to_queue:
-                    print('--execute|--queue value already parsed, this value will be ignored')
-                else:
-                    to_query = True
-            elif '--queue' == argument_item:
-                if execute_value or to_query:
-                    print('--execute|--query value already parsed, this value will be ignored')
-                else:
-                    to_queue = True
-            else:
-                for sub_index, argument_type in enumerate(function_arguments):
-                    if argument_type[sub_index] in argument_item \
-                            and argument_positions_to_fill != 0 \
-                            and argument_positions_to_fill > argument_positions_filled:
-                        arguments_to_fill += self._get_method_argument_value(argument_item) + COMA
-                        argument_positions_filled += 1
-
-                arguments_to_fill = arguments_to_fill[:-1]
-
-        return argument_list[0], arguments_to_fill, address_from, execute_value, to_queue, to_query
+            self.console_getter.get_gnosis_input_command_argument(stream)
 
     def operate_with_contract(self, stream, contract_methods, contract_instance):
         """ Operate With Contract
@@ -324,7 +244,7 @@ class GnosisConsoleEngine:
             for item in contract_methods:
                 if contract_methods[item]['name'] in stream:
                     splitted_stream = stream.split(' ')
-                    function_name, function_arguments, address_from, execute_flag, queue_flag, query_flag = self._get_input_method_arguments(
+                    function_name, function_arguments, address_from, execute_flag, queue_flag, query_flag = self.console_getter.get_input_method_arguments(
                         splitted_stream, contract_methods[item]['arguments'])
                     print('command:', function_name, 'arguments', function_arguments, 'tx:', execute_flag, 'call:', query_flag)
                     # print(self._get_input_method_arguments(splitted_stream, contract_methods[item]['arguments']))
@@ -357,14 +277,6 @@ class GnosisConsoleEngine:
         except Exception as err:
             print(type(err), err)
 
-    def _get_quoted_argument(self, value):
-        """ Quote Argument
-
-        :param value:
-        :return:
-        """
-        return QUOTE + value + QUOTE
-
     def _get_prompt_text(self, affix_stream='', stream=''):
         """ Get Prompt Text
 
@@ -374,13 +286,3 @@ class GnosisConsoleEngine:
         if affix_stream == '':
             return '[ {cli_name} ]>: '.format(cli_name=self.prompt_text)
         return '[ {affix_stream} ][ {stream} ]>: '.format(affix_stream=affix_stream, stream=stream)
-
-    def _get_method_argument_value(self, value, quote=True):
-        """ Get Method Argument Value
-
-        :param value:
-        :return:
-        """
-        if quote:
-            return self._get_quoted_argument(value.split('=')[1])
-        return value.split('=')[1]
