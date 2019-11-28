@@ -1,0 +1,8 @@
+web3==4.9.2
+gnosis_py==1.7.4
+hexbytes==0.2.0
+prompt_toolkit==3.0.0
+pandas==0.25.3
+eth_account==0.3.0
+etherscan==0.3.0
+pyetherchain==0.3.2
