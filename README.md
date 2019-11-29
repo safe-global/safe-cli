@@ -89,3 +89,33 @@ Python 3 gnosis-cli focuses on the development of a console to operate with the 
 + addOwnerWithThreshold
 + swapOwner
 + removeOwner
+
+```python
+# python gnosis-py --network=ganache --private_key key0 key1 --silence --debug
+# (gnosis-safe-cli)>:
+# (gnosis-safe-cli)>: viewNetwork
+# (gnosis-safe-cli)>: setNework ganache
+# (gnosis-safe-cli)>: setNework rinkeby --api_key=
+# (gnosis-safe-cli)>: setNework mainnet --api_key=
+# (gnosis-safe-cli)>:
+# (gnosis-safe-cli)>: viewAccounts
+# (gnosis-safe-cli)>: newAccount --pkey=
+# (gnosis-safe-cli)>: newAccount --address=
+# (gnosis-safe-cli)>:
+# (gnosis-safe-cli)>: loadContract --address=0x(0)*40 --abi=/path/to/abi/
+# (gnosis-safe-cli)>: loadContract --build=/path/to/build/
+# (gnosis-safe-cli)>:
+# (gnosis-safe-cli)>: loadSafe --address=0x
+# (gnosis-safe-cli)>: loadContract --alias=GnosisSafeV1.1.0
+# (gnosis-safe-cli)>: loadContract --alias=uContract1
+
+# [ ./ ][ Safe(v1.1.0) ]>: getOwners --query
+# [ ./ ][ Safe(v1.1.0) ]>: getThreshold --query
+# [ ./ ][ Safe(v1.1.0) ]>: changeThreshold --uint=8 --address=0x(0*40) --address=0x(0*40) --execute|--queue
+
+# [ ./ ][ Safe(v1.1.0) ]>: viewOwners
+# [ ./ ][ Safe(v1.1.0) ]>: setDefaultOwner 0x(0*40)
+# [ ./ ][ Safe(v1.1.0) ]>: setDefaultOwnerList 0x(0*40) 0x(0*40) 0x(0*40)
+# [ ./ ][ Gnosis-Safe(v1.1.0) ]>: newPayload
+# [ ./ ][ Gnosis-Safe(v1.1.0) ]>: close/exit/quit
+```
