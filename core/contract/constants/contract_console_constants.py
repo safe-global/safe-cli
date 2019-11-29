@@ -1,28 +1,25 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# Import HTML Module
 from prompt_toolkit.formatted_text import HTML
 
 # simple_function_operand = '((--address=)(0x([aA-zZ,0-9]{62}|[aA-zZ,0-9]{40}))?)|((--uint=)([0-9]{0,})?)|(--queue)?(--execute)?'
-
 simple_function_name = 'isOwner|getOwners|getThreshold|addOwner|swapOwner|removeOwner|changeThreshold|sendEther|sendToken|VERSION|NAME|code|nonce|addOwnerWithThreshold'
 console_commands = 'viewNetwork|viewAccounts|viewContracts|newPayload|newTxPayload|newAccount|newContract|setNetwork|setDefaultOwner|setDefaultOwnerList|loadContract|loadSafe|viewPayloads|viewOwners|viewTokens|newTokens'
-normal_address = '--address=(0x[aA-zZ,0-9]{40,62})?'
-bytecode_data = '--bytecode=(([aA-zZ,0-9]{0,}))?'
-uint_data = '--uint=([0-9]{0,})?'
-low_lvl_execution_commands = '--queue|--execute|--query'
 quit_commands = 'exit|quit|close'
 help_commands = 'help|about|info'
 known_networks = 'ropsten|mainnet|ganache|rinkeby'
+low_lvl_execution_commands = '--queue|--execute|--query'
+normal_address = '--address=(0x[aA-zZ,0-9]{40,62})?'
+bytecode_data = '--bytecode=(([aA-zZ,0-9]{0,}))?'
+uint_data = '--uint=([0-9]{0,})?'
 ether_params = '--ether=|--miliether=|--microether=|--wei=|--Kwei=|--Mwei=|--Gwei='
 
 arg_keywords = [
     '--address=', '--uint=', '--ether=', '--miliether=', '--microether=', '--wei=', '--Kwei=',
     '--Mwei=', '--Gwei=', '--query', '--execute', '--queue', '--alias='
     ]
-
-# note: to be independent from function_name completer
-view_function_name = ['viewAccounts', 'viewContract']
 
 function_name = [
     'isOwner', 'getOwners', 'swapOwners', 'removeOwner', 'addOwner', 'addOwnersWithThreshold', 'changeOwner'

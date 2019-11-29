@@ -93,7 +93,7 @@ Python 3 gnosis-cli focuses on the development of a console to operate with the 
 ```python
 # python gnosis-py --network=ganache --private_key key0 key1 --silence --debug
 # (gnosis-safe-cli)>:
-# (gnosis-safe-cli)>: viewNetwork
+# (gnosis-safe-cli)>: viewNetworks
 # (gnosis-safe-cli)>: setNework ganache
 # (gnosis-safe-cli)>: setNework rinkeby --api_key=
 # (gnosis-safe-cli)>: setNework mainnet --api_key=

@@ -25,7 +25,7 @@ local_account8 = Account.privateKeyToAccount('0x829e924fdf021ba3dbbc4225edfece9a
 local_account9 = Account.privateKeyToAccount('0xb0057716d5917badaf911b193b12b910811c1497b5bada8d7711f758981c3773')
 new_account = local_account9
 
-owners_list = [local_account0, local_account1, local_account2]
+owners_list0 = [local_account0, local_account1, local_account2]
 owners_list = [local_account4, local_account5, local_account6, local_account7, local_account8]
 
 class ConsoleSafeMethods:
@@ -98,6 +98,19 @@ class ConsoleSafeMethods:
         print('Tx Receipt:\n', tx_receipt)
         return tx_receipt
 
+    def command_safe_information(self):
+        self.logger.debug0('---------')
+        self.logger.info(' | Safe Master Copy Address: {0} |'.format(self.safe_operator.retrieve_master_copy_address()))
+        self.logger.info(' | Safe Proxy Address: {0} |'.format(self.safe_operator.address))
+        self.logger.info(' | Nonce: {0} |'.format(self.safe_operator.retrieve_nonce()))
+        self.logger.info(' | Version: {0} |'.format(self.safe_operator.retrieve_version()))
+        self.logger.debug0('---------')
+
+    def command_safe_get_owners(self):
+        self.logger.debug0('---------')
+        self.logger.debug0('---------')
+        self.logger.debug0('---------')
+
     def operate_with_safe(self, stream):
         """
         This function will evaluate the arguments been send by the user
@@ -108,12 +121,7 @@ class ConsoleSafeMethods:
         desired_parsed_item_list, priority_group, command_argument, argument_list = self.console_getter.get_gnosis_input_command_argument(stream)
         print('operate_with_safe', command_argument)
         if command_argument == 'info':
-            print('+' + '---------' * 10 + '+')
-            print(' MasterCopy Address:', self.safe_operator.retrieve_master_copy_address())
-            print(' Proxy Address:', self.safe_operator.address)
-            print(' Safe Nonce:', self.safe_operator.retrieve_nonce())
-            print(' Safe Version:', self.safe_operator.retrieve_version())
-            print('+' + '---------' * 10 + '+')
+            self.command_safe_information()
         elif command_argument == 'getOwners':
             print('+' + '---------' * 10 + '+')
             print(self.safe_instance.functions.getOwners().call())

@@ -27,11 +27,12 @@ class ContractArtifact:
             'address': self.contract_address
         }
 
-def gnosis_py_init_old_master_copies_scenario():
-    # safe_v100_abi, safe_v100_bytecode, safe_v100 = contract_reader.read_from('./assets/contracts/safe/GnosisSafeV1.0.0.json')
-    # safe_v001_abi, safe_v001_bytecode, safe_v001 = contract_reader.read_from('./assets/contracts/safe/GnosisSafeV0.0.1.json')
 
-    # proxy_v100_abi, proxy_v100_bytecode, proxy_v100 = contract_reader.read_from('./assets/contracts/safe/ProxyFactoryV1.0.0.json')
+def gnosis_py_init_old_master_copies_scenario():
+    # safe_v100_abi, safe_v100_bytecode, safe_v100 = contract_reader.read_from('./assets/contracts/GnosisSafeV1.0.0.json')
+    # safe_v001_abi, safe_v001_bytecode, safe_v001 = contract_reader.read_from('./assets/contracts/GnosisSafeV0.0.1.json')
+
+    # proxy_v100_abi, proxy_v100_bytecode, proxy_v100 = contract_reader.read_from('./assets/contracts/ProxyFactoryV1.0.0.json')
     # proxy_v100_deployment_data = ProxyFactory.deploy_proxy_factory_contract_v1_0_0(ethereum_client, local_account)
     # print('Successfully Deployed', proxy_v100, 'with Address:', proxy_v100_deployment_data.contract_address)
 
@@ -62,9 +63,9 @@ def gnosis_py_init_scenario():
     # remark: Init Deployer Account
     local_account = Account.privateKeyToAccount('0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d')
     safe_v101_abi, safe_v101_bytecode, safe_v101 = contract_reader.read_from(
-        './assets/contracts/safe/GnosisSafeV1.1.0.json')
+        './assets/contracts/GnosisSafeV1.1.0.json')
     proxy_v101_abi, proxy_v101_bytecode, proxy_v101 = contract_reader.read_from(
-        './assets/contracts/safe/ProxyFactoryV1.1.0.json')
+        './assets/contracts/ProxyFactoryV1.1.0.json')
 
     # remark: Start Safe Contract Deployment
     proxy_v101_deployment_data = ProxyFactory.deploy_proxy_factory_contract(ethereum_client, local_account)
