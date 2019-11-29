@@ -13,7 +13,7 @@ from core.constants.console_constant import NULL_ADDRESS
 # Import Contract Reader
 from core.utils.build_contract_reader import ContractReader
 
-class GnosisSafeModule:
+class TruffleSafeSetup:
     """ Gnosis Safe Module
     This module will provide the set of functions needed to interact with the Gnosis Safe through the commandline
     """

@@ -7,6 +7,11 @@ from core.constants.console_constant import INFURA_API_KEY_LENGTH, ETHERSCAN_API
 # Importing Re Package
 import re
 
+# is_valid_address = r'^(0x)?[0-9a-f]{40}$'
+# is_62_valid_address = r'^(0x)?[0-9a-f]{62}$'
+# Web3.fromWei(1000000000000000000, 'Gwei')
+# Web3.isAddress('0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed')
+# Web3.isChecksumAddress('0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed')
 
 class ConsoleInputValidation:
     def __init__(self, logger):

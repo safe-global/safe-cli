@@ -7,33 +7,28 @@ import os
 # Import Subprocess Package
 from subprocess import Popen, PIPE
 
-# Import Truffle Command Constant
-from core.constants.default_truffle_commands import TRUFFLE_COMPILE, TRUFFLE_HARD_MIGRATE
-
 # Import Json ABIReader Package
 from core.utils.build_contract_reader import ContractReader
 
+# Truffle Command Constant
+TRUFFLE_SOFT_MIGRATE = 'truffle migrate'
+TRUFFLE_HARD_MIGRATE = 'truffle migrate --reset'
+TRUFFLE_COMPILE = 'truffle compile'
+
+
 class ConsoleTruffleInterface:
-    """A convenience interface for interacting with ethereum smart contracts
-
-    This interface will handle a main contract and it's dependencies. All it
-    requires is a path to the directory where your solidity files are stored.
-    It will then compile, deploy, fetch a contract instance, and provide
-    methods for transacting and calling with gas checks and event output.
+    """ Console Truffle Interface
+    A convenience interface for interacting compiling and deploying smart contracts using truffle
     """
-
     def __init__(self, provider, contract_directory, deployment_contract_list=[], proxy_contract_list=[]):
-        """Accepts contract, directory, and an RPC connection and sets defaults
-        Parameters:
-            provider (Web3 object): the RPC node you'll make calls to (e.g. geth, ganache-cli)
-            deployment_contract_list (str): name of the contract you want to interface with
-            contract_directory (path): location of Solidity source files
-            ¿?# max_deploy_gas (int): max gas to use on deploy, see 'deploy_contract'
-            ¿?# max_tx_gas (int): max gas to use for transactions, see 'send'
-            deployment_vars_path (path): default path for storing deployment variables
+        """
+        This function, accepts contract, directory, and an RPC connection and sets defaults
+        :param provider (Web3 object): the RPC node you'll make calls to (e.g. geth, ganache-cli)
+        :param deployment_contract_list (str): name of the contract you want to interface with
+        :param contract_directory (path): location of Solidity source files
+        :param    deployment_vars_path (path): default path for storing deployment variables
 
-        Also sets web3.eth.defaultAccount as the coinbase account (e.g. the
-        first key pair/account in ganache) for all send parameters
+        Also sets web3.eth.defaultAccount as the coinbase account (e.g. the first key pair/account in ganache) for all send parameters
         """
 
         self.provider = provider
@@ -46,16 +41,10 @@ class ConsoleTruffleInterface:
         self.proxy_contract_list = proxy_contract_list
 
     def compile_source_files(self):
-        """Compiles 'contract_to_deploy' from specified contract.
-
-        Loops through contracts in 'contract_directory' and creates a list of
-        absolute paths to be passed to the py-solc-x's 'compile_files' method.
-
-        Returns:
-            self.all_compiled_contracts (dict): all the compiler outputs (abi, bin, ast...)
-            for every contract in contract_directory
+        """ Compile Source Files
+        This function compiles specified contract.
+        :return:
         """
-
         try:
             # try-catch for Exceptions on truffle commands while using subprocess
             print('Start Truffle Compile')
@@ -69,25 +58,25 @@ class ConsoleTruffleInterface:
                     for file in files:
                         self.compiled_contract_list.append(os.path.abspath(os.path.join(root, file)))
                         # print('DEBUG: ', os.path.abspath(os.path.join(root, file)))
-
                 print('Successfully compiled {number_of_files} contract files'.format(number_of_files=len(self.compiled_contract_list)))
             # Todo: Add Proper Exception Catching so in case of fatal can be raised to the top
             except Exception as err:
-                print('inner loop compile sources', err)
-
+                print(type(err), err)
             return True
         except Exception as err:
-            print(err)
+            print(type(err), err)
             return False
 
     def __deploy_contract(self, root, file, contract_to_proxy={}):
-        ''' Deploy Contract
+        """ Deploy Contract
+
         This function to setup the proper deploy of the contracts
             :param root: Root Folder
             :param file: Root File
             :param contract_to_proxy: In case the main contract it's deployed with a proxy contract
             :return: contract artifacts (abi/bytecode)
-        '''
+        """
+
         account0 = self.provider.eth.accounts[0]
         print('---------' * 10)
         print('Start Deploying Contract', file[:-len('.json')])
@@ -115,8 +104,8 @@ class ConsoleTruffleInterface:
         print('Done.', '\n')
         return {'abi': contract_abi, 'bytecode': contract_bytecode, 'address':  tx_receipt.contractAddress}
 
-    def deploy_contract(self, migrate=False):
-        """Deploys contract specified by 'contract_to_deploy'
+    def deploy_contract(self):
+        """ Deploys contract specified by 'contract_to_deploy'
 
         This function will deploy the contract provided in the initialization of the class
         (should estimate deployment gas and compares that to max_deploy_gas before
@@ -150,7 +139,6 @@ class ConsoleTruffleInterface:
                                 contract_artifacts[main_contract] = self.__deploy_contract(root, file)
 
                                 # Todo: Make a dict association to bind the proxy to the proper contract and allow
-                                #  more dynamic evaluation.
                                 if self.proxy_contract_list is not []:
                                     print('Deployment Proxy Contract List: ', self.proxy_contract_list)
                                     for proxy_item in self.proxy_contract_list:
@@ -167,16 +155,17 @@ class ConsoleTruffleInterface:
             return {}
 
     def get_new_instance(self, contract_artifacts):
-        """Returns a contract instance object
-
-        Checks there is in fact an address saved. Also does a (crude) check
-        that the deployment at that address is not empty. Reads variables
-        created in 'deploy_contract' and creates a contract instance
-        for use with all the 'Contract' methods specified in web3.py
-
-        Returns:
-            self.contract_instance(class ContractInterface): see above
         """
+
+        This function returns a contract instance object and checks there is in fact an address saved. Also
+        does a (crude) check that the deployment at that address is not empty. Reads variables created in
+        'deploy_contract' and creates a contract instance for use with all the 'Contract' methods specified
+        in web3.py
+
+        :param contract_artifacts:
+        :return: contract_instance
+        """
+
         contract_abi = contract_artifacts['abi']
         contract_address = contract_artifacts['address']
         try:
