@@ -28,7 +28,7 @@ local_account9 = Account.privateKeyToAccount('0xb0057716d5917badaf911b193b12b910
 new_account = local_account9
 
 owners_list0 = [local_account0, local_account1, local_account2]
-owners_list = [local_account4, local_account5, local_account6, local_account7, local_account8 ]
+owners_list = [local_account4, local_account5, local_account6, local_account7, local_account8]
 
 class ConsoleSafeMethods:
     def __init__(self, safe_address):

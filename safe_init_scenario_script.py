@@ -48,7 +48,6 @@ def gnosis_py_init_old_master_copies_scenario():
     # print('Successfully Retrieved', safe_v100, 'Contract Instance', safe_v100_contract_instance)
     # safe_v001_contract_instance = get_safe_V0_0_1_contract(ethereum_client.w3, gnosi_safe_address_v100)
     # print('Successfully Retrieved', safe_v001, 'Contract Instance', safe_v001_contract_instance)
-
     return
 
 

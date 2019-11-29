@@ -11,7 +11,7 @@ from core.constants.console_constant import DETERMINISTIC_ACCOUNT_INFORMATION as
 from hexbytes import HexBytes
 from enum import Enum
 
-class TypeOfNetworkAccount(Enum):
+class TypeOfAccount(Enum):
     GANACHE_ACCOUNT = 'LocalAccount'
     RINKEBY_ACCOUNT = 'RinkebyAccount'
     MAINNET_ACCOUNT = 'MainnetAccount'
