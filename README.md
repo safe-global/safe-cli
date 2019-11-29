@@ -6,11 +6,13 @@ Python 3 gnosis-cli focuses on the development of a console to operate with the 
 + To Launch the current version for the console, previous to execution, run **ganache-cli -d**
 + Launch console using **python gnosis_cli.py**
 + Once you are in the console, for now you can use loadContract --alias=uContract or --alias=GnosisSafeV1.1.0 to enter a contract session.
++ Or you can copy paste the command from the preload section of the prompt and test loadSafe --address=0x..., and launch the test functions via command. (Autocompleter() fails to track some functions)
 
 ## Current Command Roadmap:
 ### General
 
-+  **[ Partial Implementation ]:** Prompt CLI Syntax Highlight
+#### **[ In Progress ]:** Decoupling the code.
++  **[ On Hold ]:** Prompt CLI Syntax Highlight
 +  **[ Partial Implementation ]:** Prompt CLI with Multi Session Implementation for the loaded Contracts and Configuration Menus
 +  **[ Partial Implementation ]:** Prompt CLI AutoCompleter
 +  **[ Pending ]:** Prompt CLI Input Validator
@@ -20,7 +22,8 @@ Python 3 gnosis-cli focuses on the development of a console to operate with the 
 ### Gnosis CLI
 
 + **[ Partial Implementation ]:** Command newContract --address=0x --abi=(./path/to/abi )
-+ **[ Partial Implementation ]:** Command loadContract --address=0x --abi=(./path/to/abi )
++ **[ Partial Implementation ]:** Command loadContract --address=0x | --alias=uContract1
++ **[ Partial Implementation ]:** Command loadSafe --address=0x
 + **[ Partial Implementation ]:** Command setNerwork --id=| --name=
 + **[ Implemented ]:** Command viewNetwork
 
@@ -57,7 +60,7 @@ Python 3 gnosis-cli focuses on the development of a console to operate with the 
 + setDefaultSafeTxGas
 + setDefaultGasPrice
 
-### Gnosis Safe Contract
+### General Contract Session
 
 ### [ Functional ]
 
@@ -72,3 +75,17 @@ Python 3 gnosis-cli focuses on the development of a console to operate with the 
 
 + swapOwner --execute
 + changeThreshold --execute 
+
+### General Contract Safe
+
+### [ Functional-Testing ]
+
++ getThreshold
++ getOwners
++ isOwner
++ NAME
++ VERSION
++ nonce
++ addOwnerWithThreshold
++ swapOwner
++ removeOwner
