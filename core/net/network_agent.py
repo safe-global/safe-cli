@@ -2,16 +2,12 @@
 # -*- coding: utf-8 -*-
 
 # Importing Custom Logger & Logging Modules
-from core.logger.custom_logger import CustomLogger
-from logging import INFO
-import logging
 
 # Import Socket Exceptions
-from core.utils.net.exceptions.network_exceptions import (NetworkAgentFatalException, NetworkAgentSocketError)
+from core.net.exceptions.network_exceptions import (NetworkAgentFatalException)
 
 # Import Socket Module
 import socket
-from core.constants.console_constant import API_KEY_DICT
 from gnosis.eth.ethereum_client import EthereumClient
 
 
@@ -36,7 +32,7 @@ class NetworkAgent:
 
         # Default Ethereum Node Endpoint for the EthereumClient
         self.default_node_endpoint = 'http://localhost:8545'
-
+        self.current_node_endpoint = ''
         if self.network_status():
             self.set_network_provider_endpoint(network, api_key)
 
@@ -48,8 +44,11 @@ class NetworkAgent:
         else:
             self.logger.error('{0} Unable to retrieve a valid connection to {1} '.format(self.name, node_url))
 
-    def view_network_information(self):
-        self.logger.info('To Be Implemented')
+    def command_view_networks(self):
+        self.logger.info('---------'*10)
+        self.logger.info(' | Network Status: {0} | '.format(self.network_status()))
+        self.logger.info(' | Connected to {0} Through {1} | '.format(self.network.title(), self.current_node_endpoint))
+        self.logger.info('---------'*10)
 
     def set_network_provider_endpoint(self, network, api_key=None):
         """ Set Network
@@ -63,6 +62,7 @@ class NetworkAgent:
             if api_key is not None:
                 self._setup_new_provider(mainnet_node_url)
                 self.network = 'mainnet'
+                self.current_node_endpoint = mainnet_node_url
             else:
                 self.logger.error('Infura API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(self.name, mainnet_node_url))
 
@@ -71,6 +71,7 @@ class NetworkAgent:
             if api_key is not None:
                 self._setup_new_provider(ropsten_node_url)
                 self.network = 'ropsten'
+                self.current_node_endpoint = ropsten_node_url
             else:
                 self.logger.error('API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(self.name, ropsten_node_url))
 
@@ -79,11 +80,13 @@ class NetworkAgent:
             if api_key is not None:
                 self._setup_new_provider(rinkeby_node_url)
                 self.network = 'rinkeby'
+                self.current_node_endpoint = rinkeby_node_url
             else:
                 self.logger.error('API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(self.name, rinkeby_node_url))
         elif network == 'ganache':
-            self._setup_new_provider('http://localhost:8545')
+            self._setup_new_provider(self.default_node_endpoint)
             self.network = 'ganache'
+            self.current_node_endpoint = self.default_node_endpoint
 
     def network_status(self):
         """ Network Status
@@ -94,11 +97,10 @@ class NetworkAgent:
         try:
             socket.setdefaulttimeout(self.polling_timeout)
             socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((self.polling_address, self.polling_port))
-            self.logger.debug0('{0}: Internet is On!!'.format(self.name))
             return True
         except socket.error:
             return False
         except Exception as err:
             # Empty param should be trace for further debugging in case it's needed
-            self.logger.debug0('{0}: Something went really wrong:\n{1}'.format(self.name, err))
+            self.logger.error('{0}: Something went really wrong: {1}'.format(self.name, err))
             raise NetworkAgentFatalException(self.name, err, '')

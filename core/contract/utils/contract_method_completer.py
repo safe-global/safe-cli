@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from prompt_toolkit.completion import Completer, Completion
-from core.utils.contract.contract_console_constants import *
 
+from core.contract.constants.contract_console_constants import *
 
 class ContractMethodCompleter(Completer):
     def get_completions(self, document, complete_event):
@@ -29,7 +29,6 @@ class ContractMethodCompleter(Completer):
                         family = function_params[_function]
                         family_color = function_parms_color.get(family, 'default')
                         display = HTML('%s<b>:</b> <ansired>(<' + family_color + '>%s</' + family_color + '>)</ansired>') % (_function, family)
-                        yield Completion(_function, start_position=-len(word), display=display,
-                                         display_meta=meta.get(_function))
+                        yield Completion(_function, start_position=-len(word), display=display, display_meta=meta.get(_function))
                 elif word == 'all':
                     yield Completion(_function, start_position=-len(word), display=_function, display_meta=meta.get(_function))

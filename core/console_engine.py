@@ -1,20 +1,33 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Import Pygments Package
-from core.console_accounts import ConsoleAccounts
-from core.utils.contract.contract_syntax_lexer import ContractSyntaxLexer
-from core.utils.contract.contract_method_completer import ContractMethodCompleter
-from core.utils.contract.contract_console_artifacts import ContractConsoleArtifacts
-from core.utils.contract.contract_payload_artifacts import ContractPayloadArtifacts
+from core.net.network_agent import NetworkAgent
+from core.input.console_input_getter import ConsoleInputGetter
+from core.contract.console_help import ConsoleInformation
+from core.contract.console_safe_methods import ConsoleSafeMethods
+from core.contract.utils.console_syntax_lexer import ContractSyntaxLexer
+from core.contract.utils.contract_method_completer import ContractMethodCompleter
+from core.contract.artifacts.contract_console_artifacts import ContractConsoleArtifacts
+from core.contract.artifacts.contract_method_artifacts import ContractMethodArtifacts
+from core.contract.artifacts.contract_payload_artifacts import ContractPayloadArtifacts
+from core.artifacts.console_account_artifacts import ConsoleAccounts
 
 # Import PromptToolkit Package
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit import PromptSession
 
-
 # Import Os Package
 import os
+
+# Importing Custom Logger & Logging Modules
+from core.logger.custom_logger import CustomLogger, DEBUG0
+from logging import INFO
+import logging
+
+# Constants
+QUOTE = '\''
+COMA = ','
+PROJECT_DIRECTORY = os.getcwd() + '/assets/safe-contracts-1.1.0/'
 
 # style = Style.from_dict({
 #     'completion-menu.completion': 'bg:#008888 #ffffff',
@@ -22,26 +35,6 @@ import os
 #     'scrollbar.background': 'bg:#88aaaa',
 #     'scrollbar.button': 'bg:#222222',
 # })
-
-# Importing Custom Logger & Logging Modules
-from core.logger.custom_logger import CustomLogger, DEBUG0
-from logging import INFO, WARNING, DEBUG, ERROR
-import logging
-
-
-from prompt_toolkit.styles import Style
-from core.utils.net.network_agent import NetworkAgent
-from core.console_input_getter import ConsoleInputGetter
-from core.utils.contract.contract_payload_artifacts import ContractPayloadArtifacts
-from core.utils.contract.console_help import ConsoleInformation
-from core.utils.contract.console_safe_methods import ConsoleSafeMethods
-
-# todo: move to constants class
-QUOTE = '\''
-COMA = ','
-PROJECT_DIRECTORY = os.getcwd() + '/assets/safe-contracts-1.1.0/'
-
-from core.utils.contract.contract_method_artifacts import ContractMethodArtifacts
 
 class GnosisConsoleEngine:
     def __init__(self, configuration):
@@ -70,10 +63,10 @@ class GnosisConsoleEngine:
             'style': 'Empty',
             'completer': WordCompleter(
                 [
-                    'about', 'info', 'help', 'newContract', 'loadContract', 'setNetwork', 'viewNetwork',
-                    'close', 'quit', 'viewContracts', 'viewAccounts', 'newAccount', 'setAutofill',
+                    'about', 'info', 'help', 'newContract', 'loadContract', 'setNetwork', 'viewNetwork', 'viewTokens',
+                    'close', 'quit', 'viewContracts', 'viewAccounts', 'newAccount', 'setAutofill', 'newToken'
                     'viewPayloads', 'newPayload', 'newTxPayload', 'setDefaultOwner', 'setDefaultOwnerList',
-                    'viewOwner', 'viewOwnerList', 'dummyCommand', 'loadSafe'
+                    'viewOwners', 'dummyCommand', 'loadSafe'
                  ],
                 ignore_case=True)
         }
@@ -215,10 +208,6 @@ class GnosisConsoleEngine:
     def command_view_default_owner(self):
         print('Default Owner:', self.default_owner)
 
-    def command_view_network(self):
-        print('Current_Network:', self.network)
-
-
     def command_load_safe(self, desired_parsed_item_list, priority_group, command_argument, argument_list, previous_session):
         # self.logger.debug0('Data:', desired_parsed_item_list, priority_group, command_argument, argument_list)
         if priority_group == 0:
@@ -261,9 +250,9 @@ class GnosisConsoleEngine:
         if command_argument == 'loadContract':
             self.command_load_contract(desired_parsed_item_list, priority_group, command_argument, argument_list, previous_session)
         elif command_argument == 'setNetwork':
-            self.logger.info('(To be properly implemented) setNetwork')
+            self.console_network_agent.set_network_provider_endpoint('ganache', None)
         elif command_argument == 'viewNetwork':
-            self.command_view_network()
+            self.console_network_agent.command_view_networks()
         elif command_argument == 'viewContracts':
             self.console_artifacts.command_view_contracts()
         elif command_argument == 'viewAccounts':

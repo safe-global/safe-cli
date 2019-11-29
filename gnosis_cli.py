@@ -19,6 +19,7 @@ parser.add_argument('--silence', action='store_true',
                     dest='silence', default=False,
                     help='This init option will store the value for the silence param, and subsequently will '
                          'disable/hide the Loading Process in the Console. (By default, it will be set to False).')
+
 parser.add_argument('--debug', action='store_true',
                     dest='debug', default=False,
                     help='This init option will store the value for the debug param, and subsequently will enable the '

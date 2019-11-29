@@ -3,20 +3,6 @@
 
 # number_of_elements = [([*aux_value_retainer.keys()][index], item, len(item)) for index, item in enumerate(aux_value_retainer.values())]
 
-from eth_account import Account
-from safe_init_scenario_script import gnosis_py_init_scenario
-from gnosis.safe.safe_tx import SafeTx
-from gnosis.safe.safe import Safe, SafeOperation
-from gnosis.eth.ethereum_client import EthereumClient
-from gnosis.safe.safe_signature import SafeSignature
-from gnosis.eth.contracts import (
-    get_safe_contract, get_safe_V1_0_0_contract, get_safe_V0_0_1_contract
-)
-
-# remark: transact with arguments
-# note: could be autofilled if not provided and set in the console session
-NULL_ADDRESS = '0x' + '0'*40
-
 # Todo: Maybe Add a listener for the Events done by the contract atleast locally so it can be studied how it behaves
 # Todo: Only add to the temporal lexer valid addresses (it has been operated with)
 # reference: https://ethereum.stackexchange.com/questions/1374/how-can-i-check-if-an-ethereum-address-is-valid
@@ -34,4 +20,3 @@ query_get_owners = 'getOwners --query'
 # Address Utility
 # Web3.isAddress('0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed')
 # Web3.isChecksumAddress('0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed')
-

@@ -9,7 +9,8 @@ class ConsoleInputGetter:
     def __init__(self, logger):
         self.name = self.__class__.__name__
         self.logger = logger
-        # remark: Argument Block Priorities for every Command
+
+        # remark: Argument Block Priorities for every Command of the Gnosis Console
         self.argument_block_priorities = {
             'newContract': {
                 0: {'--address': 1, '--abi': 1}
@@ -29,11 +30,30 @@ class ConsoleInputGetter:
             },
             'newToken': {
                 0: {'': 0},
-                1: {'--address': 1}
+                1: {'--address': 1},
             },
             'newPayload': {
                 0: {'': 0},
                 1: {'--alias': 1, '--from': 1, '--gas': 1, '--gasPrice': 1}
+            },
+            'viewNetwork': {
+                0: {'': 0},
+            },
+            'viewAccounts': {
+                0: {'': 0},
+            },
+            'viewContracts': {
+                0: {'': 0},
+            },
+            'setNetwork': {
+                0: {'': 0},
+                1: {'--api_key': 1},
+            },
+            'viewOwnerList': {
+                0: {'': 0},
+            },
+            'viewOwner': {
+                0: {'': 0},
             },
             'dummyCommand': {
                 0: {'': 0},
@@ -157,8 +177,8 @@ class ConsoleInputGetter:
         """
         selected_priority = -1
         aux_value_retainer = {
-            '--address': [], '--alias': [], '--bytecode': [],
-            '--gas': [], '--gasPrice': [], '--from': [], '--private_key': []
+            '--address': [], '--alias': [], '--bytecode': [], '--uint': [],
+            '--gas': [], '--gasPrice': [], '--from': [], '--private_key': [], '--api_key': [],
         }
         try:
             priority_groups = self.argument_block_priorities[command_argument]
@@ -183,7 +203,7 @@ class ConsoleInputGetter:
         """
         access_counter = []
         error_counter = []
-        desired_parse_item_list = []
+        parsed_item_counter = []
         desired_parsed_item_list = []
         for index_group in priority_groups:
             error_count = 0
@@ -209,13 +229,13 @@ class ConsoleInputGetter:
                     continue
 
             # Since the only time the functions add's the number to the counters it's when the process is complete
-            desired_parse_item_list.append(desired_parse_items_count)
+            parsed_item_counter.append(desired_parse_items_count)
             error_counter.append(error_count)
             access_counter.append(access_count)
 
-        selected_priority_group = desired_parse_item_list.index(max(desired_parse_item_list))
+        selected_priority_group = parsed_item_counter.index(max(parsed_item_counter))
         size_of_selected_priority_group = self.get_size_of_priority_group(priority_groups[selected_priority_group])
-        self.logger.debug0('| Access Counters: {0} | Error Counters: {1} | Desired Items Counters: {2} | Total Desired Items: [ {3} ]'.format(access_counter, error_counter, desired_parse_item_list, size_of_selected_priority_group))
+        self.logger.debug0('| Access Counters: {0} | Error Counters: {1} | Desired Items Counters: {2} | Total Desired Items: [ {3} ]'.format(access_counter, error_counter, parsed_item_counter, size_of_selected_priority_group))
 
         # Here since we know where to look for in the input data, the only thing that's left is to make a final sweep
         # and pick de values we are searching for
@@ -223,7 +243,7 @@ class ConsoleInputGetter:
             tmp_index = int(priority_groups[selected_priority_group][parsed_item])
             desired_parsed_item_list.append((parsed_item, parsed_arguments[parsed_item][:tmp_index]))
 
-        return desired_parsed_item_list, desired_parse_item_list.index(max(desired_parse_item_list))
+        return desired_parsed_item_list, parsed_item_counter.index(max(parsed_item_counter))
 
     def get_gnosis_input_command_argument(self, stream):
         """ Get Gnosis Input Command Arguments
@@ -235,11 +255,15 @@ class ConsoleInputGetter:
         :return:
         """
         command_argument, argument_list = self._get_input_console_arguments(stream)
+        desired_parsed_item_list, priority_group = self.evaluate_arguments_based_on_priority(command_argument, argument_list)
+        if priority_group == -1:
+            priority_groups = {-1: 'None'}
+        else:
+            priority_groups = self.argument_block_priorities[command_argument][priority_group]
         self.logger.debug0('---------' * 10)
         self.logger.debug0('| Command: {0} | Argument: {1} | '.format(command_argument, argument_list))
-        desired_parsed_item_list, priority_group = self.evaluate_arguments_based_on_priority(command_argument, argument_list)
-
-        self.logger.debug0('| Argument Resolution: {0} | Priority Group: {1} | '.format(desired_parsed_item_list, priority_group))
+        self.logger.debug0('| Priority Group: {0} | Group Values: {1} | '.format(priority_group, priority_groups))
+        self.logger.debug0('| Argument Resolution: {0} |  '.format(desired_parsed_item_list))
         self.logger.debug0('---------' * 10)
         return desired_parsed_item_list, priority_group, command_argument, argument_list
 

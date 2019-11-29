@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from core.console_input_getter import ConsoleInputGetter
+from core.input.console_input_getter import ConsoleInputGetter
 from eth_account import Account
-from safe_init_scenario_script import gnosis_py_init_scenario
 from gnosis.safe.safe_tx import SafeTx
 from gnosis.safe.safe import Safe, SafeOperation
 from gnosis.eth.ethereum_client import EthereumClient
-from gnosis.safe.safe_signature import SafeSignature
 from gnosis.eth.contracts import (
-    get_safe_contract, get_safe_V1_0_0_contract, get_safe_V0_0_1_contract
+    get_safe_V1_0_0_contract, get_safe_V0_0_1_contract
 )
 
 # remark: Temporal Owner List, Testing

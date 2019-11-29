@@ -4,22 +4,25 @@
 
 # Import Prompt Tool Packages
 from prompt_toolkit.lexers import Lexer
-from prompt_toolkit.styles.named_colors import NAMED_COLORS
 
 # Import Regex Expresions from Contract Console Constants Package
-from core.utils.contract.contract_console_constants import (
-    _exit, simple_function_name, normal_address, uint_data, execute, queue, bytecode_data
+from core.contract.constants.contract_console_constants import (
+    quit_commands, simple_function_name, normal_address, uint_data, bytecode_data,
+    console_commands, low_lvl_execution_commands, help_commands, known_networks, ether_params
 )
 
 # Import Re Package
 import re
+
+# Color Constants
 BASIC_TEXT = 'LightGray'
 BASE_HIGHLIGHT_COLOR = 'MidnightBlue'
 PARAM_COLOR = 'SlateBlue'
 EXIT_COLOR = 'Tomato'
 CONTRACT_METHODS_COLOR = 'DarkOrange'
 CONSOLE_COMMANDS = 'SaddleBrown'
-CONTRACT_EXEC_CALL_QUEUE = 'DarkSalmon'
+KNOWN_NETWORKS_COLOR = 'DarkSalmon'
+INFORMATION_COLOR = 'LightYellow'
 
 class ContractSyntaxLexer(Lexer):
     """ Contract Lexer
@@ -48,20 +51,36 @@ class ContractSyntaxLexer(Lexer):
         :return: output colored syntax
         """
         # remark: Color Palette
-        # Todo: Make a proper Color Scheme for the params and function_names
-        colors = list(sorted(NAMED_COLORS, key=NAMED_COLORS.get))
+        # colors = list(sorted(NAMED_COLORS, key=NAMED_COLORS.get))
 
         def get_line(lineno):
             aux_list = []
             for index, word in enumerate(document.lines[lineno].split(' ')):
                 current_color = BASIC_TEXT
-                if self.__is_valid_argument(simple_function_name, word):
+
+                if self.__is_valid_argument(simple_function_name, word) \
+                        or self.__is_valid_argument(console_commands, word):
                     current_color = CONTRACT_METHODS_COLOR
-                elif self.__is_valid_argument(normal_address, word) or self.__is_valid_argument(uint_data, word) or self.__is_valid_argument(bytecode_data, word):
+
+                elif self.__is_valid_argument(help_commands, word):
+                    current_color = INFORMATION_COLOR
+
+                elif self.__is_valid_argument(known_networks, word):
+                    current_color = KNOWN_NETWORKS_COLOR
+
+                elif self.__is_valid_argument(normal_address, word) \
+                        or self.__is_valid_argument(uint_data, word) \
+                        or self.__is_valid_argument(bytecode_data, word) \
+                        or self.__is_valid_argument('--alias=', word) \
+                        or self.__is_valid_argument('--api_key=', word) \
+                        or self.__is_valid_argument(ether_params, word) \
+                        or self.__is_valid_argument('--private_key=', word):
                     current_color = PARAM_COLOR
-                elif self.__is_valid_argument(queue, word) or self.__is_valid_argument(execute, word):
+
+                elif self.__is_valid_argument(low_lvl_execution_commands, word):
                     current_color = CONSOLE_COMMANDS
-                elif self.__is_valid_argument(_exit, word) or self.__is_valid_argument('close', word) or self.__is_valid_argument('quit', word):
+
+                elif self.__is_valid_argument(quit_commands, word):
                     current_color = EXIT_COLOR
                 aux_list.append((current_color, word + ' '))
             return aux_list
