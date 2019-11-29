@@ -6,8 +6,9 @@ COMA = ','
 
 
 class ConsoleInputGetter:
-    def __init__(self):
+    def __init__(self, logger):
         self.name = self.__class__.__name__
+        self.logger = logger
         # remark: Argument Block Priorities for every Command
         self.argument_block_priorities = {
             'newContract': {
@@ -62,8 +63,7 @@ class ConsoleInputGetter:
         """
         return QUOTE + value + QUOTE
 
-    @staticmethod
-    def _get_input_console_arguments(stream, splitter=' '):
+    def _get_input_console_arguments(self, stream, splitter=' '):
         """ Get Input Console Arguments
         This Function will split based on a given splitter, and return command_trigger and argument_list
         :param stream: command stream input provided by the user
@@ -78,17 +78,17 @@ class ConsoleInputGetter:
             argument_list = splitted_stream[1:]
             return command_argument, argument_list
         except IndexError as err:
-            print('_get_input_console_arguments unable to properly parse', type(err), err)
-            return command_argument, argument_list
+            self.logger.error('_get_input_console_arguments unable to properly parse the stream {0}'.format(err))
+            return '', []
 
     def _get_stored_arguments(self, argument_item, storage_item):
         stored_index = argument_item.split('.')
-        print('stored_argument', stored_index[0], stored_index[1])
+        self.logger.debug0('stored_argument', stored_index[0], stored_index[1])
         try:
             tmp_address = storage_item[stored_index[0]][stored_index[1]]
             return tmp_address
         except KeyError as err:
-            print('Key Error here', err)
+            self.logger.error('_get_stored_arguments unable to retrieve the value {0}'.format(err))
 
     def _get_method_argument_value(self, value, quote=True):
         """ Get Method Argument Value
@@ -122,17 +122,17 @@ class ConsoleInputGetter:
                 address_from = self._get_method_argument_value(argument_item)
             elif '--execute' == argument_item:
                 if to_queue or to_query:
-                    print('--queue|--query value already parsed, this value will be ignored')
+                    self.logger.warn('--queue|--query value already parsed, this value will be ignored')
                 else:
                     execute_value = True
             elif '--query' == argument_item:
                 if execute_value or to_queue:
-                    print('--execute|--queue value already parsed, this value will be ignored')
+                    self.logger.warn('--execute|--queue value already parsed, this value will be ignored')
                 else:
                     to_query = True
             elif '--queue' == argument_item:
                 if execute_value or to_query:
-                    print('--execute|--query value already parsed, this value will be ignored')
+                    self.logger.warn('--execute|--query value already parsed, this value will be ignored')
                 else:
                     to_queue = True
             else:
@@ -215,8 +215,7 @@ class ConsoleInputGetter:
 
         selected_priority_group = desired_parse_item_list.index(max(desired_parse_item_list))
         size_of_selected_priority_group = self.get_size_of_priority_group(priority_groups[selected_priority_group])
-        print('| Access Counters:', access_counter, '| Error Counters:', error_counter,
-              '| Desired Items Counters:', desired_parse_item_list, '| Total Desired Items', size_of_selected_priority_group, '| ')
+        self.logger.debug0('| Access Counters: {0} | Error Counters: {1} | Desired Items Counters: {2} | Total Desired Items: [ {3} ]'.format(access_counter, error_counter, desired_parse_item_list, size_of_selected_priority_group))
 
         # Here since we know where to look for in the input data, the only thing that's left is to make a final sweep
         # and pick de values we are searching for
@@ -226,7 +225,7 @@ class ConsoleInputGetter:
 
         return desired_parsed_item_list, desired_parse_item_list.index(max(desired_parse_item_list))
 
-    def get_gnosis_input_command_argument(self, stream, checklist=[]):
+    def get_gnosis_input_command_argument(self, stream):
         """ Get Gnosis Input Command Arguments
         This function will get the input arguments provided in the gnosis-cli
 
@@ -236,10 +235,11 @@ class ConsoleInputGetter:
         :return:
         """
         command_argument, argument_list = self._get_input_console_arguments(stream)
-        print('+' + '---------' * 10 + '+')
-        print('| Command:', command_argument, '| Argument:', argument_list, '| ')
+        self.logger.debug0('---------' * 10)
+        self.logger.debug0('| Command: {0} | Argument: {1} | '.format(command_argument, argument_list))
         desired_parsed_item_list, priority_group = self.evaluate_arguments_based_on_priority(command_argument, argument_list)
-        print('| Argument Resolution:', desired_parsed_item_list, '| Priority Group:', priority_group, '| ')
-        print('+' + '---------' * 10 + '+')
+
+        self.logger.debug0('| Argument Resolution: {0} | Priority Group: {1} | '.format(desired_parsed_item_list, priority_group))
+        self.logger.debug0('---------' * 10)
         return desired_parsed_item_list, priority_group, command_argument, argument_list
 

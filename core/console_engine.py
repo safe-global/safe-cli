@@ -23,8 +23,14 @@ import os
 #     'scrollbar.button': 'bg:#222222',
 # })
 
+# Importing Custom Logger & Logging Modules
+from core.logger.custom_logger import CustomLogger, DEBUG0
+from logging import INFO, WARNING, DEBUG, ERROR
+import logging
+
 
 from prompt_toolkit.styles import Style
+from core.utils.net.network_agent import NetworkAgent
 from core.console_input_getter import ConsoleInputGetter
 from core.utils.contract.contract_payload_artifacts import ContractPayloadArtifacts
 from core.utils.contract.console_help import ConsoleInformation
@@ -38,7 +44,7 @@ PROJECT_DIRECTORY = os.getcwd() + '/assets/safe-contracts-1.1.0/'
 from core.utils.contract.contract_method_artifacts import ContractMethodArtifacts
 
 class GnosisConsoleEngine:
-    def __init__(self):
+    def __init__(self, configuration):
         self.name = self.__class__.__name__
         self.console_session = PromptSession()
         self.previous_session = None
@@ -50,7 +56,7 @@ class GnosisConsoleEngine:
         self.console_payloads = ContractPayloadArtifacts()
         self.console_artifacts = ContractConsoleArtifacts()
         self.console_information = ConsoleInformation()
-        self.console_getter = ConsoleInputGetter()
+
 
         self.default_auto_fill = False
         self.default_owner = ''
@@ -72,6 +78,37 @@ class GnosisConsoleEngine:
                 ignore_case=True)
         }
 
+        # Custom Logger Init Configuration: Default Values
+        self.logger = None
+        self.logging_lvl = INFO
+        self._setup_console_init_configuration(configuration)
+        # CustomLogger Format Definition: Output Init Configuration
+        formatter = logging.Formatter(fmt='%(asctime)s - [%(levelname)s]: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+
+        # Custom Logger File Configuration: File Init Configuration
+        file_handler = logging.FileHandler('./log/gnosis_console/general_console.log', 'w')
+        file_handler.setFormatter(formatter)
+        file_handler.setLevel(level=self.logging_lvl)
+
+        # Custom Logger Console Configuration: Console Init Configuration
+        console_handler = logging.StreamHandler()
+        console_handler.setFormatter(formatter)
+        console_handler.setLevel(level=self.logging_lvl)
+
+        # Custom Logger Console/File Handler Configuration
+        self.logger.addHandler(file_handler)
+        self.logger.addHandler(console_handler)
+
+        # Setup EthereumClient
+        self.console_network_agent = NetworkAgent(self.logger)
+        self.console_getter = ConsoleInputGetter(self.logger)
+
+        # Debug: Finished loading all the components of the gnosis-cli
+        if not self.silence:
+            self.logger.info('---------' * 10)
+            self.logger.info('Finished Gnosis Cli Setup')
+            self.logger.info('---------' * 10)
+
     def run_console_session(self, prompt_text='', previous_session=None, contract_methods=None, contract_instance=None, safe_interface=None):
         """ Run Console Session
 
@@ -85,19 +122,15 @@ class GnosisConsoleEngine:
         try:
             while True:
                 try:
-                    # remark: Start the prompt
                     stream = session.prompt()
                     if previous_session is None:
-                        # remark: eval gnosis-cli arguments
                         self.operate_with_console(stream, session)
                     else:
-                        # remark: eval contract-cli arguments
                         if safe_interface is not None:
-                            print('entra en safe')
                             safe_interface.operate_with_safe(stream)
                         else:
                             self.operate_with_contract(stream, contract_methods, contract_instance)
-                    # remark: If you are in a sub session of the console return to gnosis-cli session
+                    # review: change how to parse arguments here!
                     command_argument, argument_list = self.console_getter._get_input_console_arguments(stream)
                     if (command_argument == 'close') or (command_argument == 'quit') or (command_argument == 'exit'):
                         return self.close_console_session(previous_session)
@@ -106,7 +139,7 @@ class GnosisConsoleEngine:
                 except EOFError:
                     break  # remark: Control-D pressed.
         except Exception as err:
-            print('FATAL:', type(err), err)
+            self.logger.error('Unexpected error while running the console:\n', type(err), err)
 
     def get_console_session(self, prompt_text='', previous_session=None):
         """ Get Console Session
@@ -123,13 +156,28 @@ class GnosisConsoleEngine:
     @staticmethod
     def close_console_session(previous_session=None):
         """ Close Console Session
-        This function will return the previous session otherwise it will exit the gnosis-cli
+        This function will return the previous session, otherwise it will exit the gnosis-cli
         :param previous_session:
         :return:
         """
         if previous_session is None:
             raise EOFError
         return previous_session
+
+    def _setup_console_init_configuration(self, configuration):
+        self.silence = configuration['silence']
+        self.network = configuration['network']
+        if configuration['debug']:
+            self.logging_lvl = DEBUG0
+
+        # CustomLogger Instance Creation
+        self.logger = CustomLogger(self.name, self.logging_lvl)
+
+        # Call Account to add
+        # if len(configuration['private_key']) > 0:
+        #     for key_item in configuration['private_key']:
+        #         self.console_accounts.add_account(key_item)
+
 
     def load_contract_artifacts(self, contract_artifacts):
         """ Load Contract Artifacts
@@ -145,8 +193,6 @@ class GnosisConsoleEngine:
         # note: method 2, wihout alias
         for contract_artifacts_item in [contract_artifacts]:
             self.console_artifacts.add_artifact(contract_artifacts_item)
-        print('Pre-Loading Done.')
-        print('+' + '---------' * 10 + '+')
 
     def command_set_network(self, value):
         """ Command Set Network
@@ -154,7 +200,8 @@ class GnosisConsoleEngine:
         :param value:
         :return:
         """
-        self.network = value
+        self.network = self.console_network_agent.set_network_provider_endpoint(value)
+
 
     def command_set_default_owner(self, value):
         self.default_owner = value
@@ -171,14 +218,15 @@ class GnosisConsoleEngine:
     def command_view_network(self):
         print('Current_Network:', self.network)
 
+
     def command_load_safe(self, desired_parsed_item_list, priority_group, command_argument, argument_list, previous_session):
-        print('Data:', desired_parsed_item_list, priority_group, command_argument, argument_list)
+        # self.logger.debug0('Data:', desired_parsed_item_list, priority_group, command_argument, argument_list)
         if priority_group == 0:
-            print('Do Nothing')
+            self.logger.info('Do Nothing')
         elif priority_group == 1:
             tmp_address = desired_parsed_item_list[0][1][0]
-            print()
-            safe_interface = ConsoleSafeMethods(tmp_address)
+            safe_interface = ConsoleSafeMethods(tmp_address, self.logger)
+            self.logger.debug0('Init Safe Contract Console ...')
             self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='./', stream='SafeTest(' + tmp_address + ')'),
                                     previous_session=previous_session, safe_interface=safe_interface)
 
@@ -193,28 +241,27 @@ class GnosisConsoleEngine:
         :param previous_session:
         :return:
         """
-        print('Data:', desired_parsed_item_list, priority_group, command_argument, argument_list)
         if priority_group == 0:
             tmp_alias = desired_parsed_item_list[0][1][0]
-            print('alias:', tmp_alias)
+            self.logger.debug0('alias: {0}'.format(tmp_alias))
             try:
+                self.logger.debug0('Init General Contract Console ...')
                 contract_instance = self.console_artifacts.get_value_from_alias(tmp_alias, 'instance')
                 contract_methods = ContractMethodArtifacts().map_contract_methods(contract_instance)
                 self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='./', stream=tmp_alias),
                                          previous_session=previous_session, contract_methods=contract_methods,
                                          contract_instance=contract_instance)
             except KeyError as err:
-                print(command_argument, type(err), err)
+                self.logger.error(command_argument, type(err), err)
         elif priority_group == 1:
-            print(command_argument, argument_list)
+            self.logger.error(command_argument, argument_list)
 
     def operate_with_console(self, stream, previous_session):
         desired_parsed_item_list, priority_group, command_argument, argument_list = self.console_getter.get_gnosis_input_command_argument(stream)
         if command_argument == 'loadContract':
             self.command_load_contract(desired_parsed_item_list, priority_group, command_argument, argument_list, previous_session)
         elif command_argument == 'setNetwork':
-            print('setNetwork')
-            # self.command_set_network(self.console_getter.get_gnosis_input_command_argument(command_argument, argument_list))
+            self.logger.info('(To be properly implemented) setNetwork')
         elif command_argument == 'viewNetwork':
             self.command_view_network()
         elif command_argument == 'viewContracts':
@@ -229,7 +276,7 @@ class GnosisConsoleEngine:
             self.console_information.command_view_help()
         elif command_argument == 'newAccount':
             # Add Ethereum money conversion for all types of coins
-            print('newAccount <Address> or <PK> or <PK + Address>')
+            self.logger.info('newAccount <Address> or <PK> or <PK + Address>')
         elif command_argument == 'newPayload':
             self.console_payloads.command_new_payload(command_argument, argument_list)
         elif command_argument == 'newTxPayload':
@@ -258,42 +305,37 @@ class GnosisConsoleEngine:
         :return: if method found, a method from the current contract will be triggered, success or not depends on the establishing of the proper values.
         """
         try:
-            # print('Call operate_with_contract:', stream)
-            # print('Contract Methods', contract_methods)
-            # print('Contract Instance', contract_instance)
             for item in contract_methods:
                 if contract_methods[item]['name'] in stream:
                     splitted_stream = stream.split(' ')
                     function_name, function_arguments, address_from, execute_flag, queue_flag, query_flag = self.console_getter.get_input_method_arguments(
                         splitted_stream, contract_methods[item]['arguments'])
-                    print('command:', function_name, 'arguments', function_arguments, 'tx:', execute_flag, 'call:', query_flag)
-                    # print(self._get_input_method_arguments(splitted_stream, contract_methods[item]['arguments']))
-
+                    self.logger.debug0('command: {0} | arguments: {1} | execute_flag: {2} | query_flag: {3} | '.format(function_name, function_arguments, execute_flag, queue_flag))
                     if execute_flag or query_flag or queue_flag:
 
                         # remark: Transaction Solver
                         if execute_flag:
                             if contract_methods[item]['name'].startswith('get'):
-                                print('WARNING: transact() operation is discourage and might not work if you are calling a get function')
+                                self.logger.warn('transact() operation is discourage if you are using a getter method')
                             # if address_from != '':
                                 # address_from = '\{\'from\':{0}\}'.format(address_from)
 
-                            print(contract_methods[item]['transact'].format(function_arguments, address_from))
-                            print(eval(contract_methods[item]['transact'].format(function_arguments, address_from)))
+                            self.logger.info(contract_methods[item]['transact'].format(function_arguments, address_from))
+                            resolution = eval(contract_methods[item]['transact'].format(function_arguments, address_from))
+                            self.logger.info(resolution)
                             # this is the hash to be signed, maybe call for approve dialog, approveHash dialogue,
                             # map functions to be performed by the gnosis_py library
 
                         # remark: Call Solver
                         elif query_flag:
-                            print(contract_methods[item]['call'].format(function_arguments, address_from))
-                            print(eval(contract_methods[item]['call'].format(function_arguments, address_from)))
-
+                            self.logger.info(contract_methods[item]['call'].format(function_arguments, address_from))
+                            resolution = eval(contract_methods[item]['call'].format(function_arguments, address_from))
+                            self.logger.info(resolution)
                         # remark: Add to the Batch Solvere
                         elif queue_flag:
-                            print(contract_methods[item]['call'].format(function_arguments, address_from))
-                            print('INFO: executeBatch when you are ready to launch the transactions that you queued up!')
+                            self.logger.info('(Future Implementation) executeBatch when you are ready to launch the transactions that you queued up!')
                     else:
-                        print('WARNING: --execute, --query or --queue flag needed!')
+                        self.logger.warn('--execute, --query or --queue arguments needed in order to properly operate with the current contract')
         except Exception as err:
             print('here:!!', type(err), err)
 
