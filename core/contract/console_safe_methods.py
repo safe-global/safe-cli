@@ -12,6 +12,7 @@ from gnosis.eth.contracts import (
 
 # remark: Temporal Owner List, Testing
 NULL_ADDRESS = '0x' + '0' * 40
+STRING_DASHES = '---------' * 10
 
 local_account0 = Account.privateKeyToAccount('0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d')
 local_account1 = Account.privateKeyToAccount('0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1')
@@ -31,9 +32,10 @@ owners_list = [local_account4, local_account5, local_account6, local_account7, l
 class ConsoleSafeMethods:
     def __init__(self, safe_address, logger):
         self.logger = logger
-        # review: Coupling here, this should not be here!
+        # review: Coupling here, this should not be here! Move away console_getter, and ethereum client, use the one provided by the network_agent
         self.console_getter = ConsoleInputGetter(self.logger)
         self.ethereum_client = EthereumClient()
+
         self.safe_operator = Safe(safe_address, self.ethereum_client)
         self.safe_instance = self._setup_safe_resolver(safe_address)
         self.safe_tx_gas = 300000
@@ -52,165 +54,332 @@ class ConsoleSafeMethods:
         else:
             return get_safe_V0_0_1_contract(self.ethereum_client.w3, safe_address)
 
-    def multi_sign_safe_tx(self, safe_tx, signers_list):
-        """ Multi Sign SafeTx Object
-        This function will apply the sign for every member in the signer_list to the current SafeTx Object.
+    def safe_tx_multi_sign(self, safe_tx, signers_list):
+        """ Safe Tx Multi Sign
+        This function will perform the sign for every member in the signer_list to the current safe_tx
         :param safe_tx:
         :param signers_list:
         :return:
         """
         try:
-            ordered_signers = sorted(signers_list, key=lambda signer: signer.address.lower())
-            for signer in ordered_signers:
+            # ordered_signers = sorted(signers_list, key=lambda signer: signer.address.lower())
+            for signer in signers_list:
                 safe_tx.sign(signer.privateKey)
+                self.logger.debug0(' | Owner Address: {0} | '.format(signer.address))
+                self.logger.debug0(' | Sign with Private Key: {0} | '.format(signer.privateKey))
+                self.logger.debug0(STRING_DASHES)
 
-            # remark: Check if the message/tx is properly signed by the user
-            if self.safe_operator.retrieve_is_message_signed(safe_tx.safe_tx_hash):
-                print(safe_tx.safe_tx_hash, '\n', 'Message has been successfully \'Signed\' by the Owners')
+            # if self.safe_operator.retrieve_is_message_signed(safe_tx.safe_tx_hash):
+            #     print(safe_tx.safe_tx_hash, '\n', 'Message has been successfully \'Signed\' by the Owners')
             return safe_tx
         except Exception as err:
-            print(type(err), err)
+            self.logger.error('Unable to multi_sign_safe_tx(): {0} {1}'.format(type(err), err))
 
-    def perform_transaction(self, sender_private_key, signers_list, payload_data, nonce, approval=False):
+
+    def safe_tx_multi_approve(self, safe_tx, signers_list):
+        """ Safe Tx Multi Approve
+        This function will perform an approval for every member in the signer_list to the current safe_tx
+        :param safe_tx:
+        :param signers_list:
+        :return:
         """
-        This function will perform the transaction to the safe we have currently load.
+        try:
+            for signer in signers_list:
+                self.safe_instance.functions.approveHash(safe_tx.safe_tx_hash).transact({'from': signer.address})
+                self.logger.debug0(' | Owner Address: {0} | '.format(signer.address))
+                self.logger.debug0(' | Approving Tx with Hash: {0} | '.format(safe_tx.safe_tx_hash))
+                self.logger.debug0(STRING_DASHES)
+
+                # if self.safe_operator.retrieve_is_hash_approved(signer, safe_tx.safe_tx_hash):
+                #     # remark: Check if the message/tx is properly approved by the user
+                #     print(safe_tx.safe_tx_hash, '\n',
+                #           'Hash has been successfully \'Approved\' by the Owner with Address [ {0} ]'.format(signer.address))
+        except Exception as err:
+            self.logger.error('Unable to multi_approve_safe_tx(): {0} {1}'.format(type(err), err))
+
+
+    def perform_transaction(self, sender, signers_list, payload_data, approval=False):
+        """ Perform Transaction
+        This function will perform the transaction to the safe we have currently triggered via console command
         :param payload_data:
-        :param nonce:
-        :param sender_private_key:
+        :param sender:
         :param signers_list:
         :param approval:
         :return:
         """
-        safe_tx = SafeTx(self.ethereum_client, self.safe_instance.address, self.safe_instance.address, self.value,
-                         payload_data, SafeOperation.DELEGATE_CALL.value, self.safe_tx_gas, self.base_gas,
-                         self.gas_price, NULL_ADDRESS, NULL_ADDRESS, b'', nonce)
-        safe_tx = self.multi_sign_safe_tx(safe_tx, owners_list)
+        try:
+            # Retrieve Nonce for the transaction
+            safe_nonce = self.safe_operator.retrieve_nonce()
+            safe_tx = SafeTx(
+                self.ethereum_client, self.safe_instance.address, self.safe_instance.address, self.value,
+                payload_data, SafeOperation.DELEGATE_CALL.value, self.safe_tx_gas, self.base_gas,
+                self.gas_price, NULL_ADDRESS, NULL_ADDRESS, b'', safe_nonce
+            )
+            # Multi Sign the current transaction
+            safe_tx = self.safe_tx_multi_sign(safe_tx, owners_list)
+            if approval:
+                # If Approval of the hash is needed, Approve for all signers
+                self.safe_tx_multi_approve(safe_tx, signers_list)
 
-        if approval:
-            for signer in signers_list:
-                self.safe_instance.functions.approveHash(safe_tx.safe_tx_hash).transact({'from': signer.address})
-                if self.safe_operator.retrieve_is_hash_approved(signer, safe_tx.safe_tx_hash):
-                    # remark: Check if the message/tx is properly approved by the user
-                    print(safe_tx.safe_tx_hash, '\n', 'Hash has been successfully \'Approved\' by the Owner with Address [ {0} ]'.format(signer.address))
+            # Execute the current transaction
+            safe_tx_hash, _ = safe_tx.execute(sender.privateKey, self.base_gas + self.safe_tx_gas)
+            # Retrieve the receipt
+            safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
 
-        tx_hash, _ = safe_tx.execute(sender_private_key, self.base_gas + self.safe_tx_gas)
-        tx_receipt = self.ethereum_client.get_transaction_receipt(tx_hash, timeout=60)
-        print('Tx Receipt:\n', tx_receipt)
-        return tx_receipt
+            self.logger.debug0(' | Safe Tx Receipt: | ')
+            self.logger.debug0(STRING_DASHES)
+            self.logger.debug0(' | Retrieving Tx with Hash: {0} | '.format(safe_tx.safe_tx_hash))
+            self.logger.debug0('    {0}'.format(safe_tx_receipt))
+            return safe_tx_receipt
+        except Exception as err:
+            self.logger.error('Unable to perform_transaction(): {0} {1}'.format(type(err), err))
 
     def command_safe_information(self):
-        self.logger.debug0('---------')
-        self.logger.info(' | Safe Master Copy Address: {0} |'.format(self.safe_operator.retrieve_master_copy_address()))
-        self.logger.info(' | Safe Proxy Address: {0} |'.format(self.safe_operator.address))
-        self.logger.info(' | Nonce: {0} |'.format(self.safe_operator.retrieve_nonce()))
-        self.logger.info(' | Version: {0} |'.format(self.safe_operator.retrieve_version()))
-        self.logger.debug0('---------')
-
-    def command_safe_get_owners(self):
-        self.logger.debug0('---------')
-        self.logger.debug0('---------')
-        self.logger.debug0('---------')
-
-    def operate_with_safe(self, stream):
-        """
-        This function will evaluate the arguments been send by the user
-        :param command_argument:
-        :param argument_list:
+        """ Command Safe Information
+        This function will retrieve and show any pertinent information regarding the current safe
         :return:
         """
+        self.logger.debug0(STRING_DASHES)
+        self.logger.info(' | Name: {0} | '.format(self.safe_instance.functions.NAME().call()))
+        self.logger.info(' | Version: {0} | '.format(self.safe_operator.retrieve_version()))
+        self.logger.info(' | Master Copy Address: {0} | '.format(self.safe_operator.retrieve_master_copy_address()))
+        self.logger.info(' | Proxy Address: {0} | '.format(self.safe_operator.address))
+        self.command_safe_nonce()
+        self.command_safe_get_owners()
+        self.command_safe_get_threshold()
+
+
+
+    def command_safe_nonce(self):
+        """ Command Safe Nonce
+        This function will retrieve and show the nonce value of the safe
+        :return:
+        """
+        self.logger.info(' | Nonce: {0} | '.format(self.safe_operator.retrieve_nonce()))
+        self.logger.debug0(STRING_DASHES)
+
+    def command_safe_code(self):
+        """ Command Safe Code
+        This function will retrieve and show the code value of the safe
+        :return: code of the safe
+        """
+        self.logger.info(' | Code: {0} | '.format(self.safe_operator.retrieve_code()))
+        self.logger.debug0(STRING_DASHES)
+
+    def command_safe_version(self):
+        """ Command Safe Version
+        This function will retrieve and show the VERSION value of the safe
+        :return: version of the safe
+        """
+        self.logger.info(' | Version: {0} | '.format(self.safe_operator.retrieve_version()))
+        self.logger.debug0(STRING_DASHES)
+
+    def command_safe_name(self):
+        """ Command Safe Name
+        This function will retrieve and show the NAME value of the safe
+        :return:
+        """
+        self.logger.info(' | Name: {0} | '.format(self.safe_instance.functions.NAME().call()))
+        self.logger.debug0(STRING_DASHES)
+
+    def command_safe_get_owners(self):
+        """ Command Safe Get Owners
+        This function will
+        :return:
+        """
+        for owner in self.safe_instance.functions.getOwners().call():
+            self.logger.info(' | Owner Address: {0} | '.format(owner))
+        self.logger.debug0(STRING_DASHES)
+
+    def command_safe_get_threshold(self):
+        """ Command Safe Get Threshold
+        This function will retrieve and show the threshold of the safe
+        :return:
+        """
+        self.logger.info(' | Threshold: {0} | '.format(self.safe_instance.functions.getThreshold().call()))
+        self.logger.debug0(STRING_DASHES)
+
+    def command_safe_is_owner(self, owner):
+        """ Command Safe isOwner
+        This function will check if any given owner is part of the safe owners
+        :param owner:
+        :return: True if it's a owner, otherwise False
+        """
+        self.logger.info(' | Owner with Address: {0} | isOwner: {1}  | '.format(owner.address, self.safe_operator.retrieve_is_owner(owner.address)))
+        self.logger.debug0(STRING_DASHES)
+
+    def command_safe_are_owners(self, owners_list):
+        """ Command Safe areOwners
+        This function will check if a list of any given owners is part of the safe owners
+        :param owners_list:
+        :return: True if it's a owner, otherwise False
+        """
+        self.logger.debug0(STRING_DASHES)
+        for owner in owners_list:
+            self.command_safe_is_owner(owner)
+
+    def command_safe_swap_owner(self, previous_owner, owner, new_owner, approval=False):
+        """ Command Safe Swap Owner
+        This function will perform the necessary step for properly executing the method swapOwners from the safe
+        :param previous_owner:
+        :param owner:
+        :param new_owner:
+        :param approval:
+        :return:
+        """
+        # give list of owners and get the previous owner
+        try:
+            # Default sender data
+            sender_data = {'from': owner, 'gas': 200000, 'gasPrice': 0}
+
+            # Generating the function payload data
+            payload_data = self.safe_instance.functions.swapOwner(previous_owner.address, owner.address, new_owner.address).buildTransaction(sender_data)['data']
+            self.logger.debug0(' | Sender Data: {0} | '.format(sender_data))
+            self.logger.debug0(STRING_DASHES)
+            self.logger.debug0(' | Payload Data: {0} | '.format(payload_data))
+            self.logger.debug0(STRING_DASHES)
+
+            # Perform the transaction
+            self.perform_transaction(owners_list[0], owners_list, payload_data, approval=approval)
+
+            # Preview the current status of the safe since the transaction
+            self.command_safe_get_owners()
+        except Exception as err:
+            self.logger.error('Unable to command_safe_swap_owner(): {0} {1}'.format(type(err), err))
+
+    def command_safe_change_threshold(self, new_threshold, owner, approval=False):
+        """ Command Safe Change Threshold
+        This function will perform the necessary step for properly executing the method changeThreshold from the safe
+        :param new_threshold:
+        :param owner:
+        :param approval:
+        :return:
+        """
+        # give list of owners and get the previous owner
+        try:
+            # Default sender data
+            sender_data = {'from': owner, 'gas': 200000, 'gasPrice': 0}
+
+            # Generating the function payload data
+            payload_data = self.safe_instance.functions.changeThreshold(new_threshold).buildTransaction(sender_data)['data']
+            self.logger.debug0(' | Sender Data: {0} | '.format(sender_data))
+            self.logger.debug0(STRING_DASHES)
+            self.logger.debug0(' | Payload Data: {0} | '.format(payload_data))
+            self.logger.debug0(STRING_DASHES)
+
+            # Perform the transaction
+            self.perform_transaction(owners_list[0], owners_list, payload_data, approval=approval)
+
+            # Preview the current status of the safe since the transaction
+            self.command_safe_get_threshold()
+        except Exception as err:
+            self.logger.error('Unable to command_safe_change_threshold(): {0} {1}'.format(type(err), err))
+
+
+    def command_safe_add_owner_threshold(self, owner, new_owner, new_threshold=None, approval=False):
+        """ Command Safe Change Threshold
+        This function will perform the necessary step for properly executing the method addOwnerWithThreshold from the safe
+        :param owner:
+        :param new_owner:
+        :param new_threshold:
+        :param approval:
+        :return:
+        """
+        # give list of owners and get the previous owner
+        try:
+            # note: Sender data can be set using newPayload and then setDefaultSenderPayload
+            # Default sender data
+            sender_data = {'from': owner, 'gas': 200000, 'gasPrice': 0}
+
+            if new_threshold is None:
+                new_threshold = self.safe_operator.retrieve_threshold() + 1
+
+            # Generating the function payload data
+            payload_data = self.safe_instance.functions.addOwnerWithThreshold(new_owner.address, new_threshold).buildTransaction(sender_data)['data']
+            self.logger.debug0(' | Sender Data: {0} | '.format(sender_data))
+            self.logger.debug0(STRING_DASHES)
+            self.logger.debug0(' | Payload Data: {0} | '.format(payload_data))
+            self.logger.debug0(STRING_DASHES)
+
+            # Perform the transaction
+            self.perform_transaction(owners_list[0], owners_list, payload_data, approval=approval)
+
+            # Preview the current status of the safe since the transaction
+            self.command_safe_get_threshold()
+            self.command_safe_get_owners()
+        except Exception as err:
+            self.logger.error('Unable to command_safe_add_owner_threshold(): {0} {1}'.format(type(err), err))
+
+    def command_safe_remove_owner(self, previous_owner, owner, approval=False):
+        """ Command Safe Change Threshold
+        This function will perform the necessary step for properly executing the method removeOwner from the safe
+        :param previous_owner:
+        :param owner:
+        :param approval:
+        :return:
+        """
+        # give list of owners and get the previous owner
+        try:
+            # Default sender data
+            sender_data = {'from': owner, 'gas': 200000, 'gasPrice': 0}
+            new_threshold = self.safe_operator.retrieve_threshold() - 1
+            # Generating the function payload data
+            payload_data = self.safe_instance.functions.removeOwner(previous_owner.address, owner.address, new_threshold).buildTransaction(sender_data)['data']
+            self.logger.debug0(' | Sender Data: {0} | '.format(sender_data))
+            self.logger.debug0(STRING_DASHES)
+            self.logger.debug0(' | Payload Data: {0} | '.format(payload_data))
+            self.logger.debug0(STRING_DASHES)
+
+            # Perform the transaction
+            self.perform_transaction(owners_list[0], owners_list, payload_data, approval=approval)
+
+            # Preview the current status of the safe since the transaction
+            self.command_safe_get_owners()
+        except Exception as err:
+            self.logger.error('Unable to command_safe_remove_owner(): {0} {1}'.format(type(err), err))
+
+    def operate_with_safe(self, stream):
+        """ Operate With Safe
+        This function will operate with the safe contract using the input command/arguments provided by the user
+        :param stream:
+        :return:
+        """
+        self.logger.debug0('Operating with Safe')
         desired_parsed_item_list, priority_group, command_argument, argument_list = self.console_getter.get_gnosis_input_command_argument(stream)
-        print('operate_with_safe', command_argument)
         if command_argument == 'info':
             self.command_safe_information()
         elif command_argument == 'getOwners':
-            print('+' + '---------' * 10 + '+')
-            print(self.safe_instance.functions.getOwners().call())
-            print('+' + '---------' * 10 + '+')
+            self.command_safe_get_owners()
         elif command_argument == 'getThreshold':
-            print('+' + '---------' * 10 + '+')
-            print(self.safe_instance.functions.getThreshold().call())
-            print('+' + '---------' * 10 + '+')
+            self.command_safe_get_threshold()
         elif command_argument == 'isOwner':
-            print('+' + '---------' * 10 + '+')
-            print(self.safe_operator.retrieve_is_owner(owners_list[0].address))
-            print(self.safe_operator.retrieve_is_owner(owners_list[1].address))
-            print(self.safe_operator.retrieve_is_owner(owners_list[2].address))
-            print(self.safe_operator.retrieve_is_owner(owners_list[3].address))
-            print(self.safe_operator.retrieve_is_owner(owners_list[4].address))
-            print('+' + '---------' * 10 + '+')
+            self.command_safe_is_owner(owners_list[0])
+        elif command_argument == 'areOwners':
+            self.command_safe_are_owners(owners_list)
         elif command_argument == 'nonce':
-            print('+' + '---------' * 10 + '+')
-            print(self.safe_operator.retrieve_nonce())
-            print('+' + '---------' * 10 + '+')
+            self.command_safe_nonce()
         elif command_argument == 'code':
-            print('+' + '---------' * 10 + '+')
-            print(self.safe_operator.retrieve_code())
-            print('+' + '---------' * 10 + '+')
+            self.command_safe_code()
         elif command_argument == 'VERSION':
-            print('+' + '---------' * 10 + '+')
-            print(self.safe_operator.retrieve_version())
-            print('+' + '---------' * 10 + '+')
+            self.command_safe_version()
         elif command_argument == 'NAME':
-            print('+' + '---------' * 10 + '+')
-            print(self.safe_instance.functions.NAME().call())
-            print('+' + '---------' * 10 + '+')
+            self.command_safe_name()
         elif command_argument == 'changeThreshold':
-            try:
-                nonce = self.safe_instance.functions.nonce().call()
-                payload_data = self.safe_instance.functions.changeThreshold(5).buildTransaction({'from': owners_list[0].address, 'gas': 200000, 'gasPrice': 0})['data']
-                print('Payload:\n', payload_data)
-                self.perform_transaction(owners_list[0].privateKey, owners_list, payload_data, nonce, approval=True)
-                print(self.safe_instance.functions.getThreshold().call())
-            except Exception as err:
-                print(type(err), err)
-
+            self.command_safe_change_threshold(5, owners_list[0], approval=False)
         elif command_argument == 'addOwnerWithThreshold' or command_argument == 'addOwner':
-            try:
-                nonce = self.safe_instance.functions.nonce().call()
-                payload_data = self.safe_instance.functions.addOwnerWithThreshold(new_account.address, 4).buildTransaction({'from': owners_list[0].address, 'gas': 200000, 'gasPrice': 0})['data']
-                print('Payload:\n', payload_data)
-                self.perform_transaction(owners_list[0].privateKey, owners_list, payload_data, nonce, approval=False)
-                print(self.safe_instance.functions.getOwners().call())
-                print(self.safe_instance.functions.getThreshold().call())
-            except Exception as err:
-                print(type(err), err)
-
+            self.command_safe_add_owner_threshold(owners_list[0], new_account, approval=False)
         elif command_argument == 'removeOwner':
-            try:
-                nonce = self.safe_instance.functions.nonce().call()
-                payload_data = self.safe_instance.functions.removeOwner(owners_list[0].address, owners_list[1].address).buildTransaction(
-                    {'from': owners_list[0].address, 'gas': 200000, 'gasPrice': 0})['data']
-                print('Payload:\n', payload_data)
-                self.perform_transaction(owners_list[0].privateKey, owners_list, payload_data, nonce, approval=False)
-                print(self.safe_instance.functions.getOwners().call())
-            except Exception as err:
-                print(type(err), err)
-
+            self.command_safe_remove_owner(owners_list[0], owners_list[1], approval=False)
         elif command_argument == 'swapOwner' or command_argument == 'changeOwner':
-            try:
-                nonce = self.safe_instance.functions.nonce().call()
-                payload_data = self.safe_instance.functions.swapOwner(owners_list[0].address, owners_list[1].address, new_account.address).buildTransaction(
-                    {'from': owners_list[0].address, 'gas': 200000, 'gasPrice': 0})['data']
-                print('Payload:\n', payload_data)
-                self.perform_transaction(payload_data, nonce, owners_list[0].privateKey, owners_list, approval=True)
-                print(self.safe_instance.functions.getOwners().call())
-            except Exception as err:
-                print(type(err), err)
-
+            self.command_safe_swap_owner(owners_list[0], owners_list[1], new_account, approval=False)
         elif command_argument == 'sendToken':
-            print('sendToken Operation')
-            print('Perform transaction')
-
+            self.logger.info('sendToken to be Implemented')
         elif command_argument == 'sendEther':
-            print('sendEther Operation')
-            print('Eval --ether=, --miliether= inputs, sum it')
-            print('Perform transaction')
-
+            self.logger.info('sendEther to be Implemented')
+            # note: Eval --ether=, --miliether= sum(+) input
         elif command_argument == 'updateSafe':
-            print('updateSafe Operation: --address=0x...')
-            print('step 1: Check Validity of The Safe Address & Version, Then Ask for Confirmation')
-            print('Perform transaction')
-
+            self.logger.info('updateSafe --address=0x to be Implemented')
+            # note: Check Validity of The Safe Address & Version, Then Ask for Confirmation'
 
 # orderred_signers = sorted(owners_list, key=lambda v: v.address.lower())
 # # remark: Data to ve used in the Transaction

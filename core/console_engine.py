@@ -41,7 +41,7 @@ class GnosisConsoleEngine:
         self.name = self.__class__.__name__
         self.console_session = PromptSession()
         self.previous_session = None
-
+        self.contract_artifacts = None
         self.prompt_text = 'GNOSIS-CLI v0.0.1a'
         self.network = 'ganache'
 
@@ -158,6 +158,11 @@ class GnosisConsoleEngine:
         return previous_session
 
     def _setup_console_init_configuration(self, configuration):
+        """ Setup Console Init Configuration
+        This function will perform the necessary actions to setup the parameters provided in the initialization
+        :param configuration:
+        :return:
+        """
         self.silence = configuration['silence']
         self.network = configuration['network']
         if configuration['debug']:
@@ -171,10 +176,9 @@ class GnosisConsoleEngine:
         #     for key_item in configuration['private_key']:
         #         self.console_accounts.add_account(key_item)
 
-
     def load_contract_artifacts(self, contract_artifacts):
         """ Load Contract Artifacts
-
+        This function will load contract artifacts for the console to have access to
         :param contract_artifacts:
         :return:
         """
@@ -195,7 +199,6 @@ class GnosisConsoleEngine:
         """
         self.network = self.console_network_agent.set_network_provider_endpoint(value)
 
-
     def command_set_default_owner(self, value):
         self.default_owner = value
 
@@ -209,14 +212,13 @@ class GnosisConsoleEngine:
         print('Default Owner:', self.default_owner)
 
     def command_load_safe(self, desired_parsed_item_list, priority_group, command_argument, argument_list, previous_session):
-        # self.logger.debug0('Data:', desired_parsed_item_list, priority_group, command_argument, argument_list)
         if priority_group == 0:
             self.logger.info('Do Nothing')
         elif priority_group == 1:
             tmp_address = desired_parsed_item_list[0][1][0]
             safe_interface = ConsoleSafeMethods(tmp_address, self.logger)
             self.logger.debug0('Init Safe Contract Console ...')
-            self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='./', stream='SafeTest(' + tmp_address + ')'),
+            self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='./', stream='Safe (' + tmp_address + ')'),
                                     previous_session=previous_session, safe_interface=safe_interface)
 
     # note: Future command to it's own funciton
