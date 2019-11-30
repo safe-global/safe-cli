@@ -43,6 +43,8 @@ class ConsoleSafeMethods:
         self.gas_price = 0
         self.value = 0
 
+        # Trigger information on class init
+        self.command_safe_information()
     # review: use the master copy function to retrieve the true version for the proxy contract
     def _setup_safe_resolver(self, safe_address):
         aux_safe_operator = Safe(safe_address, self.ethereum_client)
@@ -75,7 +77,6 @@ class ConsoleSafeMethods:
         except Exception as err:
             self.logger.error('Unable to multi_sign_safe_tx(): {0} {1}'.format(type(err), err))
 
-
     def safe_tx_multi_approve(self, safe_tx, signers_list):
         """ Safe Tx Multi Approve
         This function will perform an approval for every member in the signer_list to the current safe_tx
@@ -96,7 +97,6 @@ class ConsoleSafeMethods:
                 #           'Hash has been successfully \'Approved\' by the Owner with Address [ {0} ]'.format(signer.address))
         except Exception as err:
             self.logger.error('Unable to multi_approve_safe_tx(): {0} {1}'.format(type(err), err))
-
 
     def perform_transaction(self, sender, signers_list, payload_data, approval=False):
         """ Perform Transaction

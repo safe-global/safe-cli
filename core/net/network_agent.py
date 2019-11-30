@@ -24,6 +24,7 @@ class NetworkAgent:
         self.name = self.__class__.__name__
         self.logger = logger
         self.network = network
+        self.ethereum_client = None
 
         # Default Polling Address Settings: Used for checking internet availability
         self.polling_address = '8.8.8.8'
@@ -37,6 +38,12 @@ class NetworkAgent:
             self.set_network_provider_endpoint(network, api_key)
 
     def _setup_new_provider(self, node_url):
+        """ Setup New Provider
+
+        This function will setup the proper provider based on the node_url, if it's connected it will setup the
+            :param node_url:
+            :return: self.ethereum_client, othewise it will return an error
+        """
         tmp_client = EthereumClient(ethereum_node_url=node_url)
         if tmp_client.w3.isConnected():
             self.ethereum_client = tmp_client
@@ -44,7 +51,28 @@ class NetworkAgent:
         else:
             self.logger.error('{0} Unable to retrieve a valid connection to {1} '.format(self.name, node_url))
 
+    def get_current_node_endpoint(self):
+        """ Get Current Node Endpoint
+
+        This function will return the current node endpoint url
+            :return:
+        """
+        return self.current_node_endpoint
+
+    def get_ethereum_client(self):
+        """ Get Ethereum Client
+
+        This function will retrieve and return the current EthereumClient
+            :return:
+        """
+        return self.ethereum_client
+
     def command_view_networks(self):
+        """ Command View Networks
+
+        This function will retrieve and show the current network used by the ethereum client
+            :return:
+        """
         self.logger.info('---------'*10)
         self.logger.info(' | Network Status: {0} | '.format(self.network_status()))
         self.logger.info(' | Connected to {0} Through {1} | '.format(self.network.title(), self.current_node_endpoint))
@@ -53,9 +81,10 @@ class NetworkAgent:
     def set_network_provider_endpoint(self, network, api_key=None):
         """ Set Network
 
-        :param network:
-        :param api_key:
-        :return:
+        This function will set the current enpoint for the ethereum client
+            :param network:
+            :param api_key:
+            :return:
         """
         if network == 'mainnet':
             mainnet_node_url = '{0}{1}'.format('https://mainnet.infura.io/v3/', api_key)

@@ -45,7 +45,7 @@ class GnosisConsoleEngine:
         self.prompt_text = 'GNOSIS-CLI v0.0.1a'
         self.network = 'ganache'
 
-        self.console_accounts = ConsoleAccounts()
+
         self.console_payloads = ContractPayloadArtifacts()
         self.console_artifacts = ContractConsoleArtifacts()
         self.console_information = ConsoleInformation()
@@ -96,8 +96,12 @@ class GnosisConsoleEngine:
         self.console_network_agent = NetworkAgent(self.logger)
         self.console_getter = ConsoleInputGetter(self.logger)
 
+        self.console_accounts = ConsoleAccounts(
+            self.logger, self.console_network_agent.get_ethereum_client(), self.silence_flag
+        )
+
         # Debug: Finished loading all the components of the gnosis-cli
-        if not self.silence:
+        if not self.silence_flag:
             self.logger.info('---------' * 10)
             self.logger.info('Finished Gnosis Cli Setup')
             self.logger.info('---------' * 10)
@@ -163,7 +167,7 @@ class GnosisConsoleEngine:
         :param configuration:
         :return:
         """
-        self.silence = configuration['silence']
+        self.silence_flag = configuration['silence']
         self.network = configuration['network']
         if configuration['debug']:
             self.logging_lvl = DEBUG0
