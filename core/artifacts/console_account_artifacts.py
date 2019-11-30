@@ -39,24 +39,22 @@ class ConsoleAccounts:
                 'instance': None
             }
         }
-
         self._setup_ganache_accounts()
         self._setup_random_accounts()
-        # todo: web3.eth.getBalance(address)
 
     def command_view_accounts(self):
         self.logger.debug0(STRING_DASHES)
         for item in self.account_data:
-            self.logger.info(' | {0:^15} | {1:^25} | {2:^25} | {3:^50} | '.format(
+            self.logger.info(' | {0:^15} | {1:^25} | {2:^25} | {3:^50} | {4} '.format(
                 item, self.account_data[item]['network'], self.account_data[item]['balance'],
-                self.account_data[item]['address'])
+                self.account_data[item]['address'], str(self.account_data[item]['private_key']))
             )
         self.logger.debug0(STRING_DASHES)
 
     def new_account_entry(self, network, local_account):
         return {
                 'network': network, 'balance': self.ethereum_client.w3.eth.getBalance(local_account.address),
-                'address': local_account.address, 'private_key': local_account.privateKey,
+                'address': local_account.address, 'private_key': HexBytes(local_account.privateKey),
                 'instance': local_account
         }
 
@@ -72,7 +70,7 @@ class ConsoleAccounts:
         local_account = None
         if private_key != '':
             try:
-                local_account = Account.privateKeyToAccount(private_key)
+                local_account = Account.privateKeyToAccount(HexBytes(private_key))
                 self.account_data[(alias + str(len(self.account_data)-1))] = self.new_account_entry(network, local_account)
                 return self.account_data
             except Exception as err:
@@ -94,29 +92,32 @@ class ConsoleAccounts:
         :param account_number:
         :return:
         """
-        self.logger.info(STRING_DASHES)
+        self.logger.debug0(STRING_DASHES)
+        self.logger.debug0('Setup Random Accounts')
+        self.logger.debug0(STRING_DASHES)
         for index in range(1, account_number, 1):
-            tmp_account = Account.create()
-            self.add_account(tmp_account.address, tmp_account.privateKey, alias='rAccount')
-
-        if not self.silence_flag:
-            self.logger.info('Setup Random Accounts')
-            self.logger.info('(+) Added {0} Random Accounts'.format(account_number))
+            local_account = Account.create()
+            self.logger.debug0('(+) Random Account with Address {0} '.format(local_account.address))
+            self.add_account(local_account.address, local_account.privateKey, alias='rAccount')
+        self.logger.debug0(STRING_DASHES)
+        self.logger.debug0(' | [ {0} ] Random Accounts Added | '.format(account_number))
 
     def _setup_ganache_accounts(self):
         """ Setup Ganache Accounts
         This function will retrieve and setup ten ganache accounts to interact with during the console execution
         :return:
         """
+        self.logger.debug0(STRING_DASHES)
+        self.logger.debug0(' | Setup Ganache Accounts  | ')
+        self.logger.debug0(STRING_DASHES)
         for index, data in enumerate(ganache_data):
-            tmp_account = Account.privateKeyToAccount(ganache_data[data]['private_key'])
-            self.add_account(tmp_account.address, tmp_account.privateKey, alias='gAccount')
+            local_account = Account.privateKeyToAccount(ganache_data[data]['private_key'])
+            self.logger.debug0('(+) Ganache Account with Address {0} '.format(local_account.address))
+            self.add_account(local_account.address, local_account.privateKey, alias='gAccount')
+        self.logger.debug0(STRING_DASHES)
+        self.logger.debug0(' | [ {0} ] Ganache Accounts Added | '.format(len(ganache_data)))
 
-        if not self.silence_flag:
-            self.logger.info('Setup Ganache Accounts')
-            self.logger.info('(+) Added {0} Ganache Accounts'.format(len(ganache_data)))
-
-    def get_account_data(self, stream):
+    def get_account_data_from_alias(self, stream):
         """ Get Account Data
         This function will retrieve the data from a given value
         :param stream:
@@ -125,5 +126,6 @@ class ConsoleAccounts:
         for item in self.account_data:
             if stream.startswith(item):
                 key = stream.split('.')[1]
-                print(stream, item, self.account_data[item][key])
+                self.logger.debug0(stream, item, self.account_data[item][key])
                 return self.account_data[item][key]
+        self.logger.debug0(STRING_DASHES)
