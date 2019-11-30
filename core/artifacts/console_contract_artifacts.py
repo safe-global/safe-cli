@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+STRING_DASHES = '---------' * 10
 
-class ContractConsoleArtifacts:
+
+class ConsoleContractArtifacts:
     def __init__(self, contract_artifact_list=None):
         self.contract_artifact_list = contract_artifact_list
         self.contract_data = {}

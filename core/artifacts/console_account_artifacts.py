@@ -41,6 +41,20 @@ class ConsoleAccountsArtifacts:
         }
         self._setup_ganache_accounts()
         self._setup_random_accounts()
+        self.default_owner = ''
+        self.default_owner_list = []
+
+    def command_set_default_owner(self, value):
+        self.default_owner = value
+
+    def command_set_default_owner_list(self, value):
+        self.default_owner_list = value
+
+    def command_view_default_owner_list(self):
+        print('Default Owner List', self.default_owner_list)
+
+    def command_view_default_owner(self):
+        print('Default Owner:', self.default_owner)
 
     def command_view_accounts(self):
         self.logger.debug0(STRING_DASHES)

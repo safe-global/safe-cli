@@ -1,9 +1,16 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Import Prompt Toolkit Modules
 from prompt_toolkit import HTML, prompt
 
+# Constants
 payload_options = ['alias', 'from', 'gas', 'gasPrice']
 payload_tx_options = ['alias', 'from', 'gas', 'gasPrice', 'value', 'nonce', 'safe_tx_gas']
+STRING_DASHES = '---------' * 10
 
-class ContractPayloadArtifacts:
+
+class ConsolePayloadArtifacts:
     def __init__(self):
         self.payload_data = {}
 
@@ -30,7 +37,7 @@ class ContractPayloadArtifacts:
         compose_answer = '{'
         for item in payload_options:
             text = ('\'%s\' : ' % (item)).rjust(20)
-            answer = prompt(HTML(' <strong>%s</strong> ') % text)
+            answer = prompt(HTML((' <strong>%s</strong> ') % text))
             if answer == '':
                 if (item == 'gas') or (item == 'gasPrice') or (item == 'nonce') or (item == 'safe_tx_gas'):
                     compose_answer += '\'%s\' : %s' % (item, str(0)) + ', '

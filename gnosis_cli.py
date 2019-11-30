@@ -59,10 +59,10 @@ try:
     gnosis_console_engine = GnosisConsoleEngine(init_gnosis_console_configuration)
 
     # Load Contract Artifacts Assets ( Init Safe from Scenario )
-    gnosis_console_engine.load_contract_artifacts(contract_artifacts_assets)
+    gnosis_console_engine._setup_contract_artifacts(contract_artifacts_assets)
 
     # Run the Gnosis Console
-    gnosis_console_engine.run_console_session()
+    gnosis_console_engine.run_console_session(prompt_text='GNOSIS-CLI v0.0.1a')
 
 except ConnectionError:
     print('Launch [ "ganache-cli -d" ] command on a new terminal before you try to run the console again!')

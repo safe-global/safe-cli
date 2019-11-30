@@ -68,6 +68,14 @@ class NetworkAgent:
         """
         return self.ethereum_client
 
+    def command_set_network(self, value):
+        """ Command Set Network
+        This function will perform the setNetwork functionality in the gnosis-cli
+        :param value:
+        :return:
+        """
+        self.set_network_provider_endpoint(value)
+
     def command_view_networks(self):
         """ Command View Networks
 

@@ -8,8 +8,7 @@ class ConsoleInformation:
 
     @staticmethod
     def command_view_about():
-        print('Prototype for Gnosis Console')
-        print('Version: 0.0.1a')
+        print('gnosis-cli 0.0.1a prototype')
 
     @staticmethod
     def command_view_help():

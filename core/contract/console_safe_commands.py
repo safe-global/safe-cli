@@ -9,10 +9,11 @@ from gnosis.eth.ethereum_client import EthereumClient
 from gnosis.eth.contracts import (
     get_safe_V1_0_0_contract, get_safe_V0_0_1_contract
 )
+from hexbytes import HexBytes
 
 # remark: Temporal Owner List, Testing
 NULL_ADDRESS = '0x' + '0' * 40
-STRING_DASHES = '---------' * 10
+STRING_DASHES = '----------' * 12
 
 local_account0 = Account.privateKeyToAccount('0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d')
 local_account1 = Account.privateKeyToAccount('0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1')
@@ -29,10 +30,12 @@ new_account = local_account9
 owners_list0 = [local_account0, local_account1, local_account2]
 owners_list = [local_account4, local_account5, local_account6, local_account7, local_account8]
 
-class ConsoleSafeMethods:
-    def __init__(self, safe_address, logger):
+
+class ConsoleSafeCommands:
+    def __init__(self, safe_address, logger, account_artifacts, network_agent):
         self.logger = logger
-        # review: Coupling here, this should not be here! Move away console_getter, and ethereum client, use the one provided by the network_agent
+        # review: Coupling here, this should not be here! Move away console_getter, and
+        #  ethereum client, use the one provided by the network_agent
         self.console_getter = ConsoleInputGetter(self.logger)
         self.ethereum_client = EthereumClient()
 
@@ -43,9 +46,16 @@ class ConsoleSafeMethods:
         self.gas_price = 0
         self.value = 0
 
+        self.network_agent = network_agent
+        self.account_artifacts = account_artifacts
+
         # Trigger information on class init
         self.command_safe_information()
+        self._setup_main_owner()
+
     # review: use the master copy function to retrieve the true version for the proxy contract
+    # review: search for a blueprint of the version in the functions inputs, removeOwners from 1.0.0 to 1.1.0
+    #  recieves diferent data, make a call function and confirm it??
     def _setup_safe_resolver(self, safe_address):
         aux_safe_operator = Safe(safe_address, self.ethereum_client)
         safe_version = str(aux_safe_operator.retrieve_version())
@@ -55,6 +65,32 @@ class ConsoleSafeMethods:
             return get_safe_V1_0_0_contract(self.ethereum_client.w3, safe_address)
         else:
             return get_safe_V0_0_1_contract(self.ethereum_client.w3, safe_address)
+
+    def _setup_main_owner(self, best_fit=False):
+        """ Setup Main Owner
+        This functions will find the best fit owner to be the sender of the transactions, automatically set
+        the defaultOwner & defaultOwnerList console variables
+        :return:
+        """
+        tmp = []
+        self.logger.debug0('Setup Best Fit Owner Selection Based On Ether')
+        self.logger.debug0(STRING_DASHES)
+        default_owner_list = self.safe_instance.functions.getOwners().call()
+        for owner in default_owner_list:
+            stored_ether = self.ethereum_client.w3.eth.getBalance(owner)
+            tmp.append(stored_ether)
+            new_account_data = {
+                'network': self.network_agent.network, 'balance': self.ethereum_client.w3.eth.getBalance(owner),
+                'address': owner, 'private_key': HexBytes(''),
+                'instance': None
+            }
+            self.logger.debug0(new_account_data)
+        self.logger.debug0(STRING_DASHES)
+        self.logger.debug0(tmp)
+        self.logger.debug0(default_owner_list)
+        owner_based_on_index = default_owner_list[tmp.index(max(tmp))]
+        self.logger.debug0(str(owner_based_on_index) + ' | ' + str(tmp[tmp.index(max(tmp))]))
+        self.logger.debug0(STRING_DASHES)
 
     def safe_tx_multi_sign(self, safe_tx, signers_list):
         """ Safe Tx Multi Sign
@@ -67,8 +103,8 @@ class ConsoleSafeMethods:
             # ordered_signers = sorted(signers_list, key=lambda signer: signer.address.lower())
             for signer in signers_list:
                 safe_tx.sign(signer.privateKey)
-                self.logger.debug0(' | Owner Address: {0} | '.format(signer.address))
-                self.logger.debug0(' | Sign with Private Key: {0} | '.format(signer.privateKey))
+                self.logger.debug0(' | Owner Address: {0:^25} | '.format(signer.address))
+                self.logger.debug0(' | Sign with Private Key: {0:^25} | '.format(signer.privateKey))
                 self.logger.debug0(STRING_DASHES)
 
             # if self.safe_operator.retrieve_is_message_signed(safe_tx.safe_tx_hash):
@@ -87,8 +123,8 @@ class ConsoleSafeMethods:
         try:
             for signer in signers_list:
                 self.safe_instance.functions.approveHash(safe_tx.safe_tx_hash).transact({'from': signer.address})
-                self.logger.debug0(' | Owner Address: {0} | '.format(signer.address))
-                self.logger.debug0(' | Approving Tx with Hash: {0} | '.format(safe_tx.safe_tx_hash))
+                self.logger.debug0(' | Owner Address: {0:^25} | '.format(signer.address))
+                self.logger.debug0(' | Approving Tx with Hash: {0:^25} | '.format(safe_tx.safe_tx_hash))
                 self.logger.debug0(STRING_DASHES)
 
                 # if self.safe_operator.retrieve_is_hash_approved(signer, safe_tx.safe_tx_hash):
@@ -128,8 +164,8 @@ class ConsoleSafeMethods:
 
             self.logger.debug0(' | Safe Tx Receipt: | ')
             self.logger.debug0(STRING_DASHES)
-            self.logger.debug0(' | Retrieving Tx with Hash: {0} | '.format(safe_tx.safe_tx_hash))
-            self.logger.debug0('    {0}'.format(safe_tx_receipt))
+            self.logger.debug0(' | Retrieving Tx with Hash: {0:^25} | '.format(safe_tx.safe_tx_hash))
+            self.logger.debug0(' {0}'.format(safe_tx_receipt))
             return safe_tx_receipt
         except Exception as err:
             self.logger.error('Unable to perform_transaction(): {0} {1}'.format(type(err), err))
@@ -147,8 +183,6 @@ class ConsoleSafeMethods:
         self.command_safe_nonce()
         self.command_safe_get_owners()
         self.command_safe_get_threshold()
-
-
 
     def command_safe_nonce(self):
         """ Command Safe Nonce
@@ -234,9 +268,9 @@ class ConsoleSafeMethods:
 
             # Generating the function payload data
             payload_data = self.safe_instance.functions.swapOwner(previous_owner.address, owner.address, new_owner.address).buildTransaction(sender_data)['data']
-            self.logger.debug0(' | Sender Data: {0} | '.format(sender_data))
+            self.logger.debug0(' | Sender Data: {0:^100} | '.format(sender_data))
             self.logger.debug0(STRING_DASHES)
-            self.logger.debug0(' | Payload Data: {0} | '.format(payload_data))
+            self.logger.debug0(' | Payload Data: {0:^100} | '.format(payload_data))
             self.logger.debug0(STRING_DASHES)
 
             # Perform the transaction
@@ -262,9 +296,9 @@ class ConsoleSafeMethods:
 
             # Generating the function payload data
             payload_data = self.safe_instance.functions.changeThreshold(new_threshold).buildTransaction(sender_data)['data']
-            self.logger.debug0(' | Sender Data: {0} | '.format(sender_data))
+            self.logger.debug0(' | Sender Data: {00:^100} | '.format(sender_data))
             self.logger.debug0(STRING_DASHES)
-            self.logger.debug0(' | Payload Data: {0} | '.format(payload_data))
+            self.logger.debug0(' | Payload Data: {0:^100} | '.format(payload_data))
             self.logger.debug0(STRING_DASHES)
 
             # Perform the transaction
@@ -296,9 +330,9 @@ class ConsoleSafeMethods:
 
             # Generating the function payload data
             payload_data = self.safe_instance.functions.addOwnerWithThreshold(new_owner.address, new_threshold).buildTransaction(sender_data)['data']
-            self.logger.debug0(' | Sender Data: {0} | '.format(sender_data))
+            self.logger.debug0(' | Sender Data: {0:^100} | '.format(sender_data))
             self.logger.debug0(STRING_DASHES)
-            self.logger.debug0(' | Payload Data: {0} | '.format(payload_data))
+            self.logger.debug0(' | Payload Data: {0:^100} | '.format(payload_data))
             self.logger.debug0(STRING_DASHES)
 
             # Perform the transaction
@@ -325,9 +359,9 @@ class ConsoleSafeMethods:
             new_threshold = self.safe_operator.retrieve_threshold() - 1
             # Generating the function payload data
             payload_data = self.safe_instance.functions.removeOwner(previous_owner.address, owner.address, new_threshold).buildTransaction(sender_data)['data']
-            self.logger.debug0(' | Sender Data: {0} | '.format(sender_data))
+            self.logger.debug0(' | Sender Data: {0:^100} | '.format(sender_data))
             self.logger.debug0(STRING_DASHES)
-            self.logger.debug0(' | Payload Data: {0} | '.format(payload_data))
+            self.logger.debug0(' | Payload Data: {0:^100} | '.format(payload_data))
             self.logger.debug0(STRING_DASHES)
 
             # Perform the transaction
