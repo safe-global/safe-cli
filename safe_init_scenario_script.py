@@ -3,7 +3,7 @@
 
 # ethereum_client.w3.eth.contract(abi=safe_v101_abi, address=safe_v101_deployment_data.contract_address)
 
-from core.utils.build_contract_reader import ContractReader
+from core.utils.contract_reader import ConsoleContractReader
 from gnosis.eth.ethereum_client import EthereumClient
 from gnosis.safe import Safe, ProxyFactory
 from eth_account import Account
@@ -58,7 +58,7 @@ def gnosis_py_init_scenario():
     print('+' + '---------' * 10 + '+')
     # Get new Ethereum Provider & ContractReader
     ethereum_client = EthereumClient()
-    contract_reader = ContractReader()
+    contract_reader = ConsoleContractReader()
 
     # remark: Init Deployer Account
     local_account = Account.privateKeyToAccount('0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d')

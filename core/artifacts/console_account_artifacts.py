@@ -21,7 +21,7 @@ class TypeOfAccount(Enum):
     ROPSTEN_ACCOUNT = 'RopstenAccount'
 
 
-class ConsoleAccounts:
+class ConsoleAccountsArtifacts:
     """ ConsoleSessionAccounts
 
     """
@@ -93,7 +93,7 @@ class ConsoleAccounts:
         :return:
         """
         self.logger.debug0(STRING_DASHES)
-        self.logger.debug0('Setup Random Accounts')
+        self.logger.debug0(' | Setup Random Accounts | ')
         self.logger.debug0(STRING_DASHES)
         for index in range(1, account_number, 1):
             local_account = Account.create()

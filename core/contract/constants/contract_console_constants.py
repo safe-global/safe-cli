@@ -5,15 +5,15 @@
 from prompt_toolkit.formatted_text import HTML
 
 # simple_function_operand = '((--address=)(0x([aA-zZ,0-9]{62}|[aA-zZ,0-9]{40}))?)|((--uint=)([0-9]{0,})?)|(--queue)?(--execute)?'
-simple_function_name = 'isOwner|getOwners|getThreshold|addOwner|swapOwner|removeOwner|changeThreshold|sendEther|sendToken|VERSION|NAME|code|nonce|addOwnerWithThreshold'
+console_method_names = 'isOwner|getOwners|getThreshold|addOwner|swapOwner|removeOwner|changeThreshold|sendEther|sendToken|VERSION|NAME|code|nonce|addOwnerWithThreshold'
 console_commands = 'viewNetwork|viewAccounts|viewContracts|newPayload|newTxPayload|newAccount|newContract|setNetwork|setDefaultOwner|setDefaultOwnerList|loadContract|loadSafe|viewPayloads|viewOwners|viewTokens|newTokens'
-quit_commands = 'exit|quit|close'
-help_commands = 'help|about|info'
-known_networks = 'ropsten|mainnet|ganache|rinkeby'
-low_lvl_execution_commands = '--queue|--execute|--query'
-normal_address = '--address=(0x[aA-zZ,0-9]{40,62})?'
-bytecode_data = '--bytecode=(([aA-zZ,0-9]{0,}))?'
-uint_data = '--uint=([0-9]{0,})?'
+console_quit_commands = 'exit|quit|close'
+console_help_commands = 'help|about|info'
+console_known_networks = 'ropsten|mainnet|ganache|rinkeby'
+console_contract_execution_commands = '--queue|--execute|--query'
+address_param = '--address=(0x[aA-zZ,0-9]{40,62})?'
+bytecode_param = '--bytecode=(([aA-zZ,0-9]{0,}))?'
+uint_param = '--uint=([0-9]{0,})?'
 ether_params = '--ether=|--miliether=|--microether=|--wei=|--Kwei=|--Mwei=|--Gwei='
 
 arg_keywords = [

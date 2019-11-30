@@ -8,7 +8,7 @@ import os
 from subprocess import Popen, PIPE
 
 # Import Json ABIReader Package
-from core.utils.build_contract_reader import ContractReader
+from core.utils.contract_reader import ConsoleContractReader
 
 # Truffle Command Constant
 TRUFFLE_SOFT_MIGRATE = 'truffle migrate'
@@ -37,7 +37,7 @@ class ConsoleTruffleInterface:
         self.deployment_contract_list = deployment_contract_list
         self.compiled_contract_list = []
         self.provider.eth.defaultAccount = provider.eth.coinbase
-        self.build_contract_reader = ContractReader()
+        self.build_contract_reader = ConsoleContractReader()
         self.proxy_contract_list = proxy_contract_list
 
     def compile_source_files(self):

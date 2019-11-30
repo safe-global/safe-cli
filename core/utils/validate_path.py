@@ -4,20 +4,17 @@ import sys
 
 # Sadly, Python fails to provide the following magic number for us.
 ERROR_INVALID_NAME = 123
-"""
-Windows-specific error code indicating an invalid pathname.
 
-See Also
-----------
-https://msdn.microsoft.com/en-us/library/windows/desktop/ms681382%28v=vs.85%29.aspx
-    Official listing of all such codes.
-    
-Code Refence:
-https://stackoverflow.com/questions/9532499/check-whether-a-path-is-valid-in-python-without-creating-a-file-at-the-paths-ta
-"""
+# reference:
+#  https://msdn.microsoft.com/en-us/library/windows/desktop/ms681382%28v=vs.85%29.aspx
+# reference:
+#  https://stackoverflow.com/questions/9532499/check-whether-a-path-is-valid-in-python-without-creating-a-file-at-the-paths-ta
+
 
 def is_pathname_valid(pathname: str) -> bool:
-    """
+    """ Is Path Name Valid
+
+    Windows-specific error code indicating an invalid pathname.
     `True` if the passed pathname is a valid pathname for the current OS;
     `False` otherwise.
     """

@@ -3,14 +3,14 @@
 
 from core.net.network_agent import NetworkAgent
 from core.input.console_input_getter import ConsoleInputGetter
-from core.contract.console_help import ConsoleInformation
+from core.artifacts.console_help_artifacts import ConsoleInformation
 from core.contract.console_safe_methods import ConsoleSafeMethods
 from core.contract.utils.console_syntax_lexer import ContractSyntaxLexer
 from core.contract.utils.contract_method_completer import ContractMethodCompleter
-from core.contract.artifacts.contract_console_artifacts import ContractConsoleArtifacts
-from core.contract.artifacts.contract_method_artifacts import ContractMethodArtifacts
-from core.contract.artifacts.contract_payload_artifacts import ContractPayloadArtifacts
-from core.artifacts.console_account_artifacts import ConsoleAccounts
+from core.artifacts.console_contract_artifacts import ContractConsoleArtifacts
+from core.contract.console_contract_methods import ContractMethodArtifacts
+from core.artifacts.console_payload_artifacts import ContractPayloadArtifacts
+from core.artifacts.console_account_artifacts import ConsoleAccountsArtifacts
 
 # Import PromptToolkit Package
 from prompt_toolkit.completion import WordCompleter
@@ -45,11 +45,9 @@ class GnosisConsoleEngine:
         self.prompt_text = 'GNOSIS-CLI v0.0.1a'
         self.network = 'ganache'
 
-
         self.console_payloads = ContractPayloadArtifacts()
         self.console_artifacts = ContractConsoleArtifacts()
         self.console_information = ConsoleInformation()
-
 
         self.default_auto_fill = False
         self.default_owner = ''
@@ -94,9 +92,10 @@ class GnosisConsoleEngine:
 
         # Setup EthereumClient
         self.console_network_agent = NetworkAgent(self.logger)
+        # Setup Console Input Getter
         self.console_getter = ConsoleInputGetter(self.logger)
-
-        self.console_accounts = ConsoleAccounts(
+        # Setup Console Account Artifacts
+        self.console_accounts = ConsoleAccountsArtifacts(
             self.logger, self.console_network_agent.get_ethereum_client(), self.silence_flag
         )
 

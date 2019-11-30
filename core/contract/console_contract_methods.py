@@ -7,7 +7,7 @@ class ContractMethodArtifacts:
         self.name = self.__class__.__name__
 
     @staticmethod
-    def to_struct_method_artifact(name, arguments, argument_block, metadata):
+    def to_method_artifact(name, arguments, argument_block, metadata):
         """ To Struct Method Artifacts
         This function will return a properly structured method artifact for contract_method dictionary
 
@@ -29,8 +29,9 @@ class ContractMethodArtifacts:
 
     def map_contract_methods(self, contract_instance):
         """ Map Contract functions
-        This function will map Events, Functions ( call , transact ), make distintions beetwen them? no input automatic query like function
-        input but not output + doble Mayus name Event, otherwise functions with input,output transact it's required
+        This function will map Events, Functions ( call , transact ), make distintions beetwen them? no input automatic
+        query like function input but not output + doble Mayus name Event, otherwise functions with input,output
+        transact it's required
 
         :param contract_instance: current contract instance used in the console
         :return: dictionary with the methods of the current instance provided
@@ -55,17 +56,21 @@ class ContractMethodArtifacts:
 
                 if len(method_inputs) >= 1:
                     for method_index, method_data in enumerate(method_inputs):
-                        method_metadata.append({method_index: str(method_data['type']) + ' ' + str(method_data['name'])})
+                        method_metadata.append({
+                            method_index: str(method_data['type']) + ' ' + str(method_data['name'])
+                        })
                         method_arguments.append({method_index: str(method_data['type'])})
                         stream_argument_input += '{' + str(method_index) + '},'
 
                     # Remove extra comma from the stream_argument_input[:-1] to fit the proper function input pattern
-                    contract_methods[index] = self.to_struct_method_artifact(method_name, method_arguments,
-                                                                             stream_argument_input[:-1], method_metadata)
+                    contract_methods[index] = self.to_method_artifact(
+                        method_name, method_arguments, stream_argument_input[:-1], method_metadata
+                    )
                 else:
                     # No method input, so no removal needed here
-                    contract_methods[index] = self.to_struct_method_artifact(method_name, method_arguments,
-                                                                             stream_argument_input, method_metadata)
+                    contract_methods[index] = self.to_method_artifact(
+                        method_name, method_arguments, stream_argument_input, method_metadata
+                    )
             return contract_methods
         except Exception as err:
             print(type(err), err)

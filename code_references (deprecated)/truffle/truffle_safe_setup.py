@@ -11,7 +11,7 @@
 from core.constants.console_constant import NULL_ADDRESS
 
 # Import Contract Reader
-from core.utils.build_contract_reader import ContractReader
+from core.utils.contract_reader import ConsoleContractReader
 
 class TruffleSafeSetup:
     """ Gnosis Safe Module
@@ -27,7 +27,7 @@ class TruffleSafeSetup:
         """
         self.name = self.__class__.__name__
         self.provider = provider
-        self.build_contract_reader = ContractReader()
+        self.build_contract_reader = ConsoleContractReader()
         self.logger = logger
         self.contract_artifacts = contract_artifacts
 

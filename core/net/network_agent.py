@@ -1,24 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Importing Custom Logger & Logging Modules
-
-# Import Socket Exceptions
-from core.net.exceptions.network_exceptions import (NetworkAgentFatalException)
+# Import Socket Exception
+from core.net.exceptions.network_exceptions import NetworkAgentFatalException
 
 # Import Socket Module
 import socket
+
+# Import EthereumCLient Module
 from gnosis.eth.ethereum_client import EthereumClient
 
-
+# Constants: Default Api Keys
 DEFAULT_INFURA_API_KEY =  'b3fa360a82cd459e8f1b459b3cf9127c'
 DEFAULT_ETHERSCAN_API_KEY = 'A1T1PKJXZJC1T4RJZK4ZMZH4JEYTUGAA6G'
+
 
 class NetworkAgent:
     """ Network Agent
 
-    Code Reference: https://stackoverflow.com/questions/3764291/checking-network-connection
     This class will establish the current state of the connectivity to internet for the system in case it's needed.
+    reference: https://stackoverflow.com/questions/3764291/checking-network-connection
     """
     def __init__(self, logger, network='ganache', api_key=None):
         self.name = self.__class__.__name__
@@ -34,7 +35,7 @@ class NetworkAgent:
         # Default Ethereum Node Endpoint for the EthereumClient
         self.default_node_endpoint = 'http://localhost:8545'
         self.current_node_endpoint = ''
-        if self.network_status():
+        if self.network_status() or network == 'ganache':
             self.set_network_provider_endpoint(network, api_key)
 
     def _setup_new_provider(self, node_url):

@@ -11,7 +11,7 @@ pd.set_option('display.max_columns', 750)
 pd.set_option('display.width', 1400)
 
 
-class TransactionHistoryManager:
+class ConsoleTxHistory:
     def __init__(self):
         self.name = self.__class__.__name__
         self.history = DataFrame()

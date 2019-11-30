@@ -7,18 +7,16 @@ import json
 # Import Os Package
 import os
 
-class ContractReader:
+
+class ConsoleContractReader:
     """ Build Contract Reader
     This class will provide functionality for the extraction of the abi and bytecode for any given contract
     """
-
     def __init__(self):
         self.name = self.__class__.__name__
 
-    def map(self):
-        pass
-
-    def read_from(self, file_path):
+    @staticmethod
+    def read_from(file_path):
         """ Read From
         This method will read the json file provided within the current file_path, and return in it's found the abi
         and the bytecode for the current contract.

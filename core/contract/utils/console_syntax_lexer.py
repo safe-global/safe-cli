@@ -7,8 +7,8 @@ from prompt_toolkit.lexers import Lexer
 
 # Import Regex Expresions from Contract Console Constants Package
 from core.contract.constants.contract_console_constants import (
-    quit_commands, simple_function_name, normal_address, uint_data, bytecode_data,
-    console_commands, low_lvl_execution_commands, help_commands, known_networks, ether_params
+    console_quit_commands, console_method_names, address_param, uint_param, bytecode_param,
+    console_commands, console_contract_execution_commands, console_help_commands, console_known_networks, ether_params
 )
 
 # Import Re Package
@@ -58,29 +58,29 @@ class ContractSyntaxLexer(Lexer):
             for index, word in enumerate(document.lines[lineno].split(' ')):
                 current_color = BASIC_TEXT
 
-                if self.__is_valid_argument(simple_function_name, word) \
+                if self.__is_valid_argument(console_method_names, word) \
                         or self.__is_valid_argument(console_commands, word):
                     current_color = CONTRACT_METHODS_COLOR
 
-                elif self.__is_valid_argument(help_commands, word):
+                elif self.__is_valid_argument(console_help_commands, word):
                     current_color = INFORMATION_COLOR
 
-                elif self.__is_valid_argument(known_networks, word):
+                elif self.__is_valid_argument(console_known_networks, word):
                     current_color = KNOWN_NETWORKS_COLOR
 
-                elif self.__is_valid_argument(normal_address, word) \
-                        or self.__is_valid_argument(uint_data, word) \
-                        or self.__is_valid_argument(bytecode_data, word) \
+                elif self.__is_valid_argument(address_param, word) \
+                        or self.__is_valid_argument(uint_param, word) \
+                        or self.__is_valid_argument(bytecode_param, word) \
                         or self.__is_valid_argument('--alias=', word) \
                         or self.__is_valid_argument('--api_key=', word) \
                         or self.__is_valid_argument(ether_params, word) \
                         or self.__is_valid_argument('--private_key=', word):
                     current_color = PARAM_COLOR
 
-                elif self.__is_valid_argument(low_lvl_execution_commands, word):
+                elif self.__is_valid_argument(console_contract_execution_commands, word):
                     current_color = CONSOLE_COMMANDS
 
-                elif self.__is_valid_argument(quit_commands, word):
+                elif self.__is_valid_argument(console_quit_commands, word):
                     current_color = EXIT_COLOR
                 aux_list.append((current_color, word + ' '))
             return aux_list
