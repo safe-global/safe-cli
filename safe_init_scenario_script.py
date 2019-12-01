@@ -12,19 +12,14 @@ from gnosis.eth.contracts import (
 )
 
 
-class ContractArtifact:
+class AuxContractArtifact:
     def __init__(self, contract_name, contract_instance, contract_abi, contract_bytecode, contract_address):
-        self.contract_name = contract_name
-        self.contract_instance = contract_instance
-        self.contract_abi = contract_abi
-        self.contract_bytecode = contract_bytecode
-        self.contract_address = contract_address
         self.data = {
-            'name': self.contract_name,
-            'instance': self.contract_instance,
-            'abi': self.contract_abi,
-            'bytecode': self.contract_bytecode,
-            'address': self.contract_address
+            'name': contract_name,
+            'instance': contract_instance,
+            'abi': contract_abi,
+            'bytecode': contract_bytecode,
+            'address': contract_address
         }
 
 
@@ -103,10 +98,9 @@ def gnosis_py_init_scenario():
     print('Test Address to loadSafe --address=%s' % (ethereum_tx_sent_aux.contract_address))
     print('+' + '---------' * 10 + '+')
 
-    safe_v101_artifacts = ContractArtifact(safe_v101, safe_v101_contract_instance, safe_v101_abi, safe_v101_bytecode,
-                                           safe_v101_object.address)
+    safe_v101_artifacts = AuxContractArtifact(safe_v101, safe_v101_contract_instance, safe_v101_abi, safe_v101_bytecode, safe_v101_object.address)
 
-    return safe_v101_artifacts.data
+    return [safe_v101_artifacts.data]
 
 
 

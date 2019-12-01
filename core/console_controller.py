@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from core.artifacts.console_help_artifacts import ConsoleInformation
+# Import
+from core.artifacts.help_artifacts import InformationArtifacts
 from core.input.console_input_getter import ConsoleInputGetter
 from eth_account import Account
 
-local_account0 = Account.privateKeyToAccount('0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d')
-local_account1 = Account.privateKeyToAccount('0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1')
-local_account2 = Account.privateKeyToAccount('0x6370fd033278c143179d81c5526140625662b8daa446c22ee2d73db3707e620c')
-local_account3 = Account.privateKeyToAccount('0x646f1ce2fdad0e6deeeb5c7e8e5543bdde65e86029e2fd9fc169899c440a7913')
-local_account4 = Account.privateKeyToAccount('0xadd53f9a7e588d003326d1cbf9e4a43c061aadd9bc938c843a79e7b4fd2ad743')
-local_account5 = Account.privateKeyToAccount('0x395df67f0c2d2d9fe1ad08d1bc8b6627011959b79c53d7dd6a3536a33ab8a4fd')
-local_account6 = Account.privateKeyToAccount('0xe485d098507f54e7733a205420dfddbe58db035fa577fc294ebd14db90767a52')
-local_account7 = Account.privateKeyToAccount('0xa453611d9419d0e56f499079478fd72c37b251a94bfde4d19872c44cf65386e3')
-local_account8 = Account.privateKeyToAccount('0x829e924fdf021ba3dbbc4225edfece9aca04b929d6e75613329ca6f1d31c0bb4')
-local_account9 = Account.privateKeyToAccount('0xb0057716d5917badaf911b193b12b910811c1497b5bada8d7711f758981c3773')
+local_account0 = Account().privateKeyToAccount('0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d')
+local_account1 = Account().privateKeyToAccount('0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1')
+local_account2 = Account().privateKeyToAccount('0x6370fd033278c143179d81c5526140625662b8daa446c22ee2d73db3707e620c')
+local_account3 = Account().privateKeyToAccount('0x646f1ce2fdad0e6deeeb5c7e8e5543bdde65e86029e2fd9fc169899c440a7913')
+local_account4 = Account().privateKeyToAccount('0xadd53f9a7e588d003326d1cbf9e4a43c061aadd9bc938c843a79e7b4fd2ad743')
+local_account5 = Account().privateKeyToAccount('0x395df67f0c2d2d9fe1ad08d1bc8b6627011959b79c53d7dd6a3536a33ab8a4fd')
+local_account6 = Account().privateKeyToAccount('0xe485d098507f54e7733a205420dfddbe58db035fa577fc294ebd14db90767a52')
+local_account7 = Account().privateKeyToAccount('0xa453611d9419d0e56f499079478fd72c37b251a94bfde4d19872c44cf65386e3')
+local_account8 = Account().privateKeyToAccount('0x829e924fdf021ba3dbbc4225edfece9aca04b929d6e75613329ca6f1d31c0bb4')
+local_account9 = Account().privateKeyToAccount('0xb0057716d5917badaf911b193b12b910811c1497b5bada8d7711f758981c3773')
 new_account = local_account9
 
 owners_list0 = [local_account0, local_account1, local_account2]
@@ -31,7 +32,7 @@ class ConsoleController:
         self.payload_artifacts = console_payloads
         self.token_artifacts = console_tokens
         self.network_agent = network_agent
-        self.console_information = ConsoleInformation()
+        self.console_information = InformationArtifacts()
 
         self.console_engine = console_engine
         self.safe_interface = None
@@ -40,7 +41,7 @@ class ConsoleController:
 
     def operate_with_console(self, desired_parsed_item_list, priority_group, command_argument, argument_list):
         """ Operate With Console
-
+        This function will operate with the gnosis console using the input command/arguments provided by the user
         :param desired_parsed_item_list:
         :param priority_group:
         :param command_argument:
@@ -100,10 +101,14 @@ class ConsoleController:
     def operate_with_safe(self, desired_parsed_item_list, priority_group, command_argument, argument_list, safe_interface):
         """ Operate With Safe
         This function will operate with the safe contract using the input command/arguments provided by the user
-        :param stream:
+        :param desired_parsed_item_list:
+        :param priority_group:
+        :param command_argument:
+        :param argument_list:
+        :param safe_interface:
         :return:
         """
-        self.logger.debug0('Operating with Safe')
+        self.logger.debug0('Operating with Safe: ' + command_argument)
         if command_argument == 'info':
             safe_interface.command_safe_information()
         elif command_argument == 'getOwners':
@@ -125,15 +130,17 @@ class ConsoleController:
         elif command_argument == 'changeThreshold':
             safe_interface.command_safe_change_threshold(5, owners_list[0], approval=False)
         elif command_argument == 'addOwnerWithThreshold' or command_argument == 'addOwner':
-            safe_interface.command_safe_add_owner_threshold(owners_list[0], new_account, approval=False)
+            safe_interface.command_safe_add_owsner_threshold(owners_list0[0], new_account, approval=False)
         elif command_argument == 'removeOwner':
-            safe_interface.command_safe_remove_owner(owners_list[0], owners_list[1], approval=False)
+            safe_interface.command_safe_remove_owner(owners_list0[0], owners_list[1], approval=False)
         elif command_argument == 'swapOwner' or command_argument == 'changeOwner':
-            safe_interface.command_safe_swap_owner(owners_list[0], owners_list[1], new_account, approval=False)
+            print('enter swap owners')
+            safe_interface.command_safe_swap_owner(owners_list0[0], owners_list0[1], new_account, approval=False)
         elif command_argument == 'sendToken':
             self.logger.info('sendToken to be Implemented')
         elif command_argument == 'sendEther':
             self.logger.info('sendEther to be Implemented')
+            safe_interface.command_safe_send_ether(approval=False)
             # note: Eval --ether=, --miliether= sum(+) input
         elif command_argument == 'updateSafe':
             self.logger.info('updateSafe --address=0x to be Implemented')
@@ -175,11 +182,11 @@ class ConsoleController:
                             self.logger.info(contract_methods[item]['call'].format(function_arguments, address_from))
                             resolution = eval(contract_methods[item]['call'].format(function_arguments, address_from))
                             self.logger.info(resolution)
-                        # remark: Add to the Batch Solvere
+                        # remark: Add to the Batch Solver
                         elif queue_flag:
                             self.logger.info('(Future Implementation) executeBatch when you are ready to launch the transactions that you queued up!')
                     else:
                         self.logger.warn('--execute, --query or --queue arguments needed in order to properly operate with the current contract')
 
         except Exception as err:
-            print('here:!!', type(err), err)
+            self.logger.debug0('operate_with_contract() {0}'.format(err))

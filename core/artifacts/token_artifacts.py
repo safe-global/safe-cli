@@ -13,7 +13,7 @@ class TypeOfTokens(Enum):
     ERC721 = 'ERC721'
 
 
-class ConsoleTokenArtifacts:
+class TokenArtifacts:
     def __init__(self, logger):
         self.logger = logger
         self.token_data = {}

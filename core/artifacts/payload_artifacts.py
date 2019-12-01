@@ -10,8 +10,9 @@ payload_tx_options = ['alias', 'from', 'gas', 'gasPrice', 'value', 'nonce', 'saf
 STRING_DASHES = '---------' * 10
 
 
-class ConsolePayloadArtifacts:
-    def __init__(self):
+class PayloadArtifacts:
+    def __init__(self, logger):
+        self.logger = logger
         self.payload_data = {}
 
     def add_payload(self, payload_artifact, alias=''):

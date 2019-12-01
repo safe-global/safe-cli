@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 
-class ConsoleInformation:
+class InformationArtifacts:
     def __init__(self):
         self.name = self.__class__.__name__
 

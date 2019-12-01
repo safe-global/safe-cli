@@ -11,7 +11,7 @@ from core.constants.console_constant import DETERMINISTIC_ACCOUNT_INFORMATION as
 from hexbytes import HexBytes
 from enum import Enum
 
-STRING_DASHES = '---------' * 10
+STRING_DASHES = '----------' * 12
 
 
 class TypeOfAccount(Enum):
@@ -21,7 +21,7 @@ class TypeOfAccount(Enum):
     ROPSTEN_ACCOUNT = 'RopstenAccount'
 
 
-class ConsoleAccountsArtifacts:
+class AccountsArtifacts:
     """ ConsoleSessionAccounts
 
     """

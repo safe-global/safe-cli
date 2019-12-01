@@ -45,7 +45,7 @@ parser.add_argument('--version', action='version', version='%(prog)s 0.0.1a')
 try:
     # Retrieve ArgParse values
     results = parser.parse_args()
-    init_gnosis_console_configuration = {
+    init_configuration = {
         'silence': results.silence,
         'debug': results.debug,
         'network': results.network,
@@ -53,16 +53,10 @@ try:
     }
 
     # Init Scenario with Random Safe with Setup (Pre-Loaded Contracts)
-    contract_artifacts_assets = gnosis_py_init_scenario()
+    pre_loaded_contract_artifacts = gnosis_py_init_scenario()
 
     # Init GnosisConsoleEngine with current configuration
-    gnosis_console_engine = GnosisConsoleEngine(init_gnosis_console_configuration)
-
-    # Load Contract Artifacts Assets ( Init Safe from Scenario )
-    gnosis_console_engine._setup_contract_artifacts(contract_artifacts_assets)
-
-    # Run the Gnosis Console
-    gnosis_console_engine.run_console_session(prompt_text='GNOSIS-CLI v0.0.1a')
+    gnosis_console_engine = GnosisConsoleEngine(init_configuration, pre_loaded_contract_artifacts)
 
 except ConnectionError:
     print('Launch [ "ganache-cli -d" ] command on a new terminal before you try to run the console again!')
