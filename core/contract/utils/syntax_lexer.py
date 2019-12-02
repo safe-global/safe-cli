@@ -70,7 +70,7 @@ class SyntaxLexer(Lexer):
 
                 elif self.__is_valid_argument(address_param, word) \
                         or self.__is_valid_argument(uint_param, word) \
-                        or self.__is_valid_argument(bytecode_param, word) \
+                        or self.__is_valid_argument('--bytecode=', word) \
                         or self.__is_valid_argument('--alias=', word) \
                         or self.__is_valid_argument('--api_key=', word) \
                         or self.__is_valid_argument(ether_params, word) \

@@ -108,7 +108,13 @@ class ConsoleController:
         elif command_argument == 'getThreshold':
             safe_interface.command_safe_get_threshold()
         elif command_argument == 'isOwner':
-            safe_interface.command_safe_is_owner(owners_list[0])
+            # todo: Add priority group to the current getter
+            if priority_group == 1:
+                self.logger.debug0('desired parsed items' + str(desired_parsed_item_list))
+                tmp_address = desired_parsed_item_list[0][1][0]
+                self.logger.debug0('--address: {0}'.format(tmp_address))
+
+            safe_interface.command_safe_is_owner(owners_list[0].address)
         elif command_argument == 'areOwners':
             safe_interface.command_safe_are_owners(owners_list)
         elif command_argument == 'nonce':
@@ -120,10 +126,19 @@ class ConsoleController:
         elif command_argument == 'NAME':
             safe_interface.command_safe_name()
         elif command_argument == 'changeThreshold':
-            safe_interface.command_safe_change_threshold(5, owners_list[0], approval=False)
+            if priority_group == 1:
+                uint_value = desired_parsed_item_list[0][1][0]
+                self.logger.debug0(uint_value)
+                safe_interface.command_safe_change_threshold(int(uint_value), approval=False)
+            else:
+                safe_interface.command_safe_change_threshold(5, approval=False)
+
+
         elif command_argument == 'addOwnerWithThreshold' or command_argument == 'addOwner':
-            safe_interface.command_safe_add_owsner_threshold(owners_list0[0], new_account, approval=False)
+            safe_interface.command_safe_add_owner_threshold(owners_list0[0], new_account, approval=False)
         elif command_argument == 'removeOwner':
+            safe_interface.command_safe_remove_owner(owners_list0[0], owners_list[1], approval=False)
+        elif command_argument == 'removeMultipleOwners':
             safe_interface.command_safe_remove_owner(owners_list0[0], owners_list[1], approval=False)
         elif command_argument == 'swapOwner' or command_argument == 'changeOwner':
             safe_interface.command_safe_swap_owner(owners_list0[0], owners_list0[1], new_account, approval=False)
@@ -141,6 +156,23 @@ class ConsoleController:
             safe_interface.command_set_default_sender()
         elif command_argument == 'viewSender':
             safe_interface.command_view_default_sender()
+            # view console commands procedures
+        elif command_argument == 'viewNetwork':
+            self.network_agent.command_view_networks()
+        elif command_argument == 'viewContracts':
+            self.contract_artifacts.command_view_contracts()
+        elif command_argument == 'viewAccounts':
+            self.account_artifacts.command_view_accounts()
+        elif command_argument == 'viewPayloads':
+            self.payload_artifacts.command_view_payloads()
+        elif command_argument == 'loadOwner':
+            self.logger.info('data for signature')
+            if priority_group == 1:
+                bytecode_value = desired_parsed_item_list[0][1][0]
+                self.logger.debug0(bytecode_value)
+                self.account_artifacts.add_
+        elif command_argument == 'loadMultipleOwners':
+            self.logger.info('load multiple owners')
 
     def operate_with_contract(self, stream, contract_methods, contract_instance):
         """ Operate With Contract

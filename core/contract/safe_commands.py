@@ -147,8 +147,8 @@ class ConsoleSafeCommands:
             safe_nonce = self.safe_operator.retrieve_nonce()
             safe_tx = SafeTx(
                 self.ethereum_client, self.safe_instance.address, self.safe_instance.address, self.value,
-                payload_data, SafeOperation.DELEGATE_CALL.value, self.safe_tx_gas, self.base_gas,
-                self.gas_price, NULL_ADDRESS, NULL_ADDRESS, b'', safe_nonce
+                payload_data, SafeOperation.CALL.value, self.safe_tx_gas, self.base_gas,
+                self.gas_price, NULL_ADDRESS, NULL_ADDRESS, safe_nonce=safe_nonce
             )
             # Multi Sign the current transaction
             safe_tx = self.safe_tx_multi_sign(safe_tx, signers_list)
@@ -157,6 +157,7 @@ class ConsoleSafeCommands:
                 self.safe_tx_multi_approve(safe_tx, signers_list)
 
             # Execute the current transaction
+            #safe_tx.call()
             safe_tx_hash, _ = safe_tx.execute(sender.privateKey, self.base_gas + self.safe_tx_gas)
             # Retrieve the receipt
             safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
@@ -244,13 +245,13 @@ class ConsoleSafeCommands:
         self.logger.info('| Threshold: {0} | '.format(self.safe_instance.functions.getThreshold().call()))
         self.logger.debug0(STRING_DASHES)
 
-    def command_safe_is_owner(self, owner):
+    def command_safe_is_owner(self, owner_address):
         """ Command Safe isOwner
         This function will check if any given owner is part of the safe owners
-        :param owner:
+        :param owner_address:
         :return: True if it's a owner, otherwise False
         """
-        self.logger.info('| Owner with Address: {0} | isOwner: {1}  | '.format(owner.address, self.safe_operator.retrieve_is_owner(owner.address)))
+        self.logger.info('| Owner with Address: {0} | isOwner: {1}  | '.format(owner_address, self.safe_operator.retrieve_is_owner(owner_address)))
         self.logger.debug0(STRING_DASHES)
 
     def command_safe_are_owners(self, owners_list):
@@ -260,8 +261,8 @@ class ConsoleSafeCommands:
         :return: True if it's a owner, otherwise False
         """
         self.logger.debug0(STRING_DASHES)
-        for owner in owners_list:
-            self.command_safe_is_owner(owner)
+        for owner_address in owners_list:
+            self.command_safe_is_owner(owner_address)
 
     def command_safe_swap_owner(self, previous_owner, owner, new_owner, approval=False):
         """ Command Safe Swap Owner
@@ -275,7 +276,7 @@ class ConsoleSafeCommands:
         # give list of owners and get the previous owner
         try:
             # Default sender data
-            sender_data = {'from': str(owner.address), 'gas': 200000, 'gasPrice': 0}
+            sender_data = {'from': str(self.default_sender), 'gas': 200000, 'gasPrice': 0}
 
             # Generating the function payload data
             payload_data = HexBytes(self.safe_instance.functions.swapOwner(str(previous_owner.address), str(owner.address), str(new_owner.address)).buildTransaction(sender_data)['data'])
@@ -292,7 +293,7 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to command_safe_swap_owner(): {0} {1}'.format(type(err), str(err)))
 
-    def command_safe_change_threshold(self, new_threshold, owner, approval=False):
+    def command_safe_change_threshold(self, new_threshold, approval=False):
         """ Command Safe Change Threshold
         This function will perform the necessary step for properly executing the method changeThreshold from the safe
         :param new_threshold:
@@ -303,7 +304,7 @@ class ConsoleSafeCommands:
         # give list of owners and get the previous owner
         try:
             # Default sender data
-            sender_data = {'from': owner.address, 'gas': 200000, 'gasPrice': 0}
+            sender_data = {'from': str(self.default_sender), 'gas': 200000, 'gasPrice': 0}
 
             # Generating the function payload data
             payload_data = self.safe_instance.functions.changeThreshold(new_threshold).buildTransaction(sender_data)['data']
@@ -333,7 +334,7 @@ class ConsoleSafeCommands:
         try:
             # note: Sender data can be set using newPayload and then setDefaultSenderPayload
             # Default sender data
-            sender_data = {'from': owner.address, 'gas': 200000, 'gasPrice': 0}
+            sender_data = {'from': str(self.default_sender), 'gas': 200000, 'gasPrice': 0}
 
             if new_threshold is None:
                 new_threshold = self.safe_operator.retrieve_threshold() + 1
@@ -365,7 +366,7 @@ class ConsoleSafeCommands:
         # give list of owners and get the previous owner
         try:
             # Default sender data
-            sender_data = {'from': owner.address, 'gas': 200000, 'gasPrice': 0}
+            sender_data = {'from': str(self.default_sender), 'gas': 200000, 'gasPrice': 0}
             new_threshold = self.safe_operator.retrieve_threshold() - 1
             # Generating the function payload data
             payload_data = self.safe_instance.functions.removeOwner(previous_owner.address, owner.address, new_threshold).buildTransaction(sender_data)['data']

@@ -5,30 +5,31 @@
 from prompt_toolkit.formatted_text import HTML
 
 # simple_function_operand = '((--address=)(0x([aA-zZ,0-9]{62}|[aA-zZ,0-9]{40}))?)|((--uint=)([0-9]{0,})?)|(--queue)?(--execute)?'
-console_method_names = 'isOwner|getOwners|getThreshold|addOwner|swapOwner|removeOwner|changeThreshold|sendEther|sendToken|VERSION|NAME|code|nonce|addOwnerWithThreshold|viewSender'
+console_method_names = 'isOwner|getOwners|getThreshold|addOwner|swapOwner|removeOwner|changeThreshold|sendEther|sendToken|VERSION|NAME|code|nonce|addOwnerWithThreshold|viewSender|loadOwner|loadMultipleOwners|removeMultipleOwners|unloadOwner'
 console_commands = 'viewNetwork|viewAccounts|viewContracts|newPayload|newTxPayload|newAccount|newContract|setNetwork|setDefaultSender|loadContract|loadSafe|viewPayloads|viewTokens|newTokens|viewSender'
 console_quit_commands = 'exit|quit|close'
 console_help_commands = 'help|about|info'
 console_known_networks = 'ropsten|mainnet|ganache|rinkeby'
 console_contract_execution_commands = '--queue|--execute|--query'
 address_param = '--address=(0x[aA-zZ,0-9]{40,62})?'
-bytecode_param = '--bytecode=(([aA-zZ,0-9]{0,}))?'
+bytecode_param = '--bytecode='
 uint_param = '--uint=([0-9]{0,})?'
 ether_params = '--ether=|--miliether=|--microether=|--wei=|--Kwei=|--Mwei=|--Gwei='
 
 arg_keywords = [
     '--address=', '--uint=', '--ether=', '--miliether=', '--microether=', '--wei=', '--Kwei=',
-    '--Mwei=', '--Gwei=', '--query', '--execute', '--queue', '--alias='
+    '--Mwei=', '--Gwei=', '--query', '--execute', '--queue', '--alias=', '--bytecode='
     ]
 
 function_name = [
     'isOwner', 'getOwners', 'swapOwners', 'removeOwner', 'addOwner', 'addOwnersWithThreshold', 'changeOwner'
     'getThreshold', 'changeThreshold', 'sendEther', 'sendToken', 'viewAccounts', 'viewContract', 'viewTokens',
-    'viewPayloads', 'viewSender'
+    'viewPayloads', 'viewSender', 'loadOwner', 'loadMultipleOwners', 'removeMultipleOwners', 'unloadOwner'
 ]
 
 function_params = {
     'isOwner': 'address',
+    'areOwners': 'address',
     'getOwners': '_',
     'swapOwners': 'address ,address ,address',
     'addOwner': 'address, uint',
@@ -43,6 +44,10 @@ function_params = {
     'viewPayloads': '_',
     'viewSender': '_',
     'viewTokens': '_',
+    'loadMultipleOwners': '_',
+    'loadOwner': '_',
+    'unloadOwner': '_',
+    'removeMultipleOwners': '_'
 }
 
 function_parms_color = {

@@ -52,6 +52,50 @@ class ConsoleInputGetter:
             'viewSender': {
                 0: {'': 0},
             },
+            'isOwner': {
+                0: {'': 0},
+                1: {'--address': 1},
+            },
+            'areOwners': {
+                0: {'': 0},
+                1: {'--address': 10},
+            },
+            'swapOwner': {
+                0: {'': 0},
+                1: {'--address': 2},
+            },
+            'removeOwner': {
+                0: {'': 0},
+                1: {'--address': 1},
+            },
+            'removeOwners': {
+                0: {'': 0},
+                1: {'--address': 10},
+            },
+            'addOwner': {
+                0: {'': 0},
+                1: {'--address': 1},
+            },
+            'addOwnerWithThreshold': {
+                0: {'': 0},
+                1: {'--address': 1, '--uint': 1},
+            },
+            'changeThreshold': {
+                0: {'': 0},
+                1: {'--uint': 1},
+            },
+            'loadMultipleOwner': {
+                0: {'': 0},
+                1: {'--address': 10},
+            },
+            'loadOwner': {
+                0: {'': 0},
+                1: {'--bytecode': 1},
+            },
+            'unloadOwner': {
+                0: {'': 0},
+                1: {'--bytecode': 1},
+            },
             'dummyCommand': {
                 0: {'': 0},
                 1: {'--address': 3, '--gas': 1},
