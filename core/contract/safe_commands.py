@@ -89,7 +89,7 @@ class ConsoleSafeCommands:
         self.logger.debug0(STRING_DASHES)
         self.default_sender = str(owner_based_on_index)
         self.default_owner_list = default_owner_list
-        self.logger.info(' | Default Sender set to Owner with Address: {0} | '.format(self.default_sender))
+        self.logger.info('| Default Sender set to Owner with Address: {0} | '.format(self.default_sender))
 
     def safe_tx_multi_sign(self, safe_tx, signers_list):
         """ Safe Tx Multi Sign
@@ -102,8 +102,8 @@ class ConsoleSafeCommands:
             # ordered_signers = sorted(signers_list, key=lambda signer: signer.address.lower())
             for signer in signers_list:
                 safe_tx.sign(signer.privateKey)
-                self.logger.debug0(' | Owner Address: {0} | '.format(signer.address))
-                self.logger.debug0(' | Sign with Private Key: {0} | '.format(signer.privateKey))
+                self.logger.debug0('| Owner Address: {0} | '.format(signer.address))
+                self.logger.debug0('| Sign with Private Key: {0} | '.format(signer.privateKey))
                 self.logger.debug0(STRING_DASHES)
 
             # if self.safe_operator.retrieve_is_message_signed(safe_tx.safe_tx_hash):
@@ -122,8 +122,8 @@ class ConsoleSafeCommands:
         try:
             for signer in signers_list:
                 self.safe_instance.functions.approveHash(safe_tx.safe_tx_hash).transact({'from': signer.address})
-                self.logger.debug0(' | Owner Address: {0} | '.format(signer.address))
-                self.logger.debug0(' | Approving Tx with Hash: {0} | '.format(safe_tx.safe_tx_hash))
+                self.logger.debug0('| Owner Address: {0} | '.format(signer.address))
+                self.logger.debug0('| Approving Tx with Hash: {0} | '.format(safe_tx.safe_tx_hash))
                 self.logger.debug0(STRING_DASHES)
 
                 # if self.safe_operator.retrieve_is_hash_approved(signer, safe_tx.safe_tx_hash):
@@ -161,10 +161,10 @@ class ConsoleSafeCommands:
             # Retrieve the receipt
             safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
 
-            self.logger.info(' | Safe Tx Receipt: | ')
+            self.logger.info('| Safe Tx Receipt: | ')
             self.logger.info(STRING_DASHES)
-            self.logger.info(' | Retrieving Tx with Hash: {0} | '.format(safe_tx.safe_tx_hash))
-            self.logger.info(' {0}'.format(safe_tx_receipt))
+            self.logger.info('| Retrieving Tx with Hash: {0} | '.format(safe_tx.safe_tx_hash))
+            self.logger.info('{0}'.format(safe_tx_receipt))
             return safe_tx_receipt
         except Exception as err:
             self.logger.error('Unable to perform_transaction(): {0} {1}'.format(type(err), err))
