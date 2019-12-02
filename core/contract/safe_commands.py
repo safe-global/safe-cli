@@ -157,7 +157,7 @@ class ConsoleSafeCommands:
                 self.safe_tx_multi_approve(safe_tx, signers_list)
 
             # Execute the current transaction
-            #safe_tx.call()
+            safe_tx.call()
             safe_tx_hash, _ = safe_tx.execute(sender.privateKey, self.base_gas + self.safe_tx_gas)
             # Retrieve the receipt
             safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
