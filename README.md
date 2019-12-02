@@ -177,17 +177,10 @@ gnosis-cli was implemented using **python3** and it will focus on development a 
   
   ```
 
-+ Command **setDefaultOwner <owner-address>**:
++ Command **setDefaultSender <owner-address>**:
 
   ```
-  [ GNOSIS-CLI v0.0.1a ]>: setDefaultOwner
-  
-  ```
-
-+ Command **setDefaultOwnerList <owner-address-0> to <owner-address-n>** :
-
-  ```
-  [ GNOSIS-CLI v0.0.1a ]>: setDefaultOwnerList
+  [ GNOSIS-CLI v0.0.1a ]>: setDefaultSender
   
   ```
 

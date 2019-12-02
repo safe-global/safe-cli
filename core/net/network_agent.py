@@ -47,7 +47,6 @@ class NetworkAgent:
             :return: self.ethereum_client, othewise it will return an error
         """
         tmp_client = EthereumClient(ethereum_node_url=node_url)
-        self.logger.debug0('')
         self.logger.debug0(' | Setup Network Agent  | ')
         if tmp_client.w3.isConnected():
             self.ethereum_client = tmp_client

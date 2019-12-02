@@ -10,17 +10,18 @@ class ContractArtifacts:
         self.data = {}
 
     def pre_load_artifacts(self, contract_artifacts):
-        self.logger.debug0('')
-        self.logger.debug0(' | Setup Contract Artifacts  | ')
-        self.logger.debug0(STRING_DASHES)
-        for artifact in contract_artifacts:
-            self.logger.debug0('(+) Contract Artifact [ {0} with Address {1} ]'.format(
-                artifact['name'], artifact['address'])
-            )
-            self.add_contract_artifact(
-                artifact['name'], artifact['address'], artifact['abi'],
-                artifact['bytecode'], artifact['instance'], (artifact['name'] + '_' + str(len(self.data)))
-            )
+        if contract_artifacts is not None:
+            self.logger.debug0('')
+            self.logger.debug0(' | Setup Contract Artifacts  | ')
+            self.logger.debug0(STRING_DASHES)
+            for artifact in contract_artifacts:
+                self.logger.debug0('(+) Contract Artifact [ {0} with Address {1} ]'.format(
+                    artifact['name'], artifact['address'])
+                )
+                self.add_contract_artifact(
+                    artifact['name'], artifact['instance'], artifact['abi'],
+                    artifact['bytecode'], artifact['address'], (artifact['name'] + '_' + str(len(self.data)))
+                )
 
     # <>
     def command_view_contracts(self):

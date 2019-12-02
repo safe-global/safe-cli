@@ -56,10 +56,6 @@ class ConsoleController:
             self.safe_interface = self.console_engine.run_safe_console(desired_parsed_item_list, priority_group)
 
         # view console commands procedures
-        elif command_argument == 'viewOwner':
-            self.account_artifacts.command_view_default_owner()
-        elif command_argument == 'viewOwners':
-            self.account_artifacts.command_view_default_owner_list()
         elif command_argument == 'viewNetwork':
             self.network_agent.command_view_networks()
         elif command_argument == 'viewContracts':
@@ -81,10 +77,6 @@ class ConsoleController:
         # setter console commands trigger procedures
         elif command_argument == 'setNetwork':
             self.network_agent.set_network_provider_endpoint('ganache', None)
-        elif command_argument == 'setDefaultOwner':
-            self.account_artifacts.command_set_default_owner(argument_list)
-        elif command_argument == 'setDefaultOwnerList':
-            self.account_artifacts.command_set_default_owner_list(argument_list)
         elif command_argument == 'setAutofill':
             print('Autofill Function')
 
@@ -134,7 +126,6 @@ class ConsoleController:
         elif command_argument == 'removeOwner':
             safe_interface.command_safe_remove_owner(owners_list0[0], owners_list[1], approval=False)
         elif command_argument == 'swapOwner' or command_argument == 'changeOwner':
-            print('enter swap owners')
             safe_interface.command_safe_swap_owner(owners_list0[0], owners_list0[1], new_account, approval=False)
         elif command_argument == 'sendToken':
             self.logger.info('sendToken to be Implemented')
@@ -145,6 +136,11 @@ class ConsoleController:
         elif command_argument == 'updateSafe':
             self.logger.info('updateSafe --address=0x to be Implemented')
             # note: Check Validity of The Safe Address & Version, Then Ask for Confirmation'
+
+        elif command_argument == 'setDefaultSender':
+            safe_interface.command_set_default_sender()
+        elif command_argument == 'viewSender':
+            safe_interface.command_view_default_sender()
 
     def operate_with_contract(self, stream, contract_methods, contract_instance):
         """ Operate With Contract

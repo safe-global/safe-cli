@@ -5,8 +5,8 @@
 from prompt_toolkit.formatted_text import HTML
 
 # simple_function_operand = '((--address=)(0x([aA-zZ,0-9]{62}|[aA-zZ,0-9]{40}))?)|((--uint=)([0-9]{0,})?)|(--queue)?(--execute)?'
-console_method_names = 'isOwner|getOwners|getThreshold|addOwner|swapOwner|removeOwner|changeThreshold|sendEther|sendToken|VERSION|NAME|code|nonce|addOwnerWithThreshold'
-console_commands = 'viewNetwork|viewAccounts|viewContracts|newPayload|newTxPayload|newAccount|newContract|setNetwork|setDefaultOwner|setDefaultOwnerList|loadContract|loadSafe|viewPayloads|viewOwners|viewTokens|newTokens'
+console_method_names = 'isOwner|getOwners|getThreshold|addOwner|swapOwner|removeOwner|changeThreshold|sendEther|sendToken|VERSION|NAME|code|nonce|addOwnerWithThreshold|viewSender'
+console_commands = 'viewNetwork|viewAccounts|viewContracts|newPayload|newTxPayload|newAccount|newContract|setNetwork|setDefaultSender|loadContract|loadSafe|viewPayloads|viewTokens|newTokens|viewSender'
 console_quit_commands = 'exit|quit|close'
 console_help_commands = 'help|about|info'
 console_known_networks = 'ropsten|mainnet|ganache|rinkeby'
@@ -23,7 +23,8 @@ arg_keywords = [
 
 function_name = [
     'isOwner', 'getOwners', 'swapOwners', 'removeOwner', 'addOwner', 'addOwnersWithThreshold', 'changeOwner'
-    'getThreshold', 'changeThreshold', 'sendEther', 'sendToken', 'viewAccounts', 'viewContract', 'viewTokens', 'viewPayloads',
+    'getThreshold', 'changeThreshold', 'sendEther', 'sendToken', 'viewAccounts', 'viewContract', 'viewTokens',
+    'viewPayloads', 'viewSender'
 ]
 
 function_params = {
@@ -38,7 +39,10 @@ function_params = {
     'sendToken': 'address',
     'NAME': '_',
     'VERSION': '_',
-    'viewAccounts': '_'
+    'viewAccounts': '_',
+    'viewPayloads': '_',
+    'viewSender': '_',
+    'viewTokens': '_',
 }
 
 function_parms_color = {

@@ -49,10 +49,7 @@ class ConsoleInputGetter:
                 0: {'': 0},
                 1: {'--api_key': 1},
             },
-            'viewOwnerList': {
-                0: {'': 0},
-            },
-            'viewOwner': {
+            'viewSender': {
                 0: {'': 0},
             },
             'dummyCommand': {

@@ -33,8 +33,6 @@ owners_list = [local_account4, local_account5, local_account6, local_account7, l
 class ConsoleSafeCommands:
     def __init__(self, safe_address, logger, account_artifacts, network_agent):
         self.logger = logger
-        # review: Coupling here, this should not be here! Move away console_getter, and
-        #  ethereum client, use the one provided by the network_agent
         self.ethereum_client = EthereumClient()
         self.safe_operator = Safe(safe_address, self.ethereum_client)
         self.safe_instance = self._setup_safe_resolver(safe_address)
@@ -43,14 +41,15 @@ class ConsoleSafeCommands:
         self.gas_price = 0
         self.value = 0
         self.default_sender = None
+        self.default_owner_list = []
 
         self.network_agent = network_agent
         self.account_artifacts = account_artifacts
 
         # Trigger information on class init
         self._setup_main_owner()
+        self.command_safe_information()
 
-    # review: use the master copy function to retrieve the true version for the proxy contract
     # review: search for a blueprint of the version in the functions inputs, removeOwners from 1.0.0 to 1.1.0
     #  recieves diferent data, make a call function and confirm it??
     def _setup_safe_resolver(self, safe_address):
@@ -69,13 +68,13 @@ class ConsoleSafeCommands:
         the defaultOwner & defaultOwnerList console variables
         :return:
         """
-        tmp = []
+        stored_ether = []
         self.logger.debug0('Setup Best Fitted Owner As DefaultOwner(Sender) Based On Ether')
         self.logger.debug0(STRING_DASHES)
         default_owner_list = self.safe_instance.functions.getOwners().call()
         for owner in default_owner_list:
-            stored_ether = self.ethereum_client.w3.eth.getBalance(owner)
-            tmp.append(stored_ether)
+            account_ether = self.ethereum_client.w3.eth.getBalance(owner)
+            stored_ether.append(account_ether)
             new_account_data = {
                 'network': self.network_agent.network, 'balance': self.ethereum_client.w3.eth.getBalance(owner),
                 'address': owner, 'private_key': HexBytes(''),
@@ -83,13 +82,14 @@ class ConsoleSafeCommands:
             }
             self.logger.debug0(new_account_data)
         self.logger.debug0(STRING_DASHES)
-        self.logger.debug0(tmp)
+        self.logger.debug0(stored_ether)
         self.logger.debug0(default_owner_list)
-        owner_based_on_index = default_owner_list[tmp.index(max(tmp))]
-        self.logger.debug0(str(owner_based_on_index) + ' | ' + str(tmp[tmp.index(max(tmp))]))
+        owner_based_on_index = default_owner_list[stored_ether.index(max(stored_ether))]
+        self.logger.debug0(str(owner_based_on_index) + ' | ' + str(stored_ether[stored_ether.index(max(stored_ether))]))
         self.logger.debug0(STRING_DASHES)
         self.default_sender = str(owner_based_on_index)
-
+        self.default_owner_list = default_owner_list
+        self.logger.info(' | Default Sender set to Owner with Address: {0} | '.format(self.default_sender))
 
     def safe_tx_multi_sign(self, safe_tx, signers_list):
         """ Safe Tx Multi Sign
@@ -161,10 +161,10 @@ class ConsoleSafeCommands:
             # Retrieve the receipt
             safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
 
-            self.logger.debug0(' | Safe Tx Receipt: | ')
-            self.logger.debug0(STRING_DASHES)
-            self.logger.debug0(' | Retrieving Tx with Hash: {0} | '.format(safe_tx.safe_tx_hash))
-            self.logger.debug0(' {0}'.format(safe_tx_receipt))
+            self.logger.info(' | Safe Tx Receipt: | ')
+            self.logger.info(STRING_DASHES)
+            self.logger.info(' | Retrieving Tx with Hash: {0} | '.format(safe_tx.safe_tx_hash))
+            self.logger.info(' {0}'.format(safe_tx_receipt))
             return safe_tx_receipt
         except Exception as err:
             self.logger.error('Unable to perform_transaction(): {0} {1}'.format(type(err), err))
@@ -174,7 +174,7 @@ class ConsoleSafeCommands:
         This function will retrieve and show any pertinent information regarding the current safe
         :return:
         """
-        banner = '| Safe Information |'.center(45, '-')
+        banner = '| Safe Information |'.center(100, '-')
         self.logger.debug0(banner)
         self.command_safe_get_owners()
         self.command_safe_get_threshold()
@@ -183,6 +183,17 @@ class ConsoleSafeCommands:
         self.logger.info(' | MasterCopyVersion: {0} | '.format(self.safe_operator.retrieve_version()))
         self.logger.info(' | FallbackHandler: {0} | '.format(self.safe_operator.address))
         self.command_safe_nonce()
+
+    def command_set_default_sender(self):
+        self.logger.info('To Be Implemented')
+
+    def command_set_default_owner_list(self):
+        self.logger.info('To Be Implemented')
+
+    def command_view_default_sender(self):
+        self.logger.info(STRING_DASHES)
+        self.logger.info(' | Default Sender is Owner with Address: {0} | '.format(self.default_sender))
+        self.logger.info(STRING_DASHES)
 
     def command_safe_nonce(self):
         """ Command Safe Nonce
@@ -221,8 +232,8 @@ class ConsoleSafeCommands:
         This function will
         :return:
         """
-        for owner in self.safe_instance.functions.getOwners().call():
-            self.logger.info(' | Owner Address: {0} | '.format(owner))
+        for owner_index, owner in enumerate(self.safe_instance.functions.getOwners().call()):
+            self.logger.info(' | Owner {0} with Address: {1} | '.format(owner_index, owner))
         self.logger.debug0(STRING_DASHES)
 
     def command_safe_get_threshold(self):

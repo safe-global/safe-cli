@@ -44,7 +44,7 @@ parser.add_argument('--private_key', action='append',
                          'Example( Ganache Account 0 Alias ): isOwner --address=gAccount0.address', type=str)
 
 parser.add_argument('--version', action='version', version='%(prog)s 0.0.1a')
-
+parser.add_argument('--test', action='store_true', dest='test', default=False)
 try:
     config = configparser.ConfigParser()
     config.read('./gnosis_cli.ini')
@@ -63,7 +63,9 @@ try:
     }
 
     # Init Scenario with Random Safe with Setup (Pre-Loaded Contracts)
-    pre_loaded_contract_artifacts = gnosis_py_init_scenario()
+    pre_loaded_contract_artifacts = None
+    if results.test:
+        pre_loaded_contract_artifacts = gnosis_py_init_scenario()
 
     # Init GnosisConsoleEngine with current configuration
     gnosis_console_engine = GnosisConsoleEngine(init_configuration, pre_loaded_contract_artifacts)

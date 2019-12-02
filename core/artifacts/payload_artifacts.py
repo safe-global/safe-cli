@@ -45,7 +45,7 @@ class PayloadArtifacts:
                 elif item == 'alias':
                     continue
                 else:
-                    # todo: here check if setDefaultOwner is active, if it's empty, fill the current defaultOwner
+                    # todo: here check if setDefaultSender is active, if it's empty, fill the current defaultOwner
                     #  same goes if you put defaultOwner this should be transcribed to the proper address
                     compose_answer += '\'%s\' : \'%s\'' % (item, '') + ', '
             else:

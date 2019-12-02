@@ -74,8 +74,8 @@ class GnosisConsoleEngine:
                 [
                     'about', 'info', 'help', 'newContract', 'loadContract', 'setNetwork', 'viewNetwork', 'viewTokens',
                     'close', 'quit', 'viewContracts', 'viewAccounts', 'newAccount', 'setAutofill', 'newToken'
-                    'viewPayloads', 'newPayload', 'newTxPayload', 'setDefaultOwner', 'setDefaultOwnerList',
-                    'viewOwners', 'dummyCommand', 'loadSafe'
+                    'viewPayloads', 'newPayload', 'newTxPayload', 'setDefaultSender', 'loadSafe', 'viewPayloads',
+                    'dummyCommand'
                  ],
                 ignore_case=True)
         }
@@ -232,7 +232,7 @@ class GnosisConsoleEngine:
 
     def run_contract_console(self, desired_parsed_item_list, priority_group):
         """ Run Contract Console
-
+        This function will run the contract console
         :param desired_parsed_item_list:
         :param priority_group:
         :return:
@@ -241,8 +241,8 @@ class GnosisConsoleEngine:
             tmp_alias = desired_parsed_item_list[0][1][0]
             self.logger.debug0('alias: {0}'.format(tmp_alias))
             try:
-                # review: rename properly once the merge it is done
                 self.contract_interface = self.contract_artifacts.get_value_from_alias(tmp_alias, 'instance')
+                self.logger.debug0('Contract Instance {0} Loaded'.format(self.contract_interface))
                 self.contract_methods = ConsoleContractCommands().map_contract_methods(self.contract_interface)
                 self.active_session = TypeOfConsole.CONTRACT_CONSOLE
                 self.logger.info(STRING_DASHES)
@@ -257,7 +257,7 @@ class GnosisConsoleEngine:
 
     def run_safe_console(self, desired_parsed_item_list, priority_group):
         """ Run Safe Console
-
+        This function will run the safe console
         :param desired_parsed_item_list:
         :param priority_group:
         :return:
