@@ -55,7 +55,7 @@ def gnosis_py_init_scenario():
     safe_v101_abi, safe_v101_bytecode, safe_v101 = contract_reader.read_from(
         './assets/contracts/GnosisSafeV1.1.0.json')
     proxy_v101_abi, proxy_v101_bytecode, proxy_v101 = contract_reader.read_from(
-        './assets/contracts/ProxyFactoryV1.1.0.json')
+        './assets/contracts/Proxy.json')
 
     # remark: Start Safe Contract Deployment
     print('', '----------' * 14)

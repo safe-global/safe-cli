@@ -35,7 +35,7 @@ class AccountsArtifacts:
                 'network': TypeOfAccount.LOCAL_ACCOUNT,
                 'balance': 0,
                 'address': '0x' + '0' * 40,
-                'private_key': HexBytes(''),
+                'private_key': HexBytes('').hex(),
                 'instance': None
             }
         }
@@ -54,11 +54,11 @@ class AccountsArtifacts:
     def new_account_entry(self, network, local_account):
         return {
                 'network': network, 'balance': self.ethereum_client.w3.eth.getBalance(local_account.address),
-                'address': local_account.address, 'private_key': HexBytes(local_account.privateKey),
+                'address': local_account.address, 'private_key': HexBytes(local_account.privateKey).hex(),
                 'instance': local_account
         }
 
-    def add_account(self, address, private_key='', alias='uAccount', network=TypeOfAccount.LOCAL_ACCOUNT):
+    def add_account(self, address='', private_key='', alias='uAccount', network=TypeOfAccount.LOCAL_ACCOUNT):
         """ Add Account
 
         This function will add a new account to the ConsoleAccountArtifacts
@@ -68,14 +68,14 @@ class AccountsArtifacts:
             :return:
         """
         local_account = None
-        if private_key != '':
+        if private_key != '' and address == '':
             try:
                 local_account = Account.privateKeyToAccount(HexBytes(private_key))
                 self.account_data[(alias + str(len(self.account_data)-1))] = self.new_account_entry(network, local_account)
                 return self.account_data
             except Exception as err:
                 self.logger.error('Unable to add_account() {0} {1}'.format(type(err), err))
-        else:
+        elif private_key != '' and address != '':
             try:
                 local_account = Account.privateKeyToAccount(private_key)
                 if local_account.address != address:
@@ -85,6 +85,29 @@ class AccountsArtifacts:
                 self.logger.error('Unable to add_account() {0} {1}'.format(type(err), err))
             self.account_data[(alias + str(len(self.account_data)-1))] = self.new_account_entry(network, local_account)
             return self.account_data
+        else:
+            self.logger.error('Not enough values were given to the add_account()')
+
+    def get_local_account(self, private_key, owner_address_list):
+        """ Get Local Account
+
+        :param address:
+        :param private_key:
+        :return:
+        """
+        try:
+            local_account = Account.privateKeyToAccount(private_key)
+            self.logger.info(str(private_key) + str(owner_address_list))
+            self.logger.info(local_account)
+            for owner_address in owner_address_list:
+                if local_account.address == owner_address:
+                    self.logger.info('Match found in owner list while checking address generated via private_key')
+                    return local_account
+
+            self.logger.error('Miss Match in generated account via private_key when comparing address in owner list of the contract')
+            raise Exception
+        except Exception as err:
+            self.logger.error('Unable to add_account() {0} {1}'.format(type(err), err))
 
     def _setup_random_accounts(self, account_number=10):
         """ Setup Random Accounts

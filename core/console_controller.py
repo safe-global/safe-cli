@@ -5,6 +5,7 @@
 from core.artifacts.help_artifacts import InformationArtifacts
 from core.input.console_input_getter import ConsoleInputGetter
 from eth_account import Account
+from hexbytes import HexBytes
 
 local_account0 = Account().privateKeyToAccount('0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d')
 local_account1 = Account().privateKeyToAccount('0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1')
@@ -130,18 +131,61 @@ class ConsoleController:
                 uint_value = desired_parsed_item_list[0][1][0]
                 self.logger.debug0(uint_value)
                 safe_interface.command_safe_change_threshold(int(uint_value), approval=False)
-            else:
-                safe_interface.command_safe_change_threshold(5, approval=False)
 
+        elif command_argument == 'addOwnerWithThreshold':
+            self.logger.debug0(desired_parsed_item_list)
+            if priority_group == 1:
+                address_value = ''
+                uint_value = 0
+                try:
+                    address_value = desired_parsed_item_list[0][1][0]
+                    uint_value = desired_parsed_item_list[1][1][0]
+                    self.logger.info(str(address_value))
+                    self.logger.info(str(uint_value))
+                except Exception as err:
+                    self.logger.info(err)
+                safe_interface.command_safe_add_owner_threshold(str(address_value), int(uint_value), approval=False)
 
-        elif command_argument == 'addOwnerWithThreshold' or command_argument == 'addOwner':
-            safe_interface.command_safe_add_owner_threshold(owners_list0[0], new_account, approval=False)
+        elif command_argument == 'addOwner':
+            self.logger.info(desired_parsed_item_list)
+            if priority_group == 1:
+                address_value = desired_parsed_item_list[0][1][0]
+                self.logger.info(address_value)
+                safe_interface.command_safe_add_owner_threshold(address_value, approval=False)
+
         elif command_argument == 'removeOwner':
-            safe_interface.command_safe_remove_owner(owners_list0[0], owners_list[1], approval=False)
+            self.logger.debug0(desired_parsed_item_list)
+            if priority_group == 1:
+                address_value = ''
+                previous_owner = ''
+                try:
+                    address_value = desired_parsed_item_list[0][1][0]
+                    ordered_default_owner_list = sorted(safe_interface.default_owner_address_list, key=lambda v: v.lower())
+
+                    self.logger.info('[ Current Owner with Address to be Removed ]: {0}'.format(str(address_value)))
+                    self.logger.info('[ Finding Previous Owner ]: {0}'.format(safe_interface.default_owner_address_list))
+                    self.logger.info('[ Ordered Default Addresses ]: {0}'.format(ordered_default_owner_list))
+
+                    for index_owner, owner_address in enumerate(ordered_default_owner_list):
+                        if owner_address == address_value:
+                            self.logger.info('[ Found Owner on the list ]: {0}'.format(ordered_default_owner_list))
+                            previous_owner = ordered_default_owner_list[index_owner - 1]
+                            self.logger.info('[ Found PreviousOwner on the list ]: {0}'.format(previous_owner))
+                            self.logger.info(previous_owner)
+
+                except Exception as err:
+                    self.logger.info(err)
+                safe_interface.command_safe_remove_owner(str(previous_owner), str(address_value), approval=False)
+
         elif command_argument == 'removeMultipleOwners':
+
             safe_interface.command_safe_remove_owner(owners_list0[0], owners_list[1], approval=False)
         elif command_argument == 'swapOwner' or command_argument == 'changeOwner':
+            self.logger.info(desired_parsed_item_list)
+            if priority_group == 1:
+                self.logger.info('')
             safe_interface.command_safe_swap_owner(owners_list0[0], owners_list0[1], new_account, approval=False)
+
         elif command_argument == 'sendToken':
             self.logger.info('sendToken to be Implemented')
         elif command_argument == 'sendEther':
@@ -166,13 +210,28 @@ class ConsoleController:
         elif command_argument == 'viewPayloads':
             self.payload_artifacts.command_view_payloads()
         elif command_argument == 'loadOwner':
-            self.logger.info('data for signature')
             if priority_group == 1:
                 bytecode_value = desired_parsed_item_list[0][1][0]
-                self.logger.debug0(bytecode_value)
-                self.account_artifacts.add_
+                self.logger.debug0('[ Signature Value ]: {0} {1}'.format(str(bytecode_value), safe_interface.default_owner_address_list))
+                local_owner = self.account_artifacts.get_local_account(bytecode_value, safe_interface.default_owner_address_list)
+                safe_interface.local_owner_account_list.append(local_owner)
+
+                self.logger.info('[ Local Account Added ]: {0}'.format(safe_interface.local_owner_account_list))
+                self.logger.info('[ Data Output ]: {0} | {1} | {2}'.format(
+                    local_owner, local_owner.address, HexBytes(local_owner.privateKey).hex())
+                )
         elif command_argument == 'loadMultipleOwners':
             self.logger.info('load multiple owners')
+        elif command_argument == 'unloadMultipleOwners':
+            self.logger.info('load multiple owners')
+        elif command_argument == 'unloadOwner':
+            bytecode_value = desired_parsed_item_list[0][1][0]
+            self.logger.debug0('[ Signature Value ]: {0} {1}'.format(str(bytecode_value), safe_interface.default_owner_address_list))
+            local_owner = self.account_artifacts.get_local_account(bytecode_value, safe_interface.default_owner_address_list)
+            for local_owner_account in safe_interface.local_owner_account_list:
+                if local_owner_account == local_owner:
+                    safe_interface.local_owner_account_list.remove(local_owner)
+            self.logger.info('[ Local Account Subs ]: {0}'.format(safe_interface.local_owner_account_list))
 
     def operate_with_contract(self, stream, contract_methods, contract_instance):
         """ Operate With Contract

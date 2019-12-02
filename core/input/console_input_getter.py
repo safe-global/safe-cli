@@ -90,11 +90,12 @@ class ConsoleInputGetter:
             },
             'loadOwner': {
                 0: {'': 0},
-                1: {'--bytecode': 1},
+                1: {'--private_key': 1},
             },
             'unloadOwner': {
                 0: {'': 0},
-                1: {'--bytecode': 1},
+                1: {'--address': 1},
+                2: {'--private_key': 1},
             },
             'dummyCommand': {
                 0: {'': 0},

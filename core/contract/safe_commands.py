@@ -41,7 +41,8 @@ class ConsoleSafeCommands:
         self.gas_price = 0
         self.value = 0
         self.default_sender = None
-        self.default_owner_list = []
+        self.default_owner_address_list = []
+        self.local_owner_account_list = []
 
         self.network_agent = network_agent
         self.account_artifacts = account_artifacts
@@ -88,7 +89,8 @@ class ConsoleSafeCommands:
         self.logger.debug0(str(owner_based_on_index) + ' | ' + str(stored_ether[stored_ether.index(max(stored_ether))]))
         self.logger.debug0(STRING_DASHES)
         self.default_sender = str(owner_based_on_index)
-        self.default_owner_list = default_owner_list
+        self.default_owner_address_list = default_owner_list
+        self.logger.info(default_owner_list)
         self.logger.info('| Default Sender set to Owner with Address: {0} | '.format(self.default_sender))
 
     def safe_tx_multi_sign(self, safe_tx, signers_list):
@@ -133,7 +135,7 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to multi_approve_safe_tx(): {0} {1}'.format(type(err), err))
 
-    def perform_transaction(self, sender, signers_list, payload_data, approval=False):
+    def perform_transaction(self, sender, payload_data, approval=False):
         """ Perform Transaction
         This function will perform the transaction to the safe we have currently triggered via console command
         :param payload_data:
@@ -151,10 +153,7 @@ class ConsoleSafeCommands:
                 self.gas_price, NULL_ADDRESS, NULL_ADDRESS, safe_nonce=safe_nonce
             )
             # Multi Sign the current transaction
-            safe_tx = self.safe_tx_multi_sign(safe_tx, signers_list)
-            if approval:
-                # If Approval of the hash is needed, Approve for all signers
-                self.safe_tx_multi_approve(safe_tx, signers_list)
+            safe_tx = self.safe_tx_multi_sign(safe_tx, self.local_owner_account_list)
 
             # Execute the current transaction
             safe_tx.call()
@@ -182,7 +181,8 @@ class ConsoleSafeCommands:
         self.logger.info('| MasterCopyName: {0} | '.format(self.safe_instance.functions.NAME().call()))
         self.logger.info('| MasterCopy: {0} | '.format(self.safe_operator.retrieve_master_copy_address()))
         self.logger.info('| MasterCopyVersion: {0} | '.format(self.safe_operator.retrieve_version()))
-        self.logger.info('| FallbackHandler: {0} | '.format(self.safe_operator.address))
+        self.logger.info('| Proxy: {0} | '.format(self.safe_operator.address))
+        self.logger.info('| FallBack Handler: {0} | '.format('0x'))
         self.command_safe_nonce()
 
     def command_set_default_sender(self):
@@ -314,14 +314,14 @@ class ConsoleSafeCommands:
             self.logger.debug0(STRING_DASHES)
 
             # Perform the transaction
-            self.perform_transaction(owners_list[0], owners_list, payload_data, approval=approval)
+            self.perform_transaction(self.local_owner_account_list[0], self.local_owner_account_list, payload_data, approval=approval)
 
             # Preview the current status of the safe since the transaction
             self.command_safe_get_threshold()
         except Exception as err:
             self.logger.error('Unable to command_safe_change_threshold(): {0} {1}'.format(type(err), err))
 
-    def command_safe_add_owner_threshold(self, owner, new_owner, new_threshold=None, approval=False):
+    def command_safe_add_owner_threshold(self, new_owner_address, new_threshold=None, approval=False):
         """ Command Safe Change Threshold
         This function will perform the necessary step for properly executing the method addOwnerWithThreshold from the safe
         :param owner:
@@ -334,13 +334,18 @@ class ConsoleSafeCommands:
         try:
             # note: Sender data can be set using newPayload and then setDefaultSenderPayload
             # Default sender data
-            sender_data = {'from': str(self.default_sender), 'gas': 200000, 'gasPrice': 0}
-
+            sender_data = {'from': self.default_sender, 'gas': 200000, 'gasPrice': 0}
+            # <>
             if new_threshold is None:
                 new_threshold = self.safe_operator.retrieve_threshold() + 1
 
+            # Invalidar operacion si el threshold es mayor que el numero de owners presentes en al lista
+            # elif (len(self.safe_instance.functions.getOwners().call()) < self.safe_operator.retrieve_threshold()):
+            #     self.logger.error('Invalid Threshold Amount')
+            #     raise Exception
+
             # Generating the function payload data
-            payload_data = self.safe_instance.functions.addOwnerWithThreshold(new_owner.address, new_threshold).buildTransaction(sender_data)['data']
+            payload_data = self.safe_instance.functions.addOwnerWithThreshold(new_owner_address, new_threshold).buildTransaction(sender_data)['data']
             self.logger.debug0(' | Sender Data: {0} | '.format(sender_data))
             self.logger.debug0(STRING_DASHES)
             self.logger.debug0(' | Payload Data: {0} | '.format(payload_data))
@@ -352,14 +357,15 @@ class ConsoleSafeCommands:
             # Preview the current status of the safe since the transaction
             self.command_safe_get_threshold()
             self.command_safe_get_owners()
+            self.default_owner_address_list = self.safe_operator.retrieve_owners()
         except Exception as err:
             self.logger.error('Unable to command_safe_add_owner_threshold(): {0} {1}'.format(type(err), err))
 
-    def command_safe_remove_owner(self, previous_owner, owner, approval=False):
+    def command_safe_remove_owner(self, previous_owner_address, owner_address, approval=False):
         """ Command Safe Change Threshold
         This function will perform the necessary step for properly executing the method removeOwner from the safe
-        :param previous_owner:
-        :param owner:
+        :param previous_owner_address:
+        :param owner_address:
         :param approval:
         :return:
         """
@@ -369,7 +375,7 @@ class ConsoleSafeCommands:
             sender_data = {'from': str(self.default_sender), 'gas': 200000, 'gasPrice': 0}
             new_threshold = self.safe_operator.retrieve_threshold() - 1
             # Generating the function payload data
-            payload_data = self.safe_instance.functions.removeOwner(previous_owner.address, owner.address, new_threshold).buildTransaction(sender_data)['data']
+            payload_data = self.safe_instance.functions.removeOwner(str(previous_owner_address), str(owner_address), int(new_threshold)).buildTransaction(sender_data)['data']
             self.logger.debug0(' | Sender Data: {0} | '.format(sender_data))
             self.logger.debug0(STRING_DASHES)
             self.logger.debug0(' | Payload Data: {0} | '.format(payload_data))
