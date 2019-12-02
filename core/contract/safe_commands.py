@@ -174,14 +174,14 @@ class ConsoleSafeCommands:
         This function will retrieve and show any pertinent information regarding the current safe
         :return:
         """
-        banner = '| Safe Information |'.center(100, '-')
-        self.logger.debug0(banner)
+        banner = '| Safe Information |'.center(120, '-')
+        self.logger.info(banner)
         self.command_safe_get_owners()
         self.command_safe_get_threshold()
-        self.logger.info(' | MasterCopyName: {0} | '.format(self.safe_instance.functions.NAME().call()))
-        self.logger.info(' | MasterCopy: {0} | '.format(self.safe_operator.retrieve_master_copy_address()))
-        self.logger.info(' | MasterCopyVersion: {0} | '.format(self.safe_operator.retrieve_version()))
-        self.logger.info(' | FallbackHandler: {0} | '.format(self.safe_operator.address))
+        self.logger.info('| MasterCopyName: {0} | '.format(self.safe_instance.functions.NAME().call()))
+        self.logger.info('| MasterCopy: {0} | '.format(self.safe_operator.retrieve_master_copy_address()))
+        self.logger.info('| MasterCopyVersion: {0} | '.format(self.safe_operator.retrieve_version()))
+        self.logger.info('| FallbackHandler: {0} | '.format(self.safe_operator.address))
         self.command_safe_nonce()
 
     def command_set_default_sender(self):
@@ -192,7 +192,7 @@ class ConsoleSafeCommands:
 
     def command_view_default_sender(self):
         self.logger.info(STRING_DASHES)
-        self.logger.info(' | Default Sender is Owner with Address: {0} | '.format(self.default_sender))
+        self.logger.info('| Default Sender is Owner with Address: {0} | '.format(self.default_sender))
         self.logger.info(STRING_DASHES)
 
     def command_safe_nonce(self):
@@ -200,7 +200,7 @@ class ConsoleSafeCommands:
         This function will retrieve and show the nonce value of the safe
         :return:
         """
-        self.logger.info(' | Nonce: {0} | '.format(self.safe_operator.retrieve_nonce()))
+        self.logger.info('| Nonce: {0} | '.format(self.safe_operator.retrieve_nonce()))
         self.logger.debug0(STRING_DASHES)
 
     def command_safe_code(self):
@@ -208,7 +208,7 @@ class ConsoleSafeCommands:
         This function will retrieve and show the code value of the safe
         :return: code of the safe
         """
-        self.logger.info(' | Code: {0} | '.format(self.safe_operator.retrieve_code()))
+        self.logger.info('| Code: {0} | '.format(self.safe_operator.retrieve_code()))
         self.logger.debug0(STRING_DASHES)
 
     def command_safe_version(self):
@@ -216,7 +216,7 @@ class ConsoleSafeCommands:
         This function will retrieve and show the VERSION value of the safe
         :return: version of the safe
         """
-        self.logger.info(' | MasterCopyVersion: {0} | '.format(self.safe_operator.retrieve_version()))
+        self.logger.info('| MasterCopyVersion: {0} | '.format(self.safe_operator.retrieve_version()))
         self.logger.debug0(STRING_DASHES)
 
     def command_safe_name(self):
@@ -224,7 +224,7 @@ class ConsoleSafeCommands:
         This function will retrieve and show the NAME value of the safe
         :return:
         """
-        self.logger.info(' | MasterCopyName: {0} | '.format(self.safe_instance.functions.NAME().call()))
+        self.logger.info('| MasterCopyName: {0} | '.format(self.safe_instance.functions.NAME().call()))
         self.logger.debug0(STRING_DASHES)
 
     def command_safe_get_owners(self):
@@ -233,7 +233,7 @@ class ConsoleSafeCommands:
         :return:
         """
         for owner_index, owner in enumerate(self.safe_instance.functions.getOwners().call()):
-            self.logger.info(' | Owner {0} with Address: {1} | '.format(owner_index, owner))
+            self.logger.info('| Owner {0} with Address: {1} | '.format(owner_index, owner))
         self.logger.debug0(STRING_DASHES)
 
     def command_safe_get_threshold(self):
@@ -241,7 +241,7 @@ class ConsoleSafeCommands:
         This function will retrieve and show the threshold of the safe
         :return:
         """
-        self.logger.info(' | Threshold: {0} | '.format(self.safe_instance.functions.getThreshold().call()))
+        self.logger.info('| Threshold: {0} | '.format(self.safe_instance.functions.getThreshold().call()))
         self.logger.debug0(STRING_DASHES)
 
     def command_safe_is_owner(self, owner):
@@ -250,7 +250,7 @@ class ConsoleSafeCommands:
         :param owner:
         :return: True if it's a owner, otherwise False
         """
-        self.logger.info(' | Owner with Address: {0} | isOwner: {1}  | '.format(owner.address, self.safe_operator.retrieve_is_owner(owner.address)))
+        self.logger.info('| Owner with Address: {0} | isOwner: {1}  | '.format(owner.address, self.safe_operator.retrieve_is_owner(owner.address)))
         self.logger.debug0(STRING_DASHES)
 
     def command_safe_are_owners(self, owners_list):
