@@ -106,7 +106,7 @@ class AccountsArtifacts:
         :param account_number:
         :return:
         """
-        self.logger.debug0(STRING_DASHES)
+        self.logger.debug0('')
         self.logger.debug0(' | Setup Random Accounts | ')
         self.logger.debug0(STRING_DASHES)
         for index in range(1, account_number, 1):
@@ -121,7 +121,7 @@ class AccountsArtifacts:
         This function will retrieve and setup ten ganache accounts to interact with during the console execution
         :return:
         """
-        self.logger.debug0(STRING_DASHES)
+        self.logger.debug0('')
         self.logger.debug0(' | Setup Ganache Accounts  | ')
         self.logger.debug0(STRING_DASHES)
         for index, data in enumerate(ganache_data):

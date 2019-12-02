@@ -13,11 +13,14 @@ from requests.exceptions import ConnectionError
 # Import ArgParse Module
 import argparse
 
+# Import ConfigParser Module
+import configparser
+
 # Define ArgParse Arguments for the GnosisConsoleEngine
 parser = argparse.ArgumentParser()
-parser.add_argument('--silence', action='store_true',
-                    dest='silence', default=False,
-                    help='This init option will store the value for the silence param, and subsequently will '
+parser.add_argument('--quiet', action='store_true',
+                    dest='quiet', default=False,
+                    help='This init option will store the value for the quiet param, and subsequently will '
                          'disable/hide the Loading Process in the Console. (By default, it will be set to False).')
 
 parser.add_argument('--debug', action='store_true',
@@ -43,13 +46,20 @@ parser.add_argument('--private_key', action='append',
 parser.add_argument('--version', action='version', version='%(prog)s 0.0.1a')
 
 try:
+    config = configparser.ConfigParser()
+    config.read('./gnosis_cli.ini')
+
+    # 'name': init_file['GnosisConsole']['name'],
+    # 'version': init_file['GnosisConsole']['version']
     # Retrieve ArgParse values
     results = parser.parse_args()
     init_configuration = {
-        'silence': results.silence,
+        'quiet': results.quiet,
         'debug': results.debug,
         'network': results.network,
-        'private_key': results.private_key_collection
+        'private_key': results.private_key_collection,
+        'name': config['DEFAULT']['name'],
+        'version': config['DEFAULT']['version']
     }
 
     # Init Scenario with Random Safe with Setup (Pre-Loaded Contracts)

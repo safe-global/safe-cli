@@ -22,6 +22,13 @@ API_KEY_DICT = {
     }
 }
 
+# style = Style.from_dict({
+#     'completion-menu.completion': 'bg:#008888 #ffffff',
+#     'completion-menu.completion.current': 'bg:#00aaaa #000000',
+#     'scrollbar.background': 'bg:#88aaaa',
+#     'scrollbar.button': 'bg:#222222',
+# })
+
 DETERMINISTIC_MNEMONIC = 'myth like bonus scare over problem client lizard pioneer submit female collect'
 
 DETERMINISTIC_ACCOUNT_INFORMATION = {

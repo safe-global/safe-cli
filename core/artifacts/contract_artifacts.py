@@ -10,7 +10,7 @@ class ContractArtifacts:
         self.data = {}
 
     def pre_load_artifacts(self, contract_artifacts):
-        self.logger.debug0(STRING_DASHES)
+        self.logger.debug0('')
         self.logger.debug0(' | Setup Contract Artifacts  | ')
         self.logger.debug0(STRING_DASHES)
         for artifact in contract_artifacts:

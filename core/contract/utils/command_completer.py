@@ -3,9 +3,10 @@
 
 from prompt_toolkit.completion import Completer, Completion
 
-from core.contract.constants.contract_console_constants import *
+from core.contract.constants.contract_constants import *
 
-class ContractMethodCompleter(Completer):
+
+class CommandCompleter(Completer):
     def get_completions(self, document, complete_event):
         """ Get Completions
         This will function will provide the completions for param types and function name

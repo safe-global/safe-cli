@@ -13,6 +13,7 @@ from gnosis.eth.ethereum_client import EthereumClient
 # Constants: Default Api Keys
 DEFAULT_INFURA_API_KEY =  'b3fa360a82cd459e8f1b459b3cf9127c'
 DEFAULT_ETHERSCAN_API_KEY = 'A1T1PKJXZJC1T4RJZK4ZMZH4JEYTUGAA6G'
+STRING_DASHES = '----------' * 12
 
 
 class NetworkAgent:
@@ -46,11 +47,15 @@ class NetworkAgent:
             :return: self.ethereum_client, othewise it will return an error
         """
         tmp_client = EthereumClient(ethereum_node_url=node_url)
+        self.logger.debug0('')
+        self.logger.debug0(' | Setup Network Agent  | ')
         if tmp_client.w3.isConnected():
             self.ethereum_client = tmp_client
-            self.logger.info('{0} Successfully retrieved a valid connection to {1} '.format(self.name, node_url))
+            self.logger.debug0(STRING_DASHES)
+            self.logger.debug0('(+) Successfully retrieved a valid connection to [ {0} ] via {1}'.format(self.network, node_url))
+            self.logger.debug0(STRING_DASHES)
         else:
-            self.logger.error('{0} Unable to retrieve a valid connection to {1} '.format(self.name, node_url))
+            self.logger.error('(?) Unable to retrieved a valid connection to [ {0} ] via {1}'.format(self.network, node_url))
 
     def get_current_node_endpoint(self):
         """ Get Current Node Endpoint
@@ -82,10 +87,10 @@ class NetworkAgent:
         This function will retrieve and show the current network used by the ethereum client
             :return:
         """
-        self.logger.debug0('---------'*10)
+        self.logger.debug0(STRING_DASHES)
         self.logger.info(' | Network Status: {0} | '.format(self.network_status()))
         self.logger.info(' | Connected to {0} Through {1} | '.format(self.network.title(), self.current_node_endpoint))
-        self.logger.debug0('---------'*10)
+        self.logger.debug0(STRING_DASHES)
 
     def set_network_provider_endpoint(self, network, api_key=None):
         """ Set Network

@@ -3,15 +3,15 @@
 
 # review: Decouple This!
 # Import ConsoleSafeCommands
-from core.contract.console_safe_commands import ConsoleSafeCommands
-from core.contract.console_contract_commands import ConsoleContractCommands
+from core.contract.safe_commands import ConsoleSafeCommands
+from core.contract.contract_commands import ConsoleContractCommands
 
 from core.net.network_agent import NetworkAgent
 from core.console_controller import ConsoleController
 from core.input.console_input_getter import ConsoleInputGetter
 
-from core.contract.utils.console_syntax_lexer import ContractSyntaxLexer
-from core.contract.utils.contract_method_completer import ContractMethodCompleter
+from core.contract.utils.syntax_lexer import SyntaxLexer
+from core.contract.utils.command_completer import CommandCompleter
 
 from core.artifacts.contract_artifacts import ContractArtifacts
 from core.artifacts.payload_artifacts import PayloadArtifacts
@@ -24,18 +24,21 @@ from prompt_toolkit import PromptSession
 # Import Os Package
 import os
 
+# Import Enum Package
+from enum import Enum
+
 # Importing Custom Logger & Logging Modules
 from core.logger.custom_logger import CustomLogger, DEBUG0
 from logging import INFO
 import logging
+
+from core.artifacts.data_artifacts import DataArtifacts
 
 # Constants
 QUOTE = '\''
 COMA = ','
 PROJECT_DIRECTORY = os.getcwd() + '/assets/safe-contracts-1.1.0/'
 STRING_DASHES = '----------' * 12
-
-from enum import Enum
 
 
 # Todo: use values to define state of the console
@@ -44,19 +47,11 @@ class TypeOfConsole(Enum):
     CONTRACT_CONSOLE = 'contract-cli'
     SAFE_CONSOLE = 'safe-cli'
 
-# style = Style.from_dict({
-#     'completion-menu.completion': 'bg:#008888 #ffffff',
-#     'completion-menu.completion.current': 'bg:#00aaaa #000000',
-#     'scrollbar.background': 'bg:#88aaaa',
-#     'scrollbar.button': 'bg:#222222',
-# })
-
 
 class GnosisConsoleEngine:
-    def __init__(self, configuration, contract_artifacts=None, prompt_text='./gnosis-cli'):
+    def __init__(self, init_configuration, contract_artifacts=None):
         self.name = self.__class__.__name__
-        # self.pre_loaded_contract_artifacts = None
-        self.prompt_text = prompt_text
+        self.prompt_text = init_configuration['name']
 
         # Setup active console, default it's gnosis-cli
         self.active_session = TypeOfConsole.GNOSIS_CONSOLE
@@ -71,8 +66,8 @@ class GnosisConsoleEngine:
 
         self.session_config = {
             'prompt': self._get_prompt_text(affix_stream=self.prompt_text),
-            'contract_lexer': ContractSyntaxLexer(),
-            'contract_completer': ContractMethodCompleter(),
+            'contract_lexer': SyntaxLexer(),
+            'contract_completer': CommandCompleter(),
             'gnosis_lexer': None,
             'style': None,
             'completer': WordCompleter(
@@ -88,7 +83,7 @@ class GnosisConsoleEngine:
         # Custom Logger Init Configuration: Default Values
         self.logging_lvl = INFO
         self.logger = None
-        self._setup_console_init_configuration(configuration)
+        self._setup_console_init_configuration(init_configuration)
 
         # CustomLogger Format Definition: Output Init Configuration
         formatter = logging.Formatter(fmt='%(asctime)s - [ %(levelname)s ]: %(message)s',
@@ -97,7 +92,7 @@ class GnosisConsoleEngine:
                                                datefmt='%m/%d/%Y %I:%M:%S %p')
 
         # Custom Logger File Configuration: File Init Configuration
-        file_handler = logging.FileHandler('./log/gnosis_console/general_console.log', 'w')
+        file_handler = logging.FileHandler('./log/general_console.log', 'w')
         file_handler.setFormatter(detailed_formatter)
         file_handler.setLevel(level=self.logging_lvl)
 
@@ -110,7 +105,6 @@ class GnosisConsoleEngine:
         self.logger.addHandler(file_handler)
         self.logger.addHandler(console_handler)
 
-
         # Setup Contract Payloads
         self.payload_artifacts = PayloadArtifacts(self.logger)
         # Setup Contract Artifacts
@@ -122,16 +116,19 @@ class GnosisConsoleEngine:
         self.console_getter = ConsoleInputGetter(self.logger)
         # Setup Console Account Artifacts
         self.account_artifacts = AccountsArtifacts(
-            self.logger, self.network_agent.get_ethereum_client(), self.silence_flag
+            self.logger, self.network_agent.get_ethereum_client(), self.quiet_flag
         )
+
+        # Setup DataArtifacts
+        # self.data_artifacts = DataArtifacts()
         self.console_controller = ConsoleController(
             self.logger, self.network_agent, self.account_artifacts,
             self.payload_artifacts, None, self.contract_artifacts, self
         )
         # Debug: Finished loading all the components of the gnosis-cli
-        if not self.silence_flag:
+        if not self.quiet_flag:
             self.logger.info(STRING_DASHES)
-            self.logger.info('| {0:^116} | '.format('Finished Gnosis Cli Setup'))
+            self.logger.info('| {0:^116} | '.format('Entering Gnosis Cli'))
             self.logger.info(STRING_DASHES)
 
         # Run Console
@@ -139,7 +136,7 @@ class GnosisConsoleEngine:
 
     def run_console_session(self, prompt_text):
         """ Run Console Session
-
+        This function will launch the gnosis cli
         :param prompt_text:
         :param previous_session:
         :param contract_methods:
@@ -204,7 +201,7 @@ class GnosisConsoleEngine:
         :param configuration:
         :return:
         """
-        self.silence_flag = configuration['silence']
+        self.quiet_flag = configuration['quiet']
         self.network = configuration['network']
         if configuration['debug']:
             self.logging_lvl = DEBUG0
@@ -224,7 +221,6 @@ class GnosisConsoleEngine:
         :return:
         """
         if contract_artifacts is not None:
-            # self.pre_loaded_contract_artifacts = contract_artifacts
             # remark: Pre-Loading of the Contract Assets (Safe v1.1.0, Safe v1.0.0, Safe v-0.0.1) for testing purposes
             for artifact_index, artifact_item in enumerate(contract_artifacts):
                 print(artifact_index)
@@ -233,9 +229,7 @@ class GnosisConsoleEngine:
                     artifact_item['abi'], artifact_item['bytecode'],
                     artifact_item['address'], alias=contract_artifacts['name']
                 )
-                print('add 1')
 
-    # note: Future command to it's own funciton
     def run_contract_console(self, desired_parsed_item_list, priority_group):
         """ Run Contract Console
 
@@ -254,7 +248,7 @@ class GnosisConsoleEngine:
                 self.logger.info(STRING_DASHES)
                 self.logger.info('| {0:^116} | '.format('Entering Contract Console'))
                 self.logger.info(STRING_DASHES)
-                self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='./contract-cli', stream=tmp_alias))
+                self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='contract-cli', stream=tmp_alias))
             except KeyError as err:
                 self.logger.error(err)
 
@@ -278,7 +272,7 @@ class GnosisConsoleEngine:
             self.logger.info(STRING_DASHES)
             self.logger.info('| {0:^116} | '.format('Entering Safe Console'))
             self.logger.info(STRING_DASHES)
-            self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='./safe-cli', stream='Safe (' + tmp_address + ')'))
+            self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='safe-cli', stream='Safe (' + tmp_address + ')'))
 
     def _get_prompt_text(self, affix_stream='', stream=''):
         """ Get Prompt Text
@@ -286,4 +280,4 @@ class GnosisConsoleEngine:
         :param contract_name:
         :return:
         """
-        return '[ {affix_stream} ][ {stream} ]>: '.format(affix_stream=affix_stream, stream=stream)
+        return '[ ./{affix_stream} ][ {stream} ]>: '.format(affix_stream=affix_stream, stream=stream)

@@ -146,7 +146,6 @@ gnosis-cli was implemented using **python3** and it will focus on development a 
 + Command **loadContract  --address=<contract-address>** or **--alias=<contract-alias>**:
 
   ```
-  [ GNOSIS-CLI v0.0.1a ]>: loadContract --address=0x
   [ GNOSIS-CLI v0.0.1a ]>: loadContract --alias=ALIAS
   ```
 

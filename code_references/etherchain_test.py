@@ -4,7 +4,6 @@
 from pyetherchain.pyetherchain import EtherChain
 
 e = EtherChain()
-
 # getting an accoutn object
 ac = e.account("0x6090A6e47849629b7245Dfa1Ca21D94cd15878Ef")
 
@@ -14,13 +13,10 @@ print(ac.source)
 print(ac.swarm_hash)
 print(ac.transactions())
 print(ac.history())
-# access the charts api
 print(e.charts.market_cap())
-# retrieve hardfork information
 print(e.hardforks())
 
-
-# list pending transaactions (takes arguments)
+# list pending transactions (takes arguments)
 # print(e.transactions_pending())
 # describe the constructor invokation and other transaction in a human readable way
 contract = e.account("0x6090A6e47849629b7245Dfa1Ca21D94cd15878Ef")
@@ -33,16 +29,14 @@ contract = e.account("0x6090A6e47849629b7245Dfa1Ca21D94cd15878Ef")
 contract.describe_contract()
 
 # directly work with the backend api interface
-
 # print(e.get_transaction("c98061e6e1c9a293f57d59d53f4e171bb62afe3e5b6264e9a770406a81fb1f07"))
 # print(e.get_transactions_pending())
 # print(e.get_transactions())
 # print(e.get_blocks())
 # print(e.get_accounts())
 # print(e.get_hardforks())
-#
-# # print e.get_correlations()
-# # print e.get_stats_price_btc()
+# print e.get_correlations()
+# print e.get_stats_price_btc()
 # print(e.get_account_transactions("0x1104e154efa21ff3ca5da097f8906cd56b1e7d86"))
 
 try:
