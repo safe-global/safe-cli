@@ -170,10 +170,13 @@ class GnosisConsoleEngine:
                         except Exception:
                             self.active_session = TypeOfConsole.GNOSIS_CONSOLE
                     else:
-                        self.console_controller.operate_with_console(
-                            desired_parsed_item_list, priority_group, command_argument, argument_list
-                        )
-
+                        try:
+                            self.console_controller.operate_with_console(
+                                desired_parsed_item_list, priority_group, command_argument, argument_list
+                            )
+                        except Exception as err:
+                            self.logger.error('Something Went Wrong Opss {0}  {1}'.format(type(err), err))
+                            self.active_session = TypeOfConsole.GNOSIS_CONSOLE
                     if (command_argument == 'close') or (command_argument == 'quit') or (command_argument == 'exit'):
                         self.active_session = TypeOfConsole.GNOSIS_CONSOLE
                         raise EOFError

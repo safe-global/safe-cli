@@ -96,6 +96,18 @@ class ConsoleInputGetter:
                 1: {'--address': 1},
                 2: {'--private_key': 1},
             },
+            'sendEther': {
+                0: {'': 0},
+                1: {'--address': 1, '--wei': 10, '--kwei': 10, '--babbage': 10, '--mwei': 10, '--lovelace': 10,
+                    '--picoether': 10, '--gwei': 10, '--shannon': 10, '--nanoether': 10, '--szabo': 10,
+                    '--microether': 10, '--micro': 10, '--finney': 10, '--milliether': 10, '--milli': 10,
+                    '--ether': 10, '--kether': 10, '--grand': 10, '--mether': 10, '--gether': 10, '--tether': 10
+                    }
+            },
+            'sendToken': {
+                0: {'': 0},
+                1: {'--address': 1, '--amount': 1},
+            },
         }
 
     @staticmethod
@@ -215,6 +227,10 @@ class ConsoleInputGetter:
         aux_value_retainer = {
             '--address': [], '--alias': [], '--bytecode': [], '--uint': [],
             '--gas': [], '--gasPrice': [], '--from': [], '--private_key': [], '--api_key': [],
+            '--wei': [], '--kwei': [], '--babbage': [], '--mwei': [], '--lovelace': [],
+            '--picoether': [], '--gwei': [], '--shannon': [], '--nanoether': [], '--szabo': [],
+            '--microether': [], '--micro': [], '--finney': [], '--milliether': [], '--milli': [],
+            '--ether': [], '--kether': [], '--grand': [], '--mether': [], '--gether': [], '--tether': []
         }
         try:
             priority_groups = self.argument_block_priorities[command_argument]
