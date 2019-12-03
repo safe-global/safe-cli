@@ -2,6 +2,8 @@
 
 gnosis-cli was implemented using **python3** and it will focus on development a console to operate with **safe-console** from versions ***0.0.1*** to ***1.1.0*** with tested procedures. Additionally as side effect of the developing the safe-console a **low-level contract console** will be available atleast in the current version of the prototype, the abi will be automatically parsed and the function calls generated. This can be accessed via method params --query or --execute calls.
 
+![alt text](https://i.imgur.com/PsRJfyN.png)
+
 **[ Console Features ]**
 
 + Prompt safe-cli for directly interact with a safe, using tested procedures with gnosis-py
