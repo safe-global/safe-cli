@@ -101,6 +101,12 @@ class ConsoleController:
         :param safe_interface:
         :return:
         """
+        # Commands to be implemented:
+        # - setAutoSender: first loaded owner will be set as default sender
+        # - setBestFittedSender: it will recalculate the default_sender_account everytime an owner is loaded
+        # - updateSafe: evaluate if current version can be uploaded to the newest one
+        #
+
         self.logger.debug0('Operating with Safe: ' + command_argument)
         if command_argument == 'info':
             safe_interface.command_safe_information()
@@ -130,7 +136,7 @@ class ConsoleController:
             if priority_group == 1:
                 uint_value = desired_parsed_item_list[0][1][0]
                 self.logger.debug0(uint_value)
-                safe_interface.command_safe_change_threshold(int(uint_value), approval=False)
+                safe_interface.command_safe_change_threshold(int(uint_value))
 
         elif command_argument == 'addOwnerWithThreshold':
             self.logger.debug0(desired_parsed_item_list)
@@ -144,14 +150,14 @@ class ConsoleController:
                     self.logger.info(str(uint_value))
                 except Exception as err:
                     self.logger.info(err)
-                safe_interface.command_safe_add_owner_threshold(str(address_value), int(uint_value), approval=False)
+                safe_interface.command_safe_add_owner_threshold(str(address_value), int(uint_value))
 
         elif command_argument == 'addOwner':
             self.logger.info(desired_parsed_item_list)
             if priority_group == 1:
                 address_value = desired_parsed_item_list[0][1][0]
                 self.logger.info(address_value)
-                safe_interface.command_safe_add_owner_threshold(address_value, approval=False)
+                safe_interface.command_safe_add_owner_threshold(address_value)
 
         elif command_argument == 'removeOwner':
             self.logger.debug0(desired_parsed_item_list)
@@ -166,7 +172,8 @@ class ConsoleController:
                     self.logger.info('[ Finding Previous Owner ]: {0}'.format(safe_interface.default_owner_address_list))
                     self.logger.info('[ Ordered Default Addresses ]: {0}'.format(ordered_default_owner_list))
 
-                    for index_owner, owner_address in enumerate(ordered_default_owner_list):
+                    # Calculate the SENTINEL FOR THE LIST OF OWNER
+                    for index_owner, owner_address in enumerate(safe_interface.safe_operator.retrieve_owners()):
                         if owner_address == address_value:
                             self.logger.info('[ Found Owner on the list ]: {0}'.format(ordered_default_owner_list))
                             previous_owner = ordered_default_owner_list[index_owner - 1]
@@ -175,16 +182,15 @@ class ConsoleController:
 
                 except Exception as err:
                     self.logger.info(err)
-                safe_interface.command_safe_remove_owner(str(previous_owner), str(address_value), approval=False)
+                safe_interface.command_safe_remove_owner(str(previous_owner), str(address_value))
 
         elif command_argument == 'removeMultipleOwners':
-
-            safe_interface.command_safe_remove_owner(owners_list0[0], owners_list[1], approval=False)
+            safe_interface.command_safe_remove_owner(owners_list0[0], owners_list[1])
         elif command_argument == 'swapOwner' or command_argument == 'changeOwner':
             self.logger.info(desired_parsed_item_list)
             if priority_group == 1:
                 self.logger.info('')
-            safe_interface.command_safe_swap_owner(owners_list0[0], owners_list0[1], new_account, approval=False)
+            safe_interface.command_safe_swap_owner(owners_list0[0], owners_list0[1], new_account)
 
         elif command_argument == 'sendToken':
             self.logger.info('sendToken to be Implemented')
@@ -215,7 +221,6 @@ class ConsoleController:
                 self.logger.debug0('[ Signature Value ]: {0} {1}'.format(str(bytecode_value), safe_interface.default_owner_address_list))
                 local_owner = self.account_artifacts.get_local_account(bytecode_value, safe_interface.default_owner_address_list)
                 safe_interface.local_owner_account_list.append(local_owner)
-
                 self.logger.info('[ Local Account Added ]: {0}'.format(safe_interface.local_owner_account_list))
                 self.logger.info('[ Data Output ]: {0} | {1} | {2}'.format(
                     local_owner, local_owner.address, HexBytes(local_owner.privateKey).hex())

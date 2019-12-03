@@ -34,14 +34,20 @@ class ConsoleSafeCommands:
     def __init__(self, safe_address, logger, account_artifacts, network_agent):
         self.logger = logger
         self.ethereum_client = EthereumClient()
+        # This should passed from the engine to the controller then to the safe command
         self.safe_operator = Safe(safe_address, self.ethereum_client)
+        # This instance should be resolved via blueprint
         self.safe_instance = self._setup_safe_resolver(safe_address)
+        # Default gas prices
         self.safe_tx_gas = 300000
         self.base_gas = 200000
         self.gas_price = 0
+        # Default empty values
         self.value = 0
         self.default_sender = None
+        # self.safe_operator.default_owner_address_list almacena los valores del getOwners()
         self.default_owner_address_list = []
+        # local accounts from loaded owners via loadOwner --private_key=
         self.local_owner_account_list = []
 
         self.network_agent = network_agent
@@ -63,6 +69,7 @@ class ConsoleSafeCommands:
         else:
             return get_safe_V0_0_1_contract(self.ethereum_client.w3, safe_address)
 
+
     def _setup_main_owner(self, best_fit=False):
         """ Setup Main Owner
         This functions will find the best fit owner to be the sender of the transactions, automatically set
@@ -73,6 +80,7 @@ class ConsoleSafeCommands:
         self.logger.debug0('Setup Best Fitted Owner As DefaultOwner(Sender) Based On Ether')
         self.logger.debug0(STRING_DASHES)
         default_owner_list = self.safe_instance.functions.getOwners().call()
+
         for owner in default_owner_list:
             account_ether = self.ethereum_client.w3.eth.getBalance(owner)
             stored_ether.append(account_ether)
@@ -82,14 +90,17 @@ class ConsoleSafeCommands:
                 'instance': None
             }
             self.logger.debug0(new_account_data)
+
         self.logger.debug0(STRING_DASHES)
         self.logger.debug0(stored_ether)
         self.logger.debug0(default_owner_list)
+        # user with more money
         owner_based_on_index = default_owner_list[stored_ether.index(max(stored_ether))]
+
         self.logger.debug0(str(owner_based_on_index) + ' | ' + str(stored_ether[stored_ether.index(max(stored_ether))]))
         self.logger.debug0(STRING_DASHES)
-        self.default_sender = str(owner_based_on_index)
-        self.default_owner_address_list = default_owner_list
+        self.default_sender = str(owner_based_on_index) # this values is only a address -> local account
+        self.default_owner_address_list = default_owner_list    # this is the ordered list SENTINEL
         self.logger.info(default_owner_list)
         self.logger.info('| Default Sender set to Owner with Address: {0} | '.format(self.default_sender))
 
@@ -135,16 +146,16 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to multi_approve_safe_tx(): {0} {1}'.format(type(err), err))
 
-    def perform_transaction(self, sender, payload_data, approval=False):
+    def perform_transaction(self, sender, payload_data):
         """ Perform Transaction
         This function will perform the transaction to the safe we have currently triggered via console command
         :param payload_data:
         :param sender:
-        :param signers_list:
-        :param approval:
         :return:
         """
         try:
+            # The private key for the sender should be the same as the one loaded?
+
             # Retrieve Nonce for the transaction
             safe_nonce = self.safe_operator.retrieve_nonce()
             safe_tx = SafeTx(
@@ -155,11 +166,12 @@ class ConsoleSafeCommands:
             # Multi Sign the current transaction
             safe_tx = self.safe_tx_multi_sign(safe_tx, self.local_owner_account_list)
 
-            # Execute the current transaction
-            safe_tx.call()
-            safe_tx_hash, _ = safe_tx.execute(sender.privateKey, self.base_gas + self.safe_tx_gas)
-            # Retrieve the receipt
-            safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
+            # The current tx was well formed
+            if safe_tx.call():
+                # Execute the current transaction
+                safe_tx_hash, _ = safe_tx.execute(sender.privateKey, self.base_gas + self.safe_tx_gas)
+                # Retrieve the receipt
+                safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
 
             self.logger.info('| Safe Tx Receipt: | ')
             self.logger.info(STRING_DASHES)
@@ -275,10 +287,13 @@ class ConsoleSafeCommands:
         """
         # give list of owners and get the previous owner
         try:
-            # Default sender data
+            # Default sender data, since the sender is a local account just sender.addres
             sender_data = {'from': str(self.default_sender), 'gas': 200000, 'gasPrice': 0}
 
+            # Calculate the sentinel as safe_local_account[safe_local_accounts[data].index - 1]
+
             # Generating the function payload data
+            # Swap Owner - address previousOwner, address Owner, addres NewAddress
             payload_data = HexBytes(self.safe_instance.functions.swapOwner(str(previous_owner.address), str(owner.address), str(new_owner.address)).buildTransaction(sender_data)['data'])
             self.logger.debug0(' | Sender Data: {0} | '.format(str(sender_data)))
             self.logger.debug0(STRING_DASHES)
@@ -361,7 +376,7 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to command_safe_add_owner_threshold(): {0} {1}'.format(type(err), err))
 
-    def command_safe_remove_owner(self, previous_owner_address, owner_address, approval=False):
+    def command_safe_remove_owner(self, previous_owner_address, owner_address):
         """ Command Safe Change Threshold
         This function will perform the necessary step for properly executing the method removeOwner from the safe
         :param previous_owner_address:
@@ -382,7 +397,8 @@ class ConsoleSafeCommands:
             self.logger.debug0(STRING_DASHES)
 
             # Perform the transaction
-            self.perform_transaction(owners_list[0], owners_list, payload_data, approval=approval)
+            # calculate best sender()
+            self.perform_transaction(owners_list[0], owners_list, payload_data)
 
             # Preview the current status of the safe since the transaction
             self.command_safe_get_owners()
@@ -409,17 +425,17 @@ class ConsoleSafeCommands:
                 to=local_account3.address,
                 value=self.safe_operator.w3.toWei(1.1, 'ether')
             )
-            self.perform_transaction(owners_list[0], owners_list, tx_data1, approval=approval)
+            self.perform_transaction(owners_list, tx_data1)
             print('after 3', self.safe_operator.w3.eth.getBalance(local_account3.address))
             print('after 0', self.safe_operator.w3.eth.getBalance(local_account0.address))
 
+            # Datos no necesarios pueden ir vacios
             # self.safe_operator.send_multisig_tx(
             #     local_account1, ether_to_transfer, b'', SafeOperation.DELEGATE_CALL.value,
             #     30000, 20000, 1, NULL_ADDRESS, NULL_ADDRESS, b'signatures', local_account1.privateKey
             # )
         except Exception as err:
             self.logger.error('Unable to command_safe_send_ether(): {0} {1}'.format(type(err), err))
-
 
 # orderred_signers = sorted(owners_list, key=lambda v: v.address.lower())
 # # remark: Data to ve used in the Transaction

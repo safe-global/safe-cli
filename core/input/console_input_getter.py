@@ -9,7 +9,6 @@ class ConsoleInputGetter:
     def __init__(self, logger):
         self.name = self.__class__.__name__
         self.logger = logger
-
         # remark: Argument Block Priorities for every Command of the Gnosis Console
         self.argument_block_priorities = {
             'newContract': {
@@ -96,11 +95,6 @@ class ConsoleInputGetter:
                 0: {'': 0},
                 1: {'--address': 1},
                 2: {'--private_key': 1},
-            },
-            'dummyCommand': {
-                0: {'': 0},
-                1: {'--address': 3, '--gas': 1},
-                2: {'--gas': 3}
             },
         }
 

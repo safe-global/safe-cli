@@ -9,39 +9,7 @@ import logging
 from enum import Enum
 
 from core.artifacts.token_artifacts import TokenArtifacts
-from core.artifacts.contract_artifacts import ContractArtifacts
-
-logging_lvl = INFO
-logger = CustomLogger(__name__, logging_lvl)
-
-# CustomLogger Format Definition: Output Init Configuration
-formatter = logging.Formatter(fmt='%(asctime)s - [%(levelname)s]: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-
-# Custom Logger File Configuration: File Init Configuration
-file_handler = logging.FileHandler('./log/gnosis_console/general_console.log', 'w')
-file_handler.setFormatter(formatter)
-file_handler.setLevel(level=logging_lvl)
-
-# Custom Logger Console Configuration: Console Init Configuration
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(formatter)
-console_handler.setLevel(level=logging_lvl)
-
-# Custom Logger Console/File Handler Configuration
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
-
-console_token_artifacts = TokenArtifacts(logger)
-
-
-class TypeOfContract(Enum):
-    STANDARD = 'STANDARD'
-    ERC20 = 'ERC20'
-    ERC721 = 'ERC721'
-
-
-from gnosis.eth.ethereum_client import EthereumClient
-
+from core.artifacts.data_artifacts import DataArtifacts
 
 # wei = int(units["wei"])
 # kwei = int(units["kwei"])
@@ -77,7 +45,21 @@ from gnosis.eth.ethereum_client import EthereumClient
 # MEther = 0.000001
 # GEther = 0.000000001
 
+from gnosis.eth.ethereum_client import EthereumClient
 ethereum_client = EthereumClient()
+
+# If you use deimcal, you need to import
+from decimal import getcontext, Decimal
+
+# Set the precision.
+getcontext().prec = 3
+
+# Execute 1/7, however cast both numbers as decimals
+output = Decimal(16000000000000000.0)/Decimal(7)
+
+# Your output will return w/ 6 decimal places, which
+# we set above.
+print(output)
 
 # <>
 def get_proper_ether_amount(ether_amount):
