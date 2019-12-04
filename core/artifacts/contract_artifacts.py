@@ -39,10 +39,10 @@ class ContractArtifacts:
             if len(self.contract_data[artifact_identifier]['bytecode']) > 1:
                 bytecode_status = True
 
-            self.logger.info(' | {0:^25} | {1:^25} | {2:^25} | {3:^10} | {4:^10} | {5:^50} | '.format(
+            self.logger.info(' | {0:^25} | {1:^25} | {2:^25} | {3:^10} | {4:^10} | '.format(
                 str(artifact_identifier), str(self.contract_data[artifact_identifier]['name']),
                 str(self.contract_data[artifact_identifier]['address']), str(abi_status),
-                str(bytecode_status), str(self.contract_data[artifact_identifier]['instance']))
+                str(bytecode_status))
             )
         self.logger.debug0(STRING_DASHES)
 

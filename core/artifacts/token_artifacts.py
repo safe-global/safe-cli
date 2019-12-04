@@ -38,7 +38,7 @@ class TokenArtifacts:
             'address': token_addres, 'instance': token_instance, 'token_type': type_of_tokens, 'name': alias
         }
 
-    def add_token(self, token_artifact, alias='', type_of_token=TypeOfTokens.ERC20):
+    def add_token_artifact(self, token_artifact, alias='', type_of_token=TypeOfTokens.ERC20):
         """
 
         :param token_artifact:

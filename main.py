@@ -51,7 +51,7 @@ console_getter = ConsoleInputGetter(logger)
 
 token_artifacts = TokenArtifacts(logger)
 token_sample = {'address': '0x' + ('0'*40), 'instance': 'Token.Instance.Sample', 'token_type': TypeOfTokens.ERC20}
-token_artifacts.add_token(token_sample, alias='OWL_TOKEN')
+token_artifacts.add_token_artifact(token_sample, alias='OWL_TOKEN')
 
 account_artifacts = AccountsArtifacts(logger, ethereum_client)
 
