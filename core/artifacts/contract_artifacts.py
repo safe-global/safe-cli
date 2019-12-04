@@ -7,7 +7,7 @@ STRING_DASHES = '----------' * 12
 class ContractArtifacts:
     def __init__(self, logger):
         self.logger = logger
-        self.data = {}
+        self.contract_data = {}
 
     def pre_load_artifacts(self, contract_artifacts):
         if contract_artifacts is not None:
@@ -20,10 +20,9 @@ class ContractArtifacts:
                 )
                 self.add_contract_artifact(
                     artifact['name'], artifact['instance'], artifact['abi'],
-                    artifact['bytecode'], artifact['address'], (artifact['name'] + '_' + str(len(self.data)))
+                    artifact['bytecode'], artifact['address'], (artifact['name'] + '_' + str(len(self.contract_data)))
                 )
 
-    # <>
     def command_view_contracts(self):
         """ Command View Contracts
 
@@ -33,17 +32,17 @@ class ContractArtifacts:
         bytecode_status = False
 
         self.logger.debug0(STRING_DASHES)
-        for artifact_identifier in self.data:
+        for artifact_identifier in self.contract_data:
             # Temporary fix for showing ( True | False ) that the abi & bytecode are present
-            if len(self.data[artifact_identifier]['abi']) > 1:
+            if len(self.contract_data[artifact_identifier]['abi']) > 1:
                 abi_status = True
-            if len(self.data[artifact_identifier]['bytecode']) > 1:
+            if len(self.contract_data[artifact_identifier]['bytecode']) > 1:
                 bytecode_status = True
 
             self.logger.info(' | {0:^25} | {1:^25} | {2:^25} | {3:^10} | {4:^10} | {5:^50} | '.format(
-                str(artifact_identifier), str(self.data[artifact_identifier]['name']),
-                str(self.data[artifact_identifier]['address']), str(abi_status),
-                str(bytecode_status), str(self.data[artifact_identifier]['instance']))
+                str(artifact_identifier), str(self.contract_data[artifact_identifier]['name']),
+                str(self.contract_data[artifact_identifier]['address']), str(abi_status),
+                str(bytecode_status), str(self.contract_data[artifact_identifier]['instance']))
             )
         self.logger.debug0(STRING_DASHES)
 
@@ -65,24 +64,8 @@ class ContractArtifacts:
         :return:
         """
         if alias != '':
-            self.data[str(alias)] = self.new_contract_entry(contract_name, contract_instance, contract_abi, contract_bytecode, contract_address)
+            self.contract_data[str(alias)] = self.new_contract_entry(contract_name, contract_instance, contract_abi, contract_bytecode, contract_address)
         else:
-            self.data[str(contract_name)] = self.new_contract_entry(
+            self.contract_data[str(contract_name)] = self.new_contract_entry(
                 contract_name, contract_instance, contract_abi, contract_bytecode, contract_address
             )
-
-    def get_value_from_alias(self, alias, key=None):
-        """ Get Value From Alias
-
-        :param alias:
-        :param key:
-        :return:
-        """
-        try:
-            if key is None:
-                return self.data[alias]
-            return self.data[alias][key]
-        except KeyError:
-            raise KeyError
-        except Exception as err:
-            print(type(err), err)

@@ -147,7 +147,7 @@ class AccountsArtifacts:
         :return:
         """
         for item in self.account_data:
-            if stream.=(item):
+            if stream.startwith(item):
                 key = stream.split('.')[1]
                 self.logger.debug0(stream, item, self.account_data[item][key])
                 return self.account_data[item][key]

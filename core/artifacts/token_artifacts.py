@@ -18,16 +18,15 @@ class TokenArtifacts:
         self.logger = logger
         self.token_data = {}
 
-    def command_view_accounts(self):
+    def command_view_tokens(self):
         self.logger.debug0(STRING_DASHES)
         for item in self.token_data:
             self.logger.info(' | {0:^15} | {1:^25} | {2:^25} | {3:^25} | '.format(
-                item, self.token_data[item]['address'], self.token_data[item]['instance'],
-                self.token_data['token_type'])
+                item, self.token_data[item]['address'], self.token_data[item]['instance'], self.token_data['type'])
             )
         self.logger.debug0(STRING_DASHES)
 
-    def new_token_entry(self, token_addres, token_instance, type_of_tokens):
+    def new_token_entry(self, token_addres, token_instance, type_of_tokens, alias):
         """
 
         :param token_addres:
@@ -36,7 +35,7 @@ class TokenArtifacts:
         :return:
         """
         return {
-            'address': token_addres, 'instance': token_instance, 'token_type': type_of_tokens
+            'address': token_addres, 'instance': token_instance, 'token_type': type_of_tokens, 'name': alias
         }
 
     def add_token(self, token_artifact, alias='', type_of_token=TypeOfTokens.ERC20):
@@ -48,23 +47,5 @@ class TokenArtifacts:
         :return:
         """
         if alias != '':
-            self.token_data[alias] = self.new_token_entry(token_artifact['instance'], token_artifact['instance'], type_of_token)
-            return self.token_data
-        self.token_data['uToken' + str(len(self.token_data))] = self.new_token_entry(token_artifact['instance'], token_artifact['instance'], type_of_token)
-        return self.token_data
-
-    def get_payload_from_alias(self, alias, key=None):
-        """
-
-        :param alias:
-        :param key:
-        :return:
-        """
-        try:
-            if key is None:
-                return self.token_data[alias]
-            return self.token_data[alias]['instance']
-        except KeyError:
-            raise KeyError
-        except Exception as err:
-            print(type(err), err)
+            self.token_data[alias] = self.new_token_entry(token_artifact['address'], token_artifact['instance'], type_of_token, alias)
+        self.token_data['uToken' + str(len(self.token_data))] = self.new_token_entry(token_artifact['instance'], token_artifact['instance'], type_of_token, 'uToken' + str(len(self.token_data)))
