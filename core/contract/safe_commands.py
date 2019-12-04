@@ -145,7 +145,7 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to multi_approve_safe_tx(): {0} {1}'.format(type(err), err))
 
-    def perform_transaction(self, payload_data):
+    def perform_transaction(self, payload_data, wei_value=0):
         """ Perform Transaction
         This function will perform the transaction to the safe we have currently triggered via console command
         :param payload_data:
@@ -153,6 +153,8 @@ class ConsoleSafeCommands:
         :return:
         """
         try:
+            if wei_value != 0:
+                self.value = wei_value
             # Retrieve Nonce for the transaction
             safe_nonce = self.safe_operator.retrieve_nonce()
             safe_tx = SafeTx(
@@ -408,14 +410,15 @@ class ConsoleSafeCommands:
         self.logger.debug0(STRING_DASHES)
 
     # def command_safe_send_ether(self, amount, address_to, approval=False):
-    def command_safe_send_ether(self, address_to, ether_value):
+    def command_safe_send_ether(self, address_to, wei_value):
         """ Command Safe Send Ether
         This function will perform the necessary step for properly executing the method removeOwner from the safe
-        :param ether_value:
+        :param wei_value:
         :param address_to:
         :return:
         """
-
+        self.logger.debug0('Previous Balance Values')
+        self.logger.debug0(STRING_DASHES)
         self.command_view_owners_balance()
         try:
             payload_data = dict(
@@ -423,16 +426,19 @@ class ConsoleSafeCommands:
                 gasPrice=0,
                 gas=self.gas_price,
                 to=address_to,
-                value=self.safe_operator.w3.toWei(ether_value, 'ether')
+                value=self.safe_operator.w3.toWei(wei_value, 'wei')
             )
-            self.perform_transaction(payload_data)
+            self.perform_transaction(payload_data, wei_value)
 
             # Datos no necesarios pueden ir vacios
             # self.safe_operator.send_multisig_tx(
             #     local_account1, ether_to_transfer, b'', SafeOperation.DELEGATE_CALL.value,
             #     30000, 20000, 1, NULL_ADDRESS, NULL_ADDRESS, b'signatures', local_account1.privateKey
             # )
+            self.logger.debug0('Final Balance Values')
+            self.logger.debug0(STRING_DASHES)
             self.command_view_owners_balance()
+
         except Exception as err:
             self.logger.error('Unable to command_safe_send_ether(): {0} {1}'.format(type(err), err))
 

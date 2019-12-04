@@ -191,12 +191,20 @@ class ConsoleController:
 
         elif command_argument == 'sendEther':
             # note: Eval --ether=, --miliether= sum(+) input
-            if priority_group == 1:
+            # if priority_group == 1:
+            try:
                 address_value = desired_parsed_item_list[0][1][0]
-                ether_value = desired_parsed_item_list[1][1][0]
+                ether_amounts = desired_parsed_item_list[1:]
+                from ether_helper import EtherHelper
 
-            self.logger.info('sendEther to be Implemented')
-            # safe_interface.command_safe_send_ether()
+                null_address ='0x0000000000000000000000000000000000000000'
+                ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
+                self.logger.info('sendEther to be Implemented')
+                amount_value = ether_helper.get_unify_ether_amount(ether_amounts)
+                self.logger.info('Total Amount: {0} Wei'.format(amount_value))
+                safe_interface.command_safe_send_ether(null_address, amount_value)
+            except Exception as err:
+                self.logger.error(err)
 
         elif command_argument == 'updateSafe':
             self.logger.info('updateSafe --address=0x to be Implemented')

@@ -77,5 +77,5 @@ class EtherHelper:
         final_amount = 0
         for item_data in ether_badge_parsed_list:
             final_amount += self.unify_ether_badge_amounts(item_data[0], item_data[1])
-        self.logger.debug0('{0}'.format(self.ethereum_client.w3.fromWei(final_amount, 'ether')))
+        self.logger.debug0('{0} Ether'.format(self.ethereum_client.w3.fromWei(final_amount, 'ether')))
         return final_amount
