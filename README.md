@@ -31,12 +31,12 @@ gnosis-cli was implemented using **python3** and it will focus on development a 
   + Launch option ***--help*** or ***-h***
 
     ```
-    usage: gnosis_cli.py [-h] [--silence] [--debug] [--network NETWORK]
+    usage: gnosis_cli.py [-h] [--quiet] [--debug] [--network NETWORK]
                          [--private_key PRIVATE_KEY_COLLECTION] [--version]
     
     optional arguments:
       -h, --help            show this help message and exit
-      --silence             This init option will store the value for the silence
+      --silence             This init option will store the value for the quiet
                             param, and subsequently will disable/hide the Loading
                             Process in the Console. (By default, it will be set to
                             False).
