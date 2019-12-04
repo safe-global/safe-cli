@@ -9,11 +9,17 @@ STRING_DASHES = '---------' * 10
 
 
 class TypeOfTokens(Enum):
+    """ Type Of Tokens
+
+    """
     ERC20 = 'ERC20'
     ERC721 = 'ERC721'
 
 
 class TokenArtifacts:
+    """ Token Artifacts
+
+    """
     def __init__(self, logger):
         self.logger = logger
         self.token_data = {}

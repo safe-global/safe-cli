@@ -9,6 +9,9 @@ from hexbytes import HexBytes
 
 
 class ConsoleController:
+    """ Console Controller
+
+    """
     def __init__(self, logger, network_agent, console_accounts, console_payloads, console_tokens, contract_artifacts, console_engine):
         self.logger = logger
 
@@ -77,6 +80,12 @@ class ConsoleController:
             self.console_information.command_view_help()
 
     def setinel_helper(self, address_value, safe_interface):
+        """ Sender Helper
+        This function send helper
+        :param address_value:
+        :param safe_interface:
+        :return:
+        """
         previous_owner = '0x' + ('0' * 39) + '1'
         self.logger.info('[ Current Owner with Address to be Removed ]: {0}'.format(str(address_value)))
         self.logger.info('[ Current Local Account Owners ]: {0}'.format(safe_interface.safe_operator.retrieve_owners()))

@@ -49,6 +49,9 @@ class TypeOfConsole(Enum):
 
 
 class GnosisConsoleEngine:
+    """ Gnosis Console Engine
+
+    """
     def __init__(self, init_configuration, contract_artifacts=None):
         self.name = self.__class__.__name__
         self.prompt_text = init_configuration['name']
@@ -189,7 +192,7 @@ class GnosisConsoleEngine:
 
     def get_console_session(self):
         """ Get Console Session
-
+        Get Console Session
         :param prompt_text:
         :param sub_console:
         :return:

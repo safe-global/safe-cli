@@ -15,6 +15,9 @@ STRING_DASHES = '----------' * 12
 
 
 class TypeOfAccount(Enum):
+    """ Type Of Account
+
+    """
     LOCAL_ACCOUNT = 'LocalAccount'
     RINKEBY_ACCOUNT = 'RinkebyAccount'
     MAINNET_ACCOUNT = 'MainnetAccount'
@@ -22,7 +25,7 @@ class TypeOfAccount(Enum):
 
 
 class AccountsArtifacts:
-    """ ConsoleSessionAccounts
+    """ Account Artifacts
 
     """
     def __init__(self, logger, ethereum_client, silence_flag=False):
@@ -43,6 +46,10 @@ class AccountsArtifacts:
         self._setup_random_accounts()
 
     def command_view_accounts(self):
+        """ Command View Accounts
+        :return:
+        """
+
         self.logger.debug0(STRING_DASHES)
         for item in self.account_data:
             self.logger.info(' | {0:^15} | {1:^25} | {2:^25} | {3:^50} | {4} '.format(
@@ -52,13 +59,19 @@ class AccountsArtifacts:
         self.logger.debug0(STRING_DASHES)
 
     def new_account_entry(self, network, local_account):
+        """ New Account Entry
+
+        :param network:
+        :param local_account:
+        :return:
+        """
         return {
                 'network': network, 'balance': self.ethereum_client.w3.eth.getBalance(local_account.address),
                 'address': local_account.address, 'private_key': HexBytes(local_account.privateKey).hex(),
                 'instance': local_account
         }
 
-    def add_account(self, address='', private_key='', alias='uAccount', network=TypeOfAccount.LOCAL_ACCOUNT):
+    def add_account_artifact(self, address='', private_key='', alias='uAccount', network=TypeOfAccount.LOCAL_ACCOUNT):
         """ Add Account
 
         This function will add a new account to the ConsoleAccountArtifacts
@@ -121,7 +134,7 @@ class AccountsArtifacts:
         for index in range(1, account_number, 1):
             local_account = Account.create()
             self.logger.debug0('(+) Random Account with Address {0} '.format(local_account.address))
-            self.add_account(local_account.address, local_account.privateKey, alias='rAccount')
+            self.add_account_artifact(local_account.address, local_account.privateKey, alias='rAccount')
         self.logger.debug0(STRING_DASHES)
         self.logger.debug0(' | [ {0} ] Random Accounts Added | '.format(account_number))
 
@@ -136,7 +149,7 @@ class AccountsArtifacts:
         for index, data in enumerate(ganache_data):
             local_account = Account.privateKeyToAccount(ganache_data[data]['private_key'])
             self.logger.debug0('(+) Ganache Account with Address {0} '.format(local_account.address))
-            self.add_account(local_account.address, local_account.privateKey, alias='gAccount')
+            self.add_account_artifact(local_account.address, local_account.privateKey, alias='gAccount')
         self.logger.debug0(STRING_DASHES)
         self.logger.debug0(' | [ {0} ] Ganache Accounts Added | '.format(len(ganache_data)))
 

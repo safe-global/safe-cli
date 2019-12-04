@@ -31,9 +31,12 @@ owners_list = [local_account4, local_account5, local_account6, local_account7, l
 
 
 class ConsoleSafeCommands:
+    """ Console Safe Commands
+
+    """
     def __init__(self, safe_address, logger, account_artifacts, network_agent):
         self.logger = logger
-        self.ethereum_client = EthereumClient()
+        self.ethereum_client = network_agent.ethereum_client
         # This should passed from the engine to the controller then to the safe command
         self.safe_operator = Safe(safe_address, self.ethereum_client)
         # This instance should be resolved via blueprint
@@ -63,6 +66,11 @@ class ConsoleSafeCommands:
     # review: search for a blueprint of the version in the functions inputs, removeOwners from 1.0.0 to 1.1.0
     #  recieves diferent data, make a call function and confirm it??
     def _setup_safe_resolver(self, safe_address):
+        """
+
+        :param safe_address:
+        :return:
+        """
         aux_safe_operator = Safe(safe_address, self.ethereum_client)
         safe_version = str(aux_safe_operator.retrieve_version())
         if safe_version == '1.1.0':
@@ -197,12 +205,24 @@ class ConsoleSafeCommands:
         self.command_safe_nonce()
 
     def command_set_default_sender(self):
+        """
+
+        :return:
+        """
         self.logger.info('To Be Implemented')
 
     def command_set_default_owner_list(self):
+        """
+
+        :return:
+        """
         self.logger.info('To Be Implemented')
 
     def command_view_default_sender(self):
+        """
+
+        :return:
+        """
         self.logger.info(STRING_DASHES)
         self.logger.info('| Default Sender is Owner with Address: {0} | '.format(self.sender_address))
         self.logger.info('| Default Sender is Owner with Private Key: {0} | '.format(self.sender_private_key))
@@ -421,13 +441,14 @@ class ConsoleSafeCommands:
         self.logger.debug0(STRING_DASHES)
         self.command_view_owners_balance()
         try:
-            payload_data = dict(
-                nonce=self.safe_operator.retrieve_nonce(),
-                gasPrice=0,
-                gas=self.gas_price,
-                to=address_to,
-                value=self.safe_operator.w3.toWei(wei_value, 'wei')
-            )
+            # payload_data = dict(
+            #     nonce=self.safe_operator.retrieve_nonce(),
+            #     gasPrice=0,
+            #     gas=self.gas_price,
+            #     to=address_to,
+            #     value=self.safe_operator.w3.toWei(wei_value, 'wei')
+            # )
+            payload_data = b''
             self.perform_transaction(payload_data, wei_value)
 
             # Datos no necesarios pueden ir vacios
@@ -442,7 +463,16 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to command_safe_send_ether(): {0} {1}'.format(type(err), err))
 
-
+    def are_enough_signatures_loaded(self):
+        """ Are Enough Signatures Loaded
+        This funcion eval if the current operation is in disposition to be executed, evaluating the number of threshold
+        limiting the execution of operations vs de current lenght of the list of account_local
+        :return:
+        """
+        if self.safe_operator.retrieve_threshold() == self.local_owner_account_list:
+            return True
+        self.logger.error('Not Enough Signatures Loaded/Stored in local_accounts_list ')
+        return False
 # orderred_signers = sorted(owners_list, key=lambda v: v.address.lower())
 # # remark: Data to ve used in the Transaction
 # new_account_to_add = Account.create()

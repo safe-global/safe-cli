@@ -11,11 +11,18 @@ STRING_DASHES = '---------' * 10
 
 
 class PayloadArtifacts:
+    """ Payload Artifacts
+
+    """
     def __init__(self, logger):
         self.logger = logger
         self.payload_data = {}
 
     def command_view_payloads(self):
+        """ Command View Payloads
+
+        :return:
+        """
         self.logger.debug0(STRING_DASHES)
         for item in self.payload_data:
             self.logger.info(' | {0:^15} | {1:^25} '.format(item, self.payload_data[item]['name']))
@@ -41,9 +48,21 @@ class PayloadArtifacts:
             print('input for argument --nonce=, --gas=, --gasPrice=, --value=')
 
     def new_payload_entry(self, payload_artifact, alias):
+        """ New Payload Entry
+
+        :param payload_artifact:
+        :param alias:
+        :return:
+        """
         return {'name': alias, 'payload': payload_artifact}
 
     def add_payload_artifact(self, payload_artifact, alias=''):
+        """ Add Payload Artifact
+
+        :param payload_artifact:
+        :param alias:
+        :return:
+        """
         if alias != '':
             self.payload_data[alias] = self.new_payload_entry(payload_artifact, alias)
             return self.payload_data
@@ -52,6 +71,11 @@ class PayloadArtifacts:
 
     @staticmethod
     def _new_payload_helper(payload_options):
+        """ New Payload Helper
+
+        :param payload_options:
+        :return:
+        """
         alias = ''
         compose_answer = '{'
         for item in payload_options:

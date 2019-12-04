@@ -14,6 +14,9 @@ import re
 # Web3.isChecksumAddress('0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed')
 
 class ConsoleInputValidation:
+    """ Console Input Validation
+
+    """
     def __init__(self, logger):
         self.name = self.__class__.__name__
         self.logger = logger

@@ -5,11 +5,20 @@ STRING_DASHES = '----------' * 12
 
 
 class ContractArtifacts:
+    """ Contract Artifacts
+
+    """
     def __init__(self, logger):
         self.logger = logger
         self.contract_data = {}
 
     def pre_load_artifacts(self, contract_artifacts):
+        """ Pre Load Artifacts
+        This function will pre-load any provided contract artifact, during the launching process of the general console
+        gnosis-cli.
+        :param contract_artifacts:
+        :return:
+        """
         if contract_artifacts is not None:
             self.logger.debug0('')
             self.logger.debug0(' | Setup Contract Artifacts  | ')
@@ -25,7 +34,7 @@ class ContractArtifacts:
 
     def command_view_contracts(self):
         """ Command View Contracts
-
+        This function will show the values currently stored withing he contract artifact class
         :return:
         """
         abi_status = False

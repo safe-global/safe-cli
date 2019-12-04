@@ -25,7 +25,7 @@ KNOWN_NETWORKS_COLOR = 'DarkSalmon'
 INFORMATION_COLOR = 'LightYellow'
 
 class SyntaxLexer(Lexer):
-    """ Contract Lexer
+    """ Syntax Lexer
 
     """
     @staticmethod

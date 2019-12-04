@@ -7,6 +7,9 @@ from core.contract.constants.contract_constants import *
 
 
 class CommandCompleter(Completer):
+    """ Command Completer
+
+    """
     def get_completions(self, document, complete_event):
         """ Get Completions
         This will function will provide the completions for param types and function name

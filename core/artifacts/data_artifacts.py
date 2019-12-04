@@ -3,6 +3,9 @@
 
 
 class DataArtifacts:
+    """ Data Artifacts
+
+    """
     def __init__(self, logger, account_artifacts, payload_artifacts, token_artifacts, contract_artifacts):
         self.name = self.__class__.__name__
         self.logger = logger
@@ -13,6 +16,11 @@ class DataArtifacts:
         self.contract_artifacts = contract_artifacts
 
     def artifact_selection(self, artifact_type):
+        """ Artifact
+        This function compares the provided artifact_type to the available ones stored withing the DataArtifact object
+        :param artifact_type:
+        :return: Dict Data
+        """
         if artifact_type == 'account':
             return self.account_artifacts.account_data
         elif artifact_type == 'payload':
@@ -23,6 +31,13 @@ class DataArtifacts:
             return self.contract_artifacts.contract_data
 
     def retrive_from_stored_values(self, alias, key=None, artifact_type=None):
+        """ Retrieve From Stored Values
+
+        :param alias:
+        :param key:
+        :param artifact_type:
+        :return:
+        """
         try:
             self.logger.debug0('Searching for Stored Artifact: [ Alias ( {0} ) | Key ( {1} ) | Artifact Type ( {2} ) ]'.format(alias, key, artifact_type))
             artifact_data = self.artifact_selection(artifact_type)

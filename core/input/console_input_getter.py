@@ -6,6 +6,9 @@ COMA = ','
 
 
 class ConsoleInputGetter:
+    """ Console Input Getter
+
+    """
     def __init__(self, logger):
         self.name = self.__class__.__name__
         self.logger = logger
@@ -150,6 +153,12 @@ class ConsoleInputGetter:
             return '', []
 
     def _get_stored_arguments(self, argument_item, storage_item):
+        """ Get Stored Arguments
+
+        :param argument_item:
+        :param storage_item:
+        :return:
+        """
         stored_index = argument_item.split('.')
         self.logger.debug0('stored_argument', stored_index[0], stored_index[1])
         try:

@@ -3,12 +3,20 @@
 
 
 class EtherHelper:
+    """ Ether Helper
+
+    """
     def __init__(self, logger, ethereum_client):
         self.name = self.__class__.__name__
         self.logger = logger
         self.ethereum_client = ethereum_client
 
     def get_proper_ether_amount(self, ether_amount):
+        """ Get Proper Ether Amount
+
+        :param ether_amount:
+        :return:
+        """
         k_ether = self.ethereum_client.w3.toWei(1, 'kether')
         m_ether = self.ethereum_client.w3.toWei(1, 'mether')
         g_ether = self.ethereum_client.w3.toWei(1, 'gether')
@@ -26,6 +34,12 @@ class EtherHelper:
             return 'Ether', ether_amount
 
     def unify_ether_badge_amounts(self, ether_badge, ether_amounts):
+        """ Unify Ether Badge Amounts
+
+        :param ether_badge:
+        :param ether_amounts:
+        :return:
+        """
         ether_amount = 0
         if ether_amounts:
             self.logger.debug0('[ Badge Id ]: {0:^14} | {1}'.format(ether_badge, ether_amounts))
@@ -74,6 +88,11 @@ class EtherHelper:
         return ether_amount
 
     def get_unify_ether_amount(self, ether_badge_parsed_list):
+        """ Get Unify Ether Amount
+
+        :param ether_badge_parsed_list:
+        :return:
+        """
         final_amount = 0
         for item_data in ether_badge_parsed_list:
             final_amount += self.unify_ether_badge_amounts(item_data[0], item_data[1])
