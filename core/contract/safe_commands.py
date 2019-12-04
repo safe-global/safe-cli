@@ -397,6 +397,16 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to command_safe_remove_owner(): {0} {1}'.format(type(err), err))
 
+    def command_view_owners_balance(self):
+        """ Command View Owners Balance
+        List the current balance of the
+        :return:
+        """
+        self.logger.debug0(STRING_DASHES)
+        for owner_address in self.safe_operator.retrieve_owners():
+            self.logger.info(self.ethereum_client.w3.eth.getBalance(owner_address))
+        self.logger.debug0(STRING_DASHES)
+
     # def command_safe_send_ether(self, amount, address_to, approval=False):
     def command_safe_send_ether(self, address_to, ether_value):
         """ Command Safe Send Ether
@@ -405,25 +415,24 @@ class ConsoleSafeCommands:
         :param address_to:
         :return:
         """
+
+        self.command_view_owners_balance()
         try:
-            print('before 3', self.safe_operator.w3.eth.getBalance(local_account3.address))
-            print('before 0', self.safe_operator.w3.eth.getBalance(local_account0.address))
-            tx_data1 = dict(
-                nonce=self.safe_operator.retrieve_nonce,
+            payload_data = dict(
+                nonce=self.safe_operator.retrieve_nonce(),
                 gasPrice=0,
-                gas=1000000,
-                to=local_account3.address,
-                value=self.safe_operator.w3.toWei(1.1, 'ether')
+                gas=self.gas_price,
+                to=address_to,
+                value=self.safe_operator.w3.toWei(ether_value, 'ether')
             )
-            self.perform_transaction(owners_list, tx_data1)
-            print('after 3', self.safe_operator.w3.eth.getBalance(local_account3.address))
-            print('after 0', self.safe_operator.w3.eth.getBalance(local_account0.address))
+            self.perform_transaction(payload_data)
 
             # Datos no necesarios pueden ir vacios
             # self.safe_operator.send_multisig_tx(
             #     local_account1, ether_to_transfer, b'', SafeOperation.DELEGATE_CALL.value,
             #     30000, 20000, 1, NULL_ADDRESS, NULL_ADDRESS, b'signatures', local_account1.privateKey
             # )
+            self.command_view_owners_balance()
         except Exception as err:
             self.logger.error('Unable to command_safe_send_ether(): {0} {1}'.format(type(err), err))
 
