@@ -1,38 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from core.input.console_input_getter import ConsoleInputGetter
-from eth_account import Account
+# Constants
+from core.constants.console_constant import NULL_ADDRESS, STRING_DASHES
+
+# Import HexBytes Module
+from hexbytes import HexBytes
+
+# Import Gnosis-Py Modules
 from gnosis.safe.safe_tx import SafeTx
 from gnosis.safe.safe import Safe, SafeOperation
-from gnosis.eth.ethereum_client import EthereumClient
 from gnosis.eth.contracts import (
     get_safe_V1_0_0_contract, get_safe_V0_0_1_contract
 )
-from hexbytes import HexBytes
-
-# remark: Temporal Owner List, Testing
-NULL_ADDRESS = '0x' + '0' * 40
-STRING_DASHES = '----------' * 12
-
-local_account0 = Account.privateKeyToAccount('0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d')
-local_account1 = Account.privateKeyToAccount('0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1')
-local_account2 = Account.privateKeyToAccount('0x6370fd033278c143179d81c5526140625662b8daa446c22ee2d73db3707e620c')
-local_account3 = Account.privateKeyToAccount('0x646f1ce2fdad0e6deeeb5c7e8e5543bdde65e86029e2fd9fc169899c440a7913')
-local_account4 = Account.privateKeyToAccount('0xadd53f9a7e588d003326d1cbf9e4a43c061aadd9bc938c843a79e7b4fd2ad743')
-local_account5 = Account.privateKeyToAccount('0x395df67f0c2d2d9fe1ad08d1bc8b6627011959b79c53d7dd6a3536a33ab8a4fd')
-local_account6 = Account.privateKeyToAccount('0xe485d098507f54e7733a205420dfddbe58db035fa577fc294ebd14db90767a52')
-local_account7 = Account.privateKeyToAccount('0xa453611d9419d0e56f499079478fd72c37b251a94bfde4d19872c44cf65386e3')
-local_account8 = Account.privateKeyToAccount('0x829e924fdf021ba3dbbc4225edfece9aca04b929d6e75613329ca6f1d31c0bb4')
-local_account9 = Account.privateKeyToAccount('0xb0057716d5917badaf911b193b12b910811c1497b5bada8d7711f758981c3773')
-new_account = local_account9
-
-owners_list = [local_account4, local_account5, local_account6, local_account7, local_account8]
 
 
 class ConsoleSafeCommands:
     """ Console Safe Commands
-
+    This class will perform the command call to the different artifacts and the class methods
     """
     def __init__(self, safe_address, logger, account_artifacts, network_agent):
         self.logger = logger
@@ -473,48 +458,3 @@ class ConsoleSafeCommands:
             return True
         self.logger.error('Not Enough Signatures Loaded/Stored in local_accounts_list ')
         return False
-# orderred_signers = sorted(owners_list, key=lambda v: v.address.lower())
-# # remark: Data to ve used in the Transaction
-# new_account_to_add = Account.create()
-# new_account_address = new_account_to_add.address
-# base_gas = 400000
-# safe_tx_gas = 300000
-# gas_price = 0
-# nonce = safe_contract.functions.nonce().call()
-# current_owners = safe_contract.functions.getOwners().call()
-# CALL = 0
-#
-# # remark: Generate transaction for the addOwnerWithThreshold
-# print('\nCurrent Owners of the Safe:\n', current_owners)
-# # transaction = safe_contract.functions.addOwnerWithThreshold(new_account_address, 3).buildTransaction({'from': orderred_signers[0].address})
-# transaction = safe_contract.functions.changeThreshold(4).buildTransaction({'from': orderred_signers[0].address})
-# # transaction.update({'nonce': nonce, 'gasPrice': 1})
-# print('Current Transaction: \n', transaction['data'])
-#
-# # remark: Since we need the Hash for the fucntion to be signed, with the gas data from before we create the
-# #  new transaction data: payload of the new transaction
-# tx_change_threshold = safe_contract.functions.getTransactionHash(
-#     safe_operator.address, 0, transaction['data'], 0, safe_tx_gas, base_gas, gas_price, NULL_ADDRESS, NULL_ADDRESS, nonce
-# ).call()
-#
-# # remark: Sign Transaction Hash
-# signature_bytes = b''
-# for signers in orderred_signers:
-#     tx_signature = signers.signHash(tx_change_threshold)
-#     signature_bytes += tx_signature['signature']
-# print('[ Output Signature ]: ' + signature_bytes.hex())
-#
-# try:
-#     # remark: Launch the current transaction usign execTransaction
-#     change_treshold_hash = safe_contract.functions.execTransaction(
-#         safe_operator.address, 0, transaction['data'], 0, safe_tx_gas, base_gas, gas_price, NULL_ADDRESS, NULL_ADDRESS,
-#         signature_bytes
-#     ).transact({'from': orderred_signers[0].address, 'gas': safe_tx_gas + base_gas})
-#
-#     # remark: KEEP WAITING FOR THE TRANSACTION TO BE MINED¡
-#     receipt_for_change_threshold = ethereum_client.w3.eth.waitForTransactionReceipt(change_treshold_hash)
-#     print('\n', receipt_for_change_threshold)
-# except Exception as err:
-#     print(err)
-# current_threshold = safe_contract.functions.getThreshold().call()
-# print('\nThreshold Safe:', current_threshold)

@@ -1,11 +1,20 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from enum import Enum
+
+
+class TypeOfConsole(Enum):
+    GNOSIS_CONSOLE = 'gnosis-cli'
+    CONTRACT_CONSOLE = 'contract-cli'
+    SAFE_CONSOLE = 'safe-cli'
+
 # Constants
 payload_options = ['alias', 'from', 'gas', 'gasPrice']
 payload_tx_options = ['alias', 'from', 'gas', 'gasPrice', 'value', 'nonce', 'safe_tx_gas']
-STRING_DASHES = '----------' * 12
-
+STRING_DASHES = '----------' * 14
+QUOTE = '\''
+COMMA = ','
 NULL_ADDRESS = '0x' + '0'*40
 # String Size Of Diferent Type of Addresses
 CONTRACT_ADDRESS_LENGTH = 42

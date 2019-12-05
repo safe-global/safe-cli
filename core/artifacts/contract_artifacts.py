@@ -49,10 +49,10 @@ class ContractArtifacts:
             if len(self.contract_data[artifact_identifier]['bytecode']) > 1:
                 bytecode_status = True
 
-            self.logger.info(' | {0:^25} | {1:^25} | {2:^25} | {3:^10} | {4:^10} | '.format(
+            self.logger.info(' | {0:^25} | {1:^25} | {2:^25} | {3:^10} | {4:^10} | {5} '.format(
                 str(artifact_identifier), str(self.contract_data[artifact_identifier]['name']),
                 str(self.contract_data[artifact_identifier]['address']), str(abi_status),
-                str(bytecode_status))
+                str(bytecode_status), self.contract_data[artifact_identifier]['instance'])
             )
         self.logger.debug0(STRING_DASHES)
 
@@ -89,15 +89,28 @@ class ContractArtifacts:
                 contract_name, contract_instance, contract_abi, contract_bytecode, contract_address
             )
 
-    def get_value_from_alias(self, stream):
-        """ Get Account Data
-        This function will retrieve the data from a given value
-        :param stream:
+    # FIX MESSAGE OR WHAT EVER WHEN THE ALIAS DOES NOT FIT THE NAME
+    def retrive_from_stored_values(self, alias, key=None):
+        """ Retrieve From Stored Values
+        This function will retrieve stored data related to account_artifacts, payload_data, token_data, contract_data
+        :param alias:
+        :param key:
+        :param artifact_type:
         :return:
         """
-        for item in self.contract_data:
-            if stream.startwith(item):
-                key = stream.split('.')[1]
-                self.logger.debug0(stream, item, self.contract_data[item][key])
-                return self.contract_data[item][key]
-        self.logger.debug0(STRING_DASHES)
+        data = 'COCO'
+        try:
+            self.logger.debug0('Searching for Stored Artifact: [ Alias ( {0} ) | Key ( {1} ) ]'.format(alias, key))
+
+            try:
+                if key is None:
+                    data = self.contract_data[alias]
+                    self.logger.debug0(
+                        'Data Found without Key: [ Alias ( {0} ) | Data ( {1} ) ]'.format(alias, data))
+                data = self.contract_data[alias][key]
+                self.logger.debug0('Data Found with Key: [ Alias ( {0} ) | Key ( {1} ) | Data ( {2} ) ]'.format(alias, key, data))
+            except KeyError:
+                self.logger.error('Unable to find the proper value for key & alias provided')
+            return data
+        except Exception as err:
+            self.logger.error('Unknown Error: [ Type ( {0} ) | Error ( {1} ) ]'.format(type(err), err))

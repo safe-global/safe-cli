@@ -21,36 +21,20 @@ from core.artifacts.account_artifacts import AccountsArtifacts
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit import PromptSession
 
-# Import Os Package
-import os
-
-# Import Enum Package
-from enum import Enum
-
 # Importing Custom Logger & Logging Modules
 from core.logger.custom_logger import CustomLogger, DEBUG0
 from logging import INFO
 import logging
 
 from core.artifacts.data_artifacts import DataArtifacts
-
-# Constants
-QUOTE = '\''
-COMA = ','
-PROJECT_DIRECTORY = os.getcwd() + '/assets/safe-contracts-1.1.0/'
-STRING_DASHES = '----------' * 12
-
-
-# Todo: use values to define state of the console
-class TypeOfConsole(Enum):
-    GNOSIS_CONSOLE = 'gnosis-cli'
-    CONTRACT_CONSOLE = 'contract-cli'
-    SAFE_CONSOLE = 'safe-cli'
+from core.constants.console_constant import STRING_DASHES, TypeOfConsole
 
 
 class GnosisConsoleEngine:
     """ Gnosis Console Engine
-
+    This class will perform the core activities for the console, launch the general purpose console, and the give
+    access to the safe console via loadSafe --address=0x0*40 & access to the general contract console via
+    loadContract --alias=GnosisSafeV1.1.0_1
     """
     def __init__(self, init_configuration, contract_artifacts=None):
         self.name = self.__class__.__name__
@@ -137,13 +121,11 @@ class GnosisConsoleEngine:
         # Run Console
         self.run_console_session(self.prompt_text)
 
+
     def run_console_session(self, prompt_text):
         """ Run Console Session
         This function will launch the gnosis cli
         :param prompt_text:
-        :param previous_session:
-        :param contract_methods:
-        :param contract_instance:
         :return:
         """
 
@@ -192,9 +174,7 @@ class GnosisConsoleEngine:
 
     def get_console_session(self):
         """ Get Console Session
-        Get Console Session
-        :param prompt_text:
-        :param sub_console:
+        Get Console Session based on the self.active_session =
         :return:
         """
         if self.active_session is not TypeOfConsole.GNOSIS_CONSOLE:
@@ -248,7 +228,7 @@ class GnosisConsoleEngine:
             self.logger.debug0('alias: {0}'.format(tmp_alias))
             try:
                 # Review: change this for the proper call to the data_artifact class
-                self.contract_interface = self.contract_artifacts.get_value_from_alias(tmp_alias, 'instance')
+                self.contract_interface = self.contract_artifacts.retrive_from_stored_values(tmp_alias, 'instance')
                 self.logger.debug0('Contract Instance {0} Loaded'.format(self.contract_interface))
                 self.contract_methods = ConsoleContractCommands().map_contract_methods(self.contract_interface)
                 self.active_session = TypeOfConsole.CONTRACT_CONSOLE

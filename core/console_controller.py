@@ -1,15 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Import
+# Import Temporal Information Artifacts
 from core.artifacts.help_artifacts import InformationArtifacts
+
+# Import ConsoleInputGetter for Testing Purposes
 from core.input.console_input_getter import ConsoleInputGetter
+
+# Import HexBytes Module
 from hexbytes import HexBytes
 
 
 class ConsoleController:
     """ Console Controller
-
+    This class will represent and function as pseudo-controller for the execution of the proper commands
     """
     def __init__(self, logger, network_agent, console_accounts, console_payloads, console_tokens, contract_artifacts, console_engine):
         self.logger = logger
