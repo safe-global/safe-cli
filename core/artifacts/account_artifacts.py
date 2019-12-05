@@ -7,21 +7,14 @@ from eth_account import Account
 # Import Deterministic Ganache Account Information (Address, Private Key)
 from core.constants.console_constant import DETERMINISTIC_ACCOUNT_INFORMATION as ganache_data
 
-# Import HexBytes Package
+# Import HexBytes Module
 from hexbytes import HexBytes
-from enum import Enum
 
-STRING_DASHES = '----------' * 12
+# Import Constants
+from core.constants.console_constant import STRING_DASHES
 
-
-class TypeOfAccount(Enum):
-    """ Type Of Account
-
-    """
-    LOCAL_ACCOUNT = 'LocalAccount'
-    RINKEBY_ACCOUNT = 'RinkebyAccount'
-    MAINNET_ACCOUNT = 'MainnetAccount'
-    ROPSTEN_ACCOUNT = 'RopstenAccount'
+# Import Account Artifacts Module
+from core.constants.enum_types import TypeOfAccount
 
 
 class AccountsArtifacts:
@@ -47,6 +40,7 @@ class AccountsArtifacts:
 
     def command_view_accounts(self):
         """ Command View Accounts
+         This function will show the values currently stored withing he account artifact class
         :return:
         """
 
@@ -60,7 +54,7 @@ class AccountsArtifacts:
 
     def new_account_entry(self, network, local_account):
         """ New Account Entry
-
+        This function will generate a new entry dictionary for a contract artifact that has been loaded
         :param network:
         :param local_account:
         :return:
@@ -72,8 +66,7 @@ class AccountsArtifacts:
         }
 
     def add_account_artifact(self, address='', private_key='', alias='uAccount', network=TypeOfAccount.LOCAL_ACCOUNT):
-        """ Add Account
-
+        """ Add Account Artifact
         This function will add a new account to the ConsoleAccountArtifacts
             :param address:
             :param private_key:
@@ -103,7 +96,9 @@ class AccountsArtifacts:
 
     def get_local_account(self, private_key, owner_address_list):
         """ Get Local Account
-
+        This function will retrieve a local account to be set as sender in the current contract safe you are loaded
+        in. It will compare the list of actual owners vs the generated address being created using a private_key, if
+        there is no matching withing the owner_list of the contract an error will be prompted.
         :param address:
         :param private_key:
         :return:

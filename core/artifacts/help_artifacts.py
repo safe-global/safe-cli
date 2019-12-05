@@ -8,10 +8,18 @@ class InformationArtifacts:
 
     @staticmethod
     def command_view_about():
+        """
+        Temporal Function to display current version of the gnosis-cli
+        :return:
+        """
         print('gnosis-cli 0.0.1a prototype')
 
     @staticmethod
     def command_view_help():
+        """
+        Temporal Function to display information about the possible functions that can be used in the gnosis-cli
+        :return:
+        """
         print('---------' * 10)
         print('Console Command List')
         print('---------' * 10)

@@ -44,7 +44,11 @@ parser.add_argument('--private_key', action='append',
                          'Example( Ganache Account 0 Alias ): isOwner --address=gAccount0.address', type=str)
 
 parser.add_argument('--version', action='version', version='%(prog)s 0.0.1a')
-parser.add_argument('--test', action='store_true', dest='test', default=False)
+parser.add_argument('--test', action='store_true',
+                    dest='test', default=False,
+                    help='This init option will launch the loading of local artifacts such a copy of the gnosis_safe &'
+                         'and 10 random local accounts and the 10 default accounts provided by the ganache local '
+                         'blockchain.')
 try:
     config = configparser.ConfigParser()
     config.read('./gnosis_cli.ini')

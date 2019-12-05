@@ -1,10 +1,19 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# Import Contract Reader Module
 from core.utils.contract_reader import ContractReader
+
+# Import Ethereum Client Module
 from gnosis.eth.ethereum_client import EthereumClient
+
+# Import Safe, ProxyFactory Module
 from gnosis.safe import Safe, ProxyFactory
+
+# Import Account Module
 from eth_account import Account
+
+# Import Auto-Generated functions for retrieving instances of the Smart Contracts
 from gnosis.eth.contracts import (
     get_safe_contract, get_safe_V1_0_0_contract, get_safe_V0_0_1_contract
 )

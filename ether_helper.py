@@ -4,7 +4,8 @@
 
 class EtherHelper:
     """ Ether Helper
-
+    This class will help the sendEther function when it's triggered, unifying ether badges previous the start of the
+    ether transaction
     """
     def __init__(self, logger, ethereum_client):
         self.name = self.__class__.__name__
@@ -13,7 +14,7 @@ class EtherHelper:
 
     def get_proper_ether_amount(self, ether_amount):
         """ Get Proper Ether Amount
-
+        This function will show a human readable ammount of ether when a command view related with ether it's triggered
         :param ether_amount:
         :return:
         """
@@ -35,7 +36,8 @@ class EtherHelper:
 
     def unify_ether_badge_amounts(self, ether_badge, ether_amounts):
         """ Unify Ether Badge Amounts
-
+        This function will transform a list of ether values of a concrete badge into wei, so later i can be sum up
+        and send
         :param ether_badge:
         :param ether_amounts:
         :return:
@@ -89,7 +91,7 @@ class EtherHelper:
 
     def get_unify_ether_amount(self, ether_badge_parsed_list):
         """ Get Unify Ether Amount
-
+        This function will trigger the sum for each type of badges
         :param ether_badge_parsed_list:
         :return:
         """

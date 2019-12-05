@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-STRING_DASHES = '----------' * 12
+# Import Console_Constant: STRING_DASHES
+from core.constants.console_constant import STRING_DASHES
 
 
 class ContractArtifacts:
     """ Contract Artifacts
-
+    This class will store all the information regarding contract artifacts
     """
     def __init__(self, logger):
         self.logger = logger
@@ -56,6 +57,15 @@ class ContractArtifacts:
         self.logger.debug0(STRING_DASHES)
 
     def new_contract_entry(self, contract_name, contract_instance, contract_abi, contract_bytecode, contract_address):
+        """ New Contract Entry
+        This function will generate a new entry dictionary for a contract artifact that has been loaded
+        :param contract_name:
+        :param contract_instance:
+        :param contract_abi:
+        :param contract_bytecode:
+        :param contract_address:
+        :return:  New dict with name, instance, abi, bytecode and address
+        """
         return {
             'name': contract_name, 'instance': contract_instance, 'abi': contract_abi,
             'bytecode': contract_bytecode, 'address': contract_address
@@ -63,7 +73,7 @@ class ContractArtifacts:
 
     def add_contract_artifact(self, contract_name, contract_instance, contract_abi, contract_bytecode, contract_address, alias=''):
         """ Add Artifacts
-
+        This function will add a new entry to the contract_data
         :param contract_name:
         :param contract_instance:
         :param contract_abi:

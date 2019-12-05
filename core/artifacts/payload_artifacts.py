@@ -4,23 +4,24 @@
 # Import Prompt Toolkit Modules
 from prompt_toolkit import HTML, prompt
 
-# Constants
-payload_options = ['alias', 'from', 'gas', 'gasPrice']
-payload_tx_options = ['alias', 'from', 'gas', 'gasPrice', 'value', 'nonce', 'safe_tx_gas']
-STRING_DASHES = '---------' * 10
+from core.constants.console_constant import (
+    STRING_DASHES, payload_options, payload_tx_options
+)
 
 
 class PayloadArtifacts:
     """ Payload Artifacts
-
+    This class will store the payload_artifacts for the console
     """
     def __init__(self, logger):
+        self.name = self.__class__.__name__
         self.logger = logger
         self.payload_data = {}
 
     def command_view_payloads(self):
         """ Command View Payloads
-
+        This function will prompt the current state of the payload_artifact if the command viewPayloads is provided
+        by the user
         :return:
         """
         self.logger.debug0(STRING_DASHES)
@@ -49,7 +50,7 @@ class PayloadArtifacts:
 
     def new_payload_entry(self, payload_artifact, alias):
         """ New Payload Entry
-
+        This function will generate a new entry dict for the payload_data
         :param payload_artifact:
         :param alias:
         :return:
@@ -58,7 +59,7 @@ class PayloadArtifacts:
 
     def add_payload_artifact(self, payload_artifact, alias=''):
         """ Add Payload Artifact
-
+        This function will add a new payload_artifact to the payload_data dict
         :param payload_artifact:
         :param alias:
         :return:
@@ -72,7 +73,7 @@ class PayloadArtifacts:
     @staticmethod
     def _new_payload_helper(payload_options):
         """ New Payload Helper
-
+        This function will trigger the behaviour for the newPayload, when the --inputs are None
         :param payload_options:
         :return:
         """
@@ -97,5 +98,3 @@ class PayloadArtifacts:
                     compose_answer += '\'%s\' : %s' % (item, answer) + ', '
 
         return alias, compose_answer[:-2] + '}'
-
-

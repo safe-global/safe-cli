@@ -4,7 +4,8 @@
 
 class DataArtifacts:
     """ Data Artifacts
-
+    This class will stored common artifacts such as account_artifacts, payload_artifacts, token_artifacts
+    & contract_artifacts
     """
     def __init__(self, logger, account_artifacts, payload_artifacts, token_artifacts, contract_artifacts):
         self.name = self.__class__.__name__
@@ -16,7 +17,7 @@ class DataArtifacts:
         self.contract_artifacts = contract_artifacts
 
     def artifact_selection(self, artifact_type):
-        """ Artifact
+        """ Artifact Selection
         This function compares the provided artifact_type to the available ones stored withing the DataArtifact object
         :param artifact_type:
         :return: Dict Data
@@ -32,7 +33,7 @@ class DataArtifacts:
 
     def retrive_from_stored_values(self, alias, key=None, artifact_type=None):
         """ Retrieve From Stored Values
-
+        This function will retrieve stored data related to account_artifacts, payload_data, token_data, contract_data
         :param alias:
         :param key:
         :param artifact_type:
@@ -56,7 +57,8 @@ class DataArtifacts:
 
     def from_alias_get_value(self, stream_value, artifact_type=None):
         """ From Alias get Value
-        This function will retrieve the data from a given value
+        This function will retrieve the data from a given value if it's stored in the data structures of the common artifacts
+        for the console (account, contract, paload, token)
         :param stream:
         :return:
         """

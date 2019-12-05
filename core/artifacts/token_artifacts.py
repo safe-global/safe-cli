@@ -1,30 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Import Enum Package
-from enum import Enum
-
-# Constant
-STRING_DASHES = '---------' * 10
-
-
-class TypeOfTokens(Enum):
-    """ Type Of Tokens
-
-    """
-    ERC20 = 'ERC20'
-    ERC721 = 'ERC721'
+# Import Constants & Common Enum TypeOfTokens Modules
+from core.constants.console_constant import STRING_DASHES
+from core.constants.enum_types import TypeOfTokens
 
 
 class TokenArtifacts:
     """ Token Artifacts
-
+    This class will store the token_artifacts for the console
     """
     def __init__(self, logger):
         self.logger = logger
         self.token_data = {}
 
     def command_view_tokens(self):
+        """ Command View Tokens
+        This function will show the current token_data, trigger via user input command "viewTokens"
+        :return:
+        """
         self.logger.debug0(STRING_DASHES)
         for item in self.token_data:
             self.logger.info(' | {0:^15} | {1:^25} | {2:^25} | {3:^25} | '.format(
@@ -33,8 +27,8 @@ class TokenArtifacts:
         self.logger.debug0(STRING_DASHES)
 
     def new_token_entry(self, token_addres, token_instance, type_of_tokens, alias):
-        """
-
+        """ New Token Entry
+        This function will generate a new entry dict for the token_data
         :param token_addres:
         :param token_instance:
         :param type_of_tokens:
@@ -46,7 +40,7 @@ class TokenArtifacts:
 
     def add_token_artifact(self, token_artifact, alias='', type_of_token=TypeOfTokens.ERC20):
         """
-
+        This function will add a new token_artifact to the token_data dict
         :param token_artifact:
         :param alias:
         :param type_of_token:
