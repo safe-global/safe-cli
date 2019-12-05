@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
 # Import Enum Module
 from enum import Enum
+
 
 class TypeOfAccount(Enum):
     """ Type Of Account
@@ -13,6 +13,7 @@ class TypeOfAccount(Enum):
     RINKEBY_ACCOUNT = 'Rinkeby_Account'
     MAINNET_ACCOUNT = 'Mainnet_Account'
     ROPSTEN_ACCOUNT = 'Ropsten_Account'
+
 
 class TypeOfPayload(Enum):
     """ Type Of Payload

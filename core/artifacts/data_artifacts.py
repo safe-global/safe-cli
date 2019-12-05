@@ -10,6 +10,7 @@ class DataArtifacts:
     def __init__(self, logger, account_artifacts, payload_artifacts, token_artifacts, contract_artifacts):
         self.name = self.__class__.__name__
         self.logger = logger
+
         # Data Artifacts
         self.account_artifacts = account_artifacts
         self.payload_artifacts = payload_artifacts

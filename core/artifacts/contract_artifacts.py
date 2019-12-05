@@ -88,3 +88,16 @@ class ContractArtifacts:
             self.contract_data[str(contract_name)] = self.new_contract_entry(
                 contract_name, contract_instance, contract_abi, contract_bytecode, contract_address
             )
+
+    def get_value_from_alias(self, stream):
+        """ Get Account Data
+        This function will retrieve the data from a given value
+        :param stream:
+        :return:
+        """
+        for item in self.contract_data:
+            if stream.startwith(item):
+                key = stream.split('.')[1]
+                self.logger.debug0(stream, item, self.contract_data[item][key])
+                return self.contract_data[item][key]
+        self.logger.debug0(STRING_DASHES)

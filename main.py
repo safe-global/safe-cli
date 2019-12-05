@@ -12,10 +12,8 @@ from core.artifacts.data_artifacts import DataArtifacts
 
 # Importing Custom Logger & Logging Modules
 from core.logger.custom_logger import CustomLogger, DEBUG0
-from logging import INFO
 import logging
 
-from ether_helper import EtherHelper
 from core.input.console_input_getter import ConsoleInputGetter
 from gnosis.eth.ethereum_client import EthereumClient
 

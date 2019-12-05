@@ -14,12 +14,12 @@ from hexbytes import HexBytes
 from core.constants.console_constant import STRING_DASHES
 
 # Import Account Artifacts Module
-from core.constants.enum_types import TypeOfAccount
+from core.artifacts.constants.enum_types import TypeOfAccount
 
 
 class AccountsArtifacts:
     """ Account Artifacts
-
+    This class will store all the information regarding account artifacts
     """
     def __init__(self, logger, ethereum_client, silence_flag=False):
         self.logger = logger
@@ -148,15 +148,3 @@ class AccountsArtifacts:
         self.logger.debug0(STRING_DASHES)
         self.logger.debug0(' | [ {0} ] Ganache Accounts Added | '.format(len(ganache_data)))
 
-    def get_account_data_from_alias(self, stream):
-        """ Get Account Data
-        This function will retrieve the data from a given value
-        :param stream:
-        :return:
-        """
-        for item in self.account_data:
-            if stream.startwith(item):
-                key = stream.split('.')[1]
-                self.logger.debug0(stream, item, self.account_data[item][key])
-                return self.account_data[item][key]
-        self.logger.debug0(STRING_DASHES)

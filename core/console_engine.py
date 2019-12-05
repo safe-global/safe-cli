@@ -247,6 +247,7 @@ class GnosisConsoleEngine:
             tmp_alias = desired_parsed_item_list[0][1][0]
             self.logger.debug0('alias: {0}'.format(tmp_alias))
             try:
+                # Review: change this for the proper call to the data_artifact class
                 self.contract_interface = self.contract_artifacts.get_value_from_alias(tmp_alias, 'instance')
                 self.logger.debug0('Contract Instance {0} Loaded'.format(self.contract_interface))
                 self.contract_methods = ConsoleContractCommands().map_contract_methods(self.contract_interface)
@@ -282,8 +283,9 @@ class GnosisConsoleEngine:
 
     def _get_prompt_text(self, affix_stream='', stream=''):
         """ Get Prompt Text
-
-        :param contract_name:
+        This function will generate the string that will be shown as the prompt text
+        :param affix_stream:
+        :param stream:
         :return:
         """
         return '[ ./{affix_stream} ][ {stream} ]>: '.format(affix_stream=affix_stream, stream=stream)

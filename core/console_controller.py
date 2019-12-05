@@ -4,7 +4,6 @@
 # Import
 from core.artifacts.help_artifacts import InformationArtifacts
 from core.input.console_input_getter import ConsoleInputGetter
-from eth_account import Account
 from hexbytes import HexBytes
 
 
@@ -81,7 +80,7 @@ class ConsoleController:
 
     def setinel_helper(self, address_value, safe_interface):
         """ Sender Helper
-        This function send helper
+        This function send utils
         :param address_value:
         :param safe_interface:
         :return:
@@ -204,7 +203,7 @@ class ConsoleController:
             try:
                 address_value = desired_parsed_item_list[0][1][0]
                 ether_amounts = desired_parsed_item_list[1:]
-                from ether_helper import EtherHelper
+                from core.artifacts.utils.ether_helper import EtherHelper
 
                 null_address ='0x0000000000000000000000000000000000000000'
                 ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)

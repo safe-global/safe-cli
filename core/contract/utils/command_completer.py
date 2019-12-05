@@ -8,7 +8,7 @@ from core.contract.constants.contract_constants import *
 
 class CommandCompleter(Completer):
     """ Command Completer
-
+    This class will perform the utilities regarding auto-completion of known user input commands
     """
     def get_completions(self, document, complete_event):
         """ Get Completions

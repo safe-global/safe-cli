@@ -24,9 +24,10 @@ CONSOLE_COMMANDS = 'SaddleBrown'
 KNOWN_NETWORKS_COLOR = 'DarkSalmon'
 INFORMATION_COLOR = 'LightYellow'
 
+
 class SyntaxLexer(Lexer):
     """ Syntax Lexer
-
+    This Class will perform the syntax highlight for known user input commands
     """
     @staticmethod
     def __is_valid_argument(regular_expresion, stream):
@@ -54,6 +55,12 @@ class SyntaxLexer(Lexer):
         # colors = list(sorted(NAMED_COLORS, key=NAMED_COLORS.get))
 
         def get_line(lineno):
+            """
+            This function will parse the current word being written in the console and using regular expressions, if
+            the current word matches a known pattern it will be provided with a color highlight
+            :param lineno: line number
+            :return:
+            """
             aux_list = []
             for index, word in enumerate(document.lines[lineno].split(' ')):
                 current_color = BASIC_TEXT
