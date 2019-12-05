@@ -3,7 +3,7 @@
 
 # Import Constants & Common Enum TypeOfTokens Modules
 from core.constants.console_constant import STRING_DASHES
-from core.artifacts.constants.enum_types import TypeOfTokens
+from core.artifacts.constants.type_artifacts import TypeOfTokens
 
 
 class TokenArtifacts:

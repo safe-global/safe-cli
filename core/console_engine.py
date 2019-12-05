@@ -28,6 +28,8 @@ import logging
 
 from core.artifacts.data_artifacts import DataArtifacts
 from core.constants.console_constant import STRING_DASHES, TypeOfConsole
+from core.logger.log_file_manager import LogFileManager
+from core.logger.log_message_formatter import LogMessageFormatter
 
 
 class GnosisConsoleEngine:
@@ -39,6 +41,8 @@ class GnosisConsoleEngine:
     def __init__(self, init_configuration, contract_artifacts=None):
         self.name = self.__class__.__name__
         self.prompt_text = init_configuration['name']
+        # Setup the console files logs if does not exists
+        LogFileManager().create_log_files()
 
         # Setup active console, default it's gnosis-cli
         self.active_session = TypeOfConsole.GNOSIS_CONSOLE
@@ -112,15 +116,16 @@ class GnosisConsoleEngine:
             self.logger, self.network_agent, self.account_artifacts,
             self.payload_artifacts, None, self.contract_artifacts, self
         )
+
+        # Setup: Log Formatter
+        self.log_formatter = LogMessageFormatter(self.logger)
+
         # Debug: Finished loading all the components of the gnosis-cli
         if not self.quiet_flag:
-            self.logger.info(STRING_DASHES)
-            self.logger.info('| {0:^116} | '.format('Entering Gnosis Cli'))
-            self.logger.info(STRING_DASHES)
+            self.log_formatter.log_entry_message('Entering Gnosis Cli')
 
         # Run Console
         self.run_console_session(self.prompt_text)
-
 
     def run_console_session(self, prompt_text):
         """ Run Console Session
@@ -209,7 +214,6 @@ class GnosisConsoleEngine:
         if contract_artifacts is not None:
             # remark: Pre-Loading of the Contract Assets (Safe v1.1.0, Safe v1.0.0, Safe v-0.0.1) for testing purposes
             for artifact_index, artifact_item in enumerate(contract_artifacts):
-                print(artifact_index)
                 self.contract_artifacts.add_contract_artifact(
                     artifact_item['name'], artifact_item['instance'],
                     artifact_item['abi'], artifact_item['bytecode'],
@@ -232,9 +236,11 @@ class GnosisConsoleEngine:
                 self.logger.debug0('Contract Instance {0} Loaded'.format(self.contract_interface))
                 self.contract_methods = ConsoleContractCommands().map_contract_methods(self.contract_interface)
                 self.active_session = TypeOfConsole.CONTRACT_CONSOLE
-                self.logger.info(STRING_DASHES)
-                self.logger.info('| {0:^116} | '.format('Entering Contract Console'))
-                self.logger.info(STRING_DASHES)
+
+                self.log_formatter.log_entry_message('Entering Contract Console')
+                # self.logger.info(STRING_DASHES)
+                # self.logger.info('| {0:^116} | '.format())
+                # self.logger.info(STRING_DASHES)
                 self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='contract-cli', stream=tmp_alias))
             except KeyError as err:
                 self.logger.error(err)
@@ -256,9 +262,7 @@ class GnosisConsoleEngine:
             tmp_address = desired_parsed_item_list[0][1][0]
             self.safe_interface = ConsoleSafeCommands(tmp_address, self.logger, self.account_artifacts, self.network_agent)
             self.active_session = TypeOfConsole.SAFE_CONSOLE
-            self.logger.info(STRING_DASHES)
-            self.logger.info('| {0:^116} | '.format('Entering Safe Console'))
-            self.logger.info(STRING_DASHES)
+            self.log_formatter.log_entry_message('Entering Safe Console')
             self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='safe-cli', stream='Safe (' + tmp_address + ')'))
 
     def _get_prompt_text(self, affix_stream='', stream=''):

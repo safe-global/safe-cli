@@ -14,7 +14,7 @@ from hexbytes import HexBytes
 from core.constants.console_constant import STRING_DASHES
 
 # Import Account Artifacts Module
-from core.artifacts.constants.enum_types import TypeOfAccount
+from core.artifacts.constants.type_artifacts import TypeOfAccount
 
 
 class AccountsArtifacts:
@@ -115,7 +115,7 @@ class AccountsArtifacts:
             self.logger.error('Miss Match in generated account via private_key when comparing address in owner list of the contract')
             raise Exception
         except Exception as err:
-            self.logger.error('Unable to add_account() {0} {1}'.format(type(err), err))
+            self.logger.error('Unable to get_local_account() {0} {1}'.format(type(err), err))
 
     def _setup_random_accounts(self, account_number=10):
         """ Setup Random Accounts

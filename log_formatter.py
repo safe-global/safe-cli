@@ -1,5 +1,5 @@
 
-from core.logger.logging_messages import LoggingMessagesFormatter
+from core.logger.log_message_formatter import LogMessageFormatter
 
 # Importing Custom Logger & Logging Modules
 from core.logger.custom_logger import CustomLogger, DEBUG0
@@ -18,7 +18,5 @@ console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 console_handler.setLevel(level=logging_lvl)
 
-logging_msg_formatter = LoggingMessagesFormatter()
-print(logging_msg_formatter.log_banner())
-print(logging_msg_formatter.log_error_footer())
-print(logging_msg_formatter.log_success_footer())
+formatted_log_msg = LogMessageFormatter(logger)
+formatted_log_msg.log_entry_message()

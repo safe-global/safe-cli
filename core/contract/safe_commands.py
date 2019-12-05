@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from core.logger.log_message_formatter import LogMessageFormatter
+
 # Constants
 from core.constants.console_constant import NULL_ADDRESS, STRING_DASHES
 
@@ -44,6 +46,9 @@ class ConsoleSafeCommands:
         # Main Artifacts for the module
         self.network_agent = network_agent
         self.account_artifacts = account_artifacts
+
+        # Setup: Log Formatter
+        self.log_formatter = LogMessageFormatter(self.logger)
 
         # Trigger information on class init
         self.command_safe_information()
@@ -178,98 +183,174 @@ class ConsoleSafeCommands:
         This function will retrieve and show any pertinent information regarding the current safe
         :return:
         """
-        banner = '| Safe Information |'.center(120, '-')
-        self.logger.info(banner)
+
+        self.log_formatter.log_banner_header('Safe Information')
         self.command_safe_get_owners()
         self.command_safe_get_threshold()
-        self.logger.info('| MasterCopyName: {0} | '.format(self.safe_instance.functions.NAME().call()))
-        self.logger.info('| MasterCopy: {0} | '.format(self.safe_operator.retrieve_master_copy_address()))
-        self.logger.info('| MasterCopyVersion: {0} | '.format(self.safe_operator.retrieve_version()))
-        self.logger.info('| Proxy: {0} | '.format(self.safe_operator.address))
-        self.logger.info('| FallBack Handler: {0} | '.format('0x'))
-        self.command_safe_nonce()
 
-    def command_set_default_sender(self):
-        """
+        header_data = '-:[ {0} ]:-'.format('Safe General Information')
+        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+        self.command_safe_name(block_style=False)
+        self.command_master_copy(block_style=False)
+        self.command_safe_version(block_style=False)
+        self.command_proxy(block_style=False)
+        self.command_fallback_handler(block_style=False)
+        self.command_safe_nonce(block_style=False)
+        self.logger.info(' ' + STRING_DASHES)
 
+    def command_fallback_handler(self, block_style=True):
+        """ Command Fallback Handler
+        This function will retrieve and show the fallback handler address value of the safe
         :return:
         """
-        self.logger.info('To Be Implemented')
+        if block_style:
+            header_data = '-:[ {0} ]:-'.format('Safe Fallback Handler')
+            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+        information_data = ' (#) Fallback Handler: {0}'.format(NULL_ADDRESS)
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        if block_style:
+            self.logger.info(' ' + STRING_DASHES)
 
-    def command_set_default_owner_list(self):
-        """
-
+    def command_proxy(self, block_style=True):
+        """ Command Proxy
+        This function will retrieve and show the proxy address value of the safe
         :return:
         """
-        self.logger.info('To Be Implemented')
+        if block_style:
+            header_data = '-:[ {0} ]:-'.format('Safe Proxy')
+            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+        information_data = ' (#) Proxy: {0}'.format(self.safe_operator.address)
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        if block_style:
+            self.logger.info(' ' + STRING_DASHES)
+
+    def command_master_copy(self, block_style=True):
+        """ Command Master Copy
+        This function will retrieve and show the master copy address value of the safe
+        :return:
+        """
+        if block_style:
+            header_data = '-:[ {0} ]:-'.format('Safe MasterCopy')
+            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+        information_data = ' (#) MasterCopy: {0}'.format(self.safe_operator.retrieve_master_copy_address())
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        if block_style:
+            self.logger.info(' ' + STRING_DASHES)
 
     def command_view_default_sender(self):
-        """
-
+        """ Command View Default Sender
+        This function will retrieve and show the sender value of the safe
         :return:
         """
-        self.logger.info(STRING_DASHES)
-        self.logger.info('| Default Sender is Owner with Address: {0} | '.format(self.sender_address))
-        self.logger.info('| Default Sender is Owner with Private Key: {0} | '.format(self.sender_private_key))
-        self.logger.info(STRING_DASHES)
+        header_data = '-:[ {0} ]:-'.format('Safe Sender')
+        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+        information_data = ' (#) Address: {0}'.format(self.sender_address)
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        information_data = ' (#) Private Key: {0}'.format(self.sender_private_key)
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        self.logger.info(' ' + STRING_DASHES)
 
-    def command_safe_nonce(self):
+    def command_safe_nonce(self, block_style=True):
         """ Command Safe Nonce
         This function will retrieve and show the nonce value of the safe
         :return:
         """
-        self.logger.info('| Nonce: {0} | '.format(self.safe_operator.retrieve_nonce()))
-        self.logger.debug0(STRING_DASHES)
+        if block_style:
+            header_data = '-:[ {0} ]:-'.format('Safe Nonce')
+            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
 
-    def command_safe_code(self):
+        information_data = ' (#) Nonce: {0} '.format(self.safe_operator.retrieve_nonce())
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        if block_style:
+            self.logger.info(' ' + STRING_DASHES)
+
+    def command_safe_code(self, block_style=True):
         """ Command Safe Code
         This function will retrieve and show the code value of the safe
         :return: code of the safe
         """
-        self.logger.info('| Code: {0} | '.format(self.safe_operator.retrieve_code()))
-        self.logger.debug0(STRING_DASHES)
+        if block_style:
+            header_data = '-:[ {0} ]:-'.format('Safe Code')
+            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
 
-    def command_safe_version(self):
+        information_data = ' (#) Code: {0} '.format(HexBytes(self.safe_operator.retrieve_code()).hex())
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        if block_style:
+            self.logger.info(' ' + STRING_DASHES)
+
+    def command_safe_version(self, block_style=True):
         """ Command Safe Version
         This function will retrieve and show the VERSION value of the safe
         :return: version of the safe
         """
-        self.logger.info('| MasterCopyVersion: {0} | '.format(self.safe_operator.retrieve_version()))
-        self.logger.debug0(STRING_DASHES)
+        if block_style:
+            header_data = '-:[ {0} ]:-'.format('Safe Version')
+            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
 
-    def command_safe_name(self):
+        information_data = ' (#) MasterCopy Version: {0} '.format(self.safe_operator.retrieve_version())
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        if block_style:
+            self.logger.info(' ' + STRING_DASHES)
+
+    def command_safe_name(self, block_style=True):
         """ Command Safe Name
         This function will retrieve and show the NAME value of the safe
         :return:
         """
-        self.logger.info('| MasterCopyName: {0} | '.format(self.safe_instance.functions.NAME().call()))
-        self.logger.debug0(STRING_DASHES)
+        if block_style:
+            header_data = '-:[ {0} ]:-'.format('Safe Name')
+            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+
+        information_data = ' (#) MasterCopy Name: {0} '.format(self.safe_instance.functions.NAME().call())
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        if block_style:
+            self.logger.info(' ' + STRING_DASHES)
+
+    def is_sender(self, address):
+        if address == self.sender_address:
+            return 'X'
+        return ' '
 
     def command_safe_get_owners(self):
         """ Command Safe Get Owners
         This function will
         :return:
         """
+        header_data = '-:[ {0} ]:-'.format('Safe Owner Data')
+        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
         for owner_index, owner in enumerate(self.safe_instance.functions.getOwners().call()):
-            self.logger.info('| Owner {0} with Address: {1} | '.format(owner_index, owner))
-        self.logger.debug0(STRING_DASHES)
+            information_data = ' (#) Owner {0} | Address: {1} | Sender: [{2}] | Balance: {3} '.format(owner_index, owner, self.is_sender(owner), self.ethereum_client.w3.eth.getBalance(owner))
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        self.logger.info(' ' + STRING_DASHES)
 
-    def command_safe_get_threshold(self):
+    def command_safe_get_threshold(self, block_style=True):
         """ Command Safe Get Threshold
         This function will retrieve and show the threshold of the safe
         :return:
         """
-        self.logger.info('| Threshold: {0} | '.format(self.safe_instance.functions.getThreshold().call()))
-        self.logger.debug0(STRING_DASHES)
+        if block_style:
+            header_data = '-:[ {0} ]:-'.format('Safe Threshold')
+            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
 
-    def command_safe_is_owner(self, owner_address):
+        information_data = ' (#) Threshold {0} '.format(self.safe_instance.functions.getThreshold().call())
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        if block_style:
+            self.logger.info(' ' + STRING_DASHES)
+
+    def command_safe_is_owner(self, owner_address, block_style=True):
         """ Command Safe isOwner
         This function will check if any given owner is part of the safe owners
         :param owner_address:
         :return: True if it's a owner, otherwise False
         """
-        self.logger.info('| Owner with Address: {0} | isOwner: {1}  | '.format(owner_address, self.safe_operator.retrieve_is_owner(owner_address)))
-        self.logger.debug0(STRING_DASHES)
+        if block_style:
+            header_data = '-:[ {0} ]:-'.format('Safe Owners')
+            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+
+        information_data = ' (#) Owner with Address: {0} | isOwner: {1} '.format(owner_address, self.safe_operator.retrieve_is_owner(owner_address))
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        if block_style:
+            self.logger.info(' ' + STRING_DASHES)
 
     def command_safe_are_owners(self, owners_list):
         """ Command Safe areOwners
@@ -277,9 +358,11 @@ class ConsoleSafeCommands:
         :param owners_list:
         :return: True if it's a owner, otherwise False
         """
-        self.logger.debug0(STRING_DASHES)
+        header_data = '-:[ {0} ]:-'.format('Safe Owners List')
+        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
         for owner_address in owners_list:
-            self.command_safe_is_owner(owner_address)
+            self.command_safe_is_owner(owner_address, block_style=False)
+        self.logger.info(' ' + STRING_DASHES)
 
     def command_safe_swap_owner(self, previous_owner, owner, new_owner):
         """ Command Safe Swap Owner | Change Owner
@@ -297,10 +380,15 @@ class ConsoleSafeCommands:
             # Generating the function payload data
             # Swap Owner - address previousOwner, address Owner, addres NewAddress
             payload_data = HexBytes(self.safe_instance.functions.swapOwner(str(previous_owner), str(owner), str(new_owner)).buildTransaction(sender_data)['data'])
-            self.logger.debug0(' | Sender Data: {0} | '.format(str(sender_data)))
-            self.logger.debug0(STRING_DASHES)
-            self.logger.debug0(' | Payload Data: {0} | '.format(str(payload_data)))
-            self.logger.debug0(STRING_DASHES)
+
+            header_data = '-:[ {0} ]:-'.format('Data')
+            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+            information_data = ' (#) Sender Data: {0}'.format(sender_data)
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+            self.logger.debug0(' ' + STRING_DASHES)
+            information_data = ' (#) Payload Data: {0}'.format(payload_data)
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+            self.logger.debug0(' ' + STRING_DASHES)
 
             # Perform the transaction
             self.perform_transaction(payload_data)
@@ -322,10 +410,14 @@ class ConsoleSafeCommands:
 
             # Generating the function payload data
             payload_data = self.safe_instance.functions.changeThreshold(new_threshold).buildTransaction(sender_data)['data']
-            self.logger.debug0(' | Sender Data: {0} | '.format(sender_data))
-            self.logger.debug0(STRING_DASHES)
-            self.logger.debug0(' | Payload Data: {0} | '.format(payload_data))
-            self.logger.debug0(STRING_DASHES)
+            header_data = '-:[ {0} ]:-'.format('Data')
+            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+            information_data = ' (#) Sender Data: {0}'.format(sender_data)
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+            self.logger.debug0(' ' + STRING_DASHES)
+            information_data = ' (#) Payload Data: {0}'.format(payload_data)
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+            self.logger.debug0(' ' + STRING_DASHES)
 
             # Perform the transaction
             self.perform_transaction(payload_data)
@@ -357,10 +449,14 @@ class ConsoleSafeCommands:
 
             # Generating the function payload data
             payload_data = self.safe_instance.functions.addOwnerWithThreshold(new_owner_address, new_threshold).buildTransaction(sender_data)['data']
-            self.logger.debug0(' | Sender Data: {0} | '.format(sender_data))
-            self.logger.debug0(STRING_DASHES)
-            self.logger.debug0(' | Payload Data: {0} | '.format(payload_data))
-            self.logger.debug0(STRING_DASHES)
+            header_data = '-:[ {0} ]:-'.format('Data')
+            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+            information_data = ' (#) Sender Data: {0}'.format(sender_data)
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+            self.logger.debug0(' ' + STRING_DASHES)
+            information_data = ' (#) Payload Data: {0}'.format(payload_data)
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+            self.logger.debug0(' ' + STRING_DASHES)
 
             # Perform the transaction
             self.perform_transaction(payload_data)
@@ -389,10 +485,14 @@ class ConsoleSafeCommands:
             self.logger.info('| Sender: {0} | Previous Owner: {1} | Owner to Remove: {2} | Threshold: {3} | '.format(self.sender_address, previous_owner_address, owner_address, new_threshold))
             self.logger.info(STRING_DASHES)
             payload_data = self.safe_instance.functions.removeOwner(previous_owner_address, owner_address, int(new_threshold)).buildTransaction(sender_data)['data']
-            self.logger.debug0('| Sender Data: {0} | '.format(sender_data))
-            self.logger.debug0(STRING_DASHES)
-            self.logger.debug0('| Payload Data: {0} | '.format(payload_data))
-            self.logger.debug0(STRING_DASHES)
+            header_data = '-:[ {0} ]:-'.format('Data')
+            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+            information_data = ' (#) Sender Data: {0}'.format(sender_data)
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+            self.logger.debug0(' ' + STRING_DASHES)
+            information_data = ' (#) Payload Data: {0}'.format(payload_data)
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+            self.logger.debug0(' ' + STRING_DASHES)
 
             # Perform the transaction
             self.perform_transaction(payload_data)

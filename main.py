@@ -41,8 +41,8 @@ console_handler.setLevel(level=logging_lvl)
 ethereum_client = EthereumClient()
 logger.addHandler(console_handler)
 console_getter = ConsoleInputGetter(logger)
+
 # ether_helper = EtherHelper(logger, ethereum_client)
-#
 # desired_parsed_item_list, _, _, _ = console_getter.get_gnosis_input_command_argument(send_ether_amount)
 # final_amount = ether_helper.get_unify_ether_amount(desired_parsed_item_list[1:])
 # print(ether_helper.get_proper_ether_amount(final_amount))
