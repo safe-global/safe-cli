@@ -8,18 +8,17 @@ class LoggingMessagesFormatter:
     """ Logging Message Formatter
 
     """
-    def __init__(self, logger):
+    def __init__(self):
         self.name = self.__class__.__name__
-        self.logger = logger
 
     def log_error_footer(self, msg='Error.'):
-        self.logger.error(self.format_header(msg, '-'))
+        return self.format_header(msg, '-')
 
-    def log_footer(self, msg='Success.'):
-        self.logger.debug0(self.format_header(msg, '-'))
+    def log_success_footer(self, msg='Success.'):
+        return self.format_header(msg, '-')
 
     def log_banner(self, msg='Head Banner'):
-        self.logger.debug0(self.format_header(msg, '='))
+        return self.format_header(msg, '=')
 
     @staticmethod
     def format_header(msg, filler=' '):
@@ -44,3 +43,8 @@ class LoggingMessagesFormatter:
         :return:
         """
         return
+
+    def format_success_message(self):
+        return
+
+    
