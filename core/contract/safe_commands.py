@@ -34,7 +34,7 @@ class ConsoleSafeCommands:
         self.base_gas = 200000
         self.gas_price = 0
         # Default empty values
-        self.value = 0
+        self.zero_value = 0
 
         # self.safe_operator.default_owner_address_list almacena los valores del getOwners()
         self.default_owner_address_list = []
@@ -154,7 +154,7 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to multi_approve_safe_tx(): {0} {1}'.format(type(err), err))
 
-    def perform_transaction(self, payload_data, wei_value=0):
+    def perform_transaction(self, payload_data, wei_value=None, address_to=None):
         """ Perform Transaction
         This function will perform the transaction to the safe we have currently triggered via console command
         :param payload_data:
@@ -162,12 +162,15 @@ class ConsoleSafeCommands:
         :return:
         """
         try:
-            if wei_value != 0:
-                self.value = wei_value
+            if wei_value is None:
+                wei_value = self.zero_value
+            if address_to is None:
+                address_to = self.safe_instance.address
+
             # Retrieve Nonce for the transaction
             safe_nonce = self.safe_operator.retrieve_nonce()
             safe_tx = SafeTx(
-                self.ethereum_client, self.safe_instance.address, self.safe_instance.address, self.value,
+                self.ethereum_client, self.safe_instance.address, address_to, wei_value,
                 payload_data, SafeOperation.CALL.value, self.safe_tx_gas, self.base_gas,
                 self.gas_price, NULL_ADDRESS, NULL_ADDRESS, safe_nonce=safe_nonce
             )
@@ -180,7 +183,10 @@ class ConsoleSafeCommands:
                 safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, self.base_gas + self.safe_tx_gas)
                 # Retrieve the receipt
                 safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
-                self.log_formatter.tx_receipt_formatter(safe_tx_receipt)
+                if wei_value is None:
+                    self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
+                else:
+                    self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=False)
                 return safe_tx_receipt
         except Exception as err:
             self.logger.error('Unable to perform_transaction(): {0} {1}'.format(type(err), err))
@@ -194,8 +200,7 @@ class ConsoleSafeCommands:
         self.command_safe_get_owners()
         self.command_safe_get_threshold()
 
-        header_data = '-:[ {0} ]:-'.format('Safe General Information')
-        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+        self.log_formatter.log_section_left_side('Safe General Information')
         self.command_safe_name(block_style=False)
         self.command_master_copy(block_style=False)
         self.command_safe_version(block_style=False)
@@ -211,8 +216,7 @@ class ConsoleSafeCommands:
         :return:
         """
         if block_style:
-            header_data = '-:[ {0} ]:-'.format('Safe Fallback Handler')
-            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+            self.log_formatter.log_section_left_side('Safe Fallback Handler')
         information_data = ' (#) Fallback Handler: {0}'.format(NULL_ADDRESS)
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         if block_style:
@@ -225,9 +229,8 @@ class ConsoleSafeCommands:
         :return:
         """
         if block_style:
-            header_data = '-:[ {0} ]:-'.format('Safe Proxy')
-            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
-        information_data = ' (#) Proxy: {0}'.format(self.safe_operator.address)
+            self.log_formatter.log_section_left_side('Safe Proxy')
+        information_data = ' (#) ProxyCopy: {0}'.format(self.safe_operator.address)
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         if block_style:
             self.logger.info(' ' + STRING_DASHES)
@@ -239,8 +242,7 @@ class ConsoleSafeCommands:
         :return:
         """
         if block_style:
-            header_data = '-:[ {0} ]:-'.format('Safe MasterCopy')
-            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+            self.log_formatter.log_section_left_side('Safe MasterCopy')
         information_data = ' (#) MasterCopy: {0}'.format(self.safe_operator.retrieve_master_copy_address())
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         if block_style:
@@ -252,8 +254,7 @@ class ConsoleSafeCommands:
         :param block_style:
         :return:
         """
-        header_data = '-:[ {0} ]:-'.format('Safe Sender')
-        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+        self.log_formatter.log_section_left_side('Safe Sender')
         information_data = ' (#) Address: {0}'.format(self.sender_address)
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         information_data = ' (#) Private Key: {0}'.format(self.sender_private_key)
@@ -267,9 +268,7 @@ class ConsoleSafeCommands:
         :return:
         """
         if block_style:
-            header_data = '-:[ {0} ]:-'.format('Safe Nonce')
-            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
-
+            self.log_formatter.log_section_left_side('Safe Nonce')
         information_data = ' (#) Nonce: {0} '.format(self.safe_operator.retrieve_nonce())
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         if block_style:
@@ -282,8 +281,7 @@ class ConsoleSafeCommands:
         :return: code of the safe
         """
         if block_style:
-            header_data = '-:[ {0} ]:-'.format('Safe Code')
-            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+            self.log_formatter.log_section_left_side('Safe Code')
 
         information_data = ' (#) Code: {0} '.format(HexBytes(self.safe_operator.retrieve_code()).hex())
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
@@ -297,8 +295,7 @@ class ConsoleSafeCommands:
         :return: version of the safe
         """
         if block_style:
-            header_data = '-:[ {0} ]:-'.format('Safe Version')
-            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+            self.log_formatter.log_section_left_side('Safe Version')
 
         information_data = ' (#) MasterCopy Version: {0} '.format(self.safe_operator.retrieve_version())
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
@@ -312,8 +309,7 @@ class ConsoleSafeCommands:
         :return:
         """
         if block_style:
-            header_data = '-:[ {0} ]:-'.format('Safe Name')
-            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+            self.log_formatter.log_section_left_side('Safe Name')
 
         information_data = ' (#) MasterCopy Name: {0} '.format(self.safe_instance.functions.NAME().call())
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
@@ -330,16 +326,16 @@ class ConsoleSafeCommands:
         This function will retrieve and show the get owners of the safe
         :return:
         """
-        header_data = '-:[ {0} ]:-'.format('Safe Owner Data')
-        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+        self.log_formatter.log_section_left_side('Safe Owner Data')
         ether_amount = []
         for owner_index, owner in enumerate(self.safe_instance.functions.getOwners().call()):
             ether_amount.append(self.ethereum_client.w3.eth.getBalance(owner))
             information_data = ' (#) Owner {0} | Address: {1} | Sender: [{2}] | Balance: {3} '.format(owner_index, owner, self.is_sender(owner), self.ethereum_client.w3.eth.getBalance(owner))
             self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
 
-        ether_data = self.ether_helper.unify_ether_badge_amounts('--ether', ether_amount)
-        information_data = ' (#) Total Funds {0} '.format(ether_data)
+        wei_amount = self.ether_helper.unify_ether_badge_amounts('--wei', ether_amount)
+        human_readable_ether = self.ether_helper.get_proper_ether_amount(wei_amount)
+        information_data = ' (#) Total Funds: {0} {1} '.format(human_readable_ether[1], human_readable_ether[0])
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         self.logger.info(' ' + STRING_DASHES)
 
@@ -495,7 +491,6 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to command_safe_remove_owner(): {0} {1}'.format(type(err), err))
 
-    # def command_safe_send_ether(self, amount, address_to, approval=False):
     def command_safe_send_ether(self, address_to, wei_value):
         """ Command Safe Send Ether
         This function will perform the necessary step for properly executing the method removeOwner from the safe
@@ -513,17 +508,18 @@ class ConsoleSafeCommands:
             #     to=address_to,
             #     value=self.safe_operator.w3.toWei(wei_value, 'wei')
             # )
+
             payload_data = b''
-            self.perform_transaction(payload_data, wei_value)
+            self.perform_transaction(payload_data, wei_value, address_to)
 
             # Datos no necesarios pueden ir vacios
             # self.safe_operator.send_multisig_tx(
             #     local_account1, ether_to_transfer, b'', SafeOperation.DELEGATE_CALL.value,
             #     30000, 20000, 1, NULL_ADDRESS, NULL_ADDRESS, b'signatures', local_account1.privateKey
             # )
-            self.logger.debug0('Final Balance Values')
-            self.logger.debug0(STRING_DASHES)
 
+            self.logger.info('[ Current Balance Values ]:')
+            self.command_safe_get_owners()
         except Exception as err:
             self.logger.error('Unable to command_safe_send_ether(): {0} {1}'.format(type(err), err))
 
@@ -537,3 +533,17 @@ class ConsoleSafeCommands:
             return True
         self.logger.error('Not Enough Signatures Loaded/Stored in local_accounts_list ')
         return False
+
+    def send_ether(self, address_from, address_to, wei_amount, private_key):
+
+        signed_txn = self.ethereum_client.w3.eth.account.signTransaction(dict(
+            nonce=self.ethereum_client.w3.eth.getTransactionCount(address_from),
+            gasPrice=self.ethereum_client.w3.eth.gasPrice,
+            gas=self.base_gas,
+            to=address_to,
+            value=self.ethereum_client.web3.toWei(wei_amount, 'ether')
+          ),
+          HexBytes(private_key))
+
+        self.ethereum_client.w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+        return

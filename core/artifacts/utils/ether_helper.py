@@ -12,10 +12,10 @@ class EtherHelper:
         self.logger = logger
         self.ethereum_client = ethereum_client
 
-    def get_proper_ether_amount(self, ether_amount):
+    def get_proper_ether_amount(self, wei_amount):
         """ Get Proper Ether Amount
         This function will show a human readable ammount of ether when a command view related with ether it's triggered
-        :param ether_amount:
+        :param wei_amount:
         :return:
         """
         k_ether = self.ethereum_client.w3.toWei(1, 'kether')
@@ -23,16 +23,16 @@ class EtherHelper:
         g_ether = self.ethereum_client.w3.toWei(1, 'gether')
         t_ether = self.ethereum_client.w3.toWei(1, 'tether')
 
-        if ether_amount >= t_ether:
-            return 'T-Ether', self.ethereum_client.w3.fromWei(ether_amount, 'tether')
-        elif ether_amount >= g_ether:
-            return 'G-Ether', self.ethereum_client.w3.fromWei(ether_amount, 'gether')
-        elif ether_amount >= m_ether:
-            return 'M-Ether', self.ethereum_client.w3.fromWei(ether_amount, 'mether')
-        elif ether_amount >= k_ether:
-            return 'K-Ether', self.ethereum_client.w3.fromWei(ether_amount, 'kether')
+        if wei_amount >= t_ether:
+            return 'T-Ether', self.ethereum_client.w3.fromWei(wei_amount, 'tether')
+        elif wei_amount >= g_ether:
+            return 'G-Ether', self.ethereum_client.w3.fromWei(wei_amount, 'gether')
+        elif wei_amount >= m_ether:
+            return 'M-Ether', self.ethereum_client.w3.fromWei(wei_amount, 'mether')
+        elif wei_amount >= k_ether:
+            return 'K-Ether', self.ethereum_client.w3.fromWei(wei_amount, 'kether')
         else:
-            return 'Ether', ether_amount
+            return 'Ether', self.ethereum_client.w3.fromWei(wei_amount, 'ether')
 
     def unify_ether_badge_amounts(self, ether_badge, ether_amounts):
         """ Unify Ether Badge Amounts
@@ -43,7 +43,7 @@ class EtherHelper:
         :return:
         """
         ether_amount = 0
-        if ether_amounts:
+        if ether_amounts != []:
             self.logger.debug0('[ Badge Id ]: {0:^14} | {1}'.format(ether_badge, ether_amounts))
             for ether_badge_amount in ether_amounts:
                 if ether_badge == '--wei':
@@ -86,8 +86,8 @@ class EtherHelper:
                     ether_amount += self.ethereum_client.w3.toWei(ether_badge_amount, 'kether')
                 elif ether_badge == '--gether':
                     ether_amount += self.ethereum_client.w3.toWei(ether_badge_amount, 'gether')
-            return self.ethereum_client.w3.toWei(ether_amount, 'ether')
-        return self.ethereum_client.w3.toWei(ether_amount, 'ether')
+            return ether_amount
+        return 0
 
     def get_unify_ether_amount(self, ether_badge_parsed_list):
         """ Get Unify Ether Amount

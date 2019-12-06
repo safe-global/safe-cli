@@ -9,7 +9,7 @@ from core.input.console_input_getter import ConsoleInputGetter
 
 # Import HexBytes Module
 from hexbytes import HexBytes
-
+from core.artifacts.utils.ether_helper import EtherHelper
 
 class ConsoleController:
     """ Console Controller
@@ -203,19 +203,20 @@ class ConsoleController:
             self.logger.info('sendToken to be Implemented')
 
         elif command_argument == 'sendEther':
+            self.logger.info('sendEther to be Implemented')
             # note: Eval --ether=, --miliether= sum(+) input
             # if priority_group == 1:
             try:
                 address_value = desired_parsed_item_list[0][1][0]
-                ether_amounts = desired_parsed_item_list[1:]
-                from core.artifacts.utils.ether_helper import EtherHelper
+                ethereum_units_amount = desired_parsed_item_list[1:]
 
-                null_address ='0x0000000000000000000000000000000000000000'
+                static_address = '0x3E5e9111Ae8eB78Fe1CC3bb8915d5D461F3Ef9A9'
+                # null_address ='0x0000000000000000000000000000000000000000'
                 ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
-                self.logger.info('sendEther to be Implemented')
-                amount_value = ether_helper.get_unify_ether_amount(ether_amounts)
+
+                amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
                 self.logger.info('Total Amount: {0} Wei'.format(amount_value))
-                safe_interface.command_safe_send_ether(null_address, amount_value)
+                safe_interface.command_safe_send_ether(static_address, amount_value)
             except Exception as err:
                 self.logger.error(err)
 
