@@ -86,8 +86,8 @@ class EtherHelper:
                     ether_amount += self.ethereum_client.w3.toWei(ether_badge_amount, 'kether')
                 elif ether_badge == '--gether':
                     ether_amount += self.ethereum_client.w3.toWei(ether_badge_amount, 'gether')
-            return ether_amount
-        return ether_amount
+            return self.ethereum_client.w3.toWei(ether_amount, 'ether')
+        return self.ethereum_client.w3.toWei(ether_amount, 'ether')
 
     def get_unify_ether_amount(self, ether_badge_parsed_list):
         """ Get Unify Ether Amount

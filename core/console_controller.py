@@ -42,6 +42,7 @@ class ConsoleController:
         :return:
         """
         # load console console commands trigger procedures
+        self.logger.debug0('[ Operating with Console ]: ' + command_argument)
         if command_argument == 'loadContract':
             self.contract_interface = self.console_engine.run_contract_console(desired_parsed_item_list, priority_group)
         elif command_argument == 'loadSafe':
@@ -122,7 +123,7 @@ class ConsoleController:
         # - setBestFittedSender: it will recalculate the default_sender_account everytime an owner is loaded
         # - updateSafe: evaluate if current version can be uploaded to the newest one
 
-        self.logger.debug0('Operating with Safe: ' + command_argument)
+        self.logger.debug0('[ Operating with Safe ]: ' + command_argument)
         if command_argument == 'info':
             safe_interface.command_safe_information()
         elif command_argument == 'nonce':
@@ -240,9 +241,12 @@ class ConsoleController:
                 private_key = desired_parsed_item_list[0][1][0]
                 self.logger.debug0('[ Signature Value ]: {0} {1}'.format(str(private_key), safe_interface.default_owner_address_list))
                 local_owner = self.account_artifacts.get_local_account(str(private_key), safe_interface.safe_operator.retrieve_owners())
-                safe_interface.local_owner_account_list.append(local_owner)
-                self.logger.info('[ Local Account Added ]: {0}'.format(safe_interface.local_owner_account_list))
-                self.logger.info('[ Data Output ]: {0} | {1} | {2}'.format(local_owner, local_owner.address, HexBytes(local_owner.privateKey).hex()))
+                if local_owner in safe_interface.local_owner_account_list:
+                    self.logger.error('Local Owner Already in local_owner_account_list')
+                else:
+                    safe_interface.local_owner_account_list.append(local_owner)
+                    self.logger.debug0('[ Local Account Added ]: {0}'.format(safe_interface.local_owner_account_list))
+                # self.logger.info('[ Data Output ]: {0} | {1} | {2}'.format(local_owner, local_owner.address, HexBytes(local_owner.privateKey).hex()))
                 safe_interface.setup_sender()
 
         elif command_argument == 'loadMultipleOwners':

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from core.artifacts.utils.ether_helper import EtherHelper
 from core.logger.log_message_formatter import LogMessageFormatter
 
 # Constants
@@ -49,6 +50,7 @@ class ConsoleSafeCommands:
 
         # Setup: Log Formatter
         self.log_formatter = LogMessageFormatter(self.logger)
+        self.ether_helper = EtherHelper(self.logger, self.ethereum_client)
 
         # Trigger information on class init
         self.command_safe_information()
@@ -77,8 +79,9 @@ class ConsoleSafeCommands:
         :return:
         """
         stored_ether = []
-        self.logger.debug0('Setup Best Fitted Owner As DefaultOwner(Sender) Based On Ether')
-        self.logger.debug0(STRING_DASHES)
+
+        header_data = '-:[ {0} ]:-'.format('Setup Best Fitted Owner As DefaultOwner(Sender) Based On Ether')
+        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
         for index, owner in enumerate(self.local_owner_account_list):
             account_ether = self.ethereum_client.w3.eth.getBalance(owner.address)
             stored_ether.append(account_ether)
@@ -88,18 +91,18 @@ class ConsoleSafeCommands:
                 'address': owner.address, 'private_key': HexBytes(owner.privateKey).hex(),
                 'instance': owner
             }
-            self.logger.debug0(new_account_data)
-            self.logger.debug0(STRING_DASHES)
+            #self.logger.debug0(new_account_data)
 
-        self.logger.debug0(STRING_DASHES)
-        self.logger.debug0(stored_ether)
         owner_based_on_index = stored_ether.index(max(stored_ether))
-        self.logger.debug0(str(owner_based_on_index) + ' | ' + str(stored_ether[stored_ether.index(max(stored_ether))]))
-        self.logger.debug0(STRING_DASHES)
-        # remark:
         self.sender_address = self.local_owner_account_list[owner_based_on_index].address
         self.sender_private_key = HexBytes(self.local_owner_account_list[owner_based_on_index].privateKey).hex()
-        self.logger.info('| Default Sender set to Owner with Address: {0} | '.format(self.sender_address))
+        header_data = '-:[ {0} ]:-'.format('Sender')
+        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+        information_data = ' (#) Address: {0}'.format(self.sender_address)
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        information_data = ' (#) Balance: {0}'.format(self.ethereum_client.w3.eth.getBalance(self.sender_address))
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        self.logger.info(' ' + STRING_DASHES)
 
     def safe_tx_multi_sign(self, safe_tx, signers_list):
         """ Safe Tx Multi Sign
@@ -109,12 +112,16 @@ class ConsoleSafeCommands:
         :return:
         """
         try:
-            # ordered_signers = sorted(signers_list, key=lambda signer: signer.address.lower())
+            header_data = '-:[ {0} ]:-'.format('Signatures')
+            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+
             for signer in signers_list:
                 safe_tx.sign(signer.privateKey)
-                self.logger.debug0('| Owner Address: {0} | '.format(signer.address))
-                self.logger.debug0('| Sign with Private Key: {0} | '.format(signer.privateKey))
-                self.logger.debug0(STRING_DASHES)
+                information_data = ' (#) Owner Address: {0}'.format(signer.address)
+                self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+                information_data = ' (#) Sign with Private Key: {0}'.format(HexBytes(signer.privateKey).hex())
+                self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+                self.logger.info(' ' + STRING_DASHES)
 
             # if self.safe_operator.retrieve_is_message_signed(safe_tx.safe_tx_hash):
             #     print(safe_tx.safe_tx_hash, '\n', 'Message has been successfully \'Signed\' by the Owners')
@@ -130,11 +137,15 @@ class ConsoleSafeCommands:
         :return:
         """
         try:
+            header_data = '-:[ {0} ]:-'.format('Approval')
+            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+
             for signer in signers_list:
-                self.safe_instance.functions.approveHash(safe_tx.safe_tx_hash).transact({'from': signer.address})
-                self.logger.debug0('| Owner Address: {0} | '.format(signer.address))
-                self.logger.debug0('| Approving Tx with Hash: {0} | '.format(safe_tx.safe_tx_hash))
-                self.logger.debug0(STRING_DASHES)
+                information_data = ' (#) Owner Address: {0}'.format(signer.address)
+                self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+                information_data = ' (#) Approving Tx with Hash: {0}'.format(HexBytes(safe_tx.safe_tx_hash).hex())
+                self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+                self.logger.info(' ' + STRING_DASHES)
 
                 # if self.safe_operator.retrieve_is_hash_approved(signer, safe_tx.safe_tx_hash):
                 #     # remark: Check if the message/tx is properly approved by the user
@@ -169,11 +180,7 @@ class ConsoleSafeCommands:
                 safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, self.base_gas + self.safe_tx_gas)
                 # Retrieve the receipt
                 safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
-
-                self.logger.info('| Safe Tx Receipt: | ')
-                self.logger.info(STRING_DASHES)
-                self.logger.info('| Retrieving Tx with Hash: {0} | '.format(safe_tx.safe_tx_hash))
-                self.logger.info('{0}'.format(safe_tx_receipt))
+                self.log_formatter.tx_receipt_formatter(safe_tx_receipt)
                 return safe_tx_receipt
         except Exception as err:
             self.logger.error('Unable to perform_transaction(): {0} {1}'.format(type(err), err))
@@ -183,7 +190,6 @@ class ConsoleSafeCommands:
         This function will retrieve and show any pertinent information regarding the current safe
         :return:
         """
-
         self.log_formatter.log_banner_header('Safe Information')
         self.command_safe_get_owners()
         self.command_safe_get_threshold()
@@ -201,6 +207,7 @@ class ConsoleSafeCommands:
     def command_fallback_handler(self, block_style=True):
         """ Command Fallback Handler
         This function will retrieve and show the fallback handler address value of the safe
+        :param block_style:
         :return:
         """
         if block_style:
@@ -214,6 +221,7 @@ class ConsoleSafeCommands:
     def command_proxy(self, block_style=True):
         """ Command Proxy
         This function will retrieve and show the proxy address value of the safe
+        :param block_style:
         :return:
         """
         if block_style:
@@ -227,6 +235,7 @@ class ConsoleSafeCommands:
     def command_master_copy(self, block_style=True):
         """ Command Master Copy
         This function will retrieve and show the master copy address value of the safe
+        :param block_style:
         :return:
         """
         if block_style:
@@ -240,6 +249,7 @@ class ConsoleSafeCommands:
     def command_view_default_sender(self):
         """ Command View Default Sender
         This function will retrieve and show the sender value of the safe
+        :param block_style:
         :return:
         """
         header_data = '-:[ {0} ]:-'.format('Safe Sender')
@@ -253,6 +263,7 @@ class ConsoleSafeCommands:
     def command_safe_nonce(self, block_style=True):
         """ Command Safe Nonce
         This function will retrieve and show the nonce value of the safe
+        :param block_style:
         :return:
         """
         if block_style:
@@ -267,6 +278,7 @@ class ConsoleSafeCommands:
     def command_safe_code(self, block_style=True):
         """ Command Safe Code
         This function will retrieve and show the code value of the safe
+        :param block_style:
         :return: code of the safe
         """
         if block_style:
@@ -281,6 +293,7 @@ class ConsoleSafeCommands:
     def command_safe_version(self, block_style=True):
         """ Command Safe Version
         This function will retrieve and show the VERSION value of the safe
+        :param block_style:
         :return: version of the safe
         """
         if block_style:
@@ -295,6 +308,7 @@ class ConsoleSafeCommands:
     def command_safe_name(self, block_style=True):
         """ Command Safe Name
         This function will retrieve and show the NAME value of the safe
+        :param block_style:
         :return:
         """
         if block_style:
@@ -313,26 +327,33 @@ class ConsoleSafeCommands:
 
     def command_safe_get_owners(self):
         """ Command Safe Get Owners
-        This function will
+        This function will retrieve and show the get owners of the safe
         :return:
         """
         header_data = '-:[ {0} ]:-'.format('Safe Owner Data')
         self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+        ether_amount = []
         for owner_index, owner in enumerate(self.safe_instance.functions.getOwners().call()):
+            ether_amount.append(self.ethereum_client.w3.eth.getBalance(owner))
             information_data = ' (#) Owner {0} | Address: {1} | Sender: [{2}] | Balance: {3} '.format(owner_index, owner, self.is_sender(owner), self.ethereum_client.w3.eth.getBalance(owner))
             self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+
+        ether_data = self.ether_helper.unify_ether_badge_amounts('--ether', ether_amount)
+        information_data = ' (#) Total Funds {0} '.format(ether_data)
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         self.logger.info(' ' + STRING_DASHES)
 
     def command_safe_get_threshold(self, block_style=True):
         """ Command Safe Get Threshold
         This function will retrieve and show the threshold of the safe
+        :param block_style:
         :return:
         """
         if block_style:
             header_data = '-:[ {0} ]:-'.format('Safe Threshold')
             self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
 
-        information_data = ' (#) Threshold {0} '.format(self.safe_instance.functions.getThreshold().call())
+        information_data = ' (#) Threshold: {0} '.format(self.safe_instance.functions.getThreshold().call())
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         if block_style:
             self.logger.info(' ' + STRING_DASHES)
@@ -341,6 +362,7 @@ class ConsoleSafeCommands:
         """ Command Safe isOwner
         This function will check if any given owner is part of the safe owners
         :param owner_address:
+        :param block_style:
         :return: True if it's a owner, otherwise False
         """
         if block_style:
@@ -380,20 +402,13 @@ class ConsoleSafeCommands:
             # Generating the function payload data
             # Swap Owner - address previousOwner, address Owner, addres NewAddress
             payload_data = HexBytes(self.safe_instance.functions.swapOwner(str(previous_owner), str(owner), str(new_owner)).buildTransaction(sender_data)['data'])
-
-            header_data = '-:[ {0} ]:-'.format('Data')
-            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
-            information_data = ' (#) Sender Data: {0}'.format(sender_data)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-            self.logger.debug0(' ' + STRING_DASHES)
-            information_data = ' (#) Payload Data: {0}'.format(payload_data)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-            self.logger.debug0(' ' + STRING_DASHES)
+            self.log_formatter.tx_data_formatter(sender_data, payload_data)
 
             # Perform the transaction
             self.perform_transaction(payload_data)
 
             # Preview the current status of the safe since the transaction
+            self.command_safe_get_threshold()
             self.command_safe_get_owners()
         except Exception as err:
             self.logger.error('Unable to command_safe_swap_owner(): {0} {1}'.format(type(err), str(err)))
@@ -410,14 +425,7 @@ class ConsoleSafeCommands:
 
             # Generating the function payload data
             payload_data = self.safe_instance.functions.changeThreshold(new_threshold).buildTransaction(sender_data)['data']
-            header_data = '-:[ {0} ]:-'.format('Data')
-            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
-            information_data = ' (#) Sender Data: {0}'.format(sender_data)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-            self.logger.debug0(' ' + STRING_DASHES)
-            information_data = ' (#) Payload Data: {0}'.format(payload_data)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-            self.logger.debug0(' ' + STRING_DASHES)
+            self.log_formatter.tx_data_formatter(sender_data, payload_data)
 
             # Perform the transaction
             self.perform_transaction(payload_data)
@@ -449,23 +457,14 @@ class ConsoleSafeCommands:
 
             # Generating the function payload data
             payload_data = self.safe_instance.functions.addOwnerWithThreshold(new_owner_address, new_threshold).buildTransaction(sender_data)['data']
-            header_data = '-:[ {0} ]:-'.format('Data')
-            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
-            information_data = ' (#) Sender Data: {0}'.format(sender_data)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-            self.logger.debug0(' ' + STRING_DASHES)
-            information_data = ' (#) Payload Data: {0}'.format(payload_data)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-            self.logger.debug0(' ' + STRING_DASHES)
+            self.log_formatter.tx_data_formatter(sender_data, payload_data)
 
             # Perform the transaction
             self.perform_transaction(payload_data)
 
             # Preview the current status of the safe since the transaction
-            self.logger.debug0(STRING_DASHES)
             self.command_safe_get_threshold()
             self.command_safe_get_owners()
-            self.logger.debug0(STRING_DASHES)
         except Exception as err:
             self.logger.error('Unable to command_safe_add_owner_threshold(): {0} {1}'.format(type(err), err))
 
@@ -485,34 +484,16 @@ class ConsoleSafeCommands:
             self.logger.info('| Sender: {0} | Previous Owner: {1} | Owner to Remove: {2} | Threshold: {3} | '.format(self.sender_address, previous_owner_address, owner_address, new_threshold))
             self.logger.info(STRING_DASHES)
             payload_data = self.safe_instance.functions.removeOwner(previous_owner_address, owner_address, int(new_threshold)).buildTransaction(sender_data)['data']
-            header_data = '-:[ {0} ]:-'.format('Data')
-            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
-            information_data = ' (#) Sender Data: {0}'.format(sender_data)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-            self.logger.debug0(' ' + STRING_DASHES)
-            information_data = ' (#) Payload Data: {0}'.format(payload_data)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-            self.logger.debug0(' ' + STRING_DASHES)
+            self.log_formatter.tx_data_formatter(sender_data, payload_data)
 
             # Perform the transaction
             self.perform_transaction(payload_data)
 
             # Preview the current status of the safe since the transaction
-            self.logger.debug0(STRING_DASHES)
+            self.command_safe_get_threshold()
             self.command_safe_get_owners()
-            self.logger.debug0(STRING_DASHES)
         except Exception as err:
             self.logger.error('Unable to command_safe_remove_owner(): {0} {1}'.format(type(err), err))
-
-    def command_view_owners_balance(self):
-        """ Command View Owners Balance
-        List the current balance of the
-        :return:
-        """
-        self.logger.debug0(STRING_DASHES)
-        for owner_address in self.safe_operator.retrieve_owners():
-            self.logger.info(self.ethereum_client.w3.eth.getBalance(owner_address))
-        self.logger.debug0(STRING_DASHES)
 
     # def command_safe_send_ether(self, amount, address_to, approval=False):
     def command_safe_send_ether(self, address_to, wei_value):
@@ -522,9 +503,8 @@ class ConsoleSafeCommands:
         :param address_to:
         :return:
         """
-        self.logger.debug0('Previous Balance Values')
-        self.logger.debug0(STRING_DASHES)
-        self.command_view_owners_balance()
+        self.logger.info('[ Previous Balance Values ]:')
+        self.command_safe_get_owners()
         try:
             # payload_data = dict(
             #     nonce=self.safe_operator.retrieve_nonce(),
@@ -543,7 +523,6 @@ class ConsoleSafeCommands:
             # )
             self.logger.debug0('Final Balance Values')
             self.logger.debug0(STRING_DASHES)
-            self.command_view_owners_balance()
 
         except Exception as err:
             self.logger.error('Unable to command_safe_send_ether(): {0} {1}'.format(type(err), err))

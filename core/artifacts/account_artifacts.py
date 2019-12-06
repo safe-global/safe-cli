@@ -47,7 +47,8 @@ class AccountsArtifacts:
         self.logger.debug0(STRING_DASHES)
         for item in self.account_data:
             self.logger.info(' | {0:^15} | {1:^25} | {2:^25} | {3:^50} | {4} '.format(
-                item, self.account_data[item]['network'], self.account_data[item]['balance'],
+                item, self.account_data[item]['network'],
+                self.ethereum_client.w3.eth.getBalance(self.account_data[item]['address']),
                 self.account_data[item]['address'], str(self.account_data[item]['private_key']))
             )
         self.logger.debug0(STRING_DASHES)
@@ -105,14 +106,13 @@ class AccountsArtifacts:
         """
         try:
             local_account = Account.privateKeyToAccount(private_key)
-            self.logger.info(str(private_key) + str(owner_address_list))
-            self.logger.info(local_account)
+            #self.logger.info(str(private_key) + str(owner_address_list))
+            #self.logger.info(local_account)
             for owner_address in owner_address_list:
                 if local_account.address == owner_address:
-                    self.logger.info('Match found in owner list while checking address generated via private_key')
+                    self.logger.debug0('Match found in owner list while checking address generated via private_key')
                     return local_account
-
-            self.logger.error('Miss Match in generated account via private_key when comparing address in owner list of the contract')
+            self.logger.debug0('Miss Match in generated account via private_key when comparing address in owner list of the contract')
             raise Exception
         except Exception as err:
             self.logger.error('Unable to get_local_account() {0} {1}'.format(type(err), err))

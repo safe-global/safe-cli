@@ -326,5 +326,5 @@ class ConsoleInputGetter:
         self.logger.debug0('| Priority Group: {0} | Group Values: {1} | '.format(priority_group, priority_groups))
         self.logger.debug0('| Argument Resolution: {0} |  '.format(desired_parsed_item_list))
         self.logger.debug0('---------' * 10)
-        return desired_parsed_item_list, priority_group, command_argument, argument_list
+        return desired_parsed_item_list, priority_group, command_argument.strip(), argument_list
 
