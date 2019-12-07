@@ -224,11 +224,15 @@ class ConsoleController:
         elif command_argument == 'withdrawToken':
             if priority_group == 1:
                 address_token_to = desired_parsed_item_list[0][1][0]
-                address_value_to = desired_parsed_item_list[1][1][0]
-                token_amount = desired_parsed_item_list[2][1][0]
-                # local_account = Account.privateKeyToAccount(desired_parsed_item_list[3][1][0])
-                # print(address_value_to, local_account.address, HexBytes(local_account.privateKey).hex(), token_amount)
-                # safe_interface.command_deposit_token_raw(address_value_to, token_amount, local_account)
+                address_value_to = desired_parsed_item_list[0][1][1]
+                print('Address Token:', address_token_to, 'Address To', address_value_to)
+                token_amount = desired_parsed_item_list[1][1][0]
+                local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
+
+                try:
+                    safe_interface.command_withdraw_token_raw(address_value_to, address_token_to, token_amount, local_account)
+                except Exception as err:
+                    print(type(err), err)
 
         elif command_argument == 'sendEther':
             if priority_group == 1:

@@ -14,8 +14,9 @@ from hexbytes import HexBytes
 from gnosis.safe.safe_tx import SafeTx
 from gnosis.safe.safe import Safe, SafeOperation
 from gnosis.eth.contracts import (
-    get_safe_V1_0_0_contract, get_safe_V0_0_1_contract
+    get_safe_V1_0_0_contract, get_safe_V0_0_1_contract, get_erc20_contract
 )
+from eth_account import Account
 
 
 class ConsoleSafeCommands:
@@ -528,10 +529,42 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.debug0(err)
 
-    def command_withdraw_token_raw(self, token_address_to, token_amount, local_account):
-        """"""
-        tx_receipt = self.command_send_token_raw(self.safe_operator.address, token_address_to, token_amount, local_account)
-        return tx_receipt
+    def command_withdraw_token_raw(self, address_to, token_address_to, token_amount, local_account):
+
+        sender_data = {'from': str(self.safe_operator.address), 'gas': 200000, 'gasPrice': 0}
+        token_balance = self.ethereum_client.erc20.get_balance(self.safe_operator.address, token_address_to)
+        print('Pre Safe Balance:', token_balance)
+
+        # account = Account.privateKeyToAccount(local_account.privateKey)
+        # print(erc20.functions.allowance(self.safe_operator.address, address_to).call())
+        # erc20.functions.approve(address_to, 200).transact({'from': self.safe_operator.address})
+        # print(erc20.functions.allowance(self.safe_operator.address, address_to).call())
+
+        erc20 = get_erc20_contract(self.ethereum_client.w3, token_address_to)
+        tx_hash = erc20.functions.transferFrom(self.safe_operator.address, address_to, int(token_amount)).buildTransaction(sender_data)
+
+        print('Tx Data:', tx_hash['data'])
+        safe_tx = self.safe_operator.build_multisig_tx(
+            self.safe_operator.address, self.zero_value, tx_hash['data'], SafeOperation.CALL.value,
+            self.safe_tx_gas, self.base_gas, self.gas_price,
+            NULL_ADDRESS, NULL_ADDRESS, b''
+        )
+
+        # Multi Sign the current transaction
+        safe_tx = self.safe_tx_multi_sign(safe_tx, self.local_owner_account_list)
+        safe_tx_receipt = None
+        # The current tx was well formed
+        if safe_tx.call():
+            # Execute the current transaction
+            safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, self.base_gas + self.safe_tx_gas)
+            # Retrieve the receipt
+            safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
+
+            self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=False)
+
+        token_balance = self.ethereum_client.erc20.get_balance(self.safe_operator.address, token_address_to)
+        print('Post Safe Balance:', token_balance)
+        return safe_tx_receipt
 
     def command_deposit_token_raw(self, token_address_to, token_amount, local_account):
 
@@ -579,7 +612,6 @@ class ConsoleSafeCommands:
             return tx_receipt
         except Exception as err:
             self.logger.debug0(err)
-
 
     def command_deposit_ether_raw(self, wei_amount, local_account):
         """ Send Ether To Safe

@@ -66,10 +66,9 @@ def gnosis_py_init_tokens(safe_address):
     user_for_testing_2 = '0xACa94ef8bD5ffEE41947b4585a84BdA5a3d3DA6E'
     token_balance2 = ethereum_client.erc20.get_balance(user_for_testing_2, token_address)
     print('other_testing', token_balance2)
-    ethereum_client.erc20.send_tokens(user_for_testing_2, 12, token_address, private_key)
+    tx_hash = ethereum_client.erc20.send_tokens(user_for_testing_2, 12, token_address, private_key)
     token_balance2 = ethereum_client.erc20.get_balance(user_for_testing_2, token_address)
     print('other_testing', token_balance2)
-
     token_artifact = AuxContractArtifact(erc20_contract.functions.symbol().call(), erc20_contract, token_abi, token_bytecode, token_address)
 
     return [token_artifact.data]
