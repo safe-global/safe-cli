@@ -10,7 +10,7 @@ from core.input.console_input_getter import ConsoleInputGetter
 # Import HexBytes Module
 from hexbytes import HexBytes
 from core.artifacts.utils.ether_helper import EtherHelper
-
+from eth_account import Account
 
 class ConsoleController:
     """ Console Controller
@@ -43,7 +43,7 @@ class ConsoleController:
         :return:
         """
         # load console console commands trigger procedures
-        self.logger.debug0('[ Operating with Console ]: ' + command_argument)
+        self.logger.debug0('(+) [ Operating with General Console ]: ' + command_argument)
         if command_argument == 'loadContract':
             self.contract_interface = self.console_engine.run_contract_console(desired_parsed_item_list, priority_group)
         elif command_argument == 'loadSafe':
@@ -63,28 +63,30 @@ class ConsoleController:
 
         # new console commands trigger procedures
         elif command_argument == 'newAccount':
-            # Add Ethereum money conversion for all types of coins
             self.logger.info('newAccount <Address> or <PK> or <PK + Address>')
         elif command_argument == 'newPayload':
             self.payload_artifacts.command_new_payload(command_argument, argument_list)
         elif command_argument == 'newTxPayload':
             self.payload_artifacts.command_new_payload(command_argument, argument_list)
+        elif command_argument == 'newToken':
+            self.logger.info('newToken <Address>')
 
         # setter console commands trigger procedures
         elif command_argument == 'setNetwork':
             self.network_agent.set_network_provider_endpoint('ganache', None)
         elif command_argument == 'setAutofill':
-            print('Autofill Function')
+            self.logger.info('Autofill option to be implemented')
 
-        # test console getter commands trigger procedures
-        elif command_argument == 'dummyCommand':
-            #self.console_getter.get_gnosis_input_command_argument(stream)
-            print('do nothing')
         # information console commands trigger procedures
         elif command_argument == 'about':
             self.console_information.command_view_about()
         elif (command_argument == 'info') or (command_argument == 'help'):
             self.console_information.command_view_help()
+
+        # test console getter commands trigger procedures
+        elif command_argument == 'dummyCommand':
+            #self.console_getter.get_gnosis_input_command_argument(stream)
+            self.logger.info('do nothing')
 
     def setinel_helper(self, address_value, safe_interface):
         """ Sender Helper
@@ -122,11 +124,9 @@ class ConsoleController:
         :return:
         """
         # Commands to be implemented:
-        # - setAutoSender: first loaded owner will be set as default sender
-        # - setBestFittedSender: it will recalculate the default_sender_account everytime an owner is loaded
         # - updateSafe: evaluate if current version can be uploaded to the newest one
 
-        self.logger.debug0('[ Operating with Safe ]: ' + command_argument)
+        self.logger.debug0('(+) [ Operating with Safe Console ]: ' + command_argument)
         if command_argument == 'info':
             safe_interface.command_safe_information()
         elif command_argument == 'nonce':
@@ -145,8 +145,8 @@ class ConsoleController:
         elif command_argument == 'isOwner':
             if priority_group == 1:
                 try:
-                    address_value = desired_parsed_item_list[0][1][0]
-                    safe_interface.command_safe_is_owner(str(address_value))
+                    address_value_to = desired_parsed_item_list[0][1][0]
+                    safe_interface.command_safe_is_owner(str(address_value_to))
                 except Exception as err:
                     self.logger.error(err)
             elif priority_group == -1:
@@ -167,17 +167,17 @@ class ConsoleController:
         elif command_argument == 'addOwnerWithThreshold':
             if priority_group == 1:
                 try:
-                    address_value = desired_parsed_item_list[0][1][0]
+                    address_value_to = desired_parsed_item_list[0][1][0]
                     uint_value = desired_parsed_item_list[1][1][0]
-                    safe_interface.command_safe_add_owner_threshold(str(address_value), int(uint_value))
+                    safe_interface.command_safe_add_owner_threshold(str(address_value_to), int(uint_value))
                 except Exception as err:
                     self.logger.error(err)
 
         elif command_argument == 'addOwner':
             if priority_group == 1:
                 try:
-                    address_value = desired_parsed_item_list[0][1][0]
-                    safe_interface.command_safe_add_owner_threshold(address_value)
+                    address_value_to = desired_parsed_item_list[0][1][0]
+                    safe_interface.command_safe_add_owner_threshold(address_value_to)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -185,9 +185,9 @@ class ConsoleController:
             self.logger.debug0(desired_parsed_item_list)
             if priority_group == 1:
                 try:
-                    address_value = desired_parsed_item_list[0][1][0]
-                    previous_owner = self.setinel_helper(address_value, safe_interface)
-                    safe_interface.command_safe_remove_owner(str(previous_owner), str(address_value))
+                    address_value_to = desired_parsed_item_list[0][1][0]
+                    previous_owner = self.setinel_helper(address_value_to, safe_interface)
+                    safe_interface.command_safe_remove_owner(str(previous_owner), str(address_value_to))
                 except Exception as err:
                     self.logger.info(err)
 
@@ -197,28 +197,72 @@ class ConsoleController:
         elif command_argument == 'swapOwner' or command_argument == 'changeOwner':
             self.logger.info(desired_parsed_item_list)
             if priority_group == 1:
-                address_value = desired_parsed_item_list[0][1][0]
+                address_value_to = desired_parsed_item_list[0][1][0]
                 address_new_value = desired_parsed_item_list[0][1][1]
-                previous_owner = self.setinel_helper(address_value, safe_interface)
-                safe_interface.command_safe_swap_owner(previous_owner, address_value, address_new_value)
+                previous_owner = self.setinel_helper(address_value_to, safe_interface)
+                safe_interface.command_safe_swap_owner(previous_owner, address_value_to, address_new_value)
 
         elif command_argument == 'sendToken':
-            self.logger.info('sendToken to be Implemented')
+            if priority_group == 1:
+                address_token_to = desired_parsed_item_list[0][1][0]
+                address_value_to = desired_parsed_item_list[0][1][1]
+                print('Address Token:', address_token_to, 'Address To', address_value_to)
+                token_amount = desired_parsed_item_list[1][1][0]
+                local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
+
+                print(address_value_to, local_account.address, HexBytes(local_account.privateKey).hex(), token_amount)
+                safe_interface.command_send_token_raw(address_value_to, address_token_to, token_amount, local_account)
+
+        elif command_argument == 'depositToken':
+            if priority_group == 1:
+                address_value_to = desired_parsed_item_list[0][1][0]
+                token_amount = desired_parsed_item_list[1][1][0]
+                local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
+                print(address_value_to, local_account.address, HexBytes(local_account.privateKey).hex(), token_amount)
+                safe_interface.command_deposit_token_raw(address_value_to, token_amount, local_account)
+
+        elif command_argument == 'withdrawToken':
+            if priority_group == 1:
+                address_token_to = desired_parsed_item_list[0][1][0]
+                address_value_to = desired_parsed_item_list[1][1][0]
+                token_amount = desired_parsed_item_list[2][1][0]
+                # local_account = Account.privateKeyToAccount(desired_parsed_item_list[3][1][0])
+                # print(address_value_to, local_account.address, HexBytes(local_account.privateKey).hex(), token_amount)
+                # safe_interface.command_deposit_token_raw(address_value_to, token_amount, local_account)
 
         elif command_argument == 'sendEther':
-            self.logger.info('sendEther to be Implemented')
-            # note: Eval --ether=, --miliether= sum(+) input
-            # if priority_group == 1:
+            if priority_group == 1:
+                try:
+                    address_value_to = desired_parsed_item_list[0][1][0]
+                    local_account = Account.privateKeyToAccount(desired_parsed_item_list[1][1][0])
+                    ethereum_units_amount = desired_parsed_item_list[2:]
+
+                    ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
+                    amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
+                    self.logger.info('Total Amount: {0} Wei'.format(amount_value))
+                    safe_interface.command_send_ether_raw(address_value_to, amount_value, local_account)
+                except Exception as err:
+                    self.logger.error(err)
+
+        elif command_argument == 'withdrawEther':
+            self.logger.info('withdrawSend to be implemented')
+            address_value_to = desired_parsed_item_list[0][1][0]
+            ethereum_units_amount = desired_parsed_item_list[1:]
+
+            ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
+            amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
+            self.logger.info('Total Amount: {0} Wei'.format(amount_value))
+            safe_interface.command_withdraw_ether_raw(amount_value, address_value_to)
+
+        elif command_argument == 'depositEther':
             try:
-                address_value = desired_parsed_item_list[0][1][0]
+                local_account = Account.privateKeyToAccount(desired_parsed_item_list[0][1][0])
                 ethereum_units_amount = desired_parsed_item_list[1:]
 
-                static_address = '0x3E5e9111Ae8eB78Fe1CC3bb8915d5D461F3Ef9A9'
                 ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
-
                 amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
                 self.logger.info('Total Amount: {0} Wei'.format(amount_value))
-                safe_interface.command_safe_send_ether(static_address, amount_value)
+                safe_interface.command_deposit_ether_raw(amount_value, local_account)
             except Exception as err:
                 self.logger.error(err)
 
@@ -228,6 +272,9 @@ class ConsoleController:
 
         elif command_argument == 'setDefaultSender':
             safe_interface.command_set_default_sender()
+
+        elif command_argument == 'viewBalance':
+            safe_interface.command_view_balance()
         elif command_argument == 'viewSender':
             safe_interface.command_view_default_sender()
         elif command_argument == 'viewNetwork':
@@ -239,6 +286,7 @@ class ConsoleController:
         elif command_argument == 'viewPayloads':
             self.payload_artifacts.command_view_payloads()
 
+        # LoadOwner/UnLoadOwner Operations
         elif command_argument == 'loadOwner':
             if priority_group == 1:
                 private_key = desired_parsed_item_list[0][1][0]
@@ -252,12 +300,6 @@ class ConsoleController:
                 # self.logger.info('[ Data Output ]: {0} | {1} | {2}'.format(local_owner, local_owner.address, HexBytes(local_owner.privateKey).hex()))
                 safe_interface.setup_sender()
 
-        elif command_argument == 'loadMultipleOwners':
-            self.logger.info('load multiple owners')
-
-        elif command_argument == 'unloadMultipleOwners':
-            self.logger.info('load multiple owners')
-
         elif command_argument == 'unloadOwner':
             private_key = desired_parsed_item_list[0][1][0]
             self.logger.debug0('[ Signature Value ]: {0} {1}'.format(str(private_key), safe_interface.default_owner_address_list))
@@ -267,6 +309,11 @@ class ConsoleController:
                     safe_interface.local_owner_account_list.remove(local_owner)
                     safe_interface.setup_sender()
             self.logger.info('[ Local Account Subs ]: {0}'.format(safe_interface.local_owner_account_list))
+
+        elif command_argument == 'loadMultipleOwners':
+            self.logger.info('load multiple owners')
+        elif command_argument == 'unloadMultipleOwners':
+            self.logger.info('load multiple owners')
 
     def operate_with_contract(self, stream, contract_methods, contract_instance):
         """ Operate With Contract
@@ -278,6 +325,7 @@ class ConsoleController:
         not depends on the establishing of the proper values.
         """
         try:
+            self.logger.debug0('(+) [ Operating with Contract Console ]: ' + stream)
             for item in contract_methods:
                 if contract_methods[item]['name'] in stream:
                     splitted_stream = stream.split(' ')

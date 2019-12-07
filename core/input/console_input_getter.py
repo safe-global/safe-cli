@@ -105,13 +105,40 @@ class ConsoleInputGetter:
             },
             'sendEther': {
                 0: {'': 0},
-                1: {'--address': 1, '--wei': 10, '--kwei': 10, '--babbage': 10, '--mwei': 10, '--lovelace': 10,
-                    '--picoether': 10, '--gwei': 10, '--shannon': 10, '--nanoether': 10, '--szabo': 10,
-                    '--microether': 10, '--micro': 10, '--finney': 10, '--milliether': 10, '--milli': 10,
-                    '--ether': 10, '--kether': 10, '--grand': 10, '--mether': 10, '--gether': 10, '--tether': 10
-                    }
+                1: {'--address': 1, '--private_key': 1,
+                    '--wei': 10, '--kwei': 10, '--babbage': 10, '--mwei': 10, '--lovelace': 10,
+                    '--picoether': 10, '--gwei': 10, '--shannon': 10, '--nanoether': 10,
+                    '--szabo': 10, '--microether': 10, '--micro': 10, '--finney': 10,
+                    '--milliether': 10, '--milli': 10, '--ether': 10, '--kether': 10,
+                    '--grand': 10, '--mether': 10, '--gether': 10, '--tether': 10}
+            },
+            'depositEther': {
+                0: {'': 0},
+                1: {'--private_key': 1,
+                    '--wei': 10, '--kwei': 10, '--babbage': 10, '--mwei': 10, '--lovelace': 10,
+                    '--picoether': 10, '--gwei': 10, '--shannon': 10, '--nanoether': 10,
+                    '--szabo': 10, '--microether': 10, '--micro': 10, '--finney': 10,
+                    '--milliether': 10, '--milli': 10, '--ether': 10, '--kether': 10,
+                    '--grand': 10, '--mether': 10, '--gether': 10, '--tether': 10}
+            },
+            'withdrawEther': {
+                0: {'': 0},
+                1: {'--address': 1,
+                    '--wei': 10, '--kwei': 10, '--babbage': 10, '--mwei': 10, '--lovelace': 10,
+                    '--picoether': 10, '--gwei': 10, '--shannon': 10, '--nanoether': 10,
+                    '--szabo': 10, '--microether': 10, '--micro': 10, '--finney': 10,
+                    '--milliether': 10, '--milli': 10, '--ether': 10, '--kether': 10,
+                    '--grand': 10, '--mether': 10, '--gether': 10, '--tether': 10}
             },
             'sendToken': {
+                0: {'': 0},
+                1: {'--address': 2, '--amount': 1, '--private_key': 1},
+            },
+            'depositToken': {
+                0: {'': 0},
+                1: {'--address': 1, '--amount': 1, '--private_key': 1},
+            },
+            'withdrawToken': {
                 0: {'': 0},
                 1: {'--address': 1, '--amount': 1},
             },
@@ -239,7 +266,7 @@ class ConsoleInputGetter:
         selected_priority = -1
         aux_value_retainer = {
             '--address': [], '--alias': [], '--bytecode': [], '--uint': [],
-            '--gas': [], '--gasPrice': [], '--from': [], '--private_key': [], '--api_key': [],
+            '--gas': [], '--gasPrice': [], '--from': [], '--private_key': [], '--api_key': [], '--amount': [],
             '--wei': [], '--kwei': [], '--babbage': [], '--mwei': [], '--lovelace': [],
             '--picoether': [], '--gwei': [], '--shannon': [], '--nanoether': [], '--szabo': [],
             '--microether': [], '--micro': [], '--finney': [], '--milliether': [], '--milli': [],

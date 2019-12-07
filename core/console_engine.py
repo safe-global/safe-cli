@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# review: Decouple This!
 # Import ConsoleSafeCommands
 from core.contract.safe_commands import ConsoleSafeCommands
 from core.contract.contract_commands import ConsoleContractCommands
