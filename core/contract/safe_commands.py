@@ -335,7 +335,13 @@ class ConsoleSafeCommands:
 
         wei_amount = self.ether_helper.unify_ether_badge_amounts('--wei', ether_amount)
         human_readable_ether = self.ether_helper.get_proper_ether_amount(wei_amount)
-        information_data = ' (#) Total Funds: {0} {1} '.format(human_readable_ether[1], human_readable_ether[0])
+        information_data = ' (#) Total Owners Funds: {0} {1} '.format(human_readable_ether[1], human_readable_ether[0])
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+
+        safe_ether_amount = self.ethereum_client.w3.eth.getBalance(self.safe_instance.address)
+        safe_wei_amount = self.ether_helper.unify_ether_badge_amounts('--wei', [safe_ether_amount])
+        safe_human_readable_ether = self.ether_helper.get_proper_ether_amount(safe_wei_amount)
+        information_data = ' (#) Total Safe Funds: {0} {1} '.format(safe_human_readable_ether[1], safe_human_readable_ether[0])
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         self.logger.info(' ' + STRING_DASHES)
 
@@ -534,16 +540,17 @@ class ConsoleSafeCommands:
         self.logger.error('Not Enough Signatures Loaded/Stored in local_accounts_list ')
         return False
 
-    def send_ether(self, address_from, address_to, wei_amount, private_key):
-
-        signed_txn = self.ethereum_client.w3.eth.account.signTransaction(dict(
-            nonce=self.ethereum_client.w3.eth.getTransactionCount(address_from),
-            gasPrice=self.ethereum_client.w3.eth.gasPrice,
-            gas=self.base_gas,
-            to=address_to,
-            value=self.ethereum_client.web3.toWei(wei_amount, 'ether')
-          ),
-          HexBytes(private_key))
-
-        self.ethereum_client.w3.eth.sendRawTransaction(signed_txn.rawTransaction)
-        return
+    # def send_ether(self, address_to, wei_amount, private_key):
+    #
+    #     signed_txn = self.ethereum_client.w3.eth.account.signTransaction(dict(
+    #         nonce=self.ethereum_client.w3.eth.getTransactionCount(address_from),
+    #         gasPrice=self.ethereum_client.w3.eth.gasPrice,
+    #         gas=self.base_gas,
+    #         to=address_to,
+    #         value=self.ethereum_client.web3.toWei(wei_amount, 'ether')
+    #       ),
+    #       HexBytes(private_key))
+    #
+    #     tx_hash = self.ethereum_client.w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+    #     # Retrieve the receipt
+    #     safe_tx_receipt = self.ethereum_client.get_transaction_receipt(tx_hash, timeout=60)

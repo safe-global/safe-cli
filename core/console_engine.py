@@ -13,9 +13,11 @@ from core.input.console_input_getter import ConsoleInputGetter
 from core.contract.utils.syntax_lexer import SyntaxLexer
 from core.contract.utils.command_completer import CommandCompleter
 
+from core.artifacts.data_artifacts import DataArtifacts
 from core.artifacts.contract_artifacts import ContractArtifacts
 from core.artifacts.payload_artifacts import PayloadArtifacts
 from core.artifacts.account_artifacts import AccountsArtifacts
+from core.artifacts.token_artifacts import TokenArtifacts
 
 # Import PromptToolkit Package
 from prompt_toolkit.completion import WordCompleter
@@ -26,7 +28,6 @@ from core.logger.custom_logger import CustomLogger, DEBUG0
 from logging import INFO
 import logging
 
-from core.artifacts.data_artifacts import DataArtifacts
 from core.constants.console_constant import STRING_DASHES, TypeOfConsole
 from core.logger.log_file_manager import LogFileManager
 from core.logger.log_message_formatter import LogMessageFormatter
@@ -38,7 +39,7 @@ class GnosisConsoleEngine:
     access to the safe console via loadSafe --address=0x0*40 & access to the general contract console via
     loadContract --alias=GnosisSafeV1.1.0_1
     """
-    def __init__(self, init_configuration, contract_artifacts=None):
+    def __init__(self, init_configuration, contract_artifacts=None, token_artifacts=None):
         self.name = self.__class__.__name__
         self.prompt_text = init_configuration['name']
         # Setup the console files logs if does not exists
@@ -109,13 +110,16 @@ class GnosisConsoleEngine:
         self.account_artifacts = AccountsArtifacts(
             self.logger, self.network_agent.get_ethereum_client(), self.quiet_flag
         )
+        # Setup Console Token
+        self.token_artifacts = TokenArtifacts(self.logger)
+        self.token_artifacts.pre_loaded_token_artifacts(token_artifacts)
 
         # Setup DataArtifacts
-        # self.data_artifacts = DataArtifacts()
-        self.console_controller = ConsoleController(
-            self.logger, self.network_agent, self.account_artifacts,
-            self.payload_artifacts, None, self.contract_artifacts, self
+        self.data_artifacts = DataArtifacts(
+            self.logger, self.account_artifacts, self.payload_artifacts,
+            self.token_artifacts, self.contract_artifacts
         )
+        self.console_controller = ConsoleController(self.logger, self.network_agent, self.data_artifacts, self)
 
         # Setup: Log Formatter
         self.log_formatter = LogMessageFormatter(self.logger)

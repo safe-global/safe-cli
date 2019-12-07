@@ -32,6 +32,8 @@ class ContractArtifacts:
                     artifact['name'], artifact['instance'], artifact['abi'],
                     artifact['bytecode'], artifact['address'], (artifact['name'] + '_' + str(len(self.contract_data)))
                 )
+            self.logger.debug0(STRING_DASHES)
+            self.logger.debug0('')
 
     def command_view_contracts(self):
         """ Command View Contracts

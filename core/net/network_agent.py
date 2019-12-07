@@ -13,7 +13,9 @@ from gnosis.eth.ethereum_client import EthereumClient
 # Constants: Default Api Keys
 DEFAULT_INFURA_API_KEY =  'b3fa360a82cd459e8f1b459b3cf9127c'
 DEFAULT_ETHERSCAN_API_KEY = 'A1T1PKJXZJC1T4RJZK4ZMZH4JEYTUGAA6G'
-STRING_DASHES = '----------' * 12
+
+# Import Console_Constant: STRING_DASHES
+from core.constants.console_constant import STRING_DASHES
 
 
 class NetworkAgent:

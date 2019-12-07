@@ -4,6 +4,8 @@
 QUOTE = '\''
 COMA = ','
 
+from core.logger.log_message_formatter import LogMessageFormatter
+
 
 class ConsoleInputGetter:
     """ Console Input Getter
@@ -13,6 +15,8 @@ class ConsoleInputGetter:
         self.name = self.__class__.__name__
         self.logger = logger
         # remark: Argument Block Priorities for every Command of the Gnosis Console
+        # Setup: Log Formatter
+        self.log_formatter = LogMessageFormatter(self.logger)
         self.argument_block_priorities = {
             'newContract': {
                 0: {'--address': 1, '--abi': 1}
@@ -321,10 +325,10 @@ class ConsoleInputGetter:
             priority_groups = {-1: 'None'}
         else:
             priority_groups = self.argument_block_priorities[command_argument][priority_group]
-        self.logger.debug0('---------' * 10)
+        self.logger.debug0('----------' * 14)
         self.logger.debug0('| Command: {0} | Argument: {1} | '.format(command_argument, argument_list))
         self.logger.debug0('| Priority Group: {0} | Group Values: {1} | '.format(priority_group, priority_groups))
         self.logger.debug0('| Argument Resolution: {0} |  '.format(desired_parsed_item_list))
-        self.logger.debug0('---------' * 10)
-        return desired_parsed_item_list, priority_group, command_argument.strip(), argument_list
+        self.logger.debug0('----------' * 14)
+        return desired_parsed_item_list, priority_group, command_argument.lstrip(), argument_list
 

@@ -18,6 +18,7 @@ from gnosis.eth.contracts import (
     get_safe_contract, get_safe_V1_0_0_contract, get_safe_V0_0_1_contract
 )
 
+from gnosis.eth.tests.utils import deploy_example_erc20
 
 class AuxContractArtifact:
     def __init__(self, contract_name, contract_instance, contract_abi, contract_bytecode, contract_address):
@@ -28,6 +29,34 @@ class AuxContractArtifact:
             'bytecode': contract_bytecode,
             'address': contract_address
         }
+
+def gnosis_py_init_tokens(safe_address = '0xdAA71FBBA28C946258DD3d5FcC9001401f72270F'):
+
+    # Get new Ethereum Provider
+    contract_reader = ContractReader()
+    ethereum_client = EthereumClient()
+    token_abi, token_bytecode, token_name = contract_reader.read_from('./assets/contracts/ERC20TestToken.json')
+
+    account0 = ethereum_client.w3.eth.accounts[0]
+    erc20_contract = deploy_example_erc20(ethereum_client.w3, 20, account0)
+    token_address = erc20_contract.address
+    # print('Sample Data:')
+    # print(token_address)
+    # print(erc20_contract.functions.decimals().call())
+    # print(erc20_contract.functions.name().call())
+    # print(erc20_contract.functions.symbol().call())
+    token_balance = ethereum_client.erc20.get_balance(safe_address, erc20_contract.address)
+    print(token_balance)
+    private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
+    address_to = ''
+
+    ethereum_client.erc20.send_tokens(safe_address, 15, token_address, private_key)
+    token_balance = ethereum_client.erc20.get_balance(safe_address, erc20_contract.address)
+    print(token_balance)
+
+    token_artifact = AuxContractArtifact(erc20_contract.functions.symbol().call(), erc20_contract, token_abi, token_bytecode, token_address)
+
+    return [token_artifact.data]
 
 
 def gnosis_py_init_old_master_copies_scenario():

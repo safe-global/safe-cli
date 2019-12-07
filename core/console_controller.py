@@ -11,18 +11,19 @@ from core.input.console_input_getter import ConsoleInputGetter
 from hexbytes import HexBytes
 from core.artifacts.utils.ether_helper import EtherHelper
 
+
 class ConsoleController:
     """ Console Controller
     This class will represent and function as pseudo-controller for the execution of the proper commands
     """
-    def __init__(self, logger, network_agent, console_accounts, console_payloads, console_tokens, contract_artifacts, console_engine):
+    def __init__(self, logger, network_agent, data_artifact, console_engine):
         self.logger = logger
 
-        # Assets
-        self.contract_artifacts = contract_artifacts
-        self.account_artifacts = console_accounts
-        self.payload_artifacts = console_payloads
-        self.token_artifacts = console_tokens
+        self.data_artifact = data_artifact
+        self.contract_artifacts = self.data_artifact.contract_artifacts
+        self.account_artifacts = self.data_artifact.account_artifacts
+        self.payload_artifacts = self.data_artifact.payload_artifacts
+        self.token_artifacts = self.data_artifact.token_artifacts
         self.network_agent = network_agent
         self.console_information = InformationArtifacts()
 
@@ -49,6 +50,8 @@ class ConsoleController:
             self.safe_interface = self.console_engine.run_safe_console(desired_parsed_item_list, priority_group)
 
         # view console commands procedures
+        elif command_argument == 'viewTokens':
+            self.token_artifacts.command_view_tokens()
         elif command_argument == 'viewNetwork':
             self.network_agent.command_view_networks()
         elif command_argument == 'viewContracts':
@@ -211,7 +214,6 @@ class ConsoleController:
                 ethereum_units_amount = desired_parsed_item_list[1:]
 
                 static_address = '0x3E5e9111Ae8eB78Fe1CC3bb8915d5D461F3Ef9A9'
-                # null_address ='0x0000000000000000000000000000000000000000'
                 ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
 
                 amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)

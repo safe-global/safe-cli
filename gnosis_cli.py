@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Import Init Scenario ( To have a functional contract to test commands )
-from safe_init_scenario_script import gnosis_py_init_scenario
+from safe_init_scenario_script import gnosis_py_init_scenario, gnosis_py_init_tokens
 
 # Import GnosisConsoleEngine Module
 from core.console_engine import GnosisConsoleEngine
@@ -68,11 +68,16 @@ try:
 
     # Init Scenario with Random Safe with Setup (Pre-Loaded Contracts)
     pre_loaded_contract_artifacts = None
+    pre_loaded_token_artifacts = None
     if results.test:
         pre_loaded_contract_artifacts = gnosis_py_init_scenario()
+        pre_loaded_token_artifacts = gnosis_py_init_tokens()
 
     # Init GnosisConsoleEngine with current configuration
-    gnosis_console_engine = GnosisConsoleEngine(init_configuration, pre_loaded_contract_artifacts)
+    gnosis_console_engine = GnosisConsoleEngine(
+        init_configuration,
+        contract_artifacts=pre_loaded_contract_artifacts,
+        token_artifacts=pre_loaded_token_artifacts)
 
 except ConnectionError:
     print('Launch [ "ganache-cli -d" ] command on a new terminal before you try to run the console again!')
