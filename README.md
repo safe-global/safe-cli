@@ -20,6 +20,9 @@ gnosis-cli was implemented using **python3** and it will focus on development a 
 
 + To launch console use **python** ***gnosis_cli.py***
 
+[![asciicast](https://asciinema.org/a/SI2GwRR8S8QCTU1dLYcKhhs7R.svg)](https://asciinema.org/a/SI2GwRR8S8QCTU1dLYcKhhs7R)
+
+
   #### [ Launch Options ]:
 
   + Launch option ***--debug*** will enable debug mode.
