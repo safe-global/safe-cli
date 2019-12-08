@@ -191,7 +191,7 @@ class ConsoleSafeCommands:
                 if wei_value is None:
                     self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
                 else:
-                    self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=False)
+                    self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
                 return safe_tx_receipt
         except Exception as err:
             self.logger.error('Unable to perform_transaction(): {0} {1}'.format(type(err), err))
@@ -333,9 +333,7 @@ class ConsoleSafeCommands:
         :return:
         """
         self.log_formatter.log_section_left_side('Safe Owner Data')
-        ether_amount = []
         for owner_index, owner in enumerate(self.safe_instance.functions.getOwners().call()):
-            ether_amount.append(self.ethereum_client.w3.eth.getBalance(owner))
             information_data = ' (#) Owner {0} | Address: {1} | Sender: [{2}] | Balance: {3} '.format(owner_index, owner, self.is_sender(owner), self.ethereum_client.w3.eth.getBalance(owner))
             self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         self.logger.info(' ' + STRING_DASHES)
@@ -504,33 +502,26 @@ class ConsoleSafeCommands:
         try:
             self.command_view_balance()
             self.log_formatter.log_section_left_side('Send Token')
-            tx_hash = self.ethereum_client.erc20.send_tokens(address_to, int(token_amount), token_address_to, local_account.privateKey)
+            safe_tx = self.ethereum_client.erc20.send_tokens(address_to, int(token_amount), token_address_to, local_account.privateKey)
 
             # Retrieve the tx_receipt
-            tx_receipt = self.ethereum_client.get_transaction_receipt(tx_hash, timeout=60)
-            self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=False)
+            tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx, timeout=60)
+            self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
             self.command_view_balance()
             return tx_receipt
         except Exception as err:
             self.logger.debug0(err)
 
-    def command_withdraw_token_raw(self, address_to, token_address_to, token_amount, local_account):
+    # Todo: Fix Me!!!
+    def command_withdraw_token_raw(self, address_to, token_contract_address, token_amount, local_account):
+        self.command_view_balance()
 
-        sender_data = {'from': str(self.safe_operator.address), 'gas': 200000, 'gasPrice': 0}
-        token_balance = self.ethereum_client.erc20.get_balance(self.safe_operator.address, token_address_to)
-        print('Pre Safe Balance:', token_balance)
+        erc20 = get_erc20_contract(self.ethereum_client.w3, token_contract_address)
+        safe_tx = erc20.functions.transfer(address_to, int(token_amount)).buildTransaction({'from': self.safe_operator.address})
 
-        # account = Account.privateKeyToAccount(local_account.privateKey)
-        # print(erc20.functions.allowance(self.safe_operator.address, address_to).call())
-        # erc20.functions.approve(address_to, 200).transact({'from': self.safe_operator.address})
-        # print(erc20.functions.allowance(self.safe_operator.address, address_to).call())
-
-        erc20 = get_erc20_contract(self.ethereum_client.w3, token_address_to)
-        tx_hash = erc20.functions.transferFrom(self.safe_operator.address, address_to, int(token_amount)).buildTransaction(sender_data)
-
-        print('Tx Data:', tx_hash['data'])
+        print('Tx Data:', safe_tx['data'])
         safe_tx = self.safe_operator.build_multisig_tx(
-            self.safe_operator.address, self.zero_value, tx_hash['data'], SafeOperation.CALL.value,
+            self.safe_operator.address, self.zero_value, safe_tx['data'], SafeOperation.CALL.value,
             self.safe_tx_gas, self.base_gas, self.gas_price,
             NULL_ADDRESS, NULL_ADDRESS, b''
         )
@@ -545,10 +536,9 @@ class ConsoleSafeCommands:
             # Retrieve the receipt
             safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
 
-            self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=False)
+            self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
 
-        token_balance = self.ethereum_client.erc20.get_balance(self.safe_operator.address, token_address_to)
-        print('Post Safe Balance:', token_balance)
+        self.command_view_balance()
         return safe_tx_receipt
 
     def command_deposit_token_raw(self, token_address_to, token_amount, local_account):
@@ -565,11 +555,7 @@ class ConsoleSafeCommands:
         """
         try:
             self.command_view_balance()
-            self.logger.debug0(address_to)
-            self.logger.debug0(local_account.address)
-            self.logger.debug0(HexBytes(local_account.privateKey).hex())
-
-            signed_txn = self.ethereum_client.w3.eth.account.signTransaction(dict(
+            signed_tx = self.ethereum_client.w3.eth.account.signTransaction(dict(
                 nonce=self.ethereum_client.w3.eth.getTransactionCount(local_account.address),
                 gasPrice=self.gas_price,
                 gas=2000000,
@@ -577,10 +563,10 @@ class ConsoleSafeCommands:
                 value=self.ethereum_client.w3.toWei(wei_amount, 'wei')
             ), HexBytes(local_account.privateKey).hex())
 
-            tx_hash = self.ethereum_client.w3.eth.sendRawTransaction(signed_txn.rawTransaction)
+            tx_hash = self.ethereum_client.w3.eth.sendRawTransaction(signed_tx.rawTransaction)
             # Retrieve the tx_receipt
             tx_receipt = self.ethereum_client.get_transaction_receipt(tx_hash, timeout=60)
-            self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=False)
+            self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
             self.command_view_balance()
             return tx_receipt
         except Exception as err:
@@ -617,7 +603,7 @@ class ConsoleSafeCommands:
             # Retrieve the receipt
             safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
 
-            self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=False)
+            self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
         self.command_view_balance()
         return safe_tx_receipt
 

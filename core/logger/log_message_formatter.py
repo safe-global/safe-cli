@@ -64,6 +64,7 @@ class LogMessageFormatter:
         signature_v = HexBytes(data.v).hex()
         signature_r = HexBytes(data.r).hex()
         signature_s = HexBytes(data.s).hex()
+        self.logger.info(logs_bloom)
 
         header_data = '-:[ {0} ]:-'.format('Safe Tx Receipt')
         self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
@@ -91,57 +92,32 @@ class LogMessageFormatter:
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
 
         if detailed_receipt:
-            log0_transaction_hash = HexBytes(data.logs[0]['transactionHash']).hex()
-            log0_block_hash = HexBytes(data.logs[0]['blockHash']).hex()
-            log0_block_number = data.logs[0]['blockNumber']
-            log0_address = data.logs[0]['address']
-            log0_data = data.logs[0]['data']
-            log0_topic = HexBytes(data.logs[0]['topics'][0]).hex()
-            log0_mined = data.logs[0]['type']
+            for item_index, item_logs in enumerate(data.logs):
+                log0_transaction_hash = HexBytes(item_logs['transactionHash']).hex()
+                log0_block_hash = HexBytes(item_logs['blockHash']).hex()
+                log0_block_number = item_logs['blockNumber']
+                log0_address = item_logs['address']
+                log0_data = item_logs['data']
+                log0_topic = HexBytes(item_logs['topics'][0]).hex()
+                log0_mined = item_logs['type']
 
-            header_data = '-:[ {0} ]:-'.format('Tx Log Number 0')
-            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+                header_data = '-:[ {0} {1} ]:-'.format('Tx Log Number', item_index)
+                self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
 
-            information_data = ' (#) Address To: {0}'.format(log0_address)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+                information_data = ' (#) Address To: {0}'.format(log0_address)
+                self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
 
-            information_data = ' (#) Tx Hash: {0}'.format(log0_transaction_hash)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+                information_data = ' (#) Tx Hash: {0}'.format(log0_transaction_hash)
+                self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
 
-            information_data = ' (#) Block Number: {0} | Block Hash: {1}'.format(log0_block_number, log0_block_hash)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+                information_data = ' (#) Block Number: {0} | Block Hash: {1}'.format(log0_block_number, log0_block_hash)
+                self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
 
-            information_data = ' (#) Data:'
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-            self.logger.info('|    {0}{1}|'.format(log0_data, ' ' * (140 - len(log0_data) - 4)))
+                information_data = ' (#) Data:'
+                self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+                self.logger.info('|    {0}{1}|'.format(log0_data, ' ' * (140 - len(log0_data) - 4)))
 
-            information_data = ' (#) Topic: {0} | Type: {1}'.format(log0_topic, log0_mined)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+                information_data = ' (#) Topic: {0} | Type: {1}'.format(log0_topic, log0_mined)
+                self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
 
-            log1_transaction_hash = HexBytes(data.logs[1]['transactionHash']).hex()
-            log1_block_hash = HexBytes(data.logs[1]['blockHash']).hex()
-            log1_block_number = data.logs[1]['blockNumber']
-            log1_address = data.logs[1]['address']
-            log1_data = data.logs[1]['data']
-            log1_topic = HexBytes(data.logs[1]['topics'][0]).hex()
-            log1_mined = data.logs[1]['type']
-
-            header_data = '-:[ {0} ]:-'.format('Tx Log Number 1')
-            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
-
-            information_data = ' (#) Address To: {0}'.format(log1_address)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-
-            information_data = ' (#) Tx Hash: {0}'.format(log1_transaction_hash)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-
-            information_data = ' (#) Block Number: {0} | Block Hash: {1}'.format(log1_block_number, log1_block_hash)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-
-            information_data = ' (#) Data:'
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-            self.logger.info('|    {0}{1}|'.format(log1_data, ' ' * (140 - len(log1_data) - 4)))
-
-            information_data = ' (#) Topic: {0} | Type: {1}'.format(log1_topic, log1_mined)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         self.logger.info(' ' + STRING_DASHES)
