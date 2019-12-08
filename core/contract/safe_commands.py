@@ -23,7 +23,7 @@ class ConsoleSafeCommands:
     """ Console Safe Commands
     This class will perform the command call to the different artifacts and the class methods
     """
-    def __init__(self, safe_address, logger, account_artifacts, network_agent):
+    def __init__(self, safe_address, logger, data_artifacts, network_agent):
         self.logger = logger
         self.ethereum_client = network_agent.ethereum_client
         # This should passed from the engine to the controller then to the safe command
@@ -47,7 +47,8 @@ class ConsoleSafeCommands:
 
         # Main Artifacts for the module
         self.network_agent = network_agent
-        self.account_artifacts = account_artifacts
+        self.account_artifacts = data_artifacts.account_artifacts
+        self.token_artifacts = data_artifacts.token_artifacts
 
         # Setup: Log Formatter
         self.log_formatter = LogMessageFormatter(self.logger)
@@ -202,6 +203,7 @@ class ConsoleSafeCommands:
         """
         self.log_formatter.log_banner_header('Safe Information')
         self.command_safe_get_owners()
+        self.command_view_balance()
         self.command_safe_get_threshold()
 
         self.log_formatter.log_section_left_side('Safe General Information')
@@ -336,17 +338,6 @@ class ConsoleSafeCommands:
             ether_amount.append(self.ethereum_client.w3.eth.getBalance(owner))
             information_data = ' (#) Owner {0} | Address: {1} | Sender: [{2}] | Balance: {3} '.format(owner_index, owner, self.is_sender(owner), self.ethereum_client.w3.eth.getBalance(owner))
             self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-
-        wei_amount = self.ether_helper.unify_ether_badge_amounts('--wei', ether_amount)
-        human_readable_ether = self.ether_helper.get_proper_ether_amount(wei_amount)
-        information_data = ' (#) Total Owners Funds: {0} {1} '.format(human_readable_ether[1], human_readable_ether[0])
-        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-
-        safe_ether_amount = self.ethereum_client.w3.eth.getBalance(self.safe_operator.address)
-        safe_wei_amount = self.ether_helper.unify_ether_badge_amounts('--wei', [safe_ether_amount])
-        safe_human_readable_ether = self.ether_helper.get_proper_ether_amount(safe_wei_amount)
-        information_data = ' (#) Total Safe Funds: {0} {1} '.format(safe_human_readable_ether[1], safe_human_readable_ether[0])
-        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         self.logger.info(' ' + STRING_DASHES)
 
     def command_safe_get_threshold(self, block_style=True):
@@ -356,8 +347,7 @@ class ConsoleSafeCommands:
         :return:
         """
         if block_style:
-            header_data = '-:[ {0} ]:-'.format('Safe Threshold')
-            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+            self.log_formatter.log_section_left_side('Safe Threshold')
 
         information_data = ' (#) Threshold: {0} '.format(self.safe_instance.functions.getThreshold().call())
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
@@ -372,8 +362,7 @@ class ConsoleSafeCommands:
         :return: True if it's a owner, otherwise False
         """
         if block_style:
-            header_data = '-:[ {0} ]:-'.format('Safe Owners')
-            self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+            self.log_formatter.log_section_left_side('Safe Owners')
 
         information_data = ' (#) Owner with Address: {0} | isOwner: {1} '.format(owner_address, self.safe_operator.retrieve_is_owner(owner_address))
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
@@ -386,8 +375,7 @@ class ConsoleSafeCommands:
         :param owners_list:
         :return: True if it's a owner, otherwise False
         """
-        header_data = '-:[ {0} ]:-'.format('Safe Owners List')
-        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+        self.log_formatter.log_section_left_side('Safe Owners List')
         for owner_address in owners_list:
             self.command_safe_is_owner(owner_address, block_style=False)
         self.logger.info(' ' + STRING_DASHES)
@@ -514,17 +502,14 @@ class ConsoleSafeCommands:
 
     def command_send_token_raw(self, address_to, token_address_to, token_amount, local_account):
         try:
-            token_balance = self.ethereum_client.erc20.get_balance(address_to, token_address_to)
-            print('(+) Previous Balance:', token_balance)
-
+            self.command_view_balance()
+            self.log_formatter.log_section_left_side('Send Token')
             tx_hash = self.ethereum_client.erc20.send_tokens(address_to, int(token_amount), token_address_to, local_account.privateKey)
-
-            token_balance = self.ethereum_client.erc20.get_balance(address_to, token_address_to)
-            print('(+) Post Balance:', token_balance)
 
             # Retrieve the tx_receipt
             tx_receipt = self.ethereum_client.get_transaction_receipt(tx_hash, timeout=60)
             self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=False)
+            self.command_view_balance()
             return tx_receipt
         except Exception as err:
             self.logger.debug0(err)
@@ -567,20 +552,7 @@ class ConsoleSafeCommands:
         return safe_tx_receipt
 
     def command_deposit_token_raw(self, token_address_to, token_amount, local_account):
-
-        token_balance = self.ethereum_client.erc20.get_balance(self.safe_operator.address, token_address_to)
-        print('Pre Safe Balance:', token_balance)
-
-        token_balance = self.ethereum_client.erc20.get_balance(local_account.address, token_address_to)
-        print('Pre Account Balance:', token_balance)
-
         tx_receipt = self.command_send_token_raw(self.safe_operator.address, token_address_to, token_amount, local_account)
-
-        token_balance = self.ethereum_client.erc20.get_balance(self.safe_operator.address, token_address_to)
-        print('Post Safe Balance:', token_balance)
-
-        token_balance = self.ethereum_client.erc20.get_balance(local_account.address, token_address_to)
-        print('Post Account Balance:', token_balance)
         return tx_receipt
 
     def command_send_ether_raw(self, address_to, wei_amount, local_account):
@@ -591,8 +563,8 @@ class ConsoleSafeCommands:
         :param local_account:
         :return:
         """
-        # local_account = Account.privateKeyToAccount(private_key)
         try:
+            self.command_view_balance()
             self.logger.debug0(address_to)
             self.logger.debug0(local_account.address)
             self.logger.debug0(HexBytes(local_account.privateKey).hex())
@@ -609,6 +581,7 @@ class ConsoleSafeCommands:
             # Retrieve the tx_receipt
             tx_receipt = self.ethereum_client.get_transaction_receipt(tx_hash, timeout=60)
             self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=False)
+            self.command_view_balance()
             return tx_receipt
         except Exception as err:
             self.logger.debug0(err)
@@ -630,6 +603,7 @@ class ConsoleSafeCommands:
         :param address_to:
         :return:
         """
+        self.command_view_balance()
         safe_tx = self.safe_operator.build_multisig_tx(
             address_to, wei_amount, b'', SafeOperation.CALL.value, self.safe_tx_gas, self.base_gas, self.gas_price, NULL_ADDRESS, NULL_ADDRESS, b'')
         # safe_tx signatures
@@ -644,6 +618,7 @@ class ConsoleSafeCommands:
             safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
 
             self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=False)
+        self.command_view_balance()
         return safe_tx_receipt
 
     def command_view_balance(self):
@@ -667,5 +642,24 @@ class ConsoleSafeCommands:
         self.logger.info(' ' + STRING_DASHES)
 
         self.log_formatter.log_section_left_side('Safe Token Balance')
-        # token_balance = ethereum_client.erc20.get_balance(safe_address, erc20_contract.address)
+        token_address = []
+        token_symbol = []
+        for token_item in self.token_artifacts.token_data:
+            current_token_address = self.token_artifacts.token_data[token_item]['address']
+            # self.logger.info(current_token_address)
+            # self.logger.info(self.token_artifacts.token_data[token_item])
+            token_symbol.append(token_item)
+            token_address.append(current_token_address)
+
+        balance_data = self.ethereum_client.erc20.get_balances(self.safe_operator.address, token_address)
+        current_name_to_show = ''
+        for index, item in enumerate(balance_data):
+            if item['token_address'] is not None:
+                for token_item in self.token_artifacts.token_data:
+                    current_token_address = self.token_artifacts.token_data[token_item]['address']
+                    if current_token_address == item['token_address']:
+                        current_name_to_show = token_item
+                information_data = ' (#) Total Safe {0} ({1}) Funds: {2} Token'.format(current_name_to_show, item['token_address'], item['balance'])
+                self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         self.logger.info(' ' + STRING_DASHES)
+        return

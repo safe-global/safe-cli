@@ -241,9 +241,6 @@ class GnosisConsoleEngine:
                 self.active_session = TypeOfConsole.CONTRACT_CONSOLE
 
                 self.log_formatter.log_entry_message('Entering Contract Console')
-                # self.logger.info(STRING_DASHES)
-                # self.logger.info('| {0:^116} | '.format())
-                # self.logger.info(STRING_DASHES)
                 self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='contract-cli', stream=tmp_alias))
             except KeyError as err:
                 self.logger.error(err)
@@ -263,7 +260,7 @@ class GnosisConsoleEngine:
 
         elif priority_group == 1:
             tmp_address = desired_parsed_item_list[0][1][0]
-            self.safe_interface = ConsoleSafeCommands(tmp_address, self.logger, self.account_artifacts, self.network_agent)
+            self.safe_interface = ConsoleSafeCommands(tmp_address, self.logger, self.data_artifacts, self.network_agent)
             self.active_session = TypeOfConsole.SAFE_CONSOLE
             self.log_formatter.log_entry_message('Entering Safe Console')
             self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='safe-cli', stream='Safe (' + tmp_address + ')'))

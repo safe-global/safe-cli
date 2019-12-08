@@ -182,7 +182,7 @@ class ConsoleController:
                     self.logger.error(err)
 
         elif command_argument == 'removeOwner':
-            self.logger.debug0(desired_parsed_item_list)
+            # self.logger.debug0(desired_parsed_item_list)
             if priority_group == 1:
                 try:
                     address_value_to = desired_parsed_item_list[0][1][0]
@@ -195,7 +195,7 @@ class ConsoleController:
             self.logger.info('removeMultipleOwners to be Implemented')
 
         elif command_argument == 'swapOwner' or command_argument == 'changeOwner':
-            self.logger.info(desired_parsed_item_list)
+            # self.logger.info(desired_parsed_item_list)
             if priority_group == 1:
                 address_value_to = desired_parsed_item_list[0][1][0]
                 address_new_value = desired_parsed_item_list[0][1][1]
@@ -206,30 +206,32 @@ class ConsoleController:
             if priority_group == 1:
                 address_token_to = desired_parsed_item_list[0][1][0]
                 address_value_to = desired_parsed_item_list[0][1][1]
-                print('Address Token:', address_token_to, 'Address To', address_value_to)
+                # print('Address Token:', address_token_to, 'Address To', address_value_to)
                 token_amount = desired_parsed_item_list[1][1][0]
                 local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
 
-                print(address_value_to, local_account.address, HexBytes(local_account.privateKey).hex(), token_amount)
+                # print(address_value_to, local_account.address, HexBytes(local_account.privateKey).hex(), token_amount)
                 safe_interface.command_send_token_raw(address_value_to, address_token_to, token_amount, local_account)
 
         elif command_argument == 'depositToken':
             if priority_group == 1:
-                address_value_to = desired_parsed_item_list[0][1][0]
-                token_amount = desired_parsed_item_list[1][1][0]
-                local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
-                print(address_value_to, local_account.address, HexBytes(local_account.privateKey).hex(), token_amount)
-                safe_interface.command_deposit_token_raw(address_value_to, token_amount, local_account)
-
+                try:
+                    address_value_to = desired_parsed_item_list[0][1][0]
+                    token_amount = desired_parsed_item_list[1][1][0]
+                    local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
+                    # print(address_value_to, local_account.address, HexBytes(local_account.privateKey).hex(), token_amount)
+                    safe_interface.command_deposit_token_raw(address_value_to, token_amount, local_account)
+                except Exception as err:
+                    print(type(err), err)
+                    
         elif command_argument == 'withdrawToken':
             if priority_group == 1:
-                address_token_to = desired_parsed_item_list[0][1][0]
-                address_value_to = desired_parsed_item_list[0][1][1]
-                print('Address Token:', address_token_to, 'Address To', address_value_to)
-                token_amount = desired_parsed_item_list[1][1][0]
-                local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
-
                 try:
+                    address_token_to = desired_parsed_item_list[0][1][0]
+                    address_value_to = desired_parsed_item_list[0][1][1]
+                    # print('Address Token:', address_token_to, 'Address To', address_value_to)
+                    token_amount = desired_parsed_item_list[1][1][0]
+                    local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
                     safe_interface.command_withdraw_token_raw(address_value_to, address_token_to, token_amount, local_account)
                 except Exception as err:
                     print(type(err), err)
@@ -240,35 +242,37 @@ class ConsoleController:
                     address_value_to = desired_parsed_item_list[0][1][0]
                     local_account = Account.privateKeyToAccount(desired_parsed_item_list[1][1][0])
                     ethereum_units_amount = desired_parsed_item_list[2:]
-
                     ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
                     amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
-                    self.logger.info('Total Amount: {0} Wei'.format(amount_value))
+                    self.logger.debug0('Total Amount: {0} Wei'.format(amount_value))
                     safe_interface.command_send_ether_raw(address_value_to, amount_value, local_account)
                 except Exception as err:
                     self.logger.error(err)
 
         elif command_argument == 'withdrawEther':
-            self.logger.info('withdrawSend to be implemented')
-            address_value_to = desired_parsed_item_list[0][1][0]
-            ethereum_units_amount = desired_parsed_item_list[1:]
+            if priority_group == 1:
+                try:
+                    address_value_to = desired_parsed_item_list[0][1][0]
+                    ethereum_units_amount = desired_parsed_item_list[1:]
 
-            ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
-            amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
-            self.logger.info('Total Amount: {0} Wei'.format(amount_value))
-            safe_interface.command_withdraw_ether_raw(amount_value, address_value_to)
-
+                    ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
+                    amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
+                    self.logger.debug0('Total Amount: {0} Wei'.format(amount_value))
+                    safe_interface.command_withdraw_ether_raw(amount_value, address_value_to)
+                except Exception as err:
+                    self.logger.error(err)
         elif command_argument == 'depositEther':
-            try:
-                local_account = Account.privateKeyToAccount(desired_parsed_item_list[0][1][0])
-                ethereum_units_amount = desired_parsed_item_list[1:]
+            if priority_group == 1:
+                try:
+                    local_account = Account.privateKeyToAccount(desired_parsed_item_list[0][1][0])
+                    ethereum_units_amount = desired_parsed_item_list[1:]
 
-                ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
-                amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
-                self.logger.info('Total Amount: {0} Wei'.format(amount_value))
-                safe_interface.command_deposit_ether_raw(amount_value, local_account)
-            except Exception as err:
-                self.logger.error(err)
+                    ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
+                    amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
+                    self.logger.debug0('Total Amount: {0} Wei'.format(amount_value))
+                    safe_interface.command_deposit_ether_raw(amount_value, local_account)
+                except Exception as err:
+                    self.logger.error(err)
 
         elif command_argument == 'updateSafe':
             self.logger.info('updateSafe --address=0x to be Implemented')
@@ -301,7 +305,6 @@ class ConsoleController:
                 else:
                     safe_interface.local_owner_account_list.append(local_owner)
                     self.logger.debug0('[ Local Account Added ]: {0}'.format(safe_interface.local_owner_account_list))
-                # self.logger.info('[ Data Output ]: {0} | {1} | {2}'.format(local_owner, local_owner.address, HexBytes(local_owner.privateKey).hex()))
                 safe_interface.setup_sender()
 
         elif command_argument == 'unloadOwner':
@@ -311,7 +314,8 @@ class ConsoleController:
             for local_owner_account in safe_interface.local_owner_account_list:
                 if local_owner_account == local_owner:
                     safe_interface.local_owner_account_list.remove(local_owner)
-                    safe_interface.setup_sender()
+
+            safe_interface.setup_sender()
             self.logger.info('[ Local Account Subs ]: {0}'.format(safe_interface.local_owner_account_list))
 
         elif command_argument == 'loadMultipleOwners':

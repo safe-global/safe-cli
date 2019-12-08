@@ -40,35 +40,39 @@ def gnosis_py_init_tokens(safe_address):
     account0 = ethereum_client.w3.eth.accounts[0]
     erc20_contract = deploy_example_erc20(ethereum_client.w3, 100, account0)
     token_address = erc20_contract.address
-    print('Contract Address for Token:', erc20_contract.address)
+    print('', '----------' * 14)
+    print('| Contract Address for Token {0}: {1}'.format(
+        erc20_contract.functions.symbol().call(), erc20_contract.address)
+    )
+    print('', '----------' * 14)
     # print('Sample Data:')
     # print(token_address)
     # print(erc20_contract.functions.decimals().call())
     # print(erc20_contract.functions.name().call())
     # print(erc20_contract.functions.symbol().call())
     token_balance = ethereum_client.erc20.get_balance(safe_address, erc20_contract.address)
-    print('safe_address', token_balance)
+    # print('safe_address', token_balance)
     private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
     address_to = ''
 
     ethereum_client.erc20.send_tokens(safe_address, 15, token_address, private_key)
     token_balance = ethereum_client.erc20.get_balance(safe_address, erc20_contract.address)
-    print('safe_address', token_balance)
+    # print('safe_address', token_balance)
 
     user_for_testing = '0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b'
     token_balance = ethereum_client.erc20.get_balance(user_for_testing, erc20_contract.address)
-    print('user_testing', token_balance)
+    # print('user_testing', token_balance)
 
     ethereum_client.erc20.send_tokens(user_for_testing, 10, token_address, private_key)
     token_balance = ethereum_client.erc20.get_balance(user_for_testing, erc20_contract.address)
-    print('user_testing', token_balance)
+    # print('user_testing', token_balance)
 
     user_for_testing_2 = '0xACa94ef8bD5ffEE41947b4585a84BdA5a3d3DA6E'
     token_balance2 = ethereum_client.erc20.get_balance(user_for_testing_2, token_address)
-    print('other_testing', token_balance2)
+    # print('other_testing', token_balance2)
     tx_hash = ethereum_client.erc20.send_tokens(user_for_testing_2, 12, token_address, private_key)
     token_balance2 = ethereum_client.erc20.get_balance(user_for_testing_2, token_address)
-    print('other_testing', token_balance2)
+    # print('other_testing', token_balance2)
     token_artifact = AuxContractArtifact(erc20_contract.functions.symbol().call(), erc20_contract, token_abi, token_bytecode, token_address)
 
     return [token_artifact.data]
@@ -113,10 +117,10 @@ def gnosis_py_init_scenario():
     # remark: Start Safe Contract Deployment
     print('', '----------' * 14)
     proxy_v101_deployment_data = ProxyFactory.deploy_proxy_factory_contract(ethereum_client, local_account)
-    print(' | Successfully Deployed', proxy_v101, 'with Address:', proxy_v101_deployment_data.contract_address)
+    print('| Successfully Deployed', proxy_v101, 'with Address:', proxy_v101_deployment_data.contract_address)
     # remark: Start Safe Contract Deployment
     safe_v101_deployment_data = Safe.deploy_master_contract(ethereum_client, local_account)
-    print(' | Successfully Deployed', safe_v101, 'with Address:', safe_v101_deployment_data.contract_address)
+    print('| Successfully Deployed', safe_v101, 'with Address:', safe_v101_deployment_data.contract_address)
     print('', '----------' * 14)
     # remark: Setup for the Safe Contract
     threshold = 3
@@ -133,17 +137,17 @@ def gnosis_py_init_scenario():
 
     # remark: Start Retrieving Instance for the Contract
     safe_v101_contract_instance = get_safe_contract(ethereum_client.w3, safe_v101_object.address)
-    print(' | Successfully Retrieved', safe_v101, 'Contract Instance', safe_v101_contract_instance)
+    print('| Successfully Retrieved', safe_v101, 'Contract Instance', safe_v101_contract_instance)
 
     # remark: Test Commands For Each Safe Version 1.1.0
     print('', '----------' * 14)
-    print(' | Test (Name & Version):',
+    print('| Test (Name & Version):',
           safe_v101_contract_instance.functions.NAME().call(),
           safe_v101_contract_instance.functions.VERSION().call())
-    print(' | Test (isOwner):',
+    print('| Test (isOwner):',
           safe_v101_contract_instance.functions.isOwner(ethereum_client.w3.eth.accounts[0]).call())
-    print(' | Test (getThreshold):', safe_v101_contract_instance.functions.getThreshold().call())
-    print(' | Test (getOwners):', safe_v101_contract_instance.functions.getOwners().call())
+    print('| Test (getThreshold):', safe_v101_contract_instance.functions.getThreshold().call())
+    print('| Test (getOwners):', safe_v101_contract_instance.functions.getOwners().call())
     print('', '----------' * 14)
 
     # remark: Setup Another Safe Account
@@ -159,7 +163,8 @@ def gnosis_py_init_scenario():
         safe_owners_aux, safe_threshold_aux, proxy_factory_address=proxy_v101_deployment_data.contract_address
     )
     safe_v101_object_0 = Safe(ethereum_tx_sent_aux.contract_address, ethereum_client)
-    print(' | Test COMMAND to loadSafe --address=%s ' % (ethereum_tx_sent_aux.contract_address))
+    print('| loadSafe --address=%s ' % (ethereum_tx_sent_aux.contract_address))
+    print('| loadContract --alias=%s ' % (safe_v101))
     print('', '----------' * 14)
 
     safe_v101_artifacts = AuxContractArtifact(
