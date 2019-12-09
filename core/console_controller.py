@@ -125,7 +125,6 @@ class ConsoleController:
         """
         # Commands to be implemented:
         # - updateSafe: evaluate if current version can be uploaded to the newest one
-
         self.logger.debug0('(+) [ Operating with Safe Console ]: ' + command_argument)
         if command_argument == 'info':
             safe_interface.command_safe_information()
@@ -153,7 +152,6 @@ class ConsoleController:
                 self.logger.info('isOwner --address=0x')
 
         elif command_argument == 'areOwners':
-            # safe_interface.command_safe_are_owners(owners_list)
             self.logger.info('areOwners to be Implemented')
 
         elif command_argument == 'changeThreshold':
@@ -182,7 +180,6 @@ class ConsoleController:
                     self.logger.error(err)
 
         elif command_argument == 'removeOwner':
-            # self.logger.debug0(desired_parsed_item_list)
             if priority_group == 1:
                 try:
                     address_value_to = desired_parsed_item_list[0][1][0]
@@ -195,23 +192,25 @@ class ConsoleController:
             self.logger.info('removeMultipleOwners to be Implemented')
 
         elif command_argument == 'swapOwner' or command_argument == 'changeOwner':
-            # self.logger.info(desired_parsed_item_list)
             if priority_group == 1:
-                address_value_to = desired_parsed_item_list[0][1][0]
-                address_new_value = desired_parsed_item_list[0][1][1]
-                previous_owner = self.setinel_helper(address_value_to, safe_interface)
-                safe_interface.command_safe_swap_owner(previous_owner, address_value_to, address_new_value)
+                try:
+                    address_value_to = desired_parsed_item_list[0][1][0]
+                    address_new_value = desired_parsed_item_list[0][1][1]
+                    previous_owner = self.setinel_helper(address_value_to, safe_interface)
+                    safe_interface.command_safe_swap_owner(previous_owner, address_value_to, address_new_value)
+                except Exception as err:
+                    print(type(err), err)
 
         elif command_argument == 'sendToken':
             if priority_group == 1:
-                address_token_to = desired_parsed_item_list[0][1][0]
-                address_value_to = desired_parsed_item_list[0][1][1]
-                # print('Address Token:', address_token_to, 'Address To', address_value_to)
-                token_amount = desired_parsed_item_list[1][1][0]
-                local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
-
-                # print(address_value_to, local_account.address, HexBytes(local_account.privateKey).hex(), token_amount)
-                safe_interface.command_send_token_raw(address_value_to, address_token_to, token_amount, local_account)
+                try:
+                    address_token_to = desired_parsed_item_list[0][1][0]
+                    address_value_to = desired_parsed_item_list[0][1][1]
+                    token_amount = desired_parsed_item_list[1][1][0]
+                    local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
+                    safe_interface.command_send_token_raw(address_value_to, address_token_to, token_amount, local_account)
+                except Exception as err:
+                    print(type(err), err)
 
         elif command_argument == 'depositToken':
             if priority_group == 1:
@@ -219,7 +218,6 @@ class ConsoleController:
                     address_value_to = desired_parsed_item_list[0][1][0]
                     token_amount = desired_parsed_item_list[1][1][0]
                     local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
-                    # print(address_value_to, local_account.address, HexBytes(local_account.privateKey).hex(), token_amount)
                     safe_interface.command_deposit_token_raw(address_value_to, token_amount, local_account)
                 except Exception as err:
                     print(type(err), err)
@@ -229,7 +227,6 @@ class ConsoleController:
                 try:
                     address_token_to = desired_parsed_item_list[0][1][0]
                     address_value_to = desired_parsed_item_list[0][1][1]
-                    # print('Address Token:', address_token_to, 'Address To', address_value_to)
                     token_amount = desired_parsed_item_list[1][1][0]
                     local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
                     safe_interface.command_withdraw_token_raw(address_value_to, address_token_to, token_amount, local_account)
@@ -254,19 +251,18 @@ class ConsoleController:
                 try:
                     address_value_to = desired_parsed_item_list[0][1][0]
                     ethereum_units_amount = desired_parsed_item_list[1:]
-
                     ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
                     amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
                     self.logger.debug0('Total Amount: {0} Wei'.format(amount_value))
                     safe_interface.command_withdraw_ether_raw(amount_value, address_value_to)
                 except Exception as err:
                     self.logger.error(err)
+
         elif command_argument == 'depositEther':
             if priority_group == 1:
                 try:
                     local_account = Account.privateKeyToAccount(desired_parsed_item_list[0][1][0])
                     ethereum_units_amount = desired_parsed_item_list[1:]
-
                     ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
                     amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
                     self.logger.debug0('Total Amount: {0} Wei'.format(amount_value))

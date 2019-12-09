@@ -45,13 +45,7 @@ def gnosis_py_init_tokens(safe_address):
         erc20_contract.functions.symbol().call(), erc20_contract.address)
     )
     print('', '----------' * 14)
-    # print('Sample Data:')
-    # print(token_address)
-    # print(erc20_contract.functions.decimals().call())
-    # print(erc20_contract.functions.name().call())
-    # print(erc20_contract.functions.symbol().call())
     token_balance = ethereum_client.erc20.get_balance(safe_address, erc20_contract.address)
-    # print('safe_address', token_balance)
     private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
     address_to = ''
 
@@ -76,30 +70,6 @@ def gnosis_py_init_tokens(safe_address):
     token_artifact = AuxContractArtifact(erc20_contract.functions.symbol().call(), erc20_contract, token_abi, token_bytecode, token_address)
 
     return [token_artifact.data]
-
-
-def gnosis_py_init_old_master_copies_scenario():
-    # safe_v100_abi, safe_v100_bytecode, safe_v100 = contract_reader.read_from('./assets/contracts/GnosisSafeV1.0.0.json')
-    # safe_v001_abi, safe_v001_bytecode, safe_v001 = contract_reader.read_from('./assets/contracts/GnosisSafeV0.0.1.json')
-
-    # proxy_v100_abi, proxy_v100_bytecode, proxy_v100 = contract_reader.read_from('./assets/contracts/ProxyFactoryV1.0.0.json')
-    # proxy_v100_deployment_data = ProxyFactory.deploy_proxy_factory_contract_v1_0_0(ethereum_client, local_account)
-    # print('Successfully Deployed', proxy_v100, 'with Address:', proxy_v100_deployment_data.contract_address)
-
-    # safe_v100_deployment_data = Safe.deploy_master_contract_v1_0_0(ethereum_client, local_account)
-    # print('Successfully Deployed', safe_v100, 'with Address:', safe_v100_deployment_data.contract_address)
-    # safe_v001_deployment_data = Safe.deploy_old_master_contract(ethereum_client, local_account)
-    # print('Successfully Deployed', safe_v001, 'with Address:', safe_v001_deployment_data.contract_address)
-
-    # remark Loading Older Versions for the Safe Contract
-    # ethereum_tx_sent1 = Safe.create(ethereum_client, local_account, safe_v100_deployment_data.contract_address, owners, threshold, proxy_factory_address=proxy_v100_deployment_data.contract_address)
-    # safe_v100_object = Safe(ethereum_tx_sent1.contract_address, ethereum_client)
-
-    # safe_v100_contract_instance = get_safe_V1_0_0_contract(ethereum_client.w3, safe_v100_object.address)
-    # print('Successfully Retrieved', safe_v100, 'Contract Instance', safe_v100_contract_instance)
-    # safe_v001_contract_instance = get_safe_V0_0_1_contract(ethereum_client.w3, gnosi_safe_address_v100)
-    # print('Successfully Retrieved', safe_v001, 'Contract Instance', safe_v001_contract_instance)
-    return
 
 
 def gnosis_py_init_scenario():
