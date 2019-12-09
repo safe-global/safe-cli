@@ -502,14 +502,14 @@ class ConsoleSafeCommands:
 
     def command_send_token_raw(self, address_to, token_address_to, token_amount, local_account):
         try:
-            self.command_view_balance()
+            self.command_view_token_balance()
             self.log_formatter.log_section_left_side('Send Token')
             safe_tx = self.ethereum_client.erc20.send_tokens(address_to, int(token_amount), token_address_to, local_account.privateKey)
 
             # Retrieve the tx_receipt
             tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx, timeout=60)
             self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
-            self.command_view_balance()
+            self.command_view_token_balance()
             return tx_receipt
         except Exception as err:
             self.logger.debug0(err)
@@ -530,7 +530,7 @@ class ConsoleSafeCommands:
         # block_filter = self.ethereum_client.w3.eth.filter('latest')
         # worker = Thread(target=self.log_loop, args=(block_filter, 1), daemon=True)
         # worker.start()
-        self.command_view_balance()
+        self.command_view_token_balance()
 
         erc20 = get_erc20_contract(self.ethereum_client.w3, token_contract_address)
         safe_tx = erc20.functions.transfer(address_to, int(token_amount)).buildTransaction({'from': self.safe_operator.address})
@@ -559,7 +559,7 @@ class ConsoleSafeCommands:
 
         print(safe_filter.get_all_entries())
         print(erc20_filter.get_all_entries())
-        self.command_view_balance()
+        self.command_view_token_balance()
         return safe_tx_receipt
 
     def command_deposit_token_raw(self, token_address_to, token_amount, local_account):
@@ -575,7 +575,7 @@ class ConsoleSafeCommands:
         :return:
         """
         try:
-            self.command_view_balance()
+            self.command_view_ether_balance()
             signed_tx = self.ethereum_client.w3.eth.account.signTransaction(dict(
                 nonce=self.ethereum_client.w3.eth.getTransactionCount(local_account.address),
                 gasPrice=self.gas_price,
@@ -588,7 +588,7 @@ class ConsoleSafeCommands:
             # Retrieve the tx_receipt
             tx_receipt = self.ethereum_client.get_transaction_receipt(tx_hash, timeout=60)
             self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
-            self.command_view_balance()
+            self.command_view_ether_balance()
             return tx_receipt
         except Exception as err:
             self.logger.debug0(err)
@@ -610,7 +610,7 @@ class ConsoleSafeCommands:
         :param address_to:
         :return:
         """
-        self.command_view_balance()
+        self.command_view_ether_balance()
         safe_tx = self.safe_operator.build_multisig_tx(
             address_to, wei_amount, b'', SafeOperation.CALL.value, self.safe_tx_gas, self.base_gas, self.gas_price, NULL_ADDRESS, NULL_ADDRESS, b'')
         # safe_tx signatures
@@ -625,11 +625,18 @@ class ConsoleSafeCommands:
             safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
 
             self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
-        self.command_view_balance()
+        self.command_view_ether_balance()
         return safe_tx_receipt
 
     def command_view_balance(self):
-        """ Command View Balance
+        """ Command View Total Balance
+        This function
+        """
+        self.command_view_ether_balance()
+        self.command_view_token_balance()
+
+    def command_view_ether_balance(self):
+        """ Command View Ether Balance
         This function
         """
         self.log_formatter.log_section_left_side('Safe Ether Balance')
@@ -648,6 +655,10 @@ class ConsoleSafeCommands:
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         self.logger.info(' ' + STRING_DASHES)
 
+    def command_view_token_balance(self):
+        """ Command View Token Balance
+        This function
+        """
         self.log_formatter.log_section_left_side('Safe Token Balance')
         token_address = []
         token_symbol = []

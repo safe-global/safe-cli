@@ -293,7 +293,7 @@ class ConsoleController:
         elif command_argument == 'loadOwner':
             if priority_group == 1:
                 private_key = desired_parsed_item_list[0][1][0]
-                self.logger.debug0('[ Signature Value ]: {0} {1}'.format(str(private_key), safe_interface.default_owner_address_list))
+                self.logger.debug0('[ Signature Value ]: {0} {1}'.format(str(private_key), safe_interface.safe_operator.retrieve_owners()))
                 local_owner = self.account_artifacts.get_local_account(str(private_key), safe_interface.safe_operator.retrieve_owners())
                 if local_owner in safe_interface.local_owner_account_list:
                     self.logger.error('Local Owner Already in local_owner_account_list')
@@ -304,14 +304,19 @@ class ConsoleController:
 
         elif command_argument == 'unloadOwner':
             private_key = desired_parsed_item_list[0][1][0]
-            self.logger.debug0('[ Signature Value ]: {0} {1}'.format(str(private_key), safe_interface.default_owner_address_list))
-            local_owner = self.account_artifacts.get_local_account(private_key, safe_interface.default_owner_address_list)
-            for local_owner_account in safe_interface.local_owner_account_list:
-                if local_owner_account == local_owner:
-                    safe_interface.local_owner_account_list.remove(local_owner)
+            self.logger.debug0('[ Signature Value ]: {0} {1}'.format(str(private_key), safe_interface.safe_operator.retrieve_owners()))
+            local_owner = self.account_artifacts.get_local_account(private_key, safe_interface.safe_operator.retrieve_owners())
 
-            safe_interface.setup_sender()
-            self.logger.info('[ Local Account Subs ]: {0}'.format(safe_interface.local_owner_account_list))
+            if local_owner in safe_interface.local_owner_account_list:
+                for local_owner_account in safe_interface.local_owner_account_list:
+                    if local_owner_account == local_owner:
+                        self.logger.debug0('REMOVING LOCAL ACCOUNT')
+                        safe_interface.local_owner_account_list.remove(local_owner)
+
+                safe_interface.setup_sender()
+                self.logger.debug0('[ Local Account Subs ]: {0}'.format(safe_interface.local_owner_account_list))
+            else:
+                self.logger.error('Local Account generated via Private Key it is not Loaded')
 
         elif command_argument == 'loadMultipleOwners':
             self.logger.info('load multiple owners')

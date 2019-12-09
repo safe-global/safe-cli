@@ -20,7 +20,6 @@ from core.constants.console_constant import STRING_DASHES
 
 class NetworkAgent:
     """ Network Agent
-
     This class will establish the current state of the connectivity to internet for the system in case it's needed.
     reference: https://stackoverflow.com/questions/3764291/checking-network-connection
     """
@@ -43,7 +42,6 @@ class NetworkAgent:
 
     def _setup_new_provider(self, node_url):
         """ Setup New Provider
-
         This function will setup the proper provider based on the node_url, if it's connected it will setup the
             :param node_url:
             :return: self.ethereum_client, othewise it will return an error
@@ -60,7 +58,6 @@ class NetworkAgent:
 
     def get_current_node_endpoint(self):
         """ Get Current Node Endpoint
-
         This function will return the current node endpoint url
             :return:
         """
@@ -68,7 +65,6 @@ class NetworkAgent:
 
     def get_ethereum_client(self):
         """ Get Ethereum Client
-
         This function will retrieve and return the current EthereumClient
             :return:
         """
@@ -84,7 +80,6 @@ class NetworkAgent:
 
     def command_view_networks(self):
         """ Command View Networks
-
         This function will retrieve and show the current network used by the ethereum client
             :return:
         """
@@ -101,7 +96,6 @@ class NetworkAgent:
 
     def set_network_provider_endpoint(self, network, api_key=None):
         """ Set Network
-
         This function will set the current enpoint for the ethereum client
             :param network:
             :param api_key:
@@ -140,7 +134,6 @@ class NetworkAgent:
 
     def network_status(self):
         """ Network Status
-
         This Function will check the availability of the network connection
             :return True if there is internet connectivity otherwise False
         """

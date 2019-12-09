@@ -105,8 +105,6 @@ class AccountsArtifacts:
         """
         try:
             local_account = Account.privateKeyToAccount(private_key)
-            #self.logger.info(str(private_key) + str(owner_address_list))
-            #self.logger.info(local_account)
             for owner_address in owner_address_list:
                 if local_account.address == owner_address:
                     self.logger.debug0('Match found in owner list while checking address generated via private_key')

@@ -78,7 +78,7 @@ try:
     pre_loaded_contract_artifacts = None
     pre_loaded_token_artifacts = None
     if results.test:
-        pre_loaded_contract_artifacts = gnosis_py_init_scenario()
+        # pre_loaded_contract_artifacts = gnosis_py_init_scenario()
         pre_loaded_token_artifacts = gnosis_py_init_tokens('0x5b1869D9A4C187F2EAa108f3062412ecf0526b24')
 
     # Init GnosisConsoleEngine with current configuration
