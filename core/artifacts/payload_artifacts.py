@@ -99,5 +99,4 @@ class PayloadArtifacts:
                     alias = answer
                 else:
                     compose_answer += '\'%s\' : %s' % (item, answer) + ', '
-
         return alias, compose_answer[:-2] + '}'

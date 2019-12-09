@@ -358,4 +358,3 @@ class ConsoleInputGetter:
         self.logger.debug0('| Argument Resolution: {0} |  '.format(desired_parsed_item_list))
         self.logger.debug0('----------' * 14)
         return desired_parsed_item_list, priority_group, command_argument.lstrip(), argument_list
-

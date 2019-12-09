@@ -141,6 +141,3 @@ def gnosis_py_init_scenario():
         safe_v101, safe_v101_contract_instance, safe_v101_abi, safe_v101_bytecode, safe_v101_object.address
     )
     return [safe_v101_artifacts.data]
-
-
-

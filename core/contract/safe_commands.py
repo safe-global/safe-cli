@@ -39,8 +39,6 @@ class ConsoleSafeCommands:
         # Default empty values
         self.zero_value = 0
 
-        # self.safe_operator.default_owner_address_list almacena los valores del getOwners()
-        self.default_owner_address_list = []
         # local accounts from loaded owners via loadOwner --private_key=
         self.local_owner_account_list = []
 
@@ -59,8 +57,7 @@ class ConsoleSafeCommands:
         # Trigger information on class init
         self.command_safe_information()
 
-    # review: search for a blueprint of the version in the functions inputs, removeOwners from 1.0.0 to 1.1.0
-    #  recieves diferent data, make a call function and confirm it??
+    # review: currently not in use
     def _setup_safe_resolver(self, safe_address):
         """
 
@@ -96,7 +93,6 @@ class ConsoleSafeCommands:
                 'instance': owner
             }
             #self.logger.debug0(new_account_data)
-
         owner_based_on_index = stored_ether.index(max(stored_ether))
         self.sender_address = self.local_owner_account_list[owner_based_on_index].address
         self.sender_private_key = HexBytes(self.local_owner_account_list[owner_based_on_index].privateKey).hex()
@@ -126,9 +122,6 @@ class ConsoleSafeCommands:
                     information_data = ' (#) Sign with Private Key: {0}'.format(HexBytes(signer.privateKey).hex())
                     self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
                     self.logger.info(' ' + STRING_DASHES)
-
-                # if self.safe_operator.retrieve_is_message_signed(safe_tx.safe_tx_hash):
-                #     print(safe_tx.safe_tx_hash, '\n', 'Message has been successfully \'Signed\' by the Owners')
                 return safe_tx
             else:
                 self.logger.info('Not Enough Owners are loaded in the console')
@@ -390,6 +383,9 @@ class ConsoleSafeCommands:
         """
         # give list of owners and get the previous owner
         try:
+            # Preview the current status of the safe since the transaction
+            self.command_safe_get_threshold()
+            self.command_safe_get_owners()
             # Default sender data, since the sender is a local account just sender.addres
             sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice': 0}
 
@@ -414,6 +410,8 @@ class ConsoleSafeCommands:
         :return:
         """
         try:
+            # Preview the current status of the safe since the transaction
+            self.command_safe_get_threshold()
             # Default sender data
             sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice': 0}
 
@@ -437,7 +435,10 @@ class ConsoleSafeCommands:
         :return:
         """
         try:
-            # note: Sender data can be set using newPayload and then setDefaultSenderPayload
+            # Preview the current status of the safe since the transaction
+            self.command_safe_get_threshold()
+            self.command_safe_get_owners()
+            # note: (future?¿) Sender data can be set using newPayload and then setDefaultSenderPayload
             # Default sender data
             sender_data = {'from': self.sender_address, 'gas': 200000, 'gasPrice': 0}
             # <>
@@ -470,6 +471,9 @@ class ConsoleSafeCommands:
         :return:
         """
         try:
+            # Preview the current status of the safe since the transaction
+            self.command_safe_get_threshold()
+            self.command_safe_get_owners()
             # Default sender data
             sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice': 0}
             new_threshold = self.safe_operator.retrieve_threshold() - 1
@@ -500,11 +504,11 @@ class ConsoleSafeCommands:
         self.logger.error('Not Enough Signatures Loaded/Stored in local_accounts_list ')
         return False
 
-    def command_send_token_raw(self, address_to, token_address_to, token_amount, local_account):
+    def command_send_token_raw(self, address_to, token_contract_address, token_amount, local_account):
         try:
             self.command_view_token_balance()
             self.log_formatter.log_section_left_side('Send Token')
-            safe_tx = self.ethereum_client.erc20.send_tokens(address_to, int(token_amount), token_address_to, local_account.privateKey)
+            safe_tx = self.ethereum_client.erc20.send_tokens(address_to, int(token_amount), token_contract_address, local_account.privateKey)
 
             # Retrieve the tx_receipt
             tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx, timeout=60)
@@ -514,26 +518,12 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.debug0(err)
 
-    def handle_event(self, event):
-        print(event)
-        # and whatever
-
-    async def log_loop(self, event_filter, poll_interval):
-        while True:
-            for event in event_filter.get_new_entries():
-                self.handle_event(event)
-            await asyncio.sleep(poll_interval)
-
     # Todo: Fix Me!!!
     def command_withdraw_token_raw(self, address_to, token_contract_address, token_amount, local_account):
-
-        # block_filter = self.ethereum_client.w3.eth.filter('latest')
-        # worker = Thread(target=self.log_loop, args=(block_filter, 1), daemon=True)
-        # worker.start()
         self.command_view_token_balance()
-
+        sender_data = {'from': self.safe_operator.address, 'gas': 200000, 'gasPrice': 0}
         erc20 = get_erc20_contract(self.ethereum_client.w3, token_contract_address)
-        safe_tx = erc20.functions.transfer(address_to, int(token_amount)).buildTransaction({'from': self.safe_operator.address})
+        safe_tx = erc20.functions.transfer(address_to, int(token_amount)).buildTransaction(sender_data)
 
         safe_filter = self.ethereum_client.w3.eth.filter({"address": self.safe_instance.address})
         erc20_filter = self.ethereum_client.w3.eth.filter({"address": token_contract_address})
@@ -554,8 +544,8 @@ class ConsoleSafeCommands:
             safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, self.base_gas + self.safe_tx_gas)
             # Retrieve the receipt
             safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
-            self.logger.info(safe_tx_receipt)
-            #self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
+
+            self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
 
         print(safe_filter.get_all_entries())
         print(erc20_filter.get_all_entries())
@@ -629,7 +619,7 @@ class ConsoleSafeCommands:
         return safe_tx_receipt
 
     def command_view_balance(self):
-        """ Command View Total Balance
+        """ Command View Total Balance of the safe Ether + Tokens(Only if tokens are known via pre-loading)
         This function
         """
         self.command_view_ether_balance()

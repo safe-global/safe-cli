@@ -30,7 +30,7 @@ import logging
 from core.constants.console_constant import STRING_DASHES, TypeOfConsole
 from core.logger.log_file_manager import LogFileManager
 from core.logger.log_message_formatter import LogMessageFormatter
-
+from prompt_toolkit import HTML
 
 class GnosisConsoleEngine:
     """ Gnosis Console Engine
@@ -136,7 +136,6 @@ class GnosisConsoleEngine:
         :param prompt_text:
         :return:
         """
-
         if self.active_session == TypeOfConsole.GNOSIS_CONSOLE:
             prompt_text = self.session_config['prompt']
         console_session = self.get_console_session()
@@ -234,7 +233,7 @@ class GnosisConsoleEngine:
             tmp_alias = desired_parsed_item_list[0][1][0]
             self.logger.debug0('alias: {0}'.format(tmp_alias))
             try:
-                # Review: change this for the proper call to the data_artifact class
+                # remark: Change this for the proper call to the data_artifact class
                 self.contract_interface = self.contract_artifacts.retrive_from_stored_values(tmp_alias, 'instance')
                 self.logger.debug0('Contract Instance {0} Loaded'.format(self.contract_interface))
                 self.contract_methods = ConsoleContractCommands().map_contract_methods(self.contract_interface)
@@ -272,4 +271,6 @@ class GnosisConsoleEngine:
         :param stream:
         :return:
         """
-        return '[ ./{affix_stream} ][ {stream} ]>: '.format(affix_stream=affix_stream, stream=stream)
+        # '[ ./{affix_stream} ][ {stream} ]>: '.format(affix_stream=affix_stream, stream=stream)
+        test_prompt = HTML(('<ansiblue>[ </ansiblue><strong>./%s</strong><ansiblue> ][ </ansiblue><strong>%s</strong><ansiblue> ]: </ansiblue>') % (affix_stream, stream))
+        return test_prompt

@@ -144,4 +144,3 @@ class AccountsArtifacts:
             self.add_account_artifact(local_account.address, local_account.privateKey, alias='gAccount')
         self.logger.debug0(STRING_DASHES)
         self.logger.debug0(' | [ {0} ] Ganache Accounts Added | '.format(len(ganache_data)))
-

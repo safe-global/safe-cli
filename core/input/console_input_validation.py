@@ -65,4 +65,3 @@ class ConsoleInputValidation:
         except Exception as err:
             print(err)
         return '-1'
-

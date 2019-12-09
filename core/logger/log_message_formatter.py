@@ -64,7 +64,6 @@ class LogMessageFormatter:
         signature_v = HexBytes(data.v).hex()
         signature_r = HexBytes(data.r).hex()
         signature_s = HexBytes(data.s).hex()
-        self.logger.info(logs_bloom)
 
         header_data = '-:[ {0} ]:-'.format('Safe Tx Receipt')
         self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
@@ -89,6 +88,9 @@ class LogMessageFormatter:
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
 
         information_data = ' (#) Signature s: {0}'.format(signature_s)
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+
+        information_data = ' (#) LogsBloom: {0}'.format(logs_bloom)
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
 
         if detailed_receipt:
