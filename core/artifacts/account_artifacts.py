@@ -43,15 +43,14 @@ class AccountsArtifacts:
          This function will show the values currently stored withing he account artifact class
         :return:
         """
-
-        self.logger.debug0(STRING_DASHES)
+        self.logger.info(' ' + STRING_DASHES)
+        self.logger.info('| {0:^14} | {1:^44} | {2:^74} | '.format('Account', 'Address', 'Private Key'))
+        self.logger.info(' ' + STRING_DASHES)
         for item in self.account_data:
-            self.logger.info(' | {0:^15} | {1:^25} | {2:^25} | {3:^50} | {4} '.format(
-                item, self.account_data[item]['network'],
-                self.ethereum_client.w3.eth.getBalance(self.account_data[item]['address']),
-                self.account_data[item]['address'], str(self.account_data[item]['private_key']))
+            self.logger.info('| {0:^14} | {1:^44} | {2:^74} |'.format(
+                item, self.account_data[item]['address'], str(self.account_data[item]['private_key']))
             )
-        self.logger.debug0(STRING_DASHES)
+        self.logger.info(' ' + STRING_DASHES)
 
     def new_account_entry(self, network, local_account):
         """ New Account Entry

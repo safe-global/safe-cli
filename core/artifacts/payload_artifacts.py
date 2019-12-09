@@ -24,10 +24,13 @@ class PayloadArtifacts:
         by the user
         :return:
         """
+        self.logger.info(' ' + STRING_DASHES)
+        self.logger.info('| {0:^14} | {1:^121} |'.format('Alias', 'Payload'))
+        self.logger.info(' ' + STRING_DASHES)
         self.logger.debug0(STRING_DASHES)
         for item in self.payload_data:
-            self.logger.info(' | {0:^15} | {1:^25} '.format(item, self.payload_data[item]['name']))
-        self.logger.debug0(STRING_DASHES)
+            self.logger.info('| {0:^14} | {1:^121} |'.format(item, self.payload_data[item]['payload']))
+        self.logger.info(' ' + STRING_DASHES)
 
     def command_new_payload(self, command_argument, argument_list):
         """ Command New Payload

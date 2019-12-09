@@ -17,7 +17,9 @@ from gnosis.eth.contracts import (
     get_safe_V1_0_0_contract, get_safe_V0_0_1_contract, get_erc20_contract
 )
 from eth_account import Account
-
+import time
+import asyncio
+from threading import Thread
 
 class ConsoleSafeCommands:
     """ Console Safe Commands
@@ -512,17 +514,34 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.debug0(err)
 
+    def handle_event(self, event):
+        print(event)
+        # and whatever
+
+    async def log_loop(self, event_filter, poll_interval):
+        while True:
+            for event in event_filter.get_new_entries():
+                self.handle_event(event)
+            await asyncio.sleep(poll_interval)
+
     # Todo: Fix Me!!!
     def command_withdraw_token_raw(self, address_to, token_contract_address, token_amount, local_account):
+
+        # block_filter = self.ethereum_client.w3.eth.filter('latest')
+        # worker = Thread(target=self.log_loop, args=(block_filter, 1), daemon=True)
+        # worker.start()
         self.command_view_balance()
 
         erc20 = get_erc20_contract(self.ethereum_client.w3, token_contract_address)
         safe_tx = erc20.functions.transfer(address_to, int(token_amount)).buildTransaction({'from': self.safe_operator.address})
 
+        safe_filter = self.ethereum_client.w3.eth.filter({"address": self.safe_instance.address})
+        erc20_filter = self.ethereum_client.w3.eth.filter({"address": token_contract_address})
+
         print('Tx Data:', safe_tx['data'])
         safe_tx = self.safe_operator.build_multisig_tx(
-            self.safe_operator.address, self.zero_value, safe_tx['data'], SafeOperation.CALL.value,
-            self.safe_tx_gas, self.base_gas, self.gas_price,
+            token_contract_address, self.zero_value, safe_tx['data'], SafeOperation.CALL.value,
+            self.safe_tx_gas,  self.base_gas + self.safe_tx_gas, self.gas_price,
             NULL_ADDRESS, NULL_ADDRESS, b''
         )
 
@@ -535,9 +554,11 @@ class ConsoleSafeCommands:
             safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, self.base_gas + self.safe_tx_gas)
             # Retrieve the receipt
             safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
+            self.logger.info(safe_tx_receipt)
+            #self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
 
-            self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
-
+        print(safe_filter.get_all_entries())
+        print(erc20_filter.get_all_entries())
         self.command_view_balance()
         return safe_tx_receipt
 

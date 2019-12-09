@@ -49,6 +49,13 @@ parser.add_argument('--test', action='store_true',
                     help='This init option will launch the loading of local artifacts such a copy of the gnosis_safe &'
                          'and 10 random local accounts and the 10 default accounts provided by the ganache local '
                          'blockchain.')
+parser.add_argument('--safe_address', action='store',
+                    dest='safe_address', default='0x',
+                    help='This init option, will store the value of the safe address you like to operate with during'
+                         ' the execution of the Console. This value can be changed in the Console via '
+                         'loadSafe command).',
+                    type=str)
+
 try:
     config = configparser.ConfigParser()
     config.read('./gnosis_cli.ini')
@@ -58,6 +65,7 @@ try:
     # Retrieve ArgParse values
     results = parser.parse_args()
     init_configuration = {
+        'safe_address': results.safe_address,
         'quiet': results.quiet,
         'debug': results.debug,
         'network': results.network,

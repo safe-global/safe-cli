@@ -88,10 +88,16 @@ class NetworkAgent:
         This function will retrieve and show the current network used by the ethereum client
             :return:
         """
-        self.logger.debug0(STRING_DASHES)
-        self.logger.info(' | Network Status: {0} | '.format(self.network_status()))
-        self.logger.info(' | Connected to {0} Through {1} | '.format(self.network.title(), self.current_node_endpoint))
-        self.logger.debug0(STRING_DASHES)
+        if self.network_status():
+            network_status = 'CONNECTED'
+        else:
+            network_status = 'DISCONNECTED'
+
+        self.logger.info(' ' + STRING_DASHES)
+        self.logger.info('| {0:^14} | {1:^20} | {2:^98} |'.format('Network', 'Network Status', 'Node Url'))
+        self.logger.info(' ' + STRING_DASHES)
+        self.logger.info('| {0:^14} | {1:^20} | {2:^98} |'.format(self.network.upper(), network_status, self.current_node_endpoint))
+        self.logger.info(' ' + STRING_DASHES)
 
     def set_network_provider_endpoint(self, network, api_key=None):
         """ Set Network

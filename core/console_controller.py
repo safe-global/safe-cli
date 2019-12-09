@@ -290,7 +290,6 @@ class ConsoleController:
         elif command_argument == 'viewPayloads':
             self.payload_artifacts.command_view_payloads()
 
-        # LoadOwner/UnLoadOwner Operations
         elif command_argument == 'loadOwner':
             if priority_group == 1:
                 private_key = desired_parsed_item_list[0][1][0]

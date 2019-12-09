@@ -43,7 +43,9 @@ class ContractArtifacts:
         abi_status = False
         bytecode_status = False
 
-        self.logger.debug0(STRING_DASHES)
+        self.logger.info(' ' + STRING_DASHES)
+        self.logger.info('| {0:^30} | {1:^22} | {2:^50} | {3:^12} | {4:^12} |'.format('Alias', 'ContractName', 'Address', 'ABI', 'Bytecode'))
+        self.logger.info(' ' + STRING_DASHES)
         for artifact_identifier in self.contract_data:
             # Temporary fix for showing ( True | False ) that the abi & bytecode are present
             if len(self.contract_data[artifact_identifier]['abi']) > 1:
@@ -51,12 +53,11 @@ class ContractArtifacts:
             if len(self.contract_data[artifact_identifier]['bytecode']) > 1:
                 bytecode_status = True
 
-            self.logger.info(' | {0:^25} | {1:^25} | {2:^25} | {3:^10} | {4:^10} | {5} '.format(
+            self.logger.info('| {0:^30} | {1:^22} | {2:^50} | {3:^12} | {4:^12} |'.format(
                 str(artifact_identifier), str(self.contract_data[artifact_identifier]['name']),
-                str(self.contract_data[artifact_identifier]['address']), str(abi_status),
-                str(bytecode_status), self.contract_data[artifact_identifier]['instance'])
+                str(self.contract_data[artifact_identifier]['address']), str(abi_status), str(bytecode_status))
             )
-        self.logger.debug0(STRING_DASHES)
+        self.logger.info(' ' + STRING_DASHES)
 
     def new_contract_entry(self, contract_name, contract_instance, contract_abi, contract_bytecode, contract_address):
         """ New Contract Entry
