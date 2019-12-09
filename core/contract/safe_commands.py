@@ -518,6 +518,10 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.debug0(err)
 
+    def command_deposit_token_raw(self, token_address_to, token_amount, local_account):
+        tx_receipt = self.command_send_token_raw(self.safe_operator.address, token_address_to, token_amount, local_account)
+        return tx_receipt
+
     # Todo: Fix Me!!!
     def command_withdraw_token_raw(self, address_to, token_contract_address, token_amount, local_account):
         self.command_view_token_balance()
@@ -536,6 +540,7 @@ class ConsoleSafeCommands:
         safe_tx = self.safe_tx_multi_sign(safe_tx, self.local_owner_account_list)
         safe_tx_receipt = None
         # The current tx was well formed
+        print('valor:' + str(safe_tx.call()))
         if safe_tx.call():
             # Execute the current transaction
             safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, tx_gas=self.base_gas + self.safe_tx_gas)
@@ -546,10 +551,6 @@ class ConsoleSafeCommands:
 
         self.command_view_token_balance()
         return safe_tx_receipt
-
-    def command_deposit_token_raw(self, token_address_to, token_amount, local_account):
-        tx_receipt = self.command_send_token_raw(self.safe_operator.address, token_address_to, token_amount, local_account)
-        return tx_receipt
 
     def command_send_ether_raw(self, address_to, wei_amount, local_account):
         """ Send Ether Raw
