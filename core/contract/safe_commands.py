@@ -521,17 +521,14 @@ class ConsoleSafeCommands:
     # Todo: Fix Me!!!
     def command_withdraw_token_raw(self, address_to, token_contract_address, token_amount, local_account):
         self.command_view_token_balance()
-        sender_data = {'from': self.safe_operator.address, 'gas': 200000, 'gasPrice': 0}
+        sender_data = {'from': self.safe_operator.address, 'gasPrice': 0}
         erc20 = get_erc20_contract(self.ethereum_client.w3, token_contract_address)
         safe_tx = erc20.functions.transfer(address_to, int(token_amount)).buildTransaction(sender_data)
 
-        safe_filter = self.ethereum_client.w3.eth.filter({"address": self.safe_instance.address})
-        erc20_filter = self.ethereum_client.w3.eth.filter({"address": token_contract_address})
-
         print('Tx Data:', safe_tx['data'])
         safe_tx = self.safe_operator.build_multisig_tx(
-            token_contract_address, self.zero_value, safe_tx['data'], SafeOperation.CALL.value,
-            self.safe_tx_gas,  self.base_gas + self.safe_tx_gas, self.gas_price,
+            token_contract_address, 0, safe_tx['data'], SafeOperation.CALL.value,
+            safe_tx['gas'] + 50000,  self.base_gas, self.gas_price,
             NULL_ADDRESS, NULL_ADDRESS, b''
         )
 
@@ -541,14 +538,12 @@ class ConsoleSafeCommands:
         # The current tx was well formed
         if safe_tx.call():
             # Execute the current transaction
-            safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, self.base_gas + self.safe_tx_gas)
+            safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, tx_gas=self.base_gas + self.safe_tx_gas)
             # Retrieve the receipt
             safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
 
             self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
 
-        print(safe_filter.get_all_entries())
-        print(erc20_filter.get_all_entries())
         self.command_view_token_balance()
         return safe_tx_receipt
 
