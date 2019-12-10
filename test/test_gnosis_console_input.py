@@ -60,6 +60,7 @@ data_artifacts = DataArtifacts(
     token_artifacts, contract_artifacts
 )
 
+
 def test_load_safe():
     load_safe_command = 'loadSafe --address=0x5b1869D9A4C187F2EAa108f3062412ecf0526b24'
     desired_parsed_item_list, priority_group, command_argument, argument_list = \

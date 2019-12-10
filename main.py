@@ -65,18 +65,4 @@ print('Token Information:', token_information)
 
 erc20_manager = Erc20Manager(ethereum_client, 10)
 from eth_account import Account
-
 # <>
-
-def handle_event(self, event):
-    print(event)
-    # block_filter = self.ethereum_client.w3.eth.filter('latest')
-    # worker = Thread(target=self.log_loop, args=(block_filter, 1), daemon=True)
-    # worker.start()
-
-
-async def log_loop(self, event_filter, poll_interval):
-    while True:
-        for event in event_filter.get_new_entries():
-            self.handle_event(event)
-        await asyncio.sleep(poll_interval)

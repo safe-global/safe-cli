@@ -127,6 +127,7 @@ class NetworkAgent:
                 self.current_node_endpoint = rinkeby_node_url
             else:
                 self.logger.error('API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(self.name, rinkeby_node_url))
+
         elif network == 'ganache':
             self._setup_new_provider(self.default_node_endpoint)
             self.network = 'ganache'

@@ -163,7 +163,7 @@ class ConsoleSafeCommands:
         """
         try:
             if wei_value is None:
-                wei_value = self.zero_value
+                wei_value = 0
             if address_to is None:
                 address_to = self.safe_instance.address
 

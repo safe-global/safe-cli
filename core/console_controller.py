@@ -73,7 +73,16 @@ class ConsoleController:
 
         # setter console commands trigger procedures
         elif command_argument == 'setNetwork':
-            self.network_agent.set_network_provider_endpoint('ganache', None)
+            if priority_group == 1:
+                network = desired_parsed_item_list[0][1][0]
+                print(network)
+                self.network_agent.set_network_provider_endpoint(network, None)
+            elif priority_group == 2:
+                print(desired_parsed_item_list)
+                network = desired_parsed_item_list[0][1][0]
+                api_key = desired_parsed_item_list[1][1][0]
+                print(network, api_key)
+                self.network_agent.set_network_provider_endpoint(network, api_key)
         elif command_argument == 'setAutofill':
             self.logger.info('Autofill option to be implemented')
 

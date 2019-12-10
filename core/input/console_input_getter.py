@@ -53,7 +53,8 @@ class ConsoleInputGetter:
             },
             'setNetwork': {
                 0: {'': 0},
-                1: {'--api_key': 1},
+                1: {'--network': 1},
+                2: {'--network': 1, '--api_key': 1},
             },
             'viewSender': {
                 0: {'': 0},
@@ -270,7 +271,7 @@ class ConsoleInputGetter:
             '--wei': [], '--kwei': [], '--babbage': [], '--mwei': [], '--lovelace': [],
             '--picoether': [], '--gwei': [], '--shannon': [], '--nanoether': [], '--szabo': [],
             '--microether': [], '--micro': [], '--finney': [], '--milliether': [], '--milli': [],
-            '--ether': [], '--kether': [], '--grand': [], '--mether': [], '--gether': [], '--tether': []
+            '--ether': [], '--kether': [], '--grand': [], '--mether': [], '--gether': [], '--tether': [], '--network':[]
         }
         try:
             priority_groups = self.argument_block_priorities[command_argument]

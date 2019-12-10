@@ -60,7 +60,7 @@ class LogMessageFormatter:
         cumulative_gas_used = data.cumulativeGasUsed
         contract_address = data.contractAddress
         status = data.status
-        logs_bloom = HexBytes(data.logsBloom).hex()
+        # logs_bloom = HexBytes(data.logsBloom).hex()
         signature_v = HexBytes(data.v).hex()
         signature_r = HexBytes(data.r).hex()
         signature_s = HexBytes(data.s).hex()
@@ -90,8 +90,8 @@ class LogMessageFormatter:
         information_data = ' (#) Signature s: {0}'.format(signature_s)
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
 
-        information_data = ' (#) LogsBloom: {0}'.format(logs_bloom)
-        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        # information_data = ' (#) LogsBloom: {0}'.format(logs_bloom)
+        # self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
 
         if detailed_receipt:
             for item_index, item_logs in enumerate(data.logs):
