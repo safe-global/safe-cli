@@ -29,11 +29,6 @@ changeOwner --address=0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0 --address=0x1dF
 
 # From Ganache
 sendEther --address=0xD833215cBcc3f914bD1C9ece3EE7BF8B14f841bb --private_key=0xb0057716d5917badaf911b193b12b910811c1497b5bada8d7711f758981c3773 --ether=1
-
-# From Meta Mask
-sendEther --address=0x5aC255889882aCd3da2aA939679E3f3d4cea221e --private_key=0xf85657ff822421c188ec36aa456c18aa1905387d65b49037ef05e877af0b941d --ether=1
-
-
 depositEther --private_key=0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1 --ether=2
 withdrawEther --address=0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0 --ether=2
 
@@ -43,3 +38,9 @@ depositToken --address=0x59d3631c86BbE35EF041872d502F218A39FBa150 --amount=1 --p
 # Not Functioning:
 withdrawToken --address=0x59d3631c86BbE35EF041872d502F218A39FBa150 --address=0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0 --amount=20 --private_key=0x829e924fdf021ba3dbbc4225edfece9aca04b929d6e75613329ca6f1d31c0bb4
 
+
+
+# Rinkeby Commands
+setNetwork --network=rinkeby --api_key=b3fa360a82cd459e8f1b459b3cf9127c
+loadSafe --address=0x6C6862EDEB82E767990C0b14d99753927f1afB4B
+depositEther --private_key=0xf85657ff822421c188ec36aa456c18aa1905387d65b49037ef05e877af0b941d --ether=0.01

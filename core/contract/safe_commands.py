@@ -35,7 +35,7 @@ class ConsoleSafeCommands:
         # Default gas prices
         self.safe_tx_gas = 300000
         self.base_gas = 200000
-        self.gas_price = 0
+        self.gas_price = self.ethereum_client.w3.toWei(20, 'gwei')
         # Default empty values
         self.zero_value = 0
 
@@ -573,7 +573,8 @@ class ConsoleSafeCommands:
             tx_hash = self.ethereum_client.w3.eth.sendRawTransaction(signed_tx.rawTransaction)
             # Retrieve the tx_receipt
             tx_receipt = self.ethereum_client.get_transaction_receipt(tx_hash, timeout=60)
-            self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
+            self.logger.info(tx_receipt)
+            # self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
             self.command_view_ether_balance()
             return tx_receipt
         except Exception as err:
