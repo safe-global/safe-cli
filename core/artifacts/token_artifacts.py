@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Import Constants & Common Enum TypeOfTokens Modules
+# Import Aesthetic Constants
 from core.constants.console_constant import STRING_DASHES
+
+# Import Enum with TypeOfToken
 from core.artifacts.constants.type_artifacts import TypeOfTokens
 
 
@@ -26,7 +28,9 @@ class TokenArtifacts:
             self.logger.debug0(' | Setup Token Artifacts  | ')
             self.logger.debug0(STRING_DASHES)
             for artifact in token_artifacts:
-                self.logger.debug0('(+) Token Artifact [ {0} with Address {1} ]'.format(artifact['name'], artifact['address']))
+                self.logger.debug0('(+) Token Artifact [ {0} with Address {1} ]'.format(
+                    artifact['name'], artifact['address'])
+                )
                 self.add_token_artifact(token_artifact=artifact, alias=artifact['name'])
         self.logger.debug0(STRING_DASHES)
         self.logger.debug0('')
@@ -41,7 +45,8 @@ class TokenArtifacts:
         self.logger.info(' ' + STRING_DASHES)
         for item in self.token_data:
             self.logger.info('| {0:^13} | {1} | {2} | {3} | '.format(
-                item, self.token_data[item]['address'], self.token_data[item]['instance'], self.token_data[item]['type'])
+                item, self.token_data[item]['address'],
+                self.token_data[item]['instance'], self.token_data[item]['type'])
             )
         self.logger.info(' ' + STRING_DASHES)
 
@@ -66,6 +71,11 @@ class TokenArtifacts:
         :return:
         """
         if alias != '':
-            self.token_data[alias] = self.new_token_entry(token_artifact['address'], token_artifact['instance'], type_of_token, alias)
+            self.token_data[alias] = self.new_token_entry(
+                token_artifact['address'], token_artifact['instance'], type_of_token, alias
+            )
         else:
-            self.token_data['uToken' + str(len(self.token_data))] = self.new_token_entry(token_artifact['address'], token_artifact['instance'], type_of_token, 'uToken' + str(len(self.token_data)))
+            self.token_data['uToken' + str(len(self.token_data))] = self.new_token_entry(
+                token_artifact['address'], token_artifact['instance'],
+                type_of_token, 'uToken' + str(len(self.token_data))
+            )

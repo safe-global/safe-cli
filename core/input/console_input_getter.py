@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-QUOTE = '\''
-COMA = ','
+# Import Aesthetic Constants
+from core.constants.console_constant import QUOTE, COMMA
 
+# Import Log Formatter
 from core.logger.log_message_formatter import LogMessageFormatter
 
 
 class ConsoleInputGetter:
     """ Console Input Getter
-
+    This class will provided the necessary functions to parse and retrieve the proper values from the input user
     """
     def __init__(self, logger):
         self.name = self.__class__.__name__
@@ -101,8 +102,7 @@ class ConsoleInputGetter:
             },
             'unloadOwner': {
                 0: {'': 0},
-                1: {'--address': 1},
-                2: {'--private_key': 1},
+                1: {'--private_key': 1},
             },
             'sendEther': {
                 0: {'': 0},
@@ -152,7 +152,7 @@ class ConsoleInputGetter:
     @staticmethod
     def get_size_of_priority_group(priority_group):
         """ Get Size Of Priority Group
-
+        This function will get the current size of the priority group
         :param priority_group:
         :return:
         """
@@ -188,24 +188,9 @@ class ConsoleInputGetter:
             self.logger.error('_get_input_console_arguments unable to properly parse the stream {0}'.format(err))
             return '', []
 
-    def _get_stored_arguments(self, argument_item, storage_item):
-        """ Get Stored Arguments
-
-        :param argument_item:
-        :param storage_item:
-        :return:
-        """
-        stored_index = argument_item.split('.')
-        self.logger.debug0('stored_argument', stored_index[0], stored_index[1])
-        try:
-            tmp_address = storage_item[stored_index[0]][stored_index[1]]
-            return tmp_address
-        except KeyError as err:
-            self.logger.error('_get_stored_arguments unable to retrieve the value {0}'.format(err))
-
     def _get_method_argument_value(self, value, quote=True):
         """ Get Method Argument Value
-
+        This function will split the contents of the input param and give the value
         :param value:
         :return:
         """
@@ -215,7 +200,7 @@ class ConsoleInputGetter:
 
     def get_input_method_arguments(self, argument_list, function_arguments):
         """ Get Input Method Arguments
-
+        This method will in charge to evaluate how to process the current operation been provided via input string
         :param argument_list:
         :param function_arguments:
         :return:
@@ -253,7 +238,7 @@ class ConsoleInputGetter:
                     if argument_type[sub_index] in argument_item \
                             and argument_positions_to_fill != 0 \
                             and argument_positions_to_fill > argument_positions_filled:
-                        arguments_to_fill += self._get_method_argument_value(argument_item) + COMA
+                        arguments_to_fill += self._get_method_argument_value(argument_item) + COMMA
                         argument_positions_filled += 1
 
                 arguments_to_fill = arguments_to_fill[:-1]
@@ -293,10 +278,11 @@ class ConsoleInputGetter:
 
     def get_arguments_based_on_priority(self, priority_groups, parsed_arguments):
         """ Get Arguments Based On Priority
-
+        This function will retrieve the values from any given and known priority group provided by the user via input
+        string
         :param priority_groups:
         :param parsed_arguments:
-        :return:
+        :return: desired_parsed_item_list
         """
         access_counter = []
         error_counter = []
@@ -332,7 +318,11 @@ class ConsoleInputGetter:
 
         selected_priority_group = parsed_item_counter.index(max(parsed_item_counter))
         size_of_selected_priority_group = self.get_size_of_priority_group(priority_groups[selected_priority_group])
-        self.logger.debug0('| Access Counters: {0} | Error Counters: {1} | Desired Items Counters: {2} | Total Desired Items: [ {3} ]'.format(access_counter, error_counter, parsed_item_counter, size_of_selected_priority_group))
+        self.logger.debug0(
+            '| Access Counters: {0} | Error Counters: {1} '
+            '| Desired Items Counters: {2} | Total Desired Items: [ {3} ]'.format(
+                access_counter, error_counter, parsed_item_counter, size_of_selected_priority_group)
+        )
 
         # Here since we know where to look for in the input data, the only thing that's left is to make a final sweep
         # and pick de values we are searching for
@@ -344,12 +334,10 @@ class ConsoleInputGetter:
 
     def get_gnosis_input_command_argument(self, stream):
         """ Get Gnosis Input Command Arguments
-        This function will get the input arguments provided in the gnosis-cli
-
-        :param command_argument:
-        :param argument_list:
-        :param checklist:
-        :return:
+        This function will get the input stream arguments provided in the gnosis-cli and split them in a list with the
+        desired values based on a priority list defined within the class
+        :param stream: String input value
+        :return: desired_parsed_item_list, priority_group, command_argument, argument_list
         """
         command_argument, argument_list = self._get_input_console_arguments(stream)
         desired_parsed_item_list, priority_group = self.evaluate_arguments_based_on_priority(command_argument, argument_list)

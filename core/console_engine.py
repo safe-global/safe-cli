@@ -1,17 +1,23 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Import ConsoleSafeCommands
+# Import Console Commands Module
 from core.contract.safe_commands import ConsoleSafeCommands
 from core.contract.contract_commands import ConsoleContractCommands
 
-from core.net.network_agent import NetworkAgent
+# Import Handlers of the Console
 from core.console_controller import ConsoleController
 from core.input.console_input_getter import ConsoleInputGetter
+from core.net.network_agent import NetworkAgent
 
+# Import HTML for defining the prompt style
+from prompt_toolkit import HTML
+
+# Import Completer & SyntaxLexer
 from core.contract.utils.syntax_lexer import SyntaxLexer
 from core.contract.utils.command_completer import CommandCompleter
 
+# Import Console Artifacts
 from core.artifacts.data_artifacts import DataArtifacts
 from core.artifacts.contract_artifacts import ContractArtifacts
 from core.artifacts.payload_artifacts import PayloadArtifacts
@@ -27,10 +33,13 @@ from core.logger.custom_logger import CustomLogger, DEBUG0
 from logging import INFO
 import logging
 
-from core.constants.console_constant import STRING_DASHES, TypeOfConsole
+# Import TypeOfConsole Enum
+from core.constants.console_constant import TypeOfConsole
+
+# Import LogFileManager & LogMessageFormatter
 from core.logger.log_file_manager import LogFileManager
 from core.logger.log_message_formatter import LogMessageFormatter
-from prompt_toolkit import HTML
+
 
 class GnosisConsoleEngine:
     """ Gnosis Console Engine
@@ -53,8 +62,6 @@ class GnosisConsoleEngine:
         self.contract_interface = None
 
         self.network = 'ganache'
-        self.default_auto_fill = False
-
         self.session_config = {
             'prompt': self._get_prompt_text(affix_stream=self.prompt_text),
             'contract_lexer': SyntaxLexer(),

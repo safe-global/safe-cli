@@ -86,7 +86,9 @@ class ContractArtifacts:
         :return:
         """
         if alias != '':
-            self.contract_data[str(alias)] = self.new_contract_entry(contract_name, contract_instance, contract_abi, contract_bytecode, contract_address)
+            self.contract_data[str(alias)] = self.new_contract_entry(
+                contract_name, contract_instance, contract_abi, contract_bytecode, contract_address
+            )
         else:
             self.contract_data[str(contract_name)] = self.new_contract_entry(
                 contract_name, contract_instance, contract_abi, contract_bytecode, contract_address
@@ -111,7 +113,9 @@ class ContractArtifacts:
                     self.logger.debug0(
                         'Data Found without Key: [ Alias ( {0} ) | Data ( {1} ) ]'.format(alias, data))
                 data = self.contract_data[alias][key]
-                self.logger.debug0('Data Found with Key: [ Alias ( {0} ) | Key ( {1} ) | Data ( {2} ) ]'.format(alias, key, data))
+                self.logger.debug0('Data Found with Key: [ Alias ( {0} ) | Key ( {1} ) | Data ( {2} ) ]'.format(
+                    alias, key, data)
+                )
             except KeyError:
                 self.logger.error('Unable to find the proper value for key & alias provided')
             return data

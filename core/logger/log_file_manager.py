@@ -1,3 +1,7 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+
 class LogFileManager:
     """ Log File Manager
     This class will create the log files if does not exist

@@ -7,9 +7,10 @@ from core.artifacts.help_artifacts import InformationArtifacts
 # Import ConsoleInputGetter for Testing Purposes
 from core.input.console_input_getter import ConsoleInputGetter
 
-# Import HexBytes Module
-from hexbytes import HexBytes
+# Import EtherHelper for unifying ether amount quantities
 from core.artifacts.utils.ether_helper import EtherHelper
+
+# Import Account
 from eth_account import Account
 
 

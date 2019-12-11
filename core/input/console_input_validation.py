@@ -13,6 +13,7 @@ import re
 # Web3.isAddress('0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed')
 # Web3.isChecksumAddress('0x5aAeb6053F3E94C9b9A09f33669435E7Ef1BeAed')
 
+
 class ConsoleInputValidation:
     """ Console Input Validation
 

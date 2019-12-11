@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# Import Aesthetics Constants
 from core.constants.console_constant import STRING_DASHES
+
+# Import HexBytes for visual information in the logger
 from hexbytes import HexBytes
+
 
 class LogMessageFormatter:
     """ Logging Message Formatter

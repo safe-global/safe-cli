@@ -1,13 +1,18 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Import System Modules
 import errno
 import os
 import sys
 
+# reference:
+#  https://stackoverflow.com/questions/9532499/check-whether-a-path-is-valid-in-python-without-creating-a-file-at-the-paths-ta
+# reference:
+#  https://msdn.microsoft.com/en-us/library/windows/desktop/ms681382%28v=vs.85%29.aspx
+
 # Sadly, Python fails to provide the following magic number for us.
 ERROR_INVALID_NAME = 123
-
-# reference: https://stackoverflow.com/questions/9532499/check-whether-a-path-is-valid-in-python-without-creating-a-file-at-the-paths-ta
-# reference: https://msdn.microsoft.com/en-us/library/windows/desktop/ms681382%28v=vs.85%29.aspx
-
 
 
 def is_pathname_valid(pathname: str) -> bool:

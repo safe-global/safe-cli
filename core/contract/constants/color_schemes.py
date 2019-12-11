@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
 # Color Constants
 BASIC_TEXT = 'LightGray'
 BASE_HIGHLIGHT_COLOR = 'MidnightBlue'

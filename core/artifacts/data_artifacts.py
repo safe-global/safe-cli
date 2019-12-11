@@ -49,7 +49,9 @@ class DataArtifacts:
                     self.logger.debug0('Data Found without Key: [ Alias ( {0} ) | Data ( {1} ) ]'.format(alias, data))
                     return data
                 data = artifact_data[alias][key]
-                self.logger.debug0('Data Found with Key: [ Alias ( {0} ) | Key ( {1} ) | Data ( {2} ) ]'.format(alias, key, data))
+                self.logger.debug0('Data Found with Key: [ Alias ( {0} ) | Key ( {1} ) | Data ( {2} ) ]'.format(
+                    alias, key, data)
+                )
                 return data
             except KeyError:
                 self.logger.error('Unable to find the proper value for key & alias provided')
@@ -73,5 +75,7 @@ class DataArtifacts:
                     value_from_artifact = self.retrive_from_stored_values(alias, key, artifact_type)
                 except IndexError:
                     self.logger.error('Unable to parse substring value from_alias_get_value()')
-        self.logger.debug0('From Alias Get Value | StreamValue: {0} | Value: {1} | '.format(stream_value, value_from_artifact))
+        self.logger.debug0('From Alias Get Value | StreamValue: {0} | Value: {1} | '.format(
+            stream_value, value_from_artifact)
+        )
         return value_from_artifact

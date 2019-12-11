@@ -4,6 +4,7 @@
 # Import Prompt Toolkit Modules
 from prompt_toolkit import HTML, prompt
 
+# Import Aesthetic & Payload Constants
 from core.constants.console_constant import (
     STRING_DASHES, payload_options, payload_tx_options
 )
@@ -70,7 +71,9 @@ class PayloadArtifacts:
         if alias != '':
             self.payload_data[alias] = self.new_payload_entry(payload_artifact, alias)
             return self.payload_data
-        self.payload_data['uPayload' + str(len(self.payload_data))] = self.new_payload_entry(payload_artifact, 'uPayload_' + str(len(self.payload_data)))
+        self.payload_data['uPayload' + str(len(self.payload_data))] = self.new_payload_entry(
+            payload_artifact, 'uPayload_' + str(len(self.payload_data))
+        )
         return self.payload_data
 
     @staticmethod

@@ -9,13 +9,18 @@ class TypeOfConsole(Enum):
     CONTRACT_CONSOLE = 'contract-cli'
     SAFE_CONSOLE = 'safe-cli'
 
-# Constants
+
+# Payload Constant Definition
 payload_options = ['alias', 'from', 'gas', 'gasPrice']
 payload_tx_options = ['alias', 'from', 'gas', 'gasPrice', 'value', 'nonce', 'safe_tx_gas']
+
+
+# Aesthectic Constant Definition
 STRING_DASHES = '----------' * 14
 QUOTE = '\''
 COMMA = ','
 NULL_ADDRESS = '0x' + '0'*40
+
 # String Size Of Diferent Type of Addresses
 CONTRACT_ADDRESS_LENGTH = 42
 TX_ADDRESS_LENGTH = 66
@@ -36,9 +41,10 @@ API_KEY_DICT = {
     }
 }
 
-
+# Mnemonic for -d Ganache Environment
 DETERMINISTIC_MNEMONIC = 'myth like bonus scare over problem client lizard pioneer submit female collect'
 
+# Default Accounts for Ganache Environment
 DETERMINISTIC_ACCOUNT_INFORMATION = {
             'account_0': {
                 'address': '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1',

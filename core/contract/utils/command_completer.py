@@ -1,9 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# Import Completer Module for the prompt
 from prompt_toolkit.completion import Completer, Completion
 
-from core.contract.constants.contract_constants import *
+# Import HTML for defining the prompt style
+from prompt_toolkit import HTML
+
+# Import
+from core.contract.constants.contract_constants import (
+    function_name, function_params, arg_keywords, function_parms_color, meta
+)
 
 
 class CommandCompleter(Completer):
