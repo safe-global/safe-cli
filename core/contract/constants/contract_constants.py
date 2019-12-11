@@ -5,7 +5,7 @@
 from prompt_toolkit.formatted_text import HTML
 
 # simple_function_operand = '((--address=)(0x([aA-zZ,0-9]{62}|[aA-zZ,0-9]{40}))?)|((--uint=)([0-9]{0,})?)|(--queue)?(--execute)?'
-console_method_names = 'isOwner|getOwners|getThreshold|addOwner|swapOwner|removeOwner|changeThreshold|sendEther|sendToken|VERSION|NAME|code|nonce|addOwnerWithThreshold|viewSender|loadOwner|loadMultipleOwners|removeMultipleOwners|unloadOwner'
+console_method_names = 'isOwner|getOwners|getThreshold|addOwner|swapOwner|removeOwner|changeThreshold|sendEther|sendToken|VERSION|NAME|code|nonce|addOwnerWithThreshold|viewSender|loadOwner|loadMultipleOwners|removeMultipleOwners|unloadOwner|updateSafe'
 console_commands = 'viewNetwork|viewAccounts|viewContracts|newPayload|newTxPayload|newAccount|newContract|setNetwork|setDefaultSender|loadContract|loadSafe|viewPayloads|viewTokens|newTokens|viewSender'
 console_quit_commands = 'exit|quit|close'
 console_help_commands = 'help|about|info'

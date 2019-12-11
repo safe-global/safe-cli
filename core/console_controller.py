@@ -27,7 +27,7 @@ class ConsoleController:
         self.payload_artifacts = self.data_artifact.payload_artifacts
         self.token_artifacts = self.data_artifact.token_artifacts
         self.network_agent = network_agent
-        self.console_information = InformationArtifacts()
+        self.console_information = InformationArtifacts(self.logger)
 
         self.console_engine = console_engine
         self.safe_interface = None
@@ -88,8 +88,8 @@ class ConsoleController:
         # information console commands trigger procedures
         elif command_argument == 'about':
             self.console_information.command_view_about()
-        elif (command_argument == 'info') or (command_argument == 'help'):
-            self.console_information.command_view_help()
+        elif (command_argument == 'help') or (command_argument == 'info'):
+            self.console_information.command_view_general_information()
 
     def setinel_helper(self, address_value, safe_interface):
         """ Sender Helper
@@ -129,6 +129,8 @@ class ConsoleController:
         self.logger.debug0('(+) [ Operating with Safe Console ]: ' + command_argument)
         if command_argument == 'info':
             safe_interface.command_safe_information()
+        elif (command_argument == 'help'):
+            self.console_information.command_view_safe_information()
         elif command_argument == 'nonce':
             safe_interface.command_safe_nonce()
         elif command_argument == 'code':

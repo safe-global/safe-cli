@@ -23,6 +23,7 @@ from core.artifacts.contract_artifacts import ContractArtifacts
 from core.artifacts.payload_artifacts import PayloadArtifacts
 from core.artifacts.account_artifacts import AccountsArtifacts
 from core.artifacts.token_artifacts import TokenArtifacts
+from core.artifacts.help_artifacts import InformationArtifacts
 
 # Import PromptToolkit Package
 from prompt_toolkit.completion import WordCompleter
@@ -103,6 +104,8 @@ class GnosisConsoleEngine:
         self.logger.addHandler(file_handler)
         self.logger.addHandler(console_handler)
 
+        self.console_information = InformationArtifacts(self.logger)
+        self.console_information.command_view_disclaimer()
         # Setup Contract Payloads
         self.payload_artifacts = PayloadArtifacts(self.logger)
         # Setup Contract Artifacts
