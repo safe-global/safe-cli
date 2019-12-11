@@ -237,8 +237,7 @@ class ConsoleController:
                     address_token_to = desired_parsed_item_list[0][1][0]
                     address_value_to = desired_parsed_item_list[0][1][1]
                     token_amount = desired_parsed_item_list[1][1][0]
-                    local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
-                    safe_interface.command_withdraw_token_raw(address_value_to, address_token_to, token_amount, local_account)
+                    safe_interface.command_withdraw_token_raw(address_value_to, address_token_to, token_amount)
                 except Exception as err:
                     print(type(err), err)
 

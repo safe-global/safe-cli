@@ -141,7 +141,7 @@ class ConsoleInputGetter:
             },
             'withdrawToken': {
                 0: {'': 0},
-                1: {'--address': 2, '--amount': 1, '--private_key': 1},
+                1: {'--address': 2, '--amount': 1},
             },
         }
 

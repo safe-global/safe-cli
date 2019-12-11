@@ -507,7 +507,7 @@ class ConsoleSafeCommands:
 
     def command_send_token_raw(self, address_to, token_contract_address, token_amount, local_account):
         try:
-            self.command_view_token_balance()
+            #self.command_view_token_balance()
             self.log_formatter.log_section_left_side('Send Token')
             safe_tx = self.ethereum_client.erc20.send_tokens(address_to, int(token_amount), token_contract_address, local_account.privateKey)
 
@@ -515,7 +515,7 @@ class ConsoleSafeCommands:
             tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx, timeout=60)
             self.logger.info(tx_receipt)
             #self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
-            self.command_view_token_balance()
+            #self.command_view_token_balance()
             return tx_receipt
         except Exception as err:
             self.logger.debug0(err)
@@ -524,17 +524,23 @@ class ConsoleSafeCommands:
         tx_receipt = self.command_send_token_raw(self.safe_operator.address, token_address_to, token_amount, local_account)
         return tx_receipt
 
-    # Todo: Fix Me!!!
-    def command_withdraw_token_raw(self, address_to, token_contract_address, token_amount, local_account):
-        self.command_view_token_balance()
-        sender_data = {'from': self.safe_operator.address, 'gasPrice': 0}
+    def command_withdraw_token_raw(self, address_to, token_contract_address, token_amount):
+        # self.command_view_token_balance()
+        sender_data = {'from': self.safe_operator.address, 'gasPrice': self.ethereum_client.w3.toWei(20, 'gwei')}
         erc20 = get_erc20_contract(self.ethereum_client.w3, token_contract_address)
+        # --------------------------------------------------------------------------------------------------------------
+        # self.logger.info(erc20.functions.allowance(self.safe_operator.address, address_to).call())
+        # tx_hash_approve = erc20.functions.approve(address_to, int(token_amount)).buildTransaction(sender_data)
+        # tx_receipt_approve = self.ethereum_client.w3.eth.waitForTransactionReceipt(tx_hash_approve)
+        # self.logger.info(tx_receipt_approve)
+        # self.logger.info(erc20.functions.allowance(self.safe_operator.address, address_to).call())
+        # --------------------------------------------------------------------------------------------------------------
         safe_tx = erc20.functions.transfer(address_to, int(token_amount)).buildTransaction(sender_data)
 
         print('Tx Data:', safe_tx['data'])
         safe_tx = self.safe_operator.build_multisig_tx(
             token_contract_address, 0, safe_tx['data'], SafeOperation.CALL.value,
-            safe_tx['gas'] + 50000,  self.base_gas, self.gas_price,
+            safe_tx['gas'] + 50000, self.base_gas, self.ethereum_client.w3.toWei(20, 'gwei'),
             NULL_ADDRESS, NULL_ADDRESS, b''
         )
 
@@ -548,10 +554,10 @@ class ConsoleSafeCommands:
             safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, tx_gas=self.base_gas + self.safe_tx_gas)
             # Retrieve the receipt
             safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
-            self.logger.info(safe_tx_receipt)
-            #self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
 
-        self.command_view_token_balance()
+            self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
+
+        # self.command_view_token_balance()
         return safe_tx_receipt
 
     def command_send_ether_raw(self, address_to, wei_amount, local_account):
