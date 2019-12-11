@@ -34,7 +34,7 @@ class ConsoleSafeCommands:
         self.safe_instance = self._setup_safe_resolver(safe_address)
         # Default gas prices
         self.safe_tx_gas = 300000
-        self.base_gas = 200000
+        self.base_gas = 100000
         self.gas_price = self.ethereum_client.w3.toWei(20, 'gwei')
         # Default empty values
         self.zero_value = 0
@@ -526,8 +526,10 @@ class ConsoleSafeCommands:
 
     def command_withdraw_token_raw(self, address_to, token_contract_address, token_amount):
         # self.command_view_token_balance()
-        sender_data = {'from': self.safe_operator.address, 'gasPrice': self.ethereum_client.w3.toWei(20, 'gwei')}
+        gas_price = 0
+        sender_data = {'from': self.safe_operator.address, 'gasPrice': 1}
         erc20 = get_erc20_contract(self.ethereum_client.w3, token_contract_address)
+
         # --------------------------------------------------------------------------------------------------------------
         # self.logger.info(erc20.functions.allowance(self.safe_operator.address, address_to).call())
         # tx_hash_approve = erc20.functions.approve(address_to, int(token_amount)).buildTransaction(sender_data)
@@ -535,12 +537,13 @@ class ConsoleSafeCommands:
         # self.logger.info(tx_receipt_approve)
         # self.logger.info(erc20.functions.allowance(self.safe_operator.address, address_to).call())
         # --------------------------------------------------------------------------------------------------------------
+
         safe_tx = erc20.functions.transfer(address_to, int(token_amount)).buildTransaction(sender_data)
 
         print('Tx Data:', safe_tx['data'])
         safe_tx = self.safe_operator.build_multisig_tx(
             token_contract_address, 0, safe_tx['data'], SafeOperation.CALL.value,
-            safe_tx['gas'] + 50000, self.base_gas, self.ethereum_client.w3.toWei(20, 'gwei'),
+            safe_tx['gas'] + 50000, self.base_gas, gas_price,
             NULL_ADDRESS, NULL_ADDRESS, b''
         )
 
@@ -551,7 +554,8 @@ class ConsoleSafeCommands:
         print('valor:' + str(safe_tx.call()))
         if safe_tx.call():
             # Execute the current transaction
-            safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, tx_gas=self.base_gas + self.safe_tx_gas)
+            safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, tx_gas=self.base_gas + self.safe_tx_gas,
+                                              tx_gas_price=gas_price)
             # Retrieve the receipt
             safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
 
