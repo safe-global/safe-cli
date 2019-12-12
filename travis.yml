@@ -1,9 +1,14 @@
+dist: xenial
 language: python
+cache: pip
 python:
   - "3.7"
 install:
-  - pip install -r requirements.txt
+  - pip install -r requirements-test.txt
+  - pip install coveralls
+  - npm install -g ganache-cli@6.6.0
 script:
-  - ganache-cli -d &
+  - ganache-cli -d -p 8545 --defaultBalanceEther 10000 --gasLimit 10000000 -a 30 --noVMErrorsOnRPCResponse > /dev/null &
+  - sleep 5
   - cd /test
   - pytest --disable-pytest-warnings --verbose
