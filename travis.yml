@@ -4,5 +4,6 @@ python:
 install:
   - pip install -r requirements.txt
 script:
+  - ganache-cli -d &
   - cd /test
   - pytest --disable-pytest-warnings --verbose
