@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Import Init Scenario ( To have a functional contract to test commands )
-from safe_init_scenario_script import gnosis_py_init_scenario, gnosis_py_init_tokens
-
 # Import GnosisConsoleEngine Module
 from core.console_engine import GnosisConsoleEngine
 
@@ -77,9 +74,9 @@ try:
     # Init Scenario with Random Safe with Setup (Pre-Loaded Contracts)
     pre_loaded_contract_artifacts = None
     pre_loaded_token_artifacts = None
-    if results.test:
-        # pre_loaded_contract_artifacts = gnosis_py_init_scenario()
-        pre_loaded_token_artifacts = gnosis_py_init_tokens('0x5b1869D9A4C187F2EAa108f3062412ecf0526b24')
+    # if results.test:
+    #     pre_loaded_contract_artifacts = gnosis_py_init_scenario()
+    #     pre_loaded_token_artifacts = gnosis_py_init_tokens('0x5b1869D9A4C187F2EAa108f3062412ecf0526b24')
 
     # Init GnosisConsoleEngine with current configuration
     gnosis_console_engine = GnosisConsoleEngine(

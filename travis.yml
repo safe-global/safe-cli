@@ -1,12 +1,24 @@
 dist: xenial
+os: linux
 language: python
 cache: pip
 python:
   - "3.7"
+
+before_install:
+  - sudo add-apt-repository ppa:ethereum/ethereum -y
+  - sudo apt-get update
+  - sudo apt-get install build-essential -y
+  - sudo apt-get install gcc g++ libssl-dev libudev-dev pkg-config
+  - sudo apt -y install curl dirmngr apt-transport-https lsb-release ca-certificates
+  - curl -sL https://deb.nodesource.com/setup_10.x | sudo bash
+  - sudo apt-get install -y nodejs
+  - sudo apt-get install -y pip
+
 install:
   - pip install -r requirements-test.txt
-  - pip install coveralls
   - npm install -g ganache-cli@6.6.0
+
 script:
   - ganache-cli -d -p 8545 --defaultBalanceEther 10000 --gasLimit 10000000 -a 30 --noVMErrorsOnRPCResponse > /dev/null &
   - sleep 5
