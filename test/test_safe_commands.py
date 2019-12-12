@@ -73,6 +73,7 @@ safe_address = gnosis_py_init_scenario()
 token_address = gnosis_py_init_tokens(safe_address)
 # ----------------------------------------------------------------------------------------------------------------------
 
+
 def test_load_safe():
     console_safe = ConsoleSafeCommands(safe_address, logger, data_artifacts, network_agent)
 
@@ -186,8 +187,8 @@ def test_change_threshold():
     # Assert current loaded owner, length of local_accounts should be 1 and the values for private_key/address the fst
     # loaded user in the test
     assert len(console_safe.local_owner_account_list) == 1
-    assert console_safe.sender_private_key in '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-    assert console_safe.sender_address in '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+    assert console_safe.sender_private_key == '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
+    assert console_safe.sender_address == '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 
     # Load Snd Owner
     snd_private_key = '0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1'
@@ -202,8 +203,8 @@ def test_change_threshold():
     # Assert current loaded owner, length of local_accounts should be 2 and the values for private_key/address the snd
     # loaded user in the test
     assert len(console_safe.local_owner_account_list) == 2
-    assert console_safe.sender_private_key in '0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1'
-    assert console_safe.sender_address in '0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0'
+    assert console_safe.sender_private_key == '0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1'
+    assert console_safe.sender_address == '0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0'
 
     # Revert Threshold to 1
     new_threshold = 1
@@ -229,8 +230,8 @@ def test_swap_owner():
     # Assert current loaded owner, length of local_accounts should be 1 and the values for private_key/address the fst
     # loaded user in the test
     assert len(console_safe.local_owner_account_list) == 1
-    assert console_safe.sender_private_key in '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-    assert console_safe.sender_address in '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+    assert console_safe.sender_private_key == '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
+    assert console_safe.sender_address == '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 
     # Load Snd Owner
     snd_private_key = '0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1'
@@ -245,8 +246,8 @@ def test_swap_owner():
     # Assert current loaded owner, length of local_accounts should be 2 and the values for private_key/address the snd
     # loaded user in the test
     assert len(console_safe.local_owner_account_list) == 2
-    assert console_safe.sender_private_key in '0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1'
-    assert console_safe.sender_address in '0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0'
+    assert console_safe.sender_private_key == '0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1'
+    assert console_safe.sender_address == '0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0'
 
     # Swap Owner
     address_value_to = '0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0'
@@ -276,8 +277,8 @@ def test_remove_owner():
     # Assert current loaded owner, length of local_accounts should be 1 and the values for private_key/address the fst
     # loaded user in the test
     assert len(console_safe.local_owner_account_list) == 1
-    assert console_safe.sender_private_key in '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-    assert console_safe.sender_address in '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+    assert console_safe.sender_private_key == '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
+    assert console_safe.sender_address == '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 
     # Remove Owner
     address_value_to = '0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b'
@@ -306,14 +307,14 @@ def test_deposit_ether():
     # Assert current loaded owner, length of local_accounts should be 1 and the values for private_key/address the fst
     # loaded user in the test
     assert len(console_safe.local_owner_account_list) == 1
-    assert console_safe.sender_private_key in '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-    assert console_safe.sender_address in '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+    assert console_safe.sender_private_key == '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
+    assert console_safe.sender_address == '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 
     # Deposit Ether in Safe
     previous_balance = network_agent.ethereum_client.w3.eth.getBalance(console_safe.safe_operator.address)
 
     local_account = Account.privateKeyToAccount(fst_private_key)
-    ether_helper = EtherHelper(logger, network_agent.ethereum_client)
+    ether_helper = EtherHelper(logger, network_agent.get_ethereum_client())
     amount_value = ether_helper.get_unify_ether_amount([('--ether', [2])])
 
     previous_user_balance = network_agent.ethereum_client.w3.eth.getBalance(local_account.address)
@@ -343,8 +344,8 @@ def test_withdraw_ether():
     # Assert current loaded owner, length of local_accounts should be 1 and the values for private_key/address the fst
     # loaded user in the test
     assert len(console_safe.local_owner_account_list) == 1
-    assert console_safe.sender_private_key in '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-    assert console_safe.sender_address in '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+    assert console_safe.sender_private_key == '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
+    assert console_safe.sender_address == '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 
     # Withdraw Ether from Safe
     address_value_to = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
@@ -352,7 +353,7 @@ def test_withdraw_ether():
     previous_user_balance = network_agent.ethereum_client.w3.eth.getBalance(address_value_to)
 
     address_value_to = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
-    ether_helper = EtherHelper(logger, network_agent.ethereum_client)
+    ether_helper = EtherHelper(logger, network_agent.get_ethereum_client())
     amount_value = ether_helper.get_unify_ether_amount([('--ether', [2])])
     console_safe.command_withdraw_ether_raw(amount_value, address_value_to)
 
@@ -385,8 +386,8 @@ def test_deposit_token():
     # Assert current loaded owner, length of local_accounts should be 1 and the values for private_key/address the fst
     # loaded user in the test
     assert len(console_safe.local_owner_account_list) == 1
-    assert console_safe.sender_private_key in '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-    assert console_safe.sender_address in '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+    assert console_safe.sender_private_key == '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
+    assert console_safe.sender_address == '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 
     # Deposit Token in Safe
 
@@ -415,8 +416,8 @@ def test_withdraw_token():
     # Assert current loaded owner, length of local_accounts should be 1 and the values for private_key/address the fst
     # loaded user in the test
     assert len(console_safe.local_owner_account_list) == 1
-    assert console_safe.sender_private_key in '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-    assert console_safe.sender_address in '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+    assert console_safe.sender_private_key == '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
+    assert console_safe.sender_address == '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 
     # Withdraw Token in Safe
     token_amount = 1
