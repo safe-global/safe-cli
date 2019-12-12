@@ -65,6 +65,7 @@ def deploy_gnosis_safe_v1_1_1():
     print('Safe_Address_V1.1.1:', safe_v111_deployment_data.contract_address)
     return safe_v111_deployment_data.contract_address
 
+
 def deploy_gnosis_safe_v1_1_0():
     # Get new Ethereum Provider & ContractReader
     ethereum_client = EthereumClient()
