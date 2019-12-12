@@ -56,7 +56,7 @@ def deploy_gnosis_safe_v1_1_1():
 
     local_account = Account.privateKeyToAccount('0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d')
     safe_v111_abi, safe_v111_bytecode, safe_v111 = contract_reader.read_from(
-        '../assets/contracts/GnosisSafeV1.1.1.json')
+        './assets/contracts/GnosisSafeV1.1.1.json')
 
     safe_v111_deployment_data = Safe.deploy_master_contract(ethereum_client, local_account)
     print('| Successfully Deployed', safe_v111, 'with Address:', safe_v111_deployment_data.contract_address)
@@ -72,8 +72,8 @@ def deploy_gnosis_safe_v1_1_0():
 
     # remark: Init Deployer Account
     local_account = Account.privateKeyToAccount('0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d')
-    safe_v101_abi, safe_v101_bytecode, safe_v101 = contract_reader.read_from('../assets/contracts/GnosisSafeV1.1.0.json')
-    proxy_v101_abi, proxy_v101_bytecode, proxy_v101 = contract_reader.read_from('../assets/contracts/Proxy.json')
+    safe_v101_abi, safe_v101_bytecode, safe_v101 = contract_reader.read_from('./assets/contracts/GnosisSafeV1.1.0.json')
+    proxy_v101_abi, proxy_v101_bytecode, proxy_v101 = contract_reader.read_from('./assets/contracts/Proxy.json')
 
     # remark: Start Safe Contract Deployment
     print('', '----------' * 14)

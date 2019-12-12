@@ -143,6 +143,10 @@ class ConsoleInputGetter:
                 0: {'': 0},
                 1: {'--address': 2, '--amount': 1},
             },
+            'updateSafe': {
+                0: {'': 0},
+                1: {'--address': 1},
+            },
         }
 
     @staticmethod

@@ -92,8 +92,6 @@ class ConsoleSafeCommands:
                 stored_ether.append(account_ether)
 
             owner_based_on_index = stored_ether.index(max(stored_ether))
-            self.logger.info(owner_based_on_index)
-            self.logger.info(len(stored_ether))
             self.sender_address = self.local_owner_account_list[owner_based_on_index].address
             self.sender_private_key = HexBytes(self.local_owner_account_list[owner_based_on_index].privateKey).hex()
 
@@ -169,11 +167,6 @@ class ConsoleSafeCommands:
 
             # Retrieve Nonce for the transaction
             safe_nonce = self.safe_operator.retrieve_nonce()
-            # safe_tx = SafeTx(
-            #     self.ethereum_client, self.safe_instance.address, address_to, wei_value,
-            #     payload_data, SafeOperation.CALL.value, self.safe_tx_gas, self.base_gas,
-            #     self._setup_gas_price(), NULL_ADDRESS, NULL_ADDRESS, safe_nonce=safe_nonce
-            # )
             safe_tx = self.safe_operator.build_multisig_tx(
                 address_to, wei_value, payload_data, SafeOperation.CALL.value,
                 self.safe_tx_gas, self.base_gas, self._setup_gas_price(), NULL_ADDRESS, NULL_ADDRESS, b'', safe_nonce=safe_nonce
@@ -187,7 +180,7 @@ class ConsoleSafeCommands:
             self.logger.info(safe_tx.call())
             if safe_tx.call():
                 # Execute the current transaction
-                safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, tx_gas=self.base_gas + self.safe_tx_gas)
+                safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, tx_gas=self.base_gas + self.safe_tx_gas, tx_gas_price=self._setup_gas_price())
                 # Retrieve the receipt
                 safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
                 self.logger.info(safe_tx_receipt)
@@ -408,6 +401,32 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to command_safe_swap_owner(): {0} {1}'.format(type(err), str(err)))
 
+    def command_safe_change_version(self, address_version):
+        """ Command Safe Change MasterCopy
+        This function will perform the necessary step for properly executing the method changeMasterCopy from the safe
+        :param address_version:
+        :return:
+        """
+        try:
+            # Preview the current status of the safe version before the transaction
+            self.command_safe_version()
+            self.command_master_copy()
+            # Default sender data
+            sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice': self._setup_gas_price()}
+
+            # Generating the function payload data
+            payload_data = HexBytes(self.safe_instance.functions.changeMasterCopy(address_version).buildTransaction(sender_data)['data'])
+            self.log_formatter.tx_data_formatter(sender_data, payload_data)
+
+            # Perform the transaction
+            self.perform_transaction(payload_data)
+
+            # Preview the current status of the safe version after the transaction
+            self.command_safe_version()
+            self.command_master_copy()
+        except Exception as err:
+            self.logger.error('Unable to command_safe_change_version(): {0} {1}'.format(type(err), err))
+
     def command_safe_change_threshold(self, new_threshold):
         """ Command Safe Change Threshold
         This function will perform the necessary step for properly executing the method changeThreshold from the safe
@@ -467,7 +486,6 @@ class ConsoleSafeCommands:
             self.command_safe_get_threshold()
             self.command_safe_get_owners()
             # Lastly since there is a new owner registered within the safe, the sender should be recalculated
-            #self.setup_sender()
         except Exception as err:
             self.logger.error('Unable to command_safe_add_owner_threshold(): {0} {1}'.format(type(err), err))
 
@@ -577,50 +595,6 @@ class ConsoleSafeCommands:
                                                                       token_contract_address)
         self.logger.debug0(current_token_balance)
         self.logger.debug0(current_user_balance)
-        # self.command_view_token_balance()
-        return safe_tx_receipt
-
-    def command_withdraw_token_raw2(self, address_to, token_contract_address, token_amount):
-        # Preview the current token balance of the safe before the transaction
-        # self.command_view_token_balance()
-
-        sender_data = {'from': self.safe_operator.address}
-        erc20 = get_erc20_contract(self.ethereum_client.w3, token_contract_address)
-
-        print(erc20.functions.balanceOf(self.safe_operator.address).call())
-        # safe_tx = erc20.functions.transfer(address_to, int(token_amount)).buildTransaction(sender_data)
-
-        # payload_data = HexBytes(erc20.functions.transfer(address_to, int(token_amount)).buildTransaction(sender_data)['data'])
-        safe_tx = erc20.functions.transfer(address_to, int(token_amount)).buildTransaction(sender_data)
-        # self.log_formatter.tx_data_formatter('None', payload_data.hex())
-
-        # Perform the transaction
-        # safe_tx_receipt = self.perform_transaction(payload_data)
-
-        print('Tx Data:', safe_tx['data'])
-        safe_tx = self.safe_operator.build_multisig_tx(
-            token_contract_address, 0, safe_tx['data'], SafeOperation.CALL.value,
-            safe_tx['gas'] + 50000, self.base_gas, self._setup_gas_price(), NULL_ADDRESS, NULL_ADDRESS, b''
-        )
-
-        # Multi Sign the current transaction
-        safe_tx = self.safe_tx_multi_sign(safe_tx, self.local_owner_account_list)
-        safe_tx_receipt = None
-        nonce = self.ethereum_client.get_nonce_for_account(self.sender_address)
-        # The current tx was well formed
-
-        if safe_tx.call():
-            # Execute the current transaction
-            safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, tx_gas=self.base_gas + self.safe_tx_gas, tx_gas_price=self._setup_gas_price(), tx_nonce=nonce)
-            safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
-
-            # Format Receipt with Logger
-            self.logger.info(safe_tx_receipt)
-            # self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
-
-        print(erc20.functions.balanceOf(self.safe_operator.address).call())
-        print(erc20.functions.balanceOf(address_to).call())
-        # Preview the current token balance of the safe after the transaction
         # self.command_view_token_balance()
         return safe_tx_receipt
 

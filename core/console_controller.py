@@ -12,6 +12,7 @@ from hexbytes import HexBytes
 from core.artifacts.utils.ether_helper import EtherHelper
 from eth_account import Account
 
+
 class ConsoleController:
     """ Console Controller
     This class will represent and function as pseudo-controller for the execution of the proper commands
@@ -75,13 +76,10 @@ class ConsoleController:
         elif command_argument == 'setNetwork':
             if priority_group == 1:
                 network = desired_parsed_item_list[0][1][0]
-                print(network)
                 self.network_agent.set_network_provider_endpoint(network, None)
             elif priority_group == 2:
-                print(desired_parsed_item_list)
                 network = desired_parsed_item_list[0][1][0]
                 api_key = desired_parsed_item_list[1][1][0]
-                print(network, api_key)
                 self.network_agent.set_network_provider_endpoint(network, api_key)
         elif command_argument == 'setAutofill':
             self.logger.info('Autofill option to be implemented')
@@ -91,11 +89,6 @@ class ConsoleController:
             self.console_information.command_view_about()
         elif (command_argument == 'info') or (command_argument == 'help'):
             self.console_information.command_view_help()
-
-        # test console getter commands trigger procedures
-        elif command_argument == 'dummyCommand':
-            #self.console_getter.get_gnosis_input_command_argument(stream)
-            self.logger.info('do nothing')
 
     def setinel_helper(self, address_value, safe_interface):
         """ Sender Helper
@@ -132,8 +125,6 @@ class ConsoleController:
         :param safe_interface:
         :return:
         """
-        # Commands to be implemented:
-        # - updateSafe: evaluate if current version can be uploaded to the newest one
         self.logger.debug0('(+) [ Operating with Safe Console ]: ' + command_argument)
         if command_argument == 'info':
             safe_interface.command_safe_information()
@@ -278,15 +269,18 @@ class ConsoleController:
                 except Exception as err:
                     self.logger.error(err)
 
-
-
         elif command_argument == 'updateSafe':
-            self.logger.info('updateSafe --address=0x to be Implemented')
-            # note: Check Validity of The Safe Address & Version, Then Ask for Confirmation'
+            # note: Check Validity of The Safe Address & Version, Then Ask for Confirmation
+            if priority_group == 1:
+                try:
+                    address_value_to = desired_parsed_item_list[0][1][0]
+                    safe_interface.command_safe_change_version(address_value_to)
+                except Exception as err:
+                    self.logger.error(err)
+
 
         elif command_argument == 'setDefaultSender':
             safe_interface.command_set_default_sender()
-
         elif command_argument == 'viewBalance':
             safe_interface.command_view_balance()
         elif command_argument == 'viewSender':
@@ -299,7 +293,6 @@ class ConsoleController:
             self.account_artifacts.command_view_accounts()
         elif command_argument == 'viewPayloads':
             self.payload_artifacts.command_view_payloads()
-
         elif command_argument == 'loadOwner':
             if priority_group == 1:
                 private_key = desired_parsed_item_list[0][1][0]

@@ -12,7 +12,7 @@ from core.contract.safe_commands import ConsoleSafeCommands
 from core.artifacts.utils.ether_helper import EtherHelper
 from hexbytes import HexBytes
 from eth_account import Account
-from test.utils.scenario_script import gnosis_py_init_scenario, gnosis_py_init_tokens
+from test.utils.scenario_script import deploy_gnosis_safe_v1_1_0, deploy_uxi_tokens, deploy_gnosis_safe_v1_1_1
 
 
 def setinel_helper(address_value, safe_interface):
@@ -69,8 +69,9 @@ data_artifacts = DataArtifacts(logger, account_artifacts, None, token_artifacts,
 # ----------------------------------------------------------------------------------------------------------------------
 # Setting Up Scenario
 # ----------------------------------------------------------------------------------------------------------------------
-safe_address = gnosis_py_init_scenario()
-token_address = gnosis_py_init_tokens(safe_address)
+safe_address = deploy_gnosis_safe_v1_1_0()
+new_master_copy_address = deploy_gnosis_safe_v1_1_1()
+token_address = deploy_uxi_tokens(safe_address)
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -432,3 +433,32 @@ def test_withdraw_token():
 
     assert current_user_token_balance == (previous_user_token_balance + token_amount)
     assert current_safe_token_balance == (previous_safe_token_balance - token_amount)
+
+
+def test_change_master_copy():
+    # Load Safe
+    console_safe = ConsoleSafeCommands(safe_address, logger, data_artifacts, network_agent)
+
+    # Load Owner
+    owner_private_key_safe = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
+    local_owner = account_artifacts.get_local_account(owner_private_key_safe,
+                                                      console_safe.safe_operator.retrieve_owners())
+
+    if local_owner in console_safe.local_owner_account_list:
+        logger.error('Local Owner Already in local_owner_account_list')
+    else:
+        console_safe.local_owner_account_list.append(local_owner)
+    console_safe.setup_sender()
+
+    # Assert the new loaded owner, and the variables that are affected by it
+    assert len(console_safe.local_owner_account_list) == 1
+    assert console_safe.sender_private_key == '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
+    assert console_safe.sender_address == '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
+    assert console_safe.sender_address == console_safe.local_owner_account_list[0].address
+    assert console_safe.sender_private_key == HexBytes(console_safe.local_owner_account_list[0].privateKey).hex()
+
+    # updateSafe
+    console_safe.command_safe_change_version(new_master_copy_address)
+
+    assert console_safe.safe_operator.retrieve_master_copy_address() == new_master_copy_address
+    # assert console_safe.safe_operator.retrieve_version() == '1.1.1'
