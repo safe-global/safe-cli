@@ -254,6 +254,18 @@ class ConsoleController:
                 except Exception as err:
                     self.logger.error(err)
 
+        elif command_argument == 'depositEther':
+            if priority_group == 1:
+                try:
+                    local_account = Account.privateKeyToAccount(desired_parsed_item_list[0][1][0])
+                    ethereum_units_amount = desired_parsed_item_list[1:]
+                    ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
+                    amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
+                    self.logger.debug0('Total Amount: {0} Wei'.format(amount_value))
+                    safe_interface.command_deposit_ether_raw(amount_value, local_account)
+                except Exception as err:
+                    self.logger.error(err)
+
         elif command_argument == 'withdrawEther':
             if priority_group == 1:
                 try:
@@ -266,17 +278,7 @@ class ConsoleController:
                 except Exception as err:
                     self.logger.error(err)
 
-        elif command_argument == 'depositEther':
-            if priority_group == 1:
-                try:
-                    local_account = Account.privateKeyToAccount(desired_parsed_item_list[0][1][0])
-                    ethereum_units_amount = desired_parsed_item_list[1:]
-                    ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
-                    amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
-                    self.logger.debug0('Total Amount: {0} Wei'.format(amount_value))
-                    safe_interface.command_deposit_ether_raw(amount_value, local_account)
-                except Exception as err:
-                    self.logger.error(err)
+
 
         elif command_argument == 'updateSafe':
             self.logger.info('updateSafe --address=0x to be Implemented')
