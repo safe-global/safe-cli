@@ -208,7 +208,7 @@ class ConsoleController:
                     address_value_to = desired_parsed_item_list[0][1][1]
                     token_amount = desired_parsed_item_list[1][1][0]
                     local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
-                    safe_interface.command_send_token_raw(address_value_to, address_token_to, token_amount, local_account)
+                    safe_interface.command_send_token(address_value_to, address_token_to, token_amount, local_account)
                 except Exception as err:
                     print(type(err), err)
 
@@ -218,7 +218,7 @@ class ConsoleController:
                     address_value_to = desired_parsed_item_list[0][1][0]
                     token_amount = desired_parsed_item_list[1][1][0]
                     local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
-                    safe_interface.command_deposit_token_raw(address_value_to, token_amount, local_account)
+                    safe_interface.command_deposit_token(address_value_to, token_amount, local_account)
                 except Exception as err:
                     print(type(err), err)
                     
@@ -228,7 +228,7 @@ class ConsoleController:
                     address_token_to = desired_parsed_item_list[0][1][0]
                     address_value_to = desired_parsed_item_list[0][1][1]
                     token_amount = desired_parsed_item_list[1][1][0]
-                    safe_interface.command_withdraw_token_raw(address_value_to, address_token_to, token_amount)
+                    safe_interface.command_withdraw_token(address_value_to, address_token_to, token_amount)
                 except Exception as err:
                     print(type(err), err)
 
@@ -241,7 +241,7 @@ class ConsoleController:
                     ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
                     amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
                     self.logger.debug0('Total Amount: {0} Wei'.format(amount_value))
-                    safe_interface.command_send_ether_raw(address_value_to, amount_value, local_account)
+                    safe_interface.command_send_ether(address_value_to, amount_value, local_account)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -253,7 +253,7 @@ class ConsoleController:
                     ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
                     amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
                     self.logger.debug0('Total Amount: {0} Wei'.format(amount_value))
-                    safe_interface.command_deposit_ether_raw(amount_value, local_account)
+                    safe_interface.command_deposit_ether(amount_value, local_account)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -265,7 +265,7 @@ class ConsoleController:
                     ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
                     amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
                     self.logger.debug0('Total Amount: {0} Wei'.format(amount_value))
-                    safe_interface.command_withdraw_ether_raw(amount_value, address_value_to)
+                    safe_interface.command_withdraw_ether(amount_value, address_value_to)
                 except Exception as err:
                     self.logger.error(err)
 

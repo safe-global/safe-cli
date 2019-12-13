@@ -3,15 +3,16 @@ from core.logger.custom_logger import CustomLogger
 from logging import INFO
 import logging
 
+from hexbytes import HexBytes
+from eth_account import Account
+
+from core.artifacts.account_artifacts import AccountsArtifacts
 from core.artifacts.token_artifacts import TokenArtifacts
 from core.artifacts.data_artifacts import DataArtifacts
-from core.artifacts.account_artifacts import AccountsArtifacts
-from core.net.network_agent import NetworkAgent
 from core.input.console_input_getter import ConsoleInputGetter
 from core.contract.safe_commands import ConsoleSafeCommands
 from core.artifacts.utils.ether_helper import EtherHelper
-from hexbytes import HexBytes
-from eth_account import Account
+from core.net.network_agent import NetworkAgent
 from test.utils.scenario_script import deploy_gnosis_safe_v1_1_0, deploy_uxi_tokens, deploy_gnosis_safe_v1_1_1
 
 
@@ -319,7 +320,7 @@ def test_deposit_ether():
     amount_value = ether_helper.get_unify_ether_amount([('--ether', [2])])
 
     previous_user_balance = network_agent.ethereum_client.w3.eth.getBalance(local_account.address)
-    console_safe.command_deposit_ether_raw(amount_value, local_account)
+    console_safe.command_deposit_ether(amount_value, local_account)
 
     current_balance = network_agent.ethereum_client.w3.eth.getBalance(console_safe.safe_operator.address)
     current_user_balance = network_agent.ethereum_client.w3.eth.getBalance(local_account.address)
@@ -356,7 +357,7 @@ def test_withdraw_ether():
     address_value_to = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
     ether_helper = EtherHelper(logger, network_agent.get_ethereum_client())
     amount_value = ether_helper.get_unify_ether_amount([('--ether', [2])])
-    console_safe.command_withdraw_ether_raw(amount_value, address_value_to)
+    console_safe.command_withdraw_ether(amount_value, address_value_to)
 
     current_balance = network_agent.ethereum_client.w3.eth.getBalance(console_safe.safe_operator.address)
     current_user_balance = network_agent.ethereum_client.w3.eth.getBalance(address_value_to)
@@ -391,7 +392,7 @@ def test_deposit_token():
     assert console_safe.sender_address == '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 
     # Deposit Token in Safe
-    console_safe.command_deposit_token_raw(token_address, token_amount, local_owner)
+    console_safe.command_deposit_token(token_address, token_amount, local_owner)
     current_safe_token_balance = network_agent.ethereum_client.erc20.get_balance(console_safe.safe_operator.address, token_address)
     current_user_token_balance = network_agent.ethereum_client.erc20.get_balance(address_to, token_address)
 
@@ -425,7 +426,7 @@ def test_withdraw_token():
     previous_safe_token_balance = network_agent.ethereum_client.erc20.get_balance(safe_address, token_address)
     previous_user_token_balance = network_agent.ethereum_client.erc20.get_balance(address_to, token_address)
 
-    console_safe.command_withdraw_token_raw(address_to, token_address, token_amount)
+    console_safe.command_withdraw_token(address_to, token_address, token_amount)
 
     current_safe_token_balance = network_agent.ethereum_client.erc20.get_balance(safe_address, token_address)
     current_user_token_balance = network_agent.ethereum_client.erc20.get_balance(address_to, token_address)

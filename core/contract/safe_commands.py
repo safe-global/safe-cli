@@ -16,10 +16,7 @@ from gnosis.safe.safe import Safe, SafeOperation
 from gnosis.eth.contracts import (
     get_safe_V1_0_0_contract, get_safe_V0_0_1_contract, get_erc20_contract
 )
-from eth_account import Account
-import time
-import asyncio
-from threading import Thread
+
 
 class ConsoleSafeCommands:
     """ Console Safe Commands
@@ -186,7 +183,6 @@ class ConsoleSafeCommands:
                 self.logger.info(safe_tx_receipt)
 
                 # self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
-                return safe_tx_receipt
         except Exception as err:
             self.logger.error('Unable to perform_transaction(): {0} {1}'.format(type(err), err))
 
@@ -534,14 +530,22 @@ class ConsoleSafeCommands:
         self.logger.error('Not Enough Signatures Loaded/Stored in local_accounts_list ')
         return False
 
-    def command_send_token_raw(self, address_to, token_contract_address, token_amount, local_account):
+    def command_send_token(self, address_to, token_contract_address, token_amount, local_account):
+        """ Command Send Token
+        This function will send tokens
+        :param address_to:
+        :param token_contract_address:
+        :param token_amount:
+        :param local_account:
+        :return:
+        """
         try:
             # Preview the current token balance of the safe before the transaction
             # self.command_view_token_balance()
             self.log_formatter.log_section_left_side('Send Token')
             safe_tx = self.ethereum_client.erc20.send_tokens(address_to, int(token_amount), token_contract_address, local_account.privateKey)
 
-            # Retrieve the tx_receipt
+            # Perform the transaction
             tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx, timeout=60)
 
             # Format Receipt with Logger
@@ -550,57 +554,55 @@ class ConsoleSafeCommands:
 
             # Preview the current token balance of the safe after the transaction
             # self.command_view_token_balance()
-            return tx_receipt
         except Exception as err:
-            self.logger.debug0(err)
+            self.logger.error('Unable to command_send_token_raw(): {0} {1}'.format(type(err), err))
 
-    def command_deposit_token_raw(self, token_address_to, token_amount, local_account):
-        tx_receipt = self.command_send_token_raw(self.safe_operator.address, token_address_to, token_amount, local_account)
-        return tx_receipt
+    def command_deposit_token(self, token_address_to, token_amount, local_account):
+        """ Command Deposit Token
+        This function will deposit tokens from the safe
+        :param token_address_to:
+        :param token_amount:
+        :param local_account:
+        :return:
+        """
+        try:
+            self.command_send_token(self.safe_operator.address, token_address_to, token_amount, local_account)
+        except Exception as err:
+            self.logger.error('Unable to command_deposit_token_raw(): {0} {1}'.format(type(err), err))
 
-    def command_withdraw_token_raw(self, address_to, token_contract_address, token_amount):
-        # self.command_view_token_balance()
-        sender_data = {'from': self.safe_operator.address}
-        erc20 = get_erc20_contract(self.ethereum_client.w3, token_contract_address)
+    def command_withdraw_token(self, address_to, token_contract_address, token_amount):
+        """ Command Withdraw Token
+        This function will withdraw tokens from the safe
+        :param address_to:
+        :param token_contract_address:
+        :param token_amount:
+        :return:
+        """
+        try:
+            # Preview the current token balance of the safe before the transaction
+            # self.command_view_token_balance()
+            sender_data = {'from': self.safe_operator.address}
+            erc20 = get_erc20_contract(self.ethereum_client.w3, token_contract_address)
 
-        # print(erc20.functions.balanceOf(self.safe_operator.address).call())
-        safe_tx = erc20.functions.transfer(address_to, int(token_amount)).buildTransaction(sender_data)
+            payload_data = HexBytes(erc20.functions.transfer(address_to, int(token_amount)).buildTransaction(sender_data)['data'])
 
-        gas_price = self.ethereum_client.w3.eth.gasPrice
-        self.logger.debug0(gas_price)
+            # Perform the transaction
+            self.perform_transaction(payload_data, address_to=token_contract_address)
 
-        self.logger.debug0('Tx Data:', safe_tx['data'])
-        safe_tx = self.safe_operator.build_multisig_tx(
-            token_contract_address, 0, safe_tx['data'], SafeOperation.CALL.value,
-            safe_tx['gas'] + 50000, self.base_gas, self._setup_gas_price(), NULL_ADDRESS, NULL_ADDRESS, b''
-        )
+            # Preview the current token balance of the safe after the transaction
+            current_token_balance = self.ethereum_client.erc20.get_balance(self.safe_operator.address,
+                                                                           token_contract_address)
+            current_user_balance = self.ethereum_client.erc20.get_balance(self.safe_operator.address,
+                                                                          token_contract_address)
+            self.logger.info(current_token_balance)
+            self.logger.info(current_user_balance)
+            # self.command_view_token_balance()
+        except Exception as err:
+            self.logger.error('Unable to command_withdraw_token_raw(): {0} {1}'.format(type(err), err))
 
-        # Multi Sign the current transaction
-        safe_tx = self.safe_tx_multi_sign(safe_tx, self.local_owner_account_list)
-        safe_tx_receipt = None
-        nonce = self.ethereum_client.get_nonce_for_account(self.sender_address)
-
-        # The current tx was well formed
-        if safe_tx.call():
-            # Execute the current transaction
-            safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, tx_gas=self.base_gas + self.safe_tx_gas,
-                                              tx_gas_price=gas_price, tx_nonce=nonce)
-            safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
-            self.logger.info(safe_tx_receipt)
-            # self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
-
-        current_token_balance = self.ethereum_client.erc20.get_balance(self.safe_operator.address,
-                                                                       token_contract_address)
-        current_user_balance = self.ethereum_client.erc20.get_balance(self.safe_operator.address,
-                                                                      token_contract_address)
-        self.logger.debug0(current_token_balance)
-        self.logger.debug0(current_user_balance)
-        # self.command_view_token_balance()
-        return safe_tx_receipt
-
-    def command_send_ether_raw(self, address_to, wei_amount, local_account):
-        """ Send Ether Raw
-        This function will send ether to the address_to, wei_amount, private_key
+    def command_send_ether(self, address_to, wei_amount, local_account):
+        """ Command Send Ether
+        This function will send ether to the address_to, wei_amount, from private_key
         :param address_to:
         :param wei_amount:
         :param local_account:
@@ -610,7 +612,7 @@ class ConsoleSafeCommands:
             # Preview the current ether balance of the safe before the transaction
             self.command_view_ether_balance()
 
-            # Compose Tx for sendEther
+            # Compose the transaction for sendEther
             signed_tx = self.ethereum_client.w3.eth.account.signTransaction(dict(
                 nonce=self.ethereum_client.w3.eth.getTransactionCount(local_account.address),
                 gasPrice=self._setup_gas_price(),
@@ -619,8 +621,10 @@ class ConsoleSafeCommands:
                 value=self.ethereum_client.w3.toWei(wei_amount, 'wei')
             ), HexBytes(local_account.privateKey).hex())
 
+            # Sign the transaction
             tx_hash = self.ethereum_client.w3.eth.sendRawTransaction(signed_tx.rawTransaction)
-            # Retrieve the tx_receipt
+
+            # Perform the transaction
             tx_receipt = self.ethereum_client.get_transaction_receipt(tx_hash, timeout=60)
 
             # Format Receipt with Logger
@@ -629,49 +633,40 @@ class ConsoleSafeCommands:
 
             # Preview the current ether balance of the safe after the transaction
             self.command_view_ether_balance()
-            return tx_receipt
         except Exception as err:
-            self.logger.debug0(err)
+            self.logger.error('Unable to command_send_ether_raw(): {0} {1}'.format(type(err), err))
 
-    def command_deposit_ether_raw(self, wei_amount, local_account):
-        """ Send Ether To Safe
-        This function will send ether to the address_to, wei_amount, private_key
+    def command_deposit_ether(self, wei_amount, local_account):
+        """ Command Deposit Ether
+        This function will send ether to the address_to, wei_amount
         :param wei_amount:
         :param local_account:
         :return:
         """
-        # Compose Tx for depositEther
-        tx_receipt = self.command_send_ether_raw(self.safe_operator.address, wei_amount, local_account)
-        return tx_receipt
+        try:
+            # Compose transaction for depositEther
+            self.command_send_ether(self.safe_operator.address, wei_amount, local_account)
+        except Exception as err:
+            self.logger.error('Unable to command_deposit_ether_raw(): {0} {1}'.format(type(err), err))
 
-    def command_withdraw_ether_raw(self, wei_amount, address_to):
-        """ Send Ether To Safe
-        This function will send ether to the address_to, wei_amount, private_key
+    def command_withdraw_ether(self, wei_amount, address_to):
+        """ Command Withdraw Ether
+        This function will send ether to the address_to, wei_amount
         :param wei_amount:
         :param address_to:
         :return:
         """
-        # Preview the current ether balance of the safe before the transaction
-        self.command_view_ether_balance()
-        safe_tx = self.safe_operator.build_multisig_tx(
-            address_to, wei_amount, b'', SafeOperation.CALL.value, self.safe_tx_gas, self.base_gas, self._setup_gas_price(), NULL_ADDRESS, NULL_ADDRESS, b'')
+        try:
+            # Preview the current ether balance of the safe before the transaction
+            self.command_view_ether_balance()
 
-        # Multi Sign the current transaction
-        safe_tx = self.safe_tx_multi_sign(safe_tx, self.local_owner_account_list)
+            # Perform the transaction
+            self.perform_transaction(b'', wei_amount, address_to)
 
-        safe_tx_receipt = None
-        # The current tx was well formed
-        if safe_tx.call():
-            # Execute the current transaction
-            safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, tx_gas=self.base_gas + self.safe_tx_gas)
-            # Retrieve the receipt
-            safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
-            self.logger.info(safe_tx_receipt)
-            # self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
-
-        # Preview the current ether balance of the safe after the transaction
-        self.command_view_ether_balance()
-        return safe_tx_receipt
+            # Preview the current ether balance of the safe after the transaction
+            self.command_view_ether_balance()
+        except Exception as err:
+            self.logger.error('Unable to command_withdraw_ether_raw(): {0} {1}'.format(type(err), err))
 
     def command_view_balance(self):
         """ Command View Total Balance of the safe Ether + Tokens(Only if tokens are known via pre-loading)
@@ -682,47 +677,55 @@ class ConsoleSafeCommands:
 
     def command_view_ether_balance(self):
         """ Command View Ether Balance
-        This function
+        This function will show the balance of the safe & the owners
         """
-        self.log_formatter.log_section_left_side('Safe Ether Balance')
-        ether_amount = []
-        for owner_index, owner in enumerate(self.safe_instance.functions.getOwners().call()):
-            ether_amount.append(self.ethereum_client.w3.eth.getBalance(owner))
+        try:
+            self.log_formatter.log_section_left_side('Safe Ether Balance')
+            ether_amount = []
+            for owner_index, owner in enumerate(self.safe_instance.functions.getOwners().call()):
+                ether_amount.append(self.ethereum_client.w3.eth.getBalance(owner))
 
-        wei_amount = self.ether_helper.unify_ether_badge_amounts('--wei', ether_amount)
-        human_readable_ether = self.ether_helper.get_proper_ether_amount(wei_amount)
-        information_data = ' (#) Total Owners Funds: {0} {1} '.format(human_readable_ether[1], human_readable_ether[0])
-        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-        safe_ether_amount = self.ethereum_client.w3.eth.getBalance(self.safe_instance.address)
-        safe_wei_amount = self.ether_helper.unify_ether_badge_amounts('--wei', [safe_ether_amount])
-        safe_human_readable_ether = self.ether_helper.get_proper_ether_amount(safe_wei_amount)
-        information_data = ' (#) Total Safe Funds: {0} {1} '.format(safe_human_readable_ether[1], safe_human_readable_ether[0])
-        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-        self.logger.info(' ' + STRING_DASHES)
+            # Calculate ether amount for the Owners
+            wei_amount = self.ether_helper.unify_ether_badge_amounts('--wei', ether_amount)
+            human_readable_ether = self.ether_helper.get_proper_ether_amount(wei_amount)
+            information_data = ' (#) Total Owners Funds: {0} {1} '.format(human_readable_ether[1], human_readable_ether[0])
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+
+            # Calculate ether amount for the Safe
+            safe_ether_amount = self.ethereum_client.w3.eth.getBalance(self.safe_instance.address)
+            safe_wei_amount = self.ether_helper.unify_ether_badge_amounts('--wei', [safe_ether_amount])
+            safe_human_readable_ether = self.ether_helper.get_proper_ether_amount(safe_wei_amount)
+            information_data = ' (#) Total Safe Funds: {0} {1} '.format(safe_human_readable_ether[1], safe_human_readable_ether[0])
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+            self.logger.info(' ' + STRING_DASHES)
+        except Exception as err:
+            self.logger.error('Unable to command_view_ether_balance(): {0} {1}'.format(type(err), err))
 
     def command_view_token_balance(self):
         """ Command View Token Balance
-        This function
+        This function will sho the token balance of known tokens
         """
-        self.log_formatter.log_section_left_side('Safe Token Balance')
-        token_address = []
-        token_symbol = []
-        for token_item in self.token_artifacts.token_data:
-            current_token_address = self.token_artifacts.token_data[token_item]['address']
-            # self.logger.info(current_token_address)
-            # self.logger.info(self.token_artifacts.token_data[token_item])
-            token_symbol.append(token_item)
-            token_address.append(current_token_address)
+        try:
+            self.log_formatter.log_section_left_side('Safe Token Balance')
+            token_address = []
+            token_symbol = []
+            for token_item in self.token_artifacts.token_data:
+                current_token_address = self.token_artifacts.token_data[token_item]['address']
+                # self.logger.info(current_token_address)
+                # self.logger.info(self.token_artifacts.token_data[token_item])
+                token_symbol.append(token_item)
+                token_address.append(current_token_address)
 
-        balance_data = self.ethereum_client.erc20.get_balances(self.safe_operator.address, token_address)
-        current_name_to_show = ''
-        for index, item in enumerate(balance_data):
-            if item['token_address'] is not None:
-                for token_item in self.token_artifacts.token_data:
-                    current_token_address = self.token_artifacts.token_data[token_item]['address']
-                    if current_token_address == item['token_address']:
-                        current_name_to_show = token_item
-                information_data = ' (#) Total Safe {0} ({1}) Funds: {2} Token'.format(current_name_to_show, item['token_address'], item['balance'])
-                self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-        self.logger.info(' ' + STRING_DASHES)
-        return
+            balance_data = self.ethereum_client.erc20.get_balances(self.safe_operator.address, token_address)
+            current_name_to_show = ''
+            for index, item in enumerate(balance_data):
+                if item['token_address'] is not None:
+                    for token_item in self.token_artifacts.token_data:
+                        current_token_address = self.token_artifacts.token_data[token_item]['address']
+                        if current_token_address == item['token_address']:
+                            current_name_to_show = token_item
+                    information_data = ' (#) Total Safe {0} ({1}) Funds: {2} Token'.format(current_name_to_show, item['token_address'], item['balance'])
+                    self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+            self.logger.info(' ' + STRING_DASHES)
+        except Exception as err:
+            self.logger.error('Unable to command_view_token_balance(): {0} {1}'.format(type(err), err))
