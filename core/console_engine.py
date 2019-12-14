@@ -29,6 +29,7 @@ from core.artifacts.help_artifacts import InformationArtifacts
 # Import PromptToolkit Package
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit import PromptSession
+from prompt_toolkit.shortcuts import yes_no_dialog
 
 # Importing Custom Logger & Logging Modules
 from core.logger.custom_logger import CustomLogger, DEBUG0
@@ -141,6 +142,26 @@ class GnosisConsoleEngine:
         # Run Console
         self.run_console_session(self.prompt_text)
 
+    def exit_command(self, command_argument):
+        if (command_argument == 'close') or (command_argument == 'quit') or (command_argument == 'exit'):
+            if (self.active_session == TypeOfConsole.SAFE_CONSOLE) or (
+                    self.active_session == TypeOfConsole.CONTRACT_CONSOLE):
+                result = yes_no_dialog(
+                    title='Exiting {0}'.format(self.active_session.value),
+                    text='All data regarding loaded owners & sender configuration will be lost, Are you sure you want to exit the {0}?'.format(
+                        self.active_session.value)).run()
+                if result:
+                    self.active_session = TypeOfConsole.GNOSIS_CONSOLE
+                    raise EOFError
+            else:
+                result = yes_no_dialog(
+                    title='Exiting {0}'.format(self.active_session.value),
+                    text='All data regarding accounts, tokens, contracts & payloads will be lost, Are you sure you want to exit the {0}?'.format(
+                        self.active_session.value)).run()
+                if result:
+                    self.active_session = TypeOfConsole.GNOSIS_CONSOLE
+                    raise EOFError
+
     def run_console_session(self, prompt_text):
         """ Run Console Session
         This function will launch the gnosis cli
@@ -181,9 +202,8 @@ class GnosisConsoleEngine:
                         except Exception as err:
                             self.logger.error('Something Went Wrong Opss {0}  {1}'.format(type(err), err))
                             self.active_session = TypeOfConsole.GNOSIS_CONSOLE
-                    if (command_argument == 'close') or (command_argument == 'quit') or (command_argument == 'exit'):
-                        self.active_session = TypeOfConsole.GNOSIS_CONSOLE
-                        raise EOFError
+
+                    self.exit_command(command_argument)
                 except KeyboardInterrupt:
                     continue  # remark: Control-C pressed. Try again.
                 except EOFError:
