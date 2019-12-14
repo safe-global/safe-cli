@@ -6,7 +6,7 @@ from prompt_toolkit.formatted_text import HTML
 
 # simple_function_operand = '((--address=)(0x([aA-zZ,0-9]{62}|[aA-zZ,0-9]{40}))?)|((--uint=)([0-9]{0,})?)|(--queue)?(--execute)?'
 console_method_names = 'isOwner|getOwners|getThreshold|addOwner|swapOwner|removeOwner|changeThreshold|sendEther|sendToken|VERSION|NAME|code|nonce|addOwnerWithThreshold|viewSender|loadOwner|loadMultipleOwners|removeMultipleOwners|unloadOwner|updateSafe'
-console_commands = 'viewNetwork|viewAccounts|viewContracts|newPayload|newTxPayload|newAccount|newContract|setNetwork|setDefaultSender|loadContract|loadSafe|viewPayloads|viewTokens|newTokens|viewSender'
+console_commands = 'viewNetwork|viewAccounts|viewContracts|newPayload|newTxPayload|newAccount|newContract|setNetwork|setDefaultSender|loadContract|loadSafe|viewPayloads|viewTokens|newTokens|viewSender|viewBalance'
 console_quit_commands = 'exit|quit|close'
 console_help_commands = 'help|about|info'
 console_known_networks = 'ropsten|mainnet|ganache|rinkeby'
@@ -18,14 +18,15 @@ ether_params = '--ether=|--miliether=|--microether=|--wei=|--Kwei=|--Mwei=|--Gwe
 
 arg_keywords = [
     '--address=', '--uint=', '--ether=', '--miliether=', '--microether=', '--wei=', '--Kwei=',
-    '--Mwei=', '--Gwei=', '--query', '--execute', '--queue', '--alias=', '--bytecode='
+    '--Mwei=', '--Gwei=', '--query', '--execute', '--queue', '--alias=', '--bytecode=', '--token=', '--amount=',
+    '--address_to='
     ]
 
 function_name = [
     'isOwner', 'getOwners', 'swapOwners', 'removeOwner', 'addOwner', 'addOwnersWithThreshold', 'changeOwner'
     'getThreshold', 'changeThreshold', 'sendEther', 'sendToken', 'viewAccounts', 'viewContract', 'viewTokens',
     'viewPayloads', 'viewSender', 'loadOwner', 'loadMultipleOwners', 'removeMultipleOwners', 'unloadOwner',
-    'unloadMultipleOwners'
+    'unloadMultipleOwners', 'viewBalance', 'depositEther', 'depositToken', 'withdrawEther', 'withdrawToken'
 ]
 
 function_params = {
@@ -45,10 +46,15 @@ function_params = {
     'viewPayloads': '_',
     'viewSender': '_',
     'viewTokens': '_',
+    'viewBalance': '_',
     'loadMultipleOwners': '_',
     'loadOwner': '_',
     'unloadOwner': '_',
-    'removeMultipleOwners': '_'
+    'removeMultipleOwners': '_',
+    'depositEther': '_',
+    'depositToken': '_',
+    'withdrawToken': '_',
+    'withdrawEther': '_'
 }
 
 function_parms_color = {

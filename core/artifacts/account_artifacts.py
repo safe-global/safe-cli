@@ -99,8 +99,8 @@ class AccountsArtifacts:
         This function will retrieve a local account to be set as sender in the current contract safe you are loaded
         in. It will compare the list of actual owners vs the generated address being created using a private_key, if
         there is no matching withing the owner_list of the contract an error will be prompted.
-        :param address:
         :param private_key:
+        :param owner_address_list:
         :return:
         """
         try:
@@ -109,9 +109,8 @@ class AccountsArtifacts:
                 if local_account.address == owner_address:
                     self.logger.debug0('Match found in owner list while checking address generated via private_key')
                     return local_account
-            self.logger.debug0('Miss Match in generated account via private_key when comparing address in owner list of the contract')
-            raise Exception
         except Exception as err:
+            self.logger.debug0('Miss Match in generated account via private_key when comparing address in owner list of the contract')
             self.logger.error('Unable to get_local_account() {0} {1}'.format(type(err), err))
 
     def _setup_random_accounts(self, account_number=10):

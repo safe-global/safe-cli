@@ -133,6 +133,8 @@ class NetworkAgent:
             self.network = 'ganache'
             self.current_node_endpoint = self.default_node_endpoint
 
+        self.command_view_networks()
+
     def network_status(self):
         """ Network Status
         This Function will check the availability of the network connection
