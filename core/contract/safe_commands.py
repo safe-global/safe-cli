@@ -17,6 +17,15 @@ from gnosis.eth.contracts import (
     get_safe_V1_0_0_contract, get_safe_V0_0_1_contract, get_erc20_contract
 )
 
+# multisend_txs = [MultiSendTx(MultiSendOperation.CALL, safe_address, value, d) for d in (data, data_2)]
+# safe_multisend_data = self.multi_send.prepare_tx(multisend_txs)['data']
+# safe_tx = SafeTx(self.ethereum_client, safe_address, to,
+#                  0, safe_multisend_data, SafeOperation.DELEGATE_CALL.value,
+#                  safe_tx_gas, base_gas, self.gas_price, None, None, safe_nonce=0)
+# safe_tx.sign(owners[0].key)
+#
+# self.assertEqual(safe_tx.call(tx_sender_address=self.ethereum_test_account.address), 1)
+# tx_hash, _ = safe_tx.execute(tx_sender_private_key=self.ethereum_test_account.key)
 
 class ConsoleSafeCommands:
     """ Console Safe Commands
@@ -103,6 +112,37 @@ class ConsoleSafeCommands:
             self.sender_address = None
             self.sender_private_key = None
 
+    def command_load_owner(self, private_key):
+        try:
+            self.logger.debug0('[ Signature Value ]: {0} {1}'.format(HexBytes(private_key).hex(), self.safe_operator.retrieve_owners()))
+            local_owner = self.account_artifacts.get_local_account(HexBytes(private_key).hex(), self.safe_operator.retrieve_owners())
+            if local_owner is not None and local_owner in self.local_owner_account_list:
+                self.logger.error('Local Owner Already in local_owner_account_list')
+            elif local_owner is not None:
+                self.local_owner_account_list.append(local_owner)
+                self.logger.debug0('[ Local Account Added ]: {0}'.format(self.local_owner_account_list))
+                self.setup_sender()
+            else:
+                self.logger.error('Local Owner is not part of the safe owners, unable to loadOwner')
+        except Exception as err:
+            self.logger.error(err)
+
+    def command_unload_owner(self, private_key):
+        try:
+            self.logger.debug0('[ Signature Value ]: {0} {1}'.format(HexBytes(private_key).hex(), self.safe_operator.retrieve_owners()))
+            local_owner = self.account_artifacts.get_local_account(HexBytes(private_key).hex(), self.safe_operator.retrieve_owners())
+            if local_owner is not None and local_owner in self.local_owner_account_list:
+                for local_owner_account in self.local_owner_account_list:
+                    if local_owner_account == local_owner:
+                        self.logger.debug0('Removing Account from Local Owner List')
+                        self.local_owner_account_list.remove(local_owner)
+                        self.setup_sender()
+                self.logger.debug0('[ Local Account ]: {0}'.format(self.local_owner_account_list))
+            else:
+                self.logger.error('Local Account generated via Private Key it is not Loaded')
+        except Exception as err:
+            self.logger.error(err)
+
     def safe_tx_multi_sign(self, safe_tx, signers_list):
         """ Safe Tx Multi Sign
         This function will perform the sign for every member in the signer_list to the current safe_tx
@@ -149,11 +189,14 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to multi_approve_safe_tx(): {0} {1}'.format(type(err), err))
 
-    def perform_transaction(self, payload_data, wei_value=None, address_to=None):
+    def perform_transaction(self, payload_data, wei_value=None, address_to=None, execute=True, batch=False):
         """ Perform Transaction
         This function will perform the transaction to the safe we have currently triggered via console command
         :param payload_data:
-        :param sender:
+        :param wei_value:
+        :param address_to:
+        :param execute:
+        :param batch:
         :return:
         """
         try:
@@ -166,7 +209,8 @@ class ConsoleSafeCommands:
             safe_nonce = self.safe_operator.retrieve_nonce()
             safe_tx = self.safe_operator.build_multisig_tx(
                 address_to, wei_value, payload_data, SafeOperation.CALL.value,
-                self.safe_tx_gas, self.base_gas, self._setup_gas_price(), NULL_ADDRESS, NULL_ADDRESS, b'', safe_nonce=safe_nonce
+                self.safe_tx_gas, self.base_gas, self._setup_gas_price(),
+                NULL_ADDRESS, NULL_ADDRESS, b'', safe_nonce=safe_nonce
             )
 
             # Multi Sign the current transaction
@@ -174,15 +218,22 @@ class ConsoleSafeCommands:
             safe_tx_receipt = None
 
             # The current tx was well formed
-            self.logger.info(safe_tx.call())
+            information_data = ' (#) isValid Tx: {0}'.format(safe_tx.call())
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
             if safe_tx.call():
-                # Execute the current transaction
-                safe_tx_hash, _ = safe_tx.execute(self.sender_private_key, tx_gas=self.base_gas + self.safe_tx_gas, tx_gas_price=self._setup_gas_price())
-                # Retrieve the receipt
-                safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
-                self.logger.info(safe_tx_receipt)
+                if execute:
+                    # Execute the current transaction
+                    safe_tx_hash, _ = safe_tx.execute(
+                        self.sender_private_key, tx_gas=self.base_gas + self.safe_tx_gas,
+                        tx_gas_price=self._setup_gas_price()
+                    )
+                    # Retrieve the receipt
+                    safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
+                    self.logger.info(safe_tx_receipt)
+                    # self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
+                    # elif batch:
+                    #    self.logger.info('To Be Implemented')
 
-                # self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
         except Exception as err:
             self.logger.error('Unable to perform_transaction(): {0} {1}'.format(type(err), err))
 

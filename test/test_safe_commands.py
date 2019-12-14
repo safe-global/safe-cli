@@ -61,7 +61,7 @@ console_getter = ConsoleInputGetter(logger)
 # Setup Console Account Artifacts
 account_artifacts = AccountsArtifacts(logger, network_agent.get_ethereum_client(), False)
 # Setup Console Token
-token_artifacts = TokenArtifacts(logger)
+token_artifacts = TokenArtifacts(logger, network_agent.ethereum_client)
 # Setup DataArtifacts
 data_artifacts = DataArtifacts(logger, account_artifacts, None, token_artifacts, None)
 # ----------------------------------------------------------------------------------------------------------------------
@@ -110,14 +110,7 @@ def test_unload_safe_owner():
 
     # Load Owner
     owner_private_key_safe = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-    local_owner = account_artifacts.get_local_account(owner_private_key_safe,
-                                                      console_safe.safe_operator.retrieve_owners())
-
-    if local_owner in console_safe.local_owner_account_list:
-        logger.error('Local Owner Already in local_owner_account_list')
-    else:
-        console_safe.local_owner_account_list.append(local_owner)
-    console_safe.setup_sender()
+    console_safe.command_load_owner(owner_private_key_safe)
 
     # Assert the new loaded owner, and the variables that are affected by it
     assert len(console_safe.local_owner_account_list) == 1
@@ -127,13 +120,7 @@ def test_unload_safe_owner():
     assert console_safe.sender_private_key == HexBytes(console_safe.local_owner_account_list[0].privateKey).hex()
 
     # Unload Owner
-    if local_owner in console_safe.local_owner_account_list:
-        for local_owner_account in console_safe.local_owner_account_list:
-            if local_owner_account == local_owner:
-                console_safe.local_owner_account_list.remove(local_owner)
-        console_safe.setup_sender()
-    else:
-        logger.error('Local Account generated via Private Key it is not Loaded')
+    console_safe.command_unload_owner(owner_private_key_safe)
 
     # Assert current loaded owner, length of local_accounts should be 0 and the values for private_key/address for the
     # sender should be None
@@ -148,14 +135,7 @@ def test_add_owner():
 
     # Load Owner
     owner_private_key_safe = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-    local_owner = account_artifacts.get_local_account(owner_private_key_safe,
-                                                      console_safe.safe_operator.retrieve_owners())
-
-    if local_owner in console_safe.local_owner_account_list:
-        logger.error('Local Owner Already in local_owner_account_list')
-    else:
-        console_safe.local_owner_account_list.append(local_owner)
-    console_safe.setup_sender()
+    console_safe.command_load_owner(owner_private_key_safe)
 
     # Assert the new loaded owner, and the variables that are affected by it
     assert len(console_safe.local_owner_account_list) == 1
@@ -178,13 +158,7 @@ def test_change_threshold():
 
     # Load Fst Owner
     fst_private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-
-    local_owner = account_artifacts.get_local_account(fst_private_key, console_safe.safe_operator.retrieve_owners())
-    if local_owner in console_safe.local_owner_account_list:
-        logger.error('Local Owner Already in local_owner_account_list')
-    else:
-        console_safe.local_owner_account_list.append(local_owner)
-    console_safe.setup_sender()
+    console_safe.command_load_owner(fst_private_key)
 
     # Assert current loaded owner, length of local_accounts should be 1 and the values for private_key/address the fst
     # loaded user in the test
@@ -194,13 +168,7 @@ def test_change_threshold():
 
     # Load Snd Owner
     snd_private_key = '0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1'
-
-    local_owner = account_artifacts.get_local_account(snd_private_key, console_safe.safe_operator.retrieve_owners())
-    if local_owner in console_safe.local_owner_account_list:
-        logger.error('Local Owner Already in local_owner_account_list')
-    else:
-        console_safe.local_owner_account_list.append(local_owner)
-    console_safe.setup_sender()
+    console_safe.command_load_owner(snd_private_key)
 
     # Assert current loaded owner, length of local_accounts should be 2 and the values for private_key/address the snd
     # loaded user in the test
@@ -221,13 +189,7 @@ def test_swap_owner():
 
     # Load Fst Owner
     fst_private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-
-    local_owner = account_artifacts.get_local_account(fst_private_key, console_safe.safe_operator.retrieve_owners())
-    if local_owner in console_safe.local_owner_account_list:
-        logger.error('Local Owner Already in local_owner_account_list')
-    else:
-        console_safe.local_owner_account_list.append(local_owner)
-    console_safe.setup_sender()
+    console_safe.command_load_owner(fst_private_key)
 
     # Assert current loaded owner, length of local_accounts should be 1 and the values for private_key/address the fst
     # loaded user in the test
@@ -237,13 +199,7 @@ def test_swap_owner():
 
     # Load Snd Owner
     snd_private_key = '0x6cbed15c793ce57650b9877cf6fa156fbef513c4e6134f022a85b1ffdd59b2a1'
-
-    local_owner = account_artifacts.get_local_account(snd_private_key, console_safe.safe_operator.retrieve_owners())
-    if local_owner in console_safe.local_owner_account_list:
-        logger.error('Local Owner Already in local_owner_account_list')
-    else:
-        console_safe.local_owner_account_list.append(local_owner)
-    console_safe.setup_sender()
+    console_safe.command_load_owner(snd_private_key)
 
     # Assert current loaded owner, length of local_accounts should be 2 and the values for private_key/address the snd
     # loaded user in the test
@@ -268,13 +224,7 @@ def test_remove_owner():
 
     # Load Fst Owner
     fst_private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-
-    local_owner = account_artifacts.get_local_account(fst_private_key, console_safe.safe_operator.retrieve_owners())
-    if local_owner in console_safe.local_owner_account_list:
-        logger.error('Local Owner Already in local_owner_account_list')
-    else:
-        console_safe.local_owner_account_list.append(local_owner)
-    console_safe.setup_sender()
+    console_safe.command_load_owner(fst_private_key)
 
     # Assert current loaded owner, length of local_accounts should be 1 and the values for private_key/address the fst
     # loaded user in the test
@@ -298,13 +248,7 @@ def test_deposit_ether():
 
     # Load Fst Owner
     fst_private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-
-    local_owner = account_artifacts.get_local_account(fst_private_key, console_safe.safe_operator.retrieve_owners())
-    if local_owner in console_safe.local_owner_account_list:
-        logger.error('Local Owner Already in local_owner_account_list')
-    else:
-        console_safe.local_owner_account_list.append(local_owner)
-    console_safe.setup_sender()
+    console_safe.command_load_owner(fst_private_key)
 
     # Assert current loaded owner, length of local_accounts should be 1 and the values for private_key/address the fst
     # loaded user in the test
@@ -335,13 +279,7 @@ def test_withdraw_ether():
 
     # Load Fst Owner
     fst_private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-
-    local_owner = account_artifacts.get_local_account(fst_private_key, console_safe.safe_operator.retrieve_owners())
-    if local_owner in console_safe.local_owner_account_list:
-        logger.error('Local Owner Already in local_owner_account_list')
-    else:
-        console_safe.local_owner_account_list.append(local_owner)
-    console_safe.setup_sender()
+    console_safe.command_load_owner(fst_private_key)
 
     # Assert current loaded owner, length of local_accounts should be 1 and the values for private_key/address the fst
     # loaded user in the test
@@ -377,13 +315,8 @@ def test_deposit_token():
 
     # Load Fst Owner
     fst_private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-
-    local_owner = account_artifacts.get_local_account(fst_private_key, console_safe.safe_operator.retrieve_owners())
-    if local_owner in console_safe.local_owner_account_list:
-        logger.error('Local Owner Already in local_owner_account_list')
-    else:
-        console_safe.local_owner_account_list.append(local_owner)
-    console_safe.setup_sender()
+    console_safe.command_load_owner(fst_private_key)
+    local_owner = Account.privateKeyToAccount(fst_private_key)
 
     # Assert current loaded owner, length of local_accounts should be 1 and the values for private_key/address the fst
     # loaded user in the test
@@ -406,13 +339,7 @@ def test_withdraw_token():
 
     # Load Fst Owner
     fst_private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-
-    local_owner = account_artifacts.get_local_account(fst_private_key, console_safe.safe_operator.retrieve_owners())
-    if local_owner in console_safe.local_owner_account_list:
-        logger.error('Local Owner Already in local_owner_account_list')
-    else:
-        console_safe.local_owner_account_list.append(local_owner)
-    console_safe.setup_sender()
+    console_safe.command_load_owner(fst_private_key)
 
     # Assert current loaded owner, length of local_accounts should be 1 and the values for private_key/address the fst
     # loaded user in the test
@@ -441,14 +368,7 @@ def test_change_master_copy():
 
     # Load Owner
     owner_private_key_safe = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-    local_owner = account_artifacts.get_local_account(owner_private_key_safe,
-                                                      console_safe.safe_operator.retrieve_owners())
-
-    if local_owner in console_safe.local_owner_account_list:
-        logger.error('Local Owner Already in local_owner_account_list')
-    else:
-        console_safe.local_owner_account_list.append(local_owner)
-    console_safe.setup_sender()
+    console_safe.command_load_owner(owner_private_key_safe)
 
     # Assert the new loaded owner, and the variables that are affected by it
     assert len(console_safe.local_owner_account_list) == 1

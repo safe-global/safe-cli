@@ -12,6 +12,7 @@ from core.net.network_agent import NetworkAgent
 
 # Import HTML for defining the prompt style
 from prompt_toolkit import HTML
+from prompt_toolkit.shortcuts import set_title
 
 # Import Completer & SyntaxLexer
 from core.contract.utils.syntax_lexer import SyntaxLexer
@@ -72,7 +73,7 @@ class GnosisConsoleEngine:
             'completer': WordCompleter(
                 [
                     'about', 'info', 'help', 'newContract', 'loadContract', 'setNetwork', 'viewNetwork', 'viewTokens',
-                    'close', 'quit', 'viewContracts', 'viewAccounts', 'newAccount', 'setAutofill', 'newToken'
+                    'close', 'quit', 'viewContracts', 'viewAccounts', 'newAccount', 'setAutofill', 'newToken',
                     'viewPayloads', 'newPayload', 'newTxPayload', 'setDefaultSender', 'loadSafe', 'viewPayloads',
                     'dummyCommand'
                  ],
@@ -120,7 +121,7 @@ class GnosisConsoleEngine:
             self.logger, self.network_agent.get_ethereum_client(), self.quiet_flag
         )
         # Setup Console Token
-        self.token_artifacts = TokenArtifacts(self.logger)
+        self.token_artifacts = TokenArtifacts(self.logger, self.network_agent.ethereum_client)
         self.token_artifacts.pre_loaded_token_artifacts(token_artifacts)
 
         # Setup DataArtifacts
@@ -147,6 +148,7 @@ class GnosisConsoleEngine:
         :return:
         """
         if self.active_session == TypeOfConsole.GNOSIS_CONSOLE:
+            set_title('Gnosis Console')
             prompt_text = self.session_config['prompt']
         console_session = self.get_console_session()
         try:
@@ -239,6 +241,7 @@ class GnosisConsoleEngine:
         :param priority_group:
         :return:
         """
+
         if priority_group == 0:
             tmp_alias = desired_parsed_item_list[0][1][0]
             self.logger.debug0('alias: {0}'.format(tmp_alias))
@@ -248,8 +251,8 @@ class GnosisConsoleEngine:
                 self.logger.debug0('Contract Instance {0} Loaded'.format(self.contract_interface))
                 self.contract_methods = ConsoleContractCommands().map_contract_methods(self.contract_interface)
                 self.active_session = TypeOfConsole.CONTRACT_CONSOLE
-
                 self.log_formatter.log_entry_message('Entering Contract Console')
+                set_title('Contract Console')
                 self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='contract-cli', stream=tmp_alias))
             except KeyError as err:
                 self.logger.error(err)
@@ -272,6 +275,7 @@ class GnosisConsoleEngine:
             self.safe_interface = ConsoleSafeCommands(tmp_address, self.logger, self.data_artifacts, self.network_agent)
             self.active_session = TypeOfConsole.SAFE_CONSOLE
             self.log_formatter.log_entry_message('Entering Safe Console')
+            set_title('Safe Console')
             self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='safe-cli', stream='Safe (' + tmp_address + ')'))
 
     def _get_prompt_text(self, affix_stream='', stream=''):

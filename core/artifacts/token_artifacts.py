@@ -7,13 +7,23 @@ from core.constants.console_constant import STRING_DASHES
 # Import Enum with TypeOfToken
 from core.artifacts.constants.type_artifacts import TypeOfTokens
 
+# Import Prompt Toolkit Modules
+from prompt_toolkit import HTML, prompt
+
+# Import ERC20Contract, ERC721Contract
+from gnosis.eth.contracts import (
+    get_erc20_contract, get_erc721_contract
+)
+token_options = ['type', 'address']
+
 
 class TokenArtifacts:
     """ Token Artifacts
     This class will store the token_artifacts for the console
     """
-    def __init__(self, logger):
+    def __init__(self, logger, ethereum_client):
         self.logger = logger
+        self.ethereum_client = ethereum_client
         self.token_data = {}
 
     def pre_loaded_token_artifacts(self, token_artifacts):
@@ -34,6 +44,20 @@ class TokenArtifacts:
                 self.add_token_artifact(token_artifact=artifact, alias=artifact['name'])
         self.logger.debug0(STRING_DASHES)
         self.logger.debug0('')
+
+    def command_new_token(self, command_argument, argument_list):
+        """ Command New Token
+        This function will launch the proper prompt for building a new token
+        :param command_argument:
+        :param argument_list:
+        :return:
+        """
+        if command_argument == 'newToken' and argument_list == []:
+            new_token_entry = self._new_token_helper(token_options)
+            self.logger.info('newToken: ' + str(new_token_entry))
+            return self.add_token_artifact(new_token_entry, new_token_entry['name'], new_token_entry['type'])
+        else:
+            self.logger.info('Input for Argument --token=, --instance=, --type=, --alias=')
 
     def command_view_tokens(self):
         """ Command View Tokens
@@ -79,3 +103,49 @@ class TokenArtifacts:
                 token_artifact['address'], token_artifact['instance'],
                 type_of_token, 'uToken' + str(len(self.token_data))
             )
+
+    def _new_token_helper(self, token_options):
+        """ New Token Helper
+        This function will trigger the behaviour for the newToken, when the --inputs are None
+        :param token_options:
+        :return:
+        """
+        token_type = None
+        token_instance = None
+        token_alias = None
+        token_address = None
+        for item in token_options:
+            text = ('%s : ' % (item)).rjust(20)
+            token_answer = prompt(HTML((' <strong>%s</strong> ') % text.title()))
+            if item == 'type':
+                if token_answer == 'ERC20':
+                    token_type = TypeOfTokens.ERC20
+                elif token_answer == 'ERC721':
+                    token_type = TypeOfTokens.ERC721
+                else:
+                    self.logger.error('Type must be selected before doing anything')
+
+            elif item == 'address':
+                if self.ethereum_client.w3.isAddress(token_answer):
+                    if token_type == TypeOfTokens.ERC20:
+                        try:
+                            token_address = token_answer
+                            token_instance = get_erc20_contract(self.ethereum_client.w3, token_answer)
+                            token_alias = token_instance.functions.symbol().call()
+                        except Exception as err:
+                            self.logger.error(err)
+                            self.logger.error('Unable to get erc20 contract, are you sure this is a valid token address?')
+                    elif token_type == TypeOfTokens.ERC721:
+                        try:
+                            token_address = token_answer
+                            token_instance = get_erc721_contract(self.ethereum_client.w3, token_answer)
+                            token_alias = token_instance.functions.symbol().call()
+                        except Exception as err:
+                            self.logger.error(err)
+                            self.logger.error('Unable to get erc721 contract, are you sure this is a valid token address?')
+                else:
+                    self.logger.error('Address is not valid')
+
+        return self.new_token_entry(token_address, token_instance, token_type, token_alias)
+
+

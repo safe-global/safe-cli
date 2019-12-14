@@ -6,7 +6,7 @@ from core.artifacts.help_artifacts import InformationArtifacts
 
 # Import ConsoleInputGetter for Testing Purposes
 from core.input.console_input_getter import ConsoleInputGetter
-
+from core.input.console_input_handler import ConsoleInputHandler
 # Import EtherHelper for unifying ether amount quantities
 from core.artifacts.utils.ether_helper import EtherHelper
 
@@ -33,6 +33,7 @@ class ConsoleController:
         self.safe_interface = None
         self.contract_interface = None
         self.console_getter = ConsoleInputGetter(self.logger)
+        self.console_handler = ConsoleInputHandler(self.logger)
 
     def operate_with_console(self, desired_parsed_item_list, priority_group, command_argument, argument_list):
         """ Operate With Console
@@ -71,19 +72,18 @@ class ConsoleController:
         elif command_argument == 'newTxPayload':
             self.payload_artifacts.command_new_payload(command_argument, argument_list)
         elif command_argument == 'newToken':
-            self.logger.info('newToken <Address>')
+            self.token_artifacts.command_new_token(command_argument, argument_list)
 
         # setter console commands trigger procedures
         elif command_argument == 'setNetwork':
             if priority_group == 1:
-                network = desired_parsed_item_list[0][1][0]
-                self.network_agent.set_network_provider_endpoint(network, None)
+                network_name, network_api_key = self.console_handler.input_handler(
+                    command_argument, desired_parsed_item_list, priority_group)
+                self.network_agent.set_network_provider_endpoint(network_name, network_api_key)
             elif priority_group == 2:
-                network = desired_parsed_item_list[0][1][0]
-                api_key = desired_parsed_item_list[1][1][0]
-                self.network_agent.set_network_provider_endpoint(network, api_key)
-        elif command_argument == 'setAutofill':
-            self.logger.info('Autofill option to be implemented')
+                network_name, network_api_key = self.console_handler.input_handler(
+                    command_argument, desired_parsed_item_list, priority_group)
+                self.network_agent.set_network_provider_endpoint(network_name, network_api_key)
 
         # information console commands trigger procedures
         elif command_argument == 'about':
@@ -147,12 +147,11 @@ class ConsoleController:
         elif command_argument == 'isOwner':
             if priority_group == 1:
                 try:
-                    address_value_to = desired_parsed_item_list[0][1][0]
-                    safe_interface.command_safe_is_owner(str(address_value_to))
+                    owner_address = self.console_handler.input_handler(
+                        command_argument, desired_parsed_item_list, priority_group)
+                    safe_interface.command_safe_is_owner(owner_address)
                 except Exception as err:
                     self.logger.error(err)
-            elif priority_group == -1:
-                self.logger.info('isOwner --address=0x')
 
         elif command_argument == 'areOwners':
             self.logger.info('areOwners to be Implemented')
@@ -160,36 +159,39 @@ class ConsoleController:
         elif command_argument == 'changeThreshold':
             if priority_group == 1:
                 try:
-                    uint_value = desired_parsed_item_list[0][1][0]
-                    safe_interface.command_safe_change_threshold(int(uint_value))
+                    new_threshold = self.console_handler.input_handler(
+                        command_argument, desired_parsed_item_list, priority_group)
+                    safe_interface.command_safe_change_threshold(new_threshold)
                 except Exception as err:
                     self.logger.error(err)
 
         elif command_argument == 'addOwnerWithThreshold':
             if priority_group == 1:
                 try:
-                    address_value_to = desired_parsed_item_list[0][1][0]
-                    uint_value = desired_parsed_item_list[1][1][0]
-                    safe_interface.command_safe_add_owner_threshold(str(address_value_to), int(uint_value))
+                    new_owner_address, new_threshold = self.console_handler.input_handler(
+                        command_argument, desired_parsed_item_list, priority_group)
+                    safe_interface.command_safe_add_owner_threshold(new_owner_address, new_threshold)
                 except Exception as err:
                     self.logger.error(err)
 
         elif command_argument == 'addOwner':
             if priority_group == 1:
                 try:
-                    address_value_to = desired_parsed_item_list[0][1][0]
-                    safe_interface.command_safe_add_owner_threshold(address_value_to)
+                    new_owner_address = self.console_handler.input_handler(
+                        command_argument, desired_parsed_item_list, priority_group)
+                    safe_interface.command_safe_add_owner_threshold(new_owner_address)
                 except Exception as err:
                     self.logger.error(err)
 
         elif command_argument == 'removeOwner':
             if priority_group == 1:
                 try:
-                    address_value_to = desired_parsed_item_list[0][1][0]
-                    previous_owner = self.setinel_helper(address_value_to, safe_interface)
-                    safe_interface.command_safe_remove_owner(str(previous_owner), str(address_value_to))
+                    old_owner_address = self.console_handler.input_handler(
+                        command_argument, desired_parsed_item_list, priority_group)
+                    previous_owner_address = self.setinel_helper(old_owner_address, safe_interface)
+                    safe_interface.command_safe_remove_owner(previous_owner_address, old_owner_address)
                 except Exception as err:
-                    self.logger.info(err)
+                    self.logger.error(err)
 
         elif command_argument == 'removeMultipleOwners':
             self.logger.info('removeMultipleOwners to be Implemented')
@@ -197,87 +199,83 @@ class ConsoleController:
         elif command_argument == 'swapOwner' or command_argument == 'changeOwner':
             if priority_group == 1:
                 try:
-                    address_value_to = desired_parsed_item_list[0][1][0]
-                    address_new_value = desired_parsed_item_list[0][1][1]
-                    previous_owner = self.setinel_helper(address_value_to, safe_interface)
-                    safe_interface.command_safe_swap_owner(previous_owner, address_value_to, address_new_value)
+                    old_owner_address, new_owner_address = self.console_handler.input_handler(
+                        command_argument, desired_parsed_item_list, priority_group)
+                    previous_owner_address = self.setinel_helper(old_owner_address, safe_interface)
+                    safe_interface.command_safe_swap_owner(previous_owner_address, old_owner_address, new_owner_address)
                 except Exception as err:
-                    print(type(err), err)
+                    self.logger.error(err)
 
         elif command_argument == 'sendToken':
             if priority_group == 1:
                 try:
-                    address_token_to = desired_parsed_item_list[0][1][0]
-                    address_value_to = desired_parsed_item_list[0][1][1]
-                    token_amount = desired_parsed_item_list[1][1][0]
-                    local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
-                    safe_interface.command_send_token(address_value_to, address_token_to, token_amount, local_account)
+                    token_address, address_to, token_amount, private_key = self.console_handler.input_handler(
+                        command_argument, desired_parsed_item_list, priority_group)
+                    local_account = Account.privateKeyToAccount(private_key)
+                    safe_interface.command_send_token(address_to, token_address, token_amount, local_account)
                 except Exception as err:
-                    print(type(err), err)
+                    self.logger.error(err)
 
         elif command_argument == 'depositToken':
             if priority_group == 1:
                 try:
-                    address_value_to = desired_parsed_item_list[0][1][0]
-                    token_amount = desired_parsed_item_list[1][1][0]
-                    local_account = Account.privateKeyToAccount(desired_parsed_item_list[2][1][0])
-                    safe_interface.command_deposit_token(address_value_to, token_amount, local_account)
+                    token_address, token_amount, private_key = self.console_handler.input_handler(
+                        command_argument, desired_parsed_item_list, priority_group)
+                    local_account = Account.privateKeyToAccount(private_key)
+                    safe_interface.command_deposit_token(token_address, token_amount, local_account)
                 except Exception as err:
-                    print(type(err), err)
+                    self.logger.error(err)
                     
         elif command_argument == 'withdrawToken':
             if priority_group == 1:
                 try:
-                    address_token_to = desired_parsed_item_list[0][1][0]
-                    address_value_to = desired_parsed_item_list[0][1][1]
-                    token_amount = desired_parsed_item_list[1][1][0]
-                    safe_interface.command_withdraw_token(address_value_to, address_token_to, token_amount)
+                    token_address, address_to, token_amount = self.console_handler.input_handler(
+                        command_argument, desired_parsed_item_list, priority_group)
+                    safe_interface.command_withdraw_token(address_to, token_address, token_amount)
                 except Exception as err:
-                    print(type(err), err)
+                    self.logger.error(err)
 
         elif command_argument == 'sendEther':
             if priority_group == 1:
                 try:
-                    address_value_to = desired_parsed_item_list[0][1][0]
-                    local_account = Account.privateKeyToAccount(desired_parsed_item_list[1][1][0])
-                    ethereum_units_amount = desired_parsed_item_list[2:]
+                    address_to, private_key, ether_amounts = self.console_handler.input_handler(
+                        command_argument, desired_parsed_item_list, priority_group)
+                    local_account = Account.privateKeyToAccount(private_key)
                     ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
-                    amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
-                    self.logger.debug0('Total Amount: {0} Wei'.format(amount_value))
-                    safe_interface.command_send_ether(address_value_to, amount_value, local_account)
+                    amount = ether_helper.get_unify_ether_amount(ether_amounts)
+                    safe_interface.command_send_ether(address_to, amount, local_account)
                 except Exception as err:
                     self.logger.error(err)
 
         elif command_argument == 'depositEther':
             if priority_group == 1:
                 try:
-                    local_account = Account.privateKeyToAccount(desired_parsed_item_list[0][1][0])
-                    ethereum_units_amount = desired_parsed_item_list[1:]
+                    private_key, ether_amounts = self.console_handler.input_handler(
+                        command_argument, desired_parsed_item_list, priority_group)
+                    local_account = Account.privateKeyToAccount(private_key)
                     ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
-                    amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
-                    self.logger.debug0('Total Amount: {0} Wei'.format(amount_value))
-                    safe_interface.command_deposit_ether(amount_value, local_account)
+                    amount = ether_helper.get_unify_ether_amount(ether_amounts)
+                    safe_interface.command_deposit_ether(amount, local_account)
                 except Exception as err:
                     self.logger.error(err)
 
         elif command_argument == 'withdrawEther':
             if priority_group == 1:
                 try:
-                    address_value_to = desired_parsed_item_list[0][1][0]
-                    ethereum_units_amount = desired_parsed_item_list[1:]
+                    address_to, ether_amounts = self.console_handler.input_handler(
+                        command_argument, desired_parsed_item_list, priority_group)
                     ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
-                    amount_value = ether_helper.get_unify_ether_amount(ethereum_units_amount)
-                    self.logger.debug0('Total Amount: {0} Wei'.format(amount_value))
-                    safe_interface.command_withdraw_ether(amount_value, address_value_to)
+                    amount = ether_helper.get_unify_ether_amount(ether_amounts)
+                    safe_interface.command_withdraw_ether(amount, address_to)
                 except Exception as err:
                     self.logger.error(err)
 
         elif command_argument == 'updateSafe':
-            # note: Check Validity of The Safe Address & Version, Then Ask for Confirmation
             if priority_group == 1:
                 try:
-                    address_value_to = desired_parsed_item_list[0][1][0]
-                    safe_interface.command_safe_change_version(address_value_to)
+                    new_master_copy_address = self.console_handler.input_handler(
+                        command_argument, desired_parsed_item_list, priority_group)
+                    safe_interface.command_safe_change_version(new_master_copy_address)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -293,40 +291,18 @@ class ConsoleController:
             self.account_artifacts.command_view_accounts()
         elif command_argument == 'viewPayloads':
             self.payload_artifacts.command_view_payloads()
+        elif command_argument == 'viewTokens':
+            self.token_artifacts.command_view_tokens()
         elif command_argument == 'loadOwner':
             if priority_group == 1:
-                try:
-                    private_key = desired_parsed_item_list[0][1][0]
-                    self.logger.debug0('[ Signature Value ]: {0} {1}'.format(str(private_key), safe_interface.safe_operator.retrieve_owners()))
-                    local_owner = self.account_artifacts.get_local_account(str(private_key), safe_interface.safe_operator.retrieve_owners())
-                    if local_owner is not None and local_owner in safe_interface.local_owner_account_list:
-                        self.logger.error('Local Owner Already in local_owner_account_list')
-                    elif local_owner is not None:
-                        safe_interface.local_owner_account_list.append(local_owner)
-                        self.logger.debug0('[ Local Account Added ]: {0}'.format(safe_interface.local_owner_account_list))
-                        safe_interface.setup_sender()
-                    else:
-                        self.logger.error('Local Owner is not part of the safe owners, unable to loadOwner')
-                except Exception as err:
-                    self.logger.error(err)
+                private_key = self.console_handler.input_handler(
+                    command_argument, desired_parsed_item_list, priority_group)
+                safe_interface.command_load_owner(private_key)
 
         elif command_argument == 'unloadOwner':
-            try:
-                private_key = desired_parsed_item_list[0][1][0]
-                self.logger.debug0('[ Signature Value ]: {0} {1}'.format(str(private_key), safe_interface.safe_operator.retrieve_owners()))
-                local_owner = self.account_artifacts.get_local_account(private_key, safe_interface.safe_operator.retrieve_owners())
-                if local_owner is not None and local_owner in safe_interface.local_owner_account_list:
-                    for local_owner_account in safe_interface.local_owner_account_list:
-                        if local_owner_account == local_owner:
-                            self.logger.debug0('Removing Account from Local Owner List')
-                            safe_interface.local_owner_account_list.remove(local_owner)
-                            safe_interface.setup_sender()
-
-                    self.logger.debug0('[ Local Account Subs ]: {0}'.format(safe_interface.local_owner_account_list))
-                else:
-                    self.logger.error('Local Account generated via Private Key it is not Loaded')
-            except Exception as err:
-                self.logger.error(err)
+            private_key = self.console_handler.input_handler(
+                command_argument, desired_parsed_item_list, priority_group)
+            safe_interface.command_unload_owner(private_key)
 
         elif command_argument == 'loadMultipleOwners':
             self.logger.info('load multiple owners')
