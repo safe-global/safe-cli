@@ -42,7 +42,6 @@ class ConsoleController:
         :param priority_group:
         :param command_argument:
         :param argument_list:
-        :param console_session:
         :return:
         """
         # load console console commands trigger procedures
@@ -88,33 +87,8 @@ class ConsoleController:
         # information console commands trigger procedures
         elif command_argument == 'about':
             self.console_information.command_view_about()
-        elif (command_argument == 'help') or (command_argument == 'info'):
+        elif command_argument == 'help':
             self.console_information.command_view_general_information()
-
-    def setinel_helper(self, address_value, safe_interface):
-        """ Sender Helper
-        This function send utils
-        :param address_value:
-        :param safe_interface:
-        :return:
-        """
-        previous_owner = '0x' + ('0' * 39) + '1'
-        self.logger.info('[ Current Owner with Address to be Removed ]: {0}'.format(str(address_value)))
-        self.logger.info('[ Current Local Account Owners ]: {0}'.format(safe_interface.safe_operator.retrieve_owners()))
-        for index, owner_address in enumerate(safe_interface.safe_operator.retrieve_owners()):
-            if address_value == owner_address:
-                self.logger.info('[ Found Owner in Owners ]: {0} with Index {1}'.format(owner_address, index))
-                try:
-                    sentinel_index = (index - 1)
-                    self.logger.info('[ SENTINEL Address Index ]: {0}'.format(sentinel_index))
-                    if index != 0:
-                        current_owner_list = safe_interface.safe_operator.retrieve_owners()
-                        previous_owner = current_owner_list[(index - 1)]
-
-                    self.logger.info('[ Found PreviousOwner on the list ]: {0}'.format(previous_owner))
-                    return previous_owner
-                except IndexError:
-                    self.logger.error('Sentinel Address not found, returning NULLADDRESS')
 
     def operate_with_safe(self, desired_parsed_item_list, priority_group, command_argument, argument_list, safe_interface):
         """ Operate With Safe
@@ -143,7 +117,6 @@ class ConsoleController:
             safe_interface.command_safe_get_owners()
         elif command_argument == 'getThreshold':
             safe_interface.command_safe_get_threshold()
-
         elif command_argument == 'isOwner':
             if priority_group == 1:
                 try:
@@ -188,7 +161,7 @@ class ConsoleController:
                 try:
                     old_owner_address = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    previous_owner_address = self.setinel_helper(old_owner_address, safe_interface)
+                    previous_owner_address = safe_interface.setinel_helper(old_owner_address)
                     safe_interface.command_safe_remove_owner(previous_owner_address, old_owner_address)
                 except Exception as err:
                     self.logger.error(err)
@@ -201,7 +174,7 @@ class ConsoleController:
                 try:
                     old_owner_address, new_owner_address = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    previous_owner_address = self.setinel_helper(old_owner_address, safe_interface)
+                    previous_owner_address = safe_interface.setinel_helper(old_owner_address)
                     safe_interface.command_safe_swap_owner(previous_owner_address, old_owner_address, new_owner_address)
                 except Exception as err:
                     self.logger.error(err)

@@ -14,7 +14,6 @@ class TypeOfConsole(Enum):
 payload_options = ['alias', 'from', 'gas', 'gasPrice']
 payload_tx_options = ['alias', 'from', 'gas', 'gasPrice', 'value', 'nonce', 'safe_tx_gas']
 
-
 # Aesthectic Constant Definition
 STRING_DASHES = '----------' * 14
 QUOTE = '\''
@@ -28,6 +27,12 @@ TX_ADDRESS_LENGTH = 66
 # String Size of API Keys
 INFURA_API_KEY_LENGTH = 32
 ETHERSCAN_API_KEY_LENGTH = 34
+
+gnosis_commands = [
+    'about', 'info', 'help', 'newContract', 'loadContract', 'setNetwork', 'viewNetwork', 'viewTokens',
+    'close', 'quit', 'viewContracts', 'viewAccounts', 'newAccount', 'setAutofill', 'newToken',
+    'viewPayloads', 'newPayload', 'newTxPayload', 'setDefaultSender', 'loadSafe'
+]
 
 # API_POOL with gnosis_asociated accounts 100 calls per day * 10 atleast
 API_KEY_DICT = {
