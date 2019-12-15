@@ -54,7 +54,7 @@ class GnosisConsoleEngine:
     access to the safe console via loadSafe --address=0x0*40 & access to the general contract console via
     loadContract --alias=GnosisSafeV1.1.0_1
     """
-    def __init__(self, init_configuration, contract_artifacts=None, token_artifacts=None):
+    def __init__(self, init_configuration):
         self.name = self.__class__.__name__
         self.prompt_text = init_configuration['name']
         # Setup the console files logs if does not exists
@@ -114,7 +114,6 @@ class GnosisConsoleEngine:
         self.payload_artifacts = PayloadArtifacts(self.logger)
         # Setup Contract Artifacts
         self.contract_artifacts = ContractArtifacts(self.logger)
-        self.contract_artifacts.pre_load_artifacts(contract_artifacts)
 
         # Setup Console Input Getter
         self.console_getter = ConsoleInputGetter(self.logger)
@@ -124,7 +123,6 @@ class GnosisConsoleEngine:
         )
         # Setup Console Token
         self.token_artifacts = TokenArtifacts(self.logger, self.network_agent.ethereum_client)
-        self.token_artifacts.pre_loaded_token_artifacts(token_artifacts)
 
         # Setup DataArtifacts
         self.data_artifacts = DataArtifacts(
@@ -140,33 +138,28 @@ class GnosisConsoleEngine:
         # Setup: Log Formatter
         self.log_formatter = LogMessageFormatter(self.logger)
 
-        # Info Header: Finished loading all the components of the gnosis-cli
-        if not self.quiet_flag:
-            self.log_formatter.log_entry_message('Entering Gnosis Cli')
+        self._setup_console_token_configuration(init_configuration)
 
-        self._setup_console_component_configuration(init_configuration)
         # Run Console
-        self.run_console_session(self.prompt_text)
+        self._setup_console_init(init_configuration)
 
     def exit_command(self, command_argument):
         if (command_argument == 'close') or (command_argument == 'quit') or (command_argument == 'exit'):
-            if (self.active_session == TypeOfConsole.SAFE_CONSOLE) or (
-                    self.active_session == TypeOfConsole.CONTRACT_CONSOLE):
+            if (self.active_session == TypeOfConsole.SAFE_CONSOLE) \
+                    or (self.active_session == TypeOfConsole.CONTRACT_CONSOLE):
                 result = yes_no_dialog(
                     title='Exiting {0}'.format(self.active_session.value),
                     text='All data regarding loaded owners & sender configuration will be lost, '
                          'Are you sure you want to exit the {0}?'.format(self.active_session.value)).run()
-                if result:
-                    self.active_session = TypeOfConsole.GNOSIS_CONSOLE
-                    raise EOFError
             else:
                 result = yes_no_dialog(
                     title='Exiting {0}'.format(self.active_session.value),
                     text='All data regarding accounts, tokens, contracts & payloads will be lost, '
                          'Are you sure you want to exit the {0}?'.format(self.active_session.value)).run()
-                if result:
-                    self.active_session = TypeOfConsole.GNOSIS_CONSOLE
-                    raise EOFError
+
+            if result:
+                self.active_session = TypeOfConsole.GNOSIS_CONSOLE
+                raise EOFError
 
     def run_console_session(self, prompt_text):
         """ Run Console Session
@@ -250,69 +243,98 @@ class GnosisConsoleEngine:
         # CustomLogger Instance Creation
         self.logger = CustomLogger(self.name, self.logging_lvl)
 
-    def _setup_console_component_configuration(self, configuration):
-        if configuration['token']:
-            # self.token_artifacts.new_token_entry()
-            self.logger.info(configuration['token'])
-        if configuration['safe'] is not None:
-            self.logger.info(configuration['safe'])
-        if configuration['private_key'] is not None:
-            self.logger.info(configuration['private_key'])
+    def _setup_console_token_configuration(self, configuration):
+        """ Setup Console Token Configuration
 
-    def _setup_contract_artifacts(self, contract_artifacts):
-        """ Pre Load Contract Artifacts
-        This function will load contract artifacts for the console to have access to
-        :param contract_artifacts:
+        :param configuration:
         :return:
         """
-        if contract_artifacts is not None:
-            # remark: Pre-Loading of the Contract Assets (Safe v1.1.0, Safe v1.0.0, Safe v-0.0.1)
-            #  for testing purposes
-            for artifact_index, artifact_item in enumerate(contract_artifacts):
-                self.contract_artifacts.add_contract_artifact(
-                    artifact_item['name'], artifact_item['instance'],
-                    artifact_item['abi'], artifact_item['bytecode'],
-                    artifact_item['address'], alias=contract_artifacts['name'])
+        if configuration['erc20']:
+            self.logger.debug0(configuration['erc20'])
+            self.token_artifacts.pre_load_erc20_artifacts(configuration['erc20'])
 
-    def run_contract_console(self, desired_parsed_item_list, priority_group):
+        if configuration['erc721']:
+            self.logger.debug0(configuration['erc721'])
+            self.token_artifacts.pre_load_erc20_artifacts(configuration['erc721'])
+
+    def _setup_console_init(self, configuration):
+        """ Setup Console Safe Configuration
+
+        :param configuration:
+        :return:
+        """
+        if configuration['safe'] is not None:
+            if self.network_agent.ethereum_client.w3.isAddress(configuration['safe']):
+                try:
+                    self.logger.debug0(configuration['safe'])
+                    self.run_safe_console(configuration['safe'], configuration['private_key'])
+                except Exception as err:
+                    self.logger.err('{0}'.format(self.name))
+                    self.logger.err(err)
+        else:
+            # Info Header: Finished loading all the components of the gnosis-cli
+            if not self.quiet_flag:
+                self.log_formatter.log_entry_message('Entering Gnosis Cli')
+            self.run_console_session(self.prompt_text)
+
+    def _setup_console_contract_configuration(self, configuration):
+        """ Setup Console Contract Configuration
+        This function will load contract artifacts for the console to have access to
+        :param configuration:
+        :return:
+        """
+
+        if configuration['contract'] and configuration['abi']:
+            self.logger.debug0(configuration['contract'])
+            self.logger.debug0(configuration['abi'])
+            self.logger.info('This should load the contract information')
+
+        # if contract_artifacts is not None:
+        #     # remark: Pre-Loading of the Contract Assets (Safe v1.1.0, Safe v1.0.0, Safe v-0.0.1)
+        #     #  for testing purposes
+        #     for artifact_index, artifact_item in enumerate(contract_artifacts):
+        #         self.contract_artifacts.add_contract_artifact(
+        #             artifact_item['name'], artifact_item['instance'],
+        #             artifact_item['abi'], artifact_item['bytecode'],
+        #             artifact_item['address'], alias=contract_artifacts['name'])
+
+    def run_contract_console(self, contract_alias):
         """ Run Contract Console
         This function will run the contract console
-        :param desired_parsed_item_list:
-        :param priority_group:
+        :param contract_alias:
         :return:
         """
-        if priority_group == 0:
-            try:
-                # remark: Change this for the proper call to the data_artifact class
-                alias = desired_parsed_item_list[0][1][0]
-                self.contract_interface = self.contract_artifacts.retrive_from_stored_values(alias, 'instance')
-                self.logger.debug0('Contract Instance {0} Loaded'.format(self.contract_interface))
-                self.contract_methods = ConsoleContractCommands().map_contract_methods(self.contract_interface)
-                self.active_session = TypeOfConsole.CONTRACT_CONSOLE
-                self.log_formatter.log_entry_message('Entering Contract Console')
-                set_title('Contract Console')
-                self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='contract-cli', stream=alias))
-            except KeyError as err:
-                self.logger.error(err)
+        try:
+            self.log_formatter.log_entry_message('Entering Contract Console')
+            set_title('Contract Console')
+            self.contract_interface = self.contract_artifacts.retrive_from_stored_values(contract_alias, 'instance')
+            self.logger.debug0('Contract Instance {0} Loaded'.format(self.contract_interface))
+            self.contract_methods = ConsoleContractCommands().map_contract_methods(self.contract_interface)
+            self.active_session = TypeOfConsole.CONTRACT_CONSOLE
+            self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='contract-cli', stream=contract_alias))
+        except KeyError as err:
+            self.logger.error(err)
 
-    def run_safe_console(self, desired_parsed_item_list, priority_group):
+    def run_safe_console(self, safe_address, private_key_list=None):
         """ Run Safe Console
         This function will run the safe console
-        :param desired_parsed_item_list:
-        :param priority_group:
+        :param safe_address:
+        :param private_key_list:
         :return:
         """
-        if priority_group == 1:
-            try:
-                safe_address = desired_parsed_item_list[0][1][0]
-                self.safe_interface = ConsoleSafeCommands(safe_address, self.logger, self.data_artifacts, self.network_agent)
-                self.active_session = TypeOfConsole.SAFE_CONSOLE
-                self.log_formatter.log_entry_message('Entering Safe Console')
-                set_title('Safe Console')
-                self.run_console_session(
-                    prompt_text=self._get_prompt_text(affix_stream='safe-cli', stream='Safe (' + safe_address + ')'))
-            except KeyError as err:
-                self.logger.error(err)
+        try:
+            self.log_formatter.log_entry_message('Entering Safe Console')
+            set_title('Safe Console')
+            self.safe_interface = ConsoleSafeCommands(safe_address, self.logger, self.data_artifacts, self.network_agent)
+            if private_key_list is not None:
+                self.logger.info(private_key_list)
+                for private_key_owner in private_key_list:
+                    self.safe_interface.command_load_owner(private_key_owner)
+            self.active_session = TypeOfConsole.SAFE_CONSOLE
+            self.run_console_session(
+                prompt_text=self._get_prompt_text(affix_stream='safe-cli', stream='Safe (' + safe_address + ')'))
+        except KeyError as err:
+            self.logger.error(err)
 
     def get_toolbar_text(self, sender_address=None, sender_private_key=None):
         amount = 0

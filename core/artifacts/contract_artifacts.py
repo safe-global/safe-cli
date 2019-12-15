@@ -13,18 +13,18 @@ class ContractArtifacts:
         self.logger = logger
         self.contract_data = {}
 
-    def pre_load_artifacts(self, contract_artifacts):
-        """ Pre Load Artifacts
+    def pre_load_contract_artifacts(self, contract_address, contract_abi):
+        """ Pre Load Contract Artifacts
         This function will pre-load any provided contract artifact, during the launching process of the general console
         gnosis-cli.
-        :param contract_artifacts:
+        :param contract_address:
         :return:
         """
-        if contract_artifacts is not None:
+        if contract_address:
             self.logger.debug0('')
             self.logger.debug0(' | Setup Contract Artifacts  | ')
             self.logger.debug0(STRING_DASHES)
-            for artifact in contract_artifacts:
+            for artifact in contract_address:
                 self.logger.debug0('(+) Contract Artifact [ {0} with Address {1} ]'.format(
                     artifact['name'], artifact['address'])
                 )

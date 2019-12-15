@@ -11,7 +11,7 @@ from core.constants.console_constant import DETERMINISTIC_ACCOUNT_INFORMATION as
 from hexbytes import HexBytes
 
 # Import Constants
-from core.constants.console_constant import STRING_DASHES
+from core.constants.console_constant import STRING_DASHES, NULL_ADDRESS
 
 # Import Account Artifacts Module
 from core.artifacts.constants.type_artifacts import TypeOfAccount
@@ -30,7 +30,7 @@ class AccountsArtifacts:
             'NULL': {
                 'network': TypeOfAccount.LOCAL_ACCOUNT,
                 'balance': 0,
-                'address': '0x' + '0' * 40,
+                'address': NULL_ADDRESS,
                 'private_key': HexBytes('').hex(),
                 'instance': None
             }

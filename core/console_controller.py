@@ -47,9 +47,15 @@ class ConsoleController:
         # load console console commands trigger procedures
         self.logger.debug0('(+) [ Operating with General Console ]: ' + command_argument)
         if command_argument == 'loadContract':
-            self.contract_interface = self.console_engine.run_contract_console(desired_parsed_item_list, priority_group)
+            contract_alias = self.console_handler.input_handler(
+                command_argument, desired_parsed_item_list, priority_group)
+            self.contract_interface = self.console_engine.run_contract_console(contract_alias)
+
         elif command_argument == 'loadSafe':
-            self.safe_interface = self.console_engine.run_safe_console(desired_parsed_item_list, priority_group)
+            if priority_group == 1:
+                safe_address = self.console_handler.input_handler(
+                    command_argument, desired_parsed_item_list, priority_group)
+                self.safe_interface = self.console_engine.run_safe_console(safe_address)
 
         # view console commands procedures
         elif command_argument == 'viewTokens':

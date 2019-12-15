@@ -22,7 +22,6 @@ parser.add_argument('--quiet', action='store_true',
                     dest='quiet', default=False,
                     help='This init option will store the value for the quiet param, and subsequently will '
                          'disable/hide the Loading Process in the Console. (By default, it will be set to False).')
-
 parser.add_argument('--debug', action='store_true',
                     dest='debug', default=False,
                     help='This init option will store the value for the debug param, and subsequently will enable the '
@@ -34,7 +33,6 @@ parser.add_argument('--network', action='store',
                          'execution of the Console. This value can be changed in the Console via setNetwork command, '
                          'also it can be viewed through viewNetworks command. (By default, it will be set to ganache).',
                     type=str)
-
 parser.add_argument('--private_key', action='append', default=[],
                     dest='private_key_collection',
                     help='This init option will store a list o private keys to be initialize during the Loading Process'
@@ -42,31 +40,28 @@ parser.add_argument('--private_key', action='append', default=[],
                          'through viewAccounts command. Additionally while using the General Contract or Safe Contract'
                          'Consoles, those values can be accessed during contract interaction via alias. '
                          'Example( Ganache Account 0 Alias ): isOwner --address=gAccount0.address', type=str)
-
-parser.add_argument('--api_key', action='store', default=None,
-                    dest='api_key', help='', type=str)
-
-parser.add_argument('--version', action='version', version='%(prog)s 0.0.1a')
+parser.add_argument('--api_key', action='store', default=None, dest='api_key', help='', type=str)
+parser.add_argument('--safe', action='store',
+                    dest='safe_address', default=None,
+                    help='This init option, will store the value of the safe address you like to operate with during'
+                         ' the execution of the Console. This value can be changed in the Console via '
+                         'loadSafe command).', type=str)
+parser.add_argument('--contract', action='store', dest='contract_address', default=None,
+                    help='', type=str)
+parser.add_argument('--erc20', action='append',
+                    dest='erc20_collection', default=[],
+                    help='This init option, will store the values of the token addresses you like to operate with'
+                         ' during the execution of the Console.', type=str)
+parser.add_argument('--erc721', action='append',
+                    dest='erc721_collection', default=[],
+                    help='This init option, will store the values of the token addresses you like to operate with'
+                         ' during the execution of the Console.', type=str)
 parser.add_argument('--test', action='store_true',
                     dest='test', default=False,
                     help='This init option will launch the loading of local artifacts such a copy of the gnosis_safe &'
                          'and 10 random local accounts and the 10 default accounts provided by the ganache local '
                          'blockchain.')
-parser.add_argument('--safe', action='store',
-                    dest='safe_address', default=None,
-                    help='This init option, will store the value of the safe address you like to operate with during'
-                         ' the execution of the Console. This value can be changed in the Console via '
-                         'loadSafe command).',
-                    type=str)
-parser.add_argument('--contract', action='store',
-                    dest='contract_address', default=None,
-                    help='',
-                    type=str)
-parser.add_argument('--token', action='append',
-                    dest='token_collection', default=[],
-                    help='This init option, will store the values of the token addresses you like to operate with'
-                         ' during the execution of the Console.',
-                    type=str)
+parser.add_argument('--version', action='version', version='%(prog)s 0.0.1a')
 
 try:
     config = configparser.ConfigParser()
@@ -81,25 +76,16 @@ try:
         'private_key': results.private_key_collection,
         'api_key': results.api_key,
         'safe': results.safe_address,
-        'token': results.token_collection,
+        'erc20': results.erc20_collection,
+        'erc721': results.erc721_collection,
         'name': config['DEFAULT']['name'],
         'version': config['DEFAULT']['version']
     }
 
-    # Init Scenario with Random Safe with Setup (Pre-Loaded Contracts)
-    pre_loaded_contract_artifacts = None
-    pre_loaded_token_artifacts = None
-    # if results.test:
-    #     pre_loaded_contract_artifacts = gnosis_py_init_scenario()
-    #     pre_loaded_token_artifacts = gnosis_py_init_tokens('0x5b1869D9A4C187F2EAa108f3062412ecf0526b24')
-
     # Init GnosisConsoleEngine with current configuration
-    gnosis_console_engine = GnosisConsoleEngine(
-        init_configuration,
-        contract_artifacts=pre_loaded_contract_artifacts,
-        token_artifacts=pre_loaded_token_artifacts)
+    gnosis_console_engine = GnosisConsoleEngine(init_configuration)
 
 except ConnectionError:
-    print('Launch [ "ganache-cli -d" ] command on a new terminal before you try to run the console again!')
+    print('Launch [ "ganache-cli -d" ] command or setup [ network + api_key ] before you try to run the console again!')
 except Exception as err:
     print('Uknown Error:', type(err), '\n', err)

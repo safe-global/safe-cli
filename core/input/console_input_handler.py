@@ -9,11 +9,13 @@ class ConsoleInputHandler:
 
     def input_handler(self, command_argument, desired_parsed_item_list, priority_group):
         if command_argument == 'loadContract':
-            contract_address = desired_parsed_item_list[0][1][0]
-            return contract_address
+            if priority_group == 0:
+                contract_alias = desired_parsed_item_list[0][1][0]
+                return contract_alias
         elif command_argument == 'loadSafe':
-            safe_address = desired_parsed_item_list[0][1][0]
-            return safe_address
+            if priority_group == 1:
+                safe_address = desired_parsed_item_list[0][1][0]
+                return safe_address
         elif command_argument == 'setNetwork':
             if priority_group == 1:
                 network_name = desired_parsed_item_list[0][1][0]

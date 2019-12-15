@@ -14,6 +14,8 @@ from prompt_toolkit import HTML, prompt
 from gnosis.eth.contracts import (
     get_erc20_contract, get_erc721_contract
 )
+
+# Token Options
 token_options = ['type', 'address']
 
 
@@ -26,22 +28,63 @@ class TokenArtifacts:
         self.ethereum_client = ethereum_client
         self.token_data = {}
 
-    def pre_loaded_token_artifacts(self, token_artifacts):
+    def pre_load_erc20_artifacts(self, token_erc20_artifacts):
         """ Pre Load Artifacts
-        This function will pre-load any provided contract artifact, during the launching process of the general console
+        This function will pre-load any provided erc20 tokens, during the launching process of the general console
         gnosis-cli.
-        :param token_artifacts:
+        :param token_erc20_artifacts:
         :return:
         """
-        if token_artifacts is not None:
+        if token_erc20_artifacts:
             self.logger.debug0('')
-            self.logger.debug0(' | Setup Token Artifacts  | ')
+            self.logger.debug0(' | Setup Token ERC20 Artifacts  | ')
             self.logger.debug0(STRING_DASHES)
-            for artifact in token_artifacts:
-                self.logger.debug0('(+) Token Artifact [ {0} with Address {1} ]'.format(
-                    artifact['name'], artifact['address'])
-                )
-                self.add_token_artifact(token_artifact=artifact, alias=artifact['name'])
+
+            for token_erc20_address in token_erc20_artifacts:
+                if self.ethereum_client.w3.isAddress(token_erc20_address):
+                    try:
+                        token_instance = get_erc20_contract(self.ethereum_client.w3, token_erc20_address)
+                        token_alias = token_instance.functions.symbol().call()
+                        token_artifact = self.new_token_entry(
+                            token_erc20_address, token_instance,  TypeOfTokens.ERC20, token_alias)
+                        self.logger.info('(+) Token ERC20 Artifact [ {0} with Address {1} ]'.format(
+                            token_artifact['name'], token_artifact['address']))
+                        self.add_token_artifact(token_artifact, token_artifact['name'])
+                    except Exception as err:
+                        self.logger.error(err)
+                        self.logger.error('Unable to get erc20 contract, are you sure this is a valid token address?')
+                else:
+                    self.logger.error('Address for erc20 token is not valid')
+        self.logger.debug0(STRING_DASHES)
+        self.logger.debug0('')
+
+    def pre_load_erc721_artifacts(self, token_erc721_artifacts):
+        """ Pre Load Artifacts
+        This function will pre-load any provided erc721 tokens, during the launching process of the general console
+        gnosis-cli.
+        :param token_erc721_artifacts:
+        :return:
+        """
+        if token_erc721_artifacts:
+            self.logger.debug0('')
+            self.logger.debug0(' | Setup Token ERC721 Artifacts  | ')
+            self.logger.debug0(STRING_DASHES)
+
+            for token_erc721_address in token_erc721_artifacts:
+                if self.ethereum_client.w3.isAddress(token_erc721_address):
+                    try:
+                        token_instance = get_erc721_contract(self.ethereum_client.w3, token_erc721_address)
+                        token_alias = token_instance.functions.symbol().call()
+                        token_artifact = self.new_token_entry(
+                            token_erc721_address, token_instance, TypeOfTokens.ERC721, token_alias)
+                        self.logger.info('(+) Token ERC721 Artifact [ {0} with Address {1} ]'.format(
+                            token_artifact['name'], token_artifact['address']))
+                        self.add_token_artifact(token_artifact, token_artifact['name'])
+                    except Exception as err:
+                        self.logger.error(err)
+                        self.logger.error('Unable to get erc721 contract, are you sure this is a valid token address?')
+                else:
+                    self.logger.error('Address for erc721 token is not valid')
         self.logger.debug0(STRING_DASHES)
         self.logger.debug0('')
 
@@ -55,9 +98,9 @@ class TokenArtifacts:
         if command_argument == 'newToken' and argument_list == []:
             new_token_entry = self._new_token_helper(token_options)
             self.logger.info('newToken: ' + str(new_token_entry))
-            return self.add_token_artifact(new_token_entry, new_token_entry['name'], new_token_entry['type'])
+            return self.add_token_artifact(new_token_entry, new_token_entry['name'])
         else:
-            self.logger.info('Input for Argument --token=, --instance=, --type=, --alias=')
+            self.logger.info('newToken and complete the input requirements')
 
     def command_view_tokens(self):
         """ Command View Tokens
@@ -86,23 +129,19 @@ class TokenArtifacts:
             'address': token_address, 'instance': token_instance, 'type': type_of_tokens, 'name': alias
         }
 
-    def add_token_artifact(self, token_artifact, alias='', type_of_token=TypeOfTokens.ERC20):
+    def add_token_artifact(self, token_artifact, alias=''):
         """
         This function will add a new token_artifact to the token_data dict
         :param token_artifact:
         :param alias:
-        :param type_of_token:
         :return:
         """
         if alias != '':
             self.token_data[alias] = self.new_token_entry(
-                token_artifact['address'], token_artifact['instance'], type_of_token, alias
-            )
+                token_artifact['address'], token_artifact['instance'], token_artifact['type'], token_artifact['name'])
         else:
             self.token_data['uToken' + str(len(self.token_data))] = self.new_token_entry(
-                token_artifact['address'], token_artifact['instance'],
-                type_of_token, 'uToken' + str(len(self.token_data))
-            )
+                token_artifact['address'], token_artifact['instance'], token_artifact['type'], token_artifact['name'])
 
     def _new_token_helper(self, token_options):
         """ New Token Helper
