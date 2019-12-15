@@ -76,6 +76,7 @@ class DataArtifacts:
                     value_from_artifact = self.retrive_from_stored_values(alias, key, artifact_type)
                 except IndexError:
                     self.logger.error('Unable to parse substring value from_alias_get_value()')
+                    return stream_value
         self.logger.debug0('From Alias Get Value | StreamValue: {0} | Value: {1} | '.format(
             stream_value, value_from_artifact)
         )

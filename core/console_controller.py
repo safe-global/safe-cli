@@ -34,7 +34,7 @@ class ConsoleController:
         self.safe_interface = None
         self.contract_interface = None
         self.console_getter = ConsoleInputGetter(self.logger)
-        self.console_handler = ConsoleInputHandler(self.logger)
+        self.console_handler = ConsoleInputHandler(self.logger, self.data_artifact)
 
     def operate_with_console(self, desired_parsed_item_list, priority_group, command_argument, argument_list):
         """ Operate With Console
@@ -160,7 +160,7 @@ class ConsoleController:
                 try:
                     new_owner_address = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    safe_interface.command_safe_add_owner_threshold(new_owner_address, _execute, _queue)
+                    safe_interface.command_safe_add_owner_threshold(new_owner_address, None, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 

@@ -707,11 +707,11 @@ class ConsoleSafeCommands:
         self.logger.error('Not Enough Signatures Loaded/Stored in local_accounts_list ')
         return False
 
-    def command_send_token(self, address_to, token_contract_address, token_amount, local_account, _execute=False, _queue=False):
+    def command_send_token(self, address_to, token_address, token_amount, local_account, _execute=False, _queue=False):
         """ Command Send Token
         This function will send tokens
         :param address_to:
-        :param token_contract_address:
+        :param token_address:
         :param token_amount:
         :param local_account:
         :param _execute:
@@ -722,12 +722,12 @@ class ConsoleSafeCommands:
             # Preview the current token balance of the safe before the transaction
             self.command_view_token_balance()
             self.log_formatter.log_section_left_side('Send Token')
-            erc20 = get_erc20_contract(self.ethereum_client.w3, token_contract_address)
+            erc20 = get_erc20_contract(self.ethereum_client.w3, token_address)
             if self.auto_fill_token_decimals:
                 token_amount = (token_amount * pow(10, erc20.functions.decimals().call()))
 
             safe_tx = self.ethereum_client.erc20.send_tokens(
-                address_to, token_amount, token_contract_address, local_account.privateKey)
+                address_to, token_amount, token_address, local_account.privateKey)
 
             # Perform the transaction
             tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx, timeout=60)
@@ -740,10 +740,10 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to command_send_token_raw(): {0} {1}'.format(type(err), err))
 
-    def command_deposit_token(self, token_address_to, token_amount, local_account, _execute=False, _queue=False):
+    def command_deposit_token(self, token_address, token_amount, local_account, _execute=False, _queue=False):
         """ Command Deposit Token
         This function will deposit tokens from the safe
-        :param token_address_to:
+        :param token_address:
         :param token_amount:
         :param local_account:
         :param _execute:
@@ -751,16 +751,16 @@ class ConsoleSafeCommands:
         :return:
         """
         try:
-            self.command_send_token(self.safe_operator.address, token_address_to, token_amount,
-                                    local_account, _execute=_execute, _queue=_queue)
+            self.command_send_token(address_to=self.safe_operator.address, token_address=token_address, token_amount=token_amount,
+                                    local_account=local_account, _execute=_execute, _queue=_queue)
         except Exception as err:
             self.logger.error('Unable to command_deposit_token_raw(): {0} {1}'.format(type(err), err))
 
-    def command_withdraw_token(self, address_to, token_contract_address, token_amount, _execute=False, _queue=False):
+    def command_withdraw_token(self, address_to, token_address, token_amount, _execute=False, _queue=False):
         """ Command Withdraw Token
         This function will withdraw tokens from the safe
         :param address_to:
-        :param token_contract_address:
+        :param token_address:
         :param token_amount:
         :param _execute:
         :param _queue:
@@ -770,7 +770,7 @@ class ConsoleSafeCommands:
             # Preview the current token balance of the safe before the transaction
             self.command_view_token_balance()
             sender_data = {'from': self.safe_operator.address}
-            erc20 = get_erc20_contract(self.ethereum_client.w3, token_contract_address)
+            erc20 = get_erc20_contract(self.ethereum_client.w3, token_address)
             if self.auto_fill_token_decimals:
                 token_amount = (token_amount * pow(10, erc20.functions.decimals().call()))
 
@@ -778,13 +778,13 @@ class ConsoleSafeCommands:
                 address_to, token_amount).buildTransaction(sender_data)['data'])
 
             # Perform the transaction
-            self.perform_transaction(payload_data, address_to=token_contract_address, _execute=_execute, _queue=_queue)
+            self.perform_transaction(payload_data, address_to=token_address, _execute=_execute, _queue=_queue)
 
             # Preview the current token balance of the safe after the transaction
             current_token_balance = self.ethereum_client.erc20.get_balance(self.safe_operator.address,
-                                                                           token_contract_address)
+                                                                           token_address)
             current_user_balance = self.ethereum_client.erc20.get_balance(self.safe_operator.address,
-                                                                          token_contract_address)
+                                                                          token_address)
             self.logger.debug0(current_token_balance)
             self.logger.debug0(current_user_balance)
             self.command_view_token_balance()

@@ -3,9 +3,10 @@
 
 
 class ConsoleInputHandler:
-    def __init__(self, logger):
+    def __init__(self, logger, data_artifact=None):
         self.name = self.__class__.__name__
         self.logger = logger
+        self.data_artifact = data_artifact
 
     def input_handler(self, command_argument, desired_parsed_item_list, priority_group):
         if command_argument == 'loadContract':
@@ -33,15 +34,15 @@ class ConsoleInputHandler:
             if priority_group == 1:
                 new_threshold = int(desired_parsed_item_list[0][1][0])
                 return new_threshold
-        elif command_argument == 'addOwnerWithThreshold':
-            if priority_group == 1:
-                new_owner_address = desired_parsed_item_list[0][1][0]
-                new_threshold = int(desired_parsed_item_list[1][1][0])
-                return new_owner_address, new_threshold
         elif command_argument == 'addOwner':
             if priority_group == 1:
-                new_owner_address = desired_parsed_item_list[0][1][0]
+                new_owner_address = self.data_artifact.from_alias_get_value(desired_parsed_item_list[0][1][0], 'account')
                 return new_owner_address
+        elif command_argument == 'addOwnerWithThreshold':
+            if priority_group == 1:
+                new_owner_address = self.data_artifact.from_alias_get_value(desired_parsed_item_list[0][1][0], 'account')
+                new_threshold = int(desired_parsed_item_list[1][1][0])
+                return new_owner_address, new_threshold
         elif command_argument == 'removeOwner':
             if priority_group == 1:
                 old_owner_address = desired_parsed_item_list[0][1][0]
@@ -57,11 +58,11 @@ class ConsoleInputHandler:
                 address_to = desired_parsed_item_list[1][1][0]
                 token_amount = int(desired_parsed_item_list[2][1][0])
                 private_key = desired_parsed_item_list[3][1][0]
-                print(token_address, address_to, token_amount, private_key)
                 return token_address, address_to, token_amount, private_key
         elif command_argument == 'depositToken':
             if priority_group == 1:
-                token_address = desired_parsed_item_list[0][1][0]
+                token_address = self.data_artifact.from_alias_get_value(desired_parsed_item_list[0][1][0], 'token')
+                #token_address = desired_parsed_item_list[0][1][0]
                 token_amount = int(desired_parsed_item_list[1][1][0])
                 private_key = desired_parsed_item_list[2][1][0]
                 return token_address, token_amount, private_key
