@@ -333,7 +333,7 @@ class GnosisConsoleEngine:
 
             self.safe_interface = ConsoleSafeCommands(safe_address, self.logger, self.data_artifacts, self.network_agent)
             if private_key_list is not None:
-                self.logger.info(private_key_list)
+                self.logger.debug0(private_key_list)
                 for private_key_owner in private_key_list:
                     self.safe_interface.command_load_owner(private_key_owner)
             self.active_session = TypeOfConsole.SAFE_CONSOLE

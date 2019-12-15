@@ -11,7 +11,6 @@ from core.constants.console_constant import NULL_ADDRESS, STRING_DASHES
 from hexbytes import HexBytes
 
 # Import Gnosis-Py Modules
-from gnosis.safe.safe_tx import SafeTx
 from gnosis.safe.safe import Safe, SafeOperation
 from gnosis.eth.contracts import (
     get_safe_V1_0_0_contract, get_safe_V0_0_1_contract, get_erc20_contract
@@ -54,7 +53,7 @@ class ConsoleSafeCommands:
         # Trigger information on class init
         self.command_safe_information()
 
-        self.auto_fill_token_decimals = True
+        self.auto_fill_token_decimals = False
         self.auto_execute = False
 
     def _setup_gas_price(self):
@@ -131,23 +130,72 @@ class ConsoleSafeCommands:
                 except IndexError:
                     self.logger.error('Sentinel Address not found, returning NULLADDRESS')
 
+    def command_view_gas(self):
+        header_data = '-:[ {0} ]:-'.format('Current Gas Configuration')
+        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+        information_data = ' (#) BaseGas value {0}'.format(self.base_gas)
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        information_data = ' (#) SafeTxGas value {0}'.format(self.safe_tx_gas)
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        self.logger.info(' ' + STRING_DASHES)
+
+    def command_set_base_gas(self, value):
+        header_data = '-:[ {0} ]:-'.format('setBaseGas')
+        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+        if int(value) > 0:
+            self.base_gas = int(value)
+            information_data = ' (#) setBaseGas to value {0}'.format(self.base_gas)
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+            self.logger.info(' ' + STRING_DASHES)
+        else:
+            information_data = ' (#) setBaseGas to default value {0}'.format(self.base_gas)
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+            self.logger.info(' ' + STRING_DASHES)
+
+    def command_set_safe_tx_gas(self, value):
+        header_data = '-:[ {0} ]:-'.format('setSafeTxGas')
+        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+        if int(value) > 0:
+            self.base_gas = int(value)
+            self.logger.info(' ' + STRING_DASHES)
+            information_data = ' (#) setSafeTxGas to value {0}'.format(self.safe_tx_gas)
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+            self.logger.info(' ' + STRING_DASHES)
+        else:
+            self.logger.info(' ' + STRING_DASHES)
+            information_data = ' (#) setSafeTxGas to default value {0}'.format(self.safe_tx_gas)
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+            self.logger.info(' ' + STRING_DASHES)
+
     def command_set_auto_execute(self, value):
+        header_data = '-:[ {0} ]:-'.format('setAutoExecute')
+        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
         if (value == 'ON') or (value == 'on'):
-            self.logger.info('setAutoExecute in effect')
+            information_data = ' (#) setAutoExecute is in effect'
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
             self.auto_execute = True
+            self.logger.info(' ' + STRING_DASHES)
         elif (value == 'OFF') or (value == 'off'):
-            self.logger.info('setAutoExecute no longer in effect')
+            information_data = ' (#) setAutoExecute is no longer in effect'
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
             self.auto_execute = False
+            self.logger.info(' ' + STRING_DASHES)
         else:
             self.logger.error('Unable to change setAutoFillTokenDecimals')
 
     def command_set_auto_fill_token_decimals(self, value):
+        header_data = '-:[ {0} ]:-'.format('setAutoFillTokenDecimals')
+        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
         if (value == 'ON') or (value == 'on'):
-            self.logger.info('setAutoFillTokenDecimals in effect')
+            information_data = ' (#) setAutoFillTokenDecimals is in effect'
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
             self.auto_fill_token_decimals = True
+            self.logger.info(' ' + STRING_DASHES)
         elif (value == 'OFF') or (value == 'off'):
-            self.logger.info('setAutoFillTokenDecimals no longer in effect')
+            information_data = ' (#) setAutoFillTokenDecimals is no longer in effect'
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
             self.auto_fill_token_decimals = False
+            self.logger.info(' ' + STRING_DASHES)
         else:
             self.logger.error('Unable to change setAutoFillTokenDecimals')
 
@@ -228,14 +276,14 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to multi_approve_safe_tx(): {0} {1}'.format(type(err), err))
 
-    def perform_transaction(self, payload_data, wei_value=None, address_to=None, execute=True, batch=False):
+    def perform_transaction(self, payload_data, wei_value=None, address_to=None, _execute=False, _queue=False):
         """ Perform Transaction
         This function will perform the transaction to the safe we have currently triggered via console command
         :param payload_data:
         :param wei_value:
         :param address_to:
-        :param execute:
-        :param batch:
+        :param _execute:
+        :param _queue:
         :return:
         """
         try:
@@ -261,8 +309,9 @@ class ConsoleSafeCommands:
                 # The current tx was well formed
                 information_data = ' (#) isValid Tx: {0}'.format(is_valid_tx)
                 self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+                self.logger.info(' ' + STRING_DASHES)
 
-                if execute:
+                if self.auto_execute or _execute:
                     # Execute the current transaction
                     safe_tx_hash, _ = safe_tx.execute(
                         self.sender_private_key, tx_gas=self.base_gas + self.safe_tx_gas,
@@ -272,8 +321,9 @@ class ConsoleSafeCommands:
                     safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
                     self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
 
-                # elif batch:
-                #    self.logger.info('To Be Implemented')
+                elif _queue:
+                    self.logger.info('Tx Added to Batch Queue')
+                    self.tx_queue.append(safe_tx)
 
         except Exception as err:
             self.logger.error('Unable to perform_transaction(): {0} {1}'.format(type(err), err))
@@ -339,7 +389,6 @@ class ConsoleSafeCommands:
     def command_view_default_sender(self):
         """ Command View Default Sender
         This function will retrieve and show the sender value of the safe
-        :param block_style:
         :return:
         """
         self.log_formatter.log_section_left_side('Safe Sender')
@@ -471,12 +520,14 @@ class ConsoleSafeCommands:
             self.command_safe_is_owner(owner_address, block_style=False)
         self.logger.info(' ' + STRING_DASHES)
 
-    def command_safe_swap_owner(self, previous_owner, owner, new_owner):
+    def command_safe_swap_owner(self, previous_owner, owner, new_owner, _execute=False, _queue=False):
         """ Command Safe Swap Owner | Change Owner
         This function will perform the necessary step for properly executing the method swapOwners from the safe
         :param previous_owner:
         :param owner:
         :param new_owner:
+        :param _execute:
+        :param _queue:
         :return:
         """
         # give list of owners and get the previous owner
@@ -492,7 +543,7 @@ class ConsoleSafeCommands:
             self.log_formatter.tx_data_formatter(sender_data, payload_data)
 
             # Perform the transaction
-            self.perform_transaction(payload_data)
+            self.perform_transaction(payload_data, _execute=_execute, _queue=_queue)
 
             # Preview the current status of the safe after the transaction
             self.command_safe_get_threshold()
@@ -500,10 +551,12 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to command_safe_swap_owner(): {0} {1}'.format(type(err), str(err)))
 
-    def command_safe_change_version(self, address_version):
+    def command_safe_change_version(self, address_version, _execute=False, _queue=False):
         """ Command Safe Change MasterCopy
         This function will perform the necessary step for properly executing the method changeMasterCopy from the safe
         :param address_version:
+        :param _execute:
+        :param _queue:
         :return:
         """
         try:
@@ -518,7 +571,7 @@ class ConsoleSafeCommands:
             self.log_formatter.tx_data_formatter(sender_data, payload_data)
 
             # Perform the transaction
-            self.perform_transaction(payload_data)
+            self.perform_transaction(payload_data, _execute=_execute, _queue=_queue)
 
             # Preview the current status of the safe version after the transaction
             self.command_safe_version()
@@ -526,10 +579,12 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to command_safe_change_version(): {0} {1}'.format(type(err), err))
 
-    def command_safe_change_threshold(self, new_threshold):
+    def command_safe_change_threshold(self, new_threshold, _execute=False, _queue=False):
         """ Command Safe Change Threshold
         This function will perform the necessary step for properly executing the method changeThreshold from the safe
         :param new_threshold:
+        :param _execute:
+        :param _queue:
         :return:
         """
         try:
@@ -543,18 +598,20 @@ class ConsoleSafeCommands:
             self.log_formatter.tx_data_formatter(sender_data, payload_data)
 
             # Perform the transaction
-            self.perform_transaction(payload_data)
+            self.perform_transaction(payload_data, _execute=_execute, _queue=_queue)
 
             # Preview the current status of the safe after the transaction
             self.command_safe_get_threshold()
         except Exception as err:
             self.logger.error('Unable to command_safe_change_threshold(): {0} {1}'.format(type(err), err))
 
-    def command_safe_add_owner_threshold(self, new_owner_address, new_threshold=None):
+    def command_safe_add_owner_threshold(self, new_owner_address, new_threshold=None, _execute=False, _queue=False):
         """ Command Safe Change Threshold
         This function will perform the necessary step for properly executing the method addOwnerWithThreshold from the safe
         :param new_owner_address:
         :param new_threshold:
+        :param _execute:
+        :param _queue:
         :return:
         """
         try:
@@ -579,7 +636,7 @@ class ConsoleSafeCommands:
             self.log_formatter.tx_data_formatter(sender_data, payload_data)
 
             # Perform the transaction
-            self.perform_transaction(payload_data)
+            self.perform_transaction(payload_data, _execute=_execute, _queue=_queue)
 
             # Preview the current status of the safe after the transaction
             self.command_safe_get_threshold()
@@ -588,11 +645,13 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to command_safe_add_owner_threshold(): {0} {1}'.format(type(err), err))
 
-    def command_safe_remove_owner(self, previous_owner_address, owner_address):
+    def command_safe_remove_owner(self, previous_owner_address, owner_address, _execute=False, _queue=False):
         """ Command Safe Change Threshold
         This function will perform the necessary step for properly executing the method removeOwner from the safe
         :param previous_owner_address:
         :param owner_address:
+        :param _execute:
+        :param _queue:
         :return:
         """
         try:
@@ -614,7 +673,7 @@ class ConsoleSafeCommands:
             self.log_formatter.tx_data_formatter(sender_data, payload_data.hex())
 
             # Perform the transaction
-            self.perform_transaction(payload_data)
+            self.perform_transaction(payload_data, _execute=_execute, _queue=_queue)
 
             # Preview the current status of the safe after the transaction
             self.command_safe_get_threshold()
@@ -633,13 +692,15 @@ class ConsoleSafeCommands:
         self.logger.error('Not Enough Signatures Loaded/Stored in local_accounts_list ')
         return False
 
-    def command_send_token(self, address_to, token_contract_address, token_amount, local_account):
+    def command_send_token(self, address_to, token_contract_address, token_amount, local_account, _execute=False, _queue=False):
         """ Command Send Token
         This function will send tokens
         :param address_to:
         :param token_contract_address:
         :param token_amount:
         :param local_account:
+        :param _execute:
+        :param _queue:
         :return:
         """
         try:
@@ -649,6 +710,7 @@ class ConsoleSafeCommands:
             erc20 = get_erc20_contract(self.ethereum_client.w3, token_contract_address)
             if self.auto_fill_token_decimals:
                 token_amount = (token_amount * pow(10, erc20.functions.decimals().call()))
+
             safe_tx = self.ethereum_client.erc20.send_tokens(address_to, token_amount, token_contract_address, local_account.privateKey)
 
             # Perform the transaction
@@ -664,25 +726,29 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to command_send_token_raw(): {0} {1}'.format(type(err), err))
 
-    def command_deposit_token(self, token_address_to, token_amount, local_account):
+    def command_deposit_token(self, token_address_to, token_amount, local_account, _execute=False, _queue=False):
         """ Command Deposit Token
         This function will deposit tokens from the safe
         :param token_address_to:
         :param token_amount:
         :param local_account:
+        :param _execute:
+        :param _queue:
         :return:
         """
         try:
-            self.command_send_token(self.safe_operator.address, token_address_to, token_amount, local_account)
+            self.command_send_token(self.safe_operator.address, token_address_to, token_amount, local_account, _execute=_execute, _queue=_queue)
         except Exception as err:
             self.logger.error('Unable to command_deposit_token_raw(): {0} {1}'.format(type(err), err))
 
-    def command_withdraw_token(self, address_to, token_contract_address, token_amount):
+    def command_withdraw_token(self, address_to, token_contract_address, token_amount, _execute=False, _queue=False):
         """ Command Withdraw Token
         This function will withdraw tokens from the safe
         :param address_to:
         :param token_contract_address:
         :param token_amount:
+        :param _execute:
+        :param _queue:
         :return:
         """
         try:
@@ -696,25 +762,27 @@ class ConsoleSafeCommands:
             payload_data = HexBytes(erc20.functions.transfer(address_to, token_amount).buildTransaction(sender_data)['data'])
 
             # Perform the transaction
-            self.perform_transaction(payload_data, address_to=token_contract_address)
+            self.perform_transaction(payload_data, address_to=token_contract_address, _execute=_execute, _queue=_queue)
 
             # Preview the current token balance of the safe after the transaction
             current_token_balance = self.ethereum_client.erc20.get_balance(self.safe_operator.address,
                                                                            token_contract_address)
             current_user_balance = self.ethereum_client.erc20.get_balance(self.safe_operator.address,
                                                                           token_contract_address)
-            self.logger.info(current_token_balance)
-            self.logger.info(current_user_balance)
+            self.logger.debug0(current_token_balance)
+            self.logger.debug0(current_user_balance)
             self.command_view_token_balance()
         except Exception as err:
             self.logger.error('Unable to command_withdraw_token_raw(): {0} {1}'.format(type(err), err))
 
-    def command_send_ether(self, address_to, wei_amount, local_account):
+    def command_send_ether(self, address_to, wei_amount, local_account, _execute=False, _queue=False):
         """ Command Send Ether
         This function will send ether to the address_to, wei_amount, from private_key
         :param address_to:
         :param wei_amount:
         :param local_account:
+        :param _execute:
+        :param _queue:
         :return:
         """
         try:
@@ -745,11 +813,13 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to command_send_ether_raw(): {0} {1}'.format(type(err), err))
 
-    def command_deposit_ether(self, wei_amount, local_account):
+    def command_deposit_ether(self, wei_amount, local_account, _execute=False, _queue=False):
         """ Command Deposit Ether
         This function will send ether to the address_to, wei_amount
         :param wei_amount:
         :param local_account:
+        :param _execute:
+        :param _queue:
         :return:
         """
         try:
@@ -758,11 +828,13 @@ class ConsoleSafeCommands:
         except Exception as err:
             self.logger.error('Unable to command_deposit_ether_raw(): {0} {1}'.format(type(err), err))
 
-    def command_withdraw_ether(self, wei_amount, address_to):
+    def command_withdraw_ether(self, wei_amount, address_to, _execute=False, _queue=False):
         """ Command Withdraw Ether
         This function will send ether to the address_to, wei_amount
         :param wei_amount:
         :param address_to:
+        :param _execute:
+        :param _queue:
         :return:
         """
         try:
@@ -770,7 +842,7 @@ class ConsoleSafeCommands:
             self.command_view_ether_balance()
 
             # Perform the transaction
-            self.perform_transaction(b'', wei_amount, address_to)
+            self.perform_transaction(b'', wei_amount, address_to,  _execute=_execute, _queue=_queue)
 
             # Preview the current ether balance of the safe after the transaction
             self.command_view_ether_balance()

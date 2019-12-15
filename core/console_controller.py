@@ -107,6 +107,7 @@ class ConsoleController:
         :return:
         """
         self.logger.debug0('(+) [ Operating with Safe Console ]: ' + command_argument)
+        _execute, _queue, _ = self.console_getter.get_input_affix_arguments(argument_list)
         if command_argument == 'info':
             safe_interface.command_safe_information()
         elif (command_argument == 'help'):
@@ -140,7 +141,7 @@ class ConsoleController:
                 try:
                     new_threshold = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    safe_interface.command_safe_change_threshold(new_threshold)
+                    safe_interface.command_safe_change_threshold(new_threshold, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -149,7 +150,7 @@ class ConsoleController:
                 try:
                     new_owner_address, new_threshold = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    safe_interface.command_safe_add_owner_threshold(new_owner_address, new_threshold)
+                    safe_interface.command_safe_add_owner_threshold(new_owner_address, new_threshold, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -158,7 +159,7 @@ class ConsoleController:
                 try:
                     new_owner_address = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    safe_interface.command_safe_add_owner_threshold(new_owner_address)
+                    safe_interface.command_safe_add_owner_threshold(new_owner_address, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -168,7 +169,7 @@ class ConsoleController:
                     old_owner_address = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
                     previous_owner_address = safe_interface.setinel_helper(old_owner_address)
-                    safe_interface.command_safe_remove_owner(previous_owner_address, old_owner_address)
+                    safe_interface.command_safe_remove_owner(previous_owner_address, old_owner_address, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -181,7 +182,7 @@ class ConsoleController:
                     old_owner_address, new_owner_address = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
                     previous_owner_address = safe_interface.setinel_helper(old_owner_address)
-                    safe_interface.command_safe_swap_owner(previous_owner_address, old_owner_address, new_owner_address)
+                    safe_interface.command_safe_swap_owner(previous_owner_address, old_owner_address, new_owner_address, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -191,7 +192,7 @@ class ConsoleController:
                     token_address, address_to, token_amount, private_key = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
                     local_account = Account.privateKeyToAccount(private_key)
-                    safe_interface.command_send_token(address_to, token_address, token_amount, local_account)
+                    safe_interface.command_send_token(address_to, token_address, token_amount, local_account, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -201,7 +202,7 @@ class ConsoleController:
                     token_address, token_amount, private_key = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
                     local_account = Account.privateKeyToAccount(private_key)
-                    safe_interface.command_deposit_token(token_address, token_amount, local_account)
+                    safe_interface.command_deposit_token(token_address, token_amount, local_account, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
                     
@@ -210,7 +211,7 @@ class ConsoleController:
                 try:
                     token_address, address_to, token_amount = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    safe_interface.command_withdraw_token(address_to, token_address, token_amount)
+                    safe_interface.command_withdraw_token(address_to, token_address, token_amount, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -222,7 +223,7 @@ class ConsoleController:
                     local_account = Account.privateKeyToAccount(private_key)
                     ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
                     amount = ether_helper.get_unify_ether_amount(ether_amounts)
-                    safe_interface.command_send_ether(address_to, amount, local_account)
+                    safe_interface.command_send_ether(address_to, amount, local_account, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -234,7 +235,7 @@ class ConsoleController:
                     local_account = Account.privateKeyToAccount(private_key)
                     ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
                     amount = ether_helper.get_unify_ether_amount(ether_amounts)
-                    safe_interface.command_deposit_ether(amount, local_account)
+                    safe_interface.command_deposit_ether(amount, local_account, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -245,7 +246,7 @@ class ConsoleController:
                         command_argument, desired_parsed_item_list, priority_group)
                     ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
                     amount = ether_helper.get_unify_ether_amount(ether_amounts)
-                    safe_interface.command_withdraw_ether(amount, address_to)
+                    safe_interface.command_withdraw_ether(amount, address_to, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -254,7 +255,7 @@ class ConsoleController:
                 try:
                     new_master_copy_address = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    safe_interface.command_safe_change_version(new_master_copy_address)
+                    safe_interface.command_safe_change_version(new_master_copy_address, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -295,9 +296,16 @@ class ConsoleController:
             safe_interface.command_set_auto_fill_token_decimals(argument_list[0])
 
         elif command_argument == 'setAutoExecute':
-            safe_interface.command_set_auto_fill_token_decimals(argument_list[0])
+            safe_interface.command_set_auto_execute(argument_list[0])
 
+        elif command_argument == 'setBaseGas':
+            safe_interface.command_set_base_gas(argument_list[0])
 
+        elif command_argument == 'setSafeTxGas':
+            safe_interface.command_set_safe_tx_gas(argument_list[0])
+
+        elif command_argument == 'viewGas':
+            safe_interface.command_view_gas()
 
     def operate_with_contract(self, stream, contract_methods, contract_instance):
         """ Operate With Contract

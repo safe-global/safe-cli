@@ -146,7 +146,7 @@ def test_add_owner():
 
     # Add New Owner
     new_owner_address = '0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0'
-    console_safe.command_safe_add_owner_threshold(new_owner_address)
+    console_safe.command_safe_add_owner_threshold(new_owner_address, _execute=True)
 
     assert len(console_safe.safe_operator.retrieve_owners()) == 2
     assert console_safe.safe_operator.retrieve_is_owner(new_owner_address)
@@ -178,7 +178,7 @@ def test_change_threshold():
 
     # Revert Threshold to 1
     new_threshold = 1
-    console_safe.command_safe_change_threshold(new_threshold)
+    console_safe.command_safe_change_threshold(new_threshold, _execute=True)
 
     assert console_safe.safe_operator.retrieve_threshold() == new_threshold
 
@@ -211,7 +211,7 @@ def test_swap_owner():
     address_value_to = '0xFFcf8FDEE72ac11b5c542428B35EEF5769C409f0'
     address_new_value = '0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b'
     previous_owner = setinel_helper(address_value_to, console_safe)
-    console_safe.command_safe_swap_owner(previous_owner, address_value_to, address_new_value)
+    console_safe.command_safe_swap_owner(previous_owner, address_value_to, address_new_value, _execute=True)
 
     assert console_safe.safe_operator.retrieve_is_owner(address_new_value)
     assert len(console_safe.safe_operator.retrieve_owners()) == 2
@@ -235,7 +235,7 @@ def test_remove_owner():
     # Remove Owner
     address_value_to = '0x22d491Bde2303f2f43325b2108D26f1eAbA1e32b'
     previous_owner = setinel_helper(address_value_to, console_safe)
-    console_safe.command_safe_remove_owner(previous_owner, address_value_to)
+    console_safe.command_safe_remove_owner(previous_owner, address_value_to, _execute=True)
 
     assert not console_safe.safe_operator.retrieve_is_owner(address_value_to)
     assert len(console_safe.safe_operator.retrieve_owners()) == 1
@@ -295,7 +295,7 @@ def test_withdraw_ether():
     address_value_to = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
     ether_helper = EtherHelper(logger, network_agent.get_ethereum_client())
     amount_value = ether_helper.get_unify_ether_amount([('--ether', [2])])
-    console_safe.command_withdraw_ether(amount_value, address_value_to)
+    console_safe.command_withdraw_ether(amount_value, address_value_to, _execute=True)
 
     current_balance = network_agent.ethereum_client.w3.eth.getBalance(console_safe.safe_operator.address)
     current_user_balance = network_agent.ethereum_client.w3.eth.getBalance(address_value_to)
@@ -353,7 +353,7 @@ def test_withdraw_token():
     previous_safe_token_balance = network_agent.ethereum_client.erc20.get_balance(safe_address, token_address)
     previous_user_token_balance = network_agent.ethereum_client.erc20.get_balance(address_to, token_address)
 
-    console_safe.command_withdraw_token(address_to, token_address, token_amount)
+    console_safe.command_withdraw_token(address_to, token_address, token_amount, _execute=True)
 
     current_safe_token_balance = network_agent.ethereum_client.erc20.get_balance(safe_address, token_address)
     current_user_token_balance = network_agent.ethereum_client.erc20.get_balance(address_to, token_address)
@@ -378,7 +378,7 @@ def test_change_master_copy():
     assert console_safe.sender_private_key == HexBytes(console_safe.local_owner_account_list[0].privateKey).hex()
 
     # updateSafe
-    console_safe.command_safe_change_version(new_master_copy_address)
+    console_safe.command_safe_change_version(new_master_copy_address, _execute=True)
 
     assert console_safe.safe_operator.retrieve_master_copy_address() == new_master_copy_address
     # assert console_safe.safe_operator.retrieve_version() == '1.1.1'

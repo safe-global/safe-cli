@@ -8,7 +8,9 @@ from prompt_toolkit.formatted_text import HTML
 console_method_names = 'isOwner|getOwners|getThreshold|addOwner|swapOwner|removeOwner|changeThreshold|sendEther' \
                        '|sendToken|VERSION|NAME|code|nonce|addOwnerWithThreshold|viewSender|loadOwner' \
                        '|loadMultipleOwners|removeMultipleOwners|unloadOwner|updateSafe|depositEther|' \
-                       'withdrawEther|depositToken|withdrawToken|sendToken|viewOwners'
+                       'withdrawEther|depositToken|withdrawToken|sendToken|viewOwners|viewGas|setBaseGas|' \
+                       'setSafeTxGas|setAutoExecute|setAutoFillTokenDecimals'
+
 console_commands = 'viewNetwork|viewAccounts|viewContracts|newPayload|newTxPayload|newAccount|newContract|' \
                    'setNetwork|setDefaultSender|loadContract|loadSafe|viewPayloads|viewTokens|newTokens|' \
                    'viewSender|viewBalance'
@@ -32,7 +34,7 @@ function_name = [
     'getThreshold', 'changeThreshold', 'sendEther', 'sendToken', 'viewAccounts', 'viewContract', 'viewTokens',
     'viewPayloads', 'viewSender', 'loadOwner', 'loadMultipleOwners', 'removeMultipleOwners', 'unloadOwner',
     'unloadMultipleOwners', 'viewBalance', 'depositEther', 'depositToken', 'withdrawEther', 'withdrawToken',
-    'setAutoFillTokenDecimals', 'viewOwners'
+    'setAutoFillTokenDecimals', 'viewOwners', 'viewGas','setBaseGas', 'setSafeTxGas', 'setAutoExecute'
 ]
 
 function_params = {
@@ -63,7 +65,10 @@ function_params = {
     'withdrawEther': '_',
     'setAutoFillTokenDecimals': '_',
     'setAutoExecute': '_',
-    'viewOwners': '_'
+    'viewOwners': '_',
+    'setSafeTxGas': '_',
+    'setBaseGas': '_',
+    'viewGas': '_'
 }
 
 function_parms_color = {
