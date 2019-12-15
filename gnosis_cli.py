@@ -21,12 +21,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--quiet', action='store_true',
                     dest='quiet', default=False,
                     help='This init option will store the value for the quiet param, and subsequently will '
-                         'disable/hide the Loading Process in the Console. (By default, it will be set to False).')
+                         'disable/hide the Banners in the Console. (By default, it will be set to False).')
 parser.add_argument('--debug', action='store_true',
                     dest='debug', default=False,
                     help='This init option will store the value for the debug param, and subsequently will enable the '
                          'Debug Output Mode in the Console. (By default, it will be set to False).')
-
 parser.add_argument('--network', action='store',
                     dest='network', default='ganache',
                     help='This init option, will store the value of the network you like to operate with during the '
@@ -36,16 +35,14 @@ parser.add_argument('--network', action='store',
 parser.add_argument('--private_key', action='append', default=[],
                     dest='private_key_collection',
                     help='This init option will store a list o private keys to be initialize during the Loading Process'
-                         'in the Console and they will be converted to LocalAccounts. Those values can be viewed '
-                         'through viewAccounts command. Additionally while using the General Contract or Safe Contract'
-                         'Consoles, those values can be accessed during contract interaction via alias. '
-                         'Example( Ganache Account 0 Alias ): isOwner --address=gAccount0.address', type=str)
+                         'in the Safe Console and they will be converted to LocalAccounts if valid. '
+                         , type=str)
 parser.add_argument('--api_key', action='store', default=None, dest='api_key', help='', type=str)
 parser.add_argument('--safe', action='store',
                     dest='safe_address', default=None,
                     help='This init option, will store the value of the safe address you like to operate with during'
-                         ' the execution of the Console. This value can be changed in the Console via '
-                         'loadSafe command).', type=str)
+                         ' the execution of the Console. This value will launch directly the safe avoiding '
+                         'the gnosis-cli.', type=str)
 parser.add_argument('--contract', action='store', dest='contract_address', default=None,
                     help='', type=str)
 parser.add_argument('--erc20', action='append',
@@ -60,6 +57,7 @@ parser.add_argument('--test', action='store_true',
                     dest='test', default=False,
                     help='This init option will launch the loading 10 random local accounts and '
                          'the 10 default local accounts provided by the ganache'
+                         'Example( Ganache Account 0 Alias ): isOwner --address=gAccount0.address'
                          'blockchain.')
 parser.add_argument('--version', action='version', version='%(prog)s 0.0.1a')
 
