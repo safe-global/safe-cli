@@ -68,7 +68,6 @@ class GnosisConsoleEngine:
         self.contract_methods = None
         self.contract_interface = None
 
-        self.network = 'ganache'
         self.session_config = {
             'prompt': self._get_prompt_text(affix_stream=self.prompt_text),
             'contract_lexer': SyntaxLexer(),
@@ -81,7 +80,9 @@ class GnosisConsoleEngine:
         # Custom Logger Init Configuration: Default Values
         self.logging_lvl = INFO
         self.logger = None
-        self._setup_console_init_configuration(init_configuration)
+
+        # Use Launch Configuration
+        self._setup_console_logger_configuration(init_configuration)
 
         # CustomLogger Format Definition: Output Init Configuration
         formatter = logging.Formatter(fmt='%(asctime)s - [ %(levelname)s ]: %(message)s',
@@ -103,6 +104,9 @@ class GnosisConsoleEngine:
         self.logger.addHandler(file_handler)
         self.logger.addHandler(console_handler)
 
+        # Setup EthereumClient
+        self.network_agent = NetworkAgent(self.logger, init_configuration['network'], init_configuration['api_key'])
+
         # Load Artifacts: Gnosis Console
         self.console_information = InformationArtifacts(self.logger)
         self.console_information.command_view_disclaimer()
@@ -111,8 +115,7 @@ class GnosisConsoleEngine:
         # Setup Contract Artifacts
         self.contract_artifacts = ContractArtifacts(self.logger)
         self.contract_artifacts.pre_load_artifacts(contract_artifacts)
-        # Setup EthereumClient
-        self.network_agent = NetworkAgent(self.logger)
+
         # Setup Console Input Getter
         self.console_getter = ConsoleInputGetter(self.logger)
         # Setup Console Account Artifacts
@@ -141,6 +144,7 @@ class GnosisConsoleEngine:
         if not self.quiet_flag:
             self.log_formatter.log_entry_message('Entering Gnosis Cli')
 
+        self._setup_console_component_configuration(init_configuration)
         # Run Console
         self.run_console_session(self.prompt_text)
 
@@ -150,16 +154,16 @@ class GnosisConsoleEngine:
                     self.active_session == TypeOfConsole.CONTRACT_CONSOLE):
                 result = yes_no_dialog(
                     title='Exiting {0}'.format(self.active_session.value),
-                    text='All data regarding loaded owners & sender configuration will be lost, Are you sure you want to exit the {0}?'.format(
-                        self.active_session.value)).run()
+                    text='All data regarding loaded owners & sender configuration will be lost, '
+                         'Are you sure you want to exit the {0}?'.format(self.active_session.value)).run()
                 if result:
                     self.active_session = TypeOfConsole.GNOSIS_CONSOLE
                     raise EOFError
             else:
                 result = yes_no_dialog(
                     title='Exiting {0}'.format(self.active_session.value),
-                    text='All data regarding accounts, tokens, contracts & payloads will be lost, Are you sure you want to exit the {0}?'.format(
-                        self.active_session.value)).run()
+                    text='All data regarding accounts, tokens, contracts & payloads will be lost, '
+                         'Are you sure you want to exit the {0}?'.format(self.active_session.value)).run()
                 if result:
                     self.active_session = TypeOfConsole.GNOSIS_CONSOLE
                     raise EOFError
@@ -177,7 +181,6 @@ class GnosisConsoleEngine:
         try:
             while True:
                 try:
-
                     if self.active_session == TypeOfConsole.SAFE_CONSOLE:
                         stream = console_session.prompt(
                             prompt_text,
@@ -226,22 +229,35 @@ class GnosisConsoleEngine:
         :return:
         """
         if self.active_session is not TypeOfConsole.GNOSIS_CONSOLE:
-            return PromptSession(completer=self.session_config['contract_completer'], lexer=self.session_config['contract_lexer'])
-        return PromptSession(completer=self.session_config['completer'], lexer=self.session_config['contract_lexer'])
+            return PromptSession(
+                completer=self.session_config['contract_completer'],
+                lexer=self.session_config['contract_lexer'])
+        return PromptSession(
+            completer=self.session_config['completer'],
+            lexer=self.session_config['contract_lexer'])
 
-    def _setup_console_init_configuration(self, configuration):
+    def _setup_console_logger_configuration(self, configuration):
         """ Setup Console Init Configuration
         This function will perform the necessary actions to setup the parameters provided in the initialization
         :param configuration:
         :return:
         """
         self.quiet_flag = configuration['quiet']
-        self.network = configuration['network']
+
         if configuration['debug']:
             self.logging_lvl = DEBUG0
 
         # CustomLogger Instance Creation
         self.logger = CustomLogger(self.name, self.logging_lvl)
+
+    def _setup_console_component_configuration(self, configuration):
+        if configuration['token']:
+            # self.token_artifacts.new_token_entry()
+            self.logger.info(configuration['token'])
+        if configuration['safe'] is not None:
+            self.logger.info(configuration['safe'])
+        if configuration['private_key'] is not None:
+            self.logger.info(configuration['private_key'])
 
     def _setup_contract_artifacts(self, contract_artifacts):
         """ Pre Load Contract Artifacts
