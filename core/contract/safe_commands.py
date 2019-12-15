@@ -201,8 +201,10 @@ class ConsoleSafeCommands:
 
     def command_load_owner(self, private_key):
         try:
-            self.logger.debug0('[ Signature Value ]: {0} {1}'.format(HexBytes(private_key).hex(), self.safe_operator.retrieve_owners()))
-            local_owner = self.account_artifacts.get_local_account(HexBytes(private_key).hex(), self.safe_operator.retrieve_owners())
+            self.logger.debug0('[ Signature Value ]: {0} {1}'.format(
+                HexBytes(private_key).hex(), self.safe_operator.retrieve_owners()))
+            local_owner = self.account_artifacts.get_local_account(
+                HexBytes(private_key).hex(), self.safe_operator.retrieve_owners())
             if local_owner is not None and local_owner in self.local_owner_account_list:
                 self.logger.error('Local Owner Already in local_owner_account_list')
             elif local_owner is not None:
@@ -216,8 +218,10 @@ class ConsoleSafeCommands:
 
     def command_unload_owner(self, private_key):
         try:
-            self.logger.debug0('[ Signature Value ]: {0} {1}'.format(HexBytes(private_key).hex(), self.safe_operator.retrieve_owners()))
-            local_owner = self.account_artifacts.get_local_account(HexBytes(private_key).hex(), self.safe_operator.retrieve_owners())
+            self.logger.debug0('[ Signature Value ]: {0} {1}'.format(
+                HexBytes(private_key).hex(), self.safe_operator.retrieve_owners()))
+            local_owner = self.account_artifacts.get_local_account(
+                HexBytes(private_key).hex(), self.safe_operator.retrieve_owners())
             if local_owner is not None and local_owner in self.local_owner_account_list:
                 for local_owner_account in self.local_owner_account_list:
                     if local_owner_account == local_owner:
@@ -614,7 +618,8 @@ class ConsoleSafeCommands:
 
     def command_safe_add_owner_threshold(self, new_owner_address, new_threshold=None, _execute=False, _queue=False):
         """ Command Safe Change Threshold
-        This function will perform the necessary step for properly executing the method addOwnerWithThreshold from the safe
+        This function will perform the necessary step for properly executing the method addOwnerWithThreshold
+         from the safe
         :param new_owner_address:
         :param new_threshold:
         :param _execute:
@@ -728,9 +733,7 @@ class ConsoleSafeCommands:
             tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx, timeout=60)
 
             # Format Receipt with Logger
-            # self.logger.info(tx_receipt)
             self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
-            # self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
 
             # Preview the current token balance of the safe after the transaction
             self.command_view_token_balance()
@@ -748,7 +751,8 @@ class ConsoleSafeCommands:
         :return:
         """
         try:
-            self.command_send_token(self.safe_operator.address, token_address_to, token_amount, local_account, _execute=_execute, _queue=_queue)
+            self.command_send_token(self.safe_operator.address, token_address_to, token_amount,
+                                    local_account, _execute=_execute, _queue=_queue)
         except Exception as err:
             self.logger.error('Unable to command_deposit_token_raw(): {0} {1}'.format(type(err), err))
 
@@ -817,7 +821,6 @@ class ConsoleSafeCommands:
             tx_receipt = self.ethereum_client.get_transaction_receipt(tx_hash, timeout=60)
 
             # Format Receipt with Logger
-            # self.logger.info(tx_receipt)
             self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
 
             # Preview the current ether balance of the safe after the transaction
@@ -906,8 +909,6 @@ class ConsoleSafeCommands:
             token_symbol = []
             for token_item in self.token_artifacts.token_data:
                 current_token_address = self.token_artifacts.token_data[token_item]['address']
-                # self.logger.info(current_token_address)
-                # self.logger.info(self.token_artifacts.token_data[token_item])
                 token_symbol.append(token_item)
                 token_address.append(current_token_address)
 
