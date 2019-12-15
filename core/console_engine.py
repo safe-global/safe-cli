@@ -318,7 +318,8 @@ class GnosisConsoleEngine:
             self.logger.debug0('Contract Instance {0} Loaded'.format(self.contract_interface))
             self.contract_methods = ConsoleContractCommands().map_contract_methods(self.contract_interface)
             self.active_session = TypeOfConsole.CONTRACT_CONSOLE
-            self.run_console_session(prompt_text=self._get_prompt_text(affix_stream='contract-cli', stream=contract_alias))
+            self.run_console_session(
+                prompt_text=self._get_prompt_text(affix_stream='contract-cli', stream=contract_alias))
         except KeyError as err:
             self.logger.error(err)
 

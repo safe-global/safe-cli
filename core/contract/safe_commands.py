@@ -465,7 +465,9 @@ class ConsoleSafeCommands:
         """
         self.log_formatter.log_section_left_side('Loaded Owner Data')
         for owner_index, owner in enumerate(self.local_owner_account_list):
-            information_data = ' (#) Owner {0} | Address: {1} | Sender: [{2}] | Balance: {3} '.format(owner_index, owner.address, self.is_sender(owner.address), self.ethereum_client.w3.eth.getBalance(owner.address))
+            information_data = ' (#) Owner {0} | Address: {1} | Sender: [{2}] | Balance: {3} '.format(
+                owner_index, owner.address, self.is_sender(owner.address),
+                self.ethereum_client.w3.eth.getBalance(owner.address))
             self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         self.logger.info(' ' + STRING_DASHES)
 
@@ -476,7 +478,8 @@ class ConsoleSafeCommands:
         """
         self.log_formatter.log_section_left_side('Safe Owner Data')
         for owner_index, owner in enumerate(self.safe_instance.functions.getOwners().call()):
-            information_data = ' (#) Owner {0} | Address: {1} | Sender: [{2}] | Balance: {3} '.format(owner_index, owner, self.is_sender(owner), self.ethereum_client.w3.eth.getBalance(owner))
+            information_data = ' (#) Owner {0} | Address: {1} | Sender: [{2}] | Balance: {3} '.format(
+                owner_index, owner, self.is_sender(owner), self.ethereum_client.w3.eth.getBalance(owner))
             self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         self.logger.info(' ' + STRING_DASHES)
 
@@ -504,7 +507,8 @@ class ConsoleSafeCommands:
         if block_style:
             self.log_formatter.log_section_left_side('Safe Owners')
 
-        information_data = ' (#) Owner with Address: {0} | isOwner: {1} '.format(owner_address, self.safe_operator.retrieve_is_owner(owner_address))
+        information_data = ' (#) Owner with Address: {0} | isOwner: {1} '.format(
+            owner_address, self.safe_operator.retrieve_is_owner(owner_address))
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         if block_style:
             self.logger.info(' ' + STRING_DASHES)
@@ -539,7 +543,8 @@ class ConsoleSafeCommands:
             sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice': 0}
 
             # Generating the function payload data
-            payload_data = HexBytes(self.safe_instance.functions.swapOwner(str(previous_owner), str(owner), str(new_owner)).buildTransaction(sender_data)['data'])
+            payload_data = HexBytes(self.safe_instance.functions.swapOwner(
+                str(previous_owner), str(owner), str(new_owner)).buildTransaction(sender_data)['data'])
             self.log_formatter.tx_data_formatter(sender_data, payload_data)
 
             # Perform the transaction
@@ -567,7 +572,8 @@ class ConsoleSafeCommands:
             sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice': self._setup_gas_price()}
 
             # Generating the function payload data
-            payload_data = HexBytes(self.safe_instance.functions.changeMasterCopy(address_version).buildTransaction(sender_data)['data'])
+            payload_data = HexBytes(self.safe_instance.functions.changeMasterCopy(
+                address_version).buildTransaction(sender_data)['data'])
             self.log_formatter.tx_data_formatter(sender_data, payload_data)
 
             # Perform the transaction
@@ -594,7 +600,8 @@ class ConsoleSafeCommands:
             sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice': 0}
 
             # Generating the function payload data
-            payload_data = HexBytes(self.safe_instance.functions.changeThreshold(new_threshold).buildTransaction(sender_data)['data'])
+            payload_data = HexBytes(self.safe_instance.functions.changeThreshold(
+                new_threshold).buildTransaction(sender_data)['data'])
             self.log_formatter.tx_data_formatter(sender_data, payload_data)
 
             # Perform the transaction
@@ -632,7 +639,8 @@ class ConsoleSafeCommands:
                 return
 
             # Generating the function payload data
-            payload_data = HexBytes(self.safe_instance.functions.addOwnerWithThreshold(new_owner_address, new_threshold).buildTransaction(sender_data)['data'])
+            payload_data = HexBytes(self.safe_instance.functions.addOwnerWithThreshold(
+                new_owner_address, new_threshold).buildTransaction(sender_data)['data'])
             self.log_formatter.tx_data_formatter(sender_data, payload_data)
 
             # Perform the transaction
@@ -667,9 +675,11 @@ class ConsoleSafeCommands:
 
             # Generating the function payload data
             self.logger.info(STRING_DASHES)
-            self.logger.info('| Sender: {0} | Previous Owner: {1} | Owner to Remove: {2} | Threshold: {3} | '.format(self.sender_address, previous_owner_address, owner_address, int(new_threshold)))
+            self.logger.info('| Sender: {0} | Previous Owner: {1} | Owner to Remove: {2} | Threshold: {3} | '.format(
+                self.sender_address, previous_owner_address, owner_address, int(new_threshold)))
             self.logger.info(STRING_DASHES)
-            payload_data = HexBytes(self.safe_instance.functions.removeOwner(previous_owner_address, owner_address, int(new_threshold)).buildTransaction(sender_data)['data'])
+            payload_data = HexBytes(self.safe_instance.functions.removeOwner(
+                previous_owner_address, owner_address, int(new_threshold)).buildTransaction(sender_data)['data'])
             self.log_formatter.tx_data_formatter(sender_data, payload_data.hex())
 
             # Perform the transaction
@@ -711,7 +721,8 @@ class ConsoleSafeCommands:
             if self.auto_fill_token_decimals:
                 token_amount = (token_amount * pow(10, erc20.functions.decimals().call()))
 
-            safe_tx = self.ethereum_client.erc20.send_tokens(address_to, token_amount, token_contract_address, local_account.privateKey)
+            safe_tx = self.ethereum_client.erc20.send_tokens(
+                address_to, token_amount, token_contract_address, local_account.privateKey)
 
             # Perform the transaction
             tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx, timeout=60)
@@ -759,7 +770,8 @@ class ConsoleSafeCommands:
             if self.auto_fill_token_decimals:
                 token_amount = (token_amount * pow(10, erc20.functions.decimals().call()))
 
-            payload_data = HexBytes(erc20.functions.transfer(address_to, token_amount).buildTransaction(sender_data)['data'])
+            payload_data = HexBytes(erc20.functions.transfer(
+                address_to, token_amount).buildTransaction(sender_data)['data'])
 
             # Perform the transaction
             self.perform_transaction(payload_data, address_to=token_contract_address, _execute=_execute, _queue=_queue)
@@ -869,14 +881,16 @@ class ConsoleSafeCommands:
             # Calculate ether amount for the Owners
             wei_amount = self.ether_helper.unify_ether_badge_amounts('--wei', ether_amount)
             human_readable_ether = self.ether_helper.get_proper_ether_amount(wei_amount)
-            information_data = ' (#) Total Owners Funds: {0} {1} '.format(human_readable_ether[1], human_readable_ether[0])
+            information_data = ' (#) Total Owners Funds: {0} {1} '.format(
+                human_readable_ether[1], human_readable_ether[0])
             self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
 
             # Calculate ether amount for the Safe
             safe_ether_amount = self.ethereum_client.w3.eth.getBalance(self.safe_instance.address)
             safe_wei_amount = self.ether_helper.unify_ether_badge_amounts('--wei', [safe_ether_amount])
             safe_human_readable_ether = self.ether_helper.get_proper_ether_amount(safe_wei_amount)
-            information_data = ' (#) Total Safe Funds: {0} {1} '.format(safe_human_readable_ether[1], safe_human_readable_ether[0])
+            information_data = ' (#) Total Safe Funds: {0} {1} '.format(
+                safe_human_readable_ether[1], safe_human_readable_ether[0])
             self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
             self.logger.info(' ' + STRING_DASHES)
         except Exception as err:
@@ -905,7 +919,8 @@ class ConsoleSafeCommands:
                         current_token_address = self.token_artifacts.token_data[token_item]['address']
                         if current_token_address == item['token_address']:
                             current_name_to_show = token_item
-                    information_data = ' (#) Total Safe {0} ({1}) Funds: {2} Token'.format(current_name_to_show, item['token_address'], item['balance'])
+                    information_data = ' (#) Total Safe {0} ({1}) Funds: {2} Token'.format(
+                        current_name_to_show, item['token_address'], item['balance'])
                     self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
             self.logger.info(' ' + STRING_DASHES)
         except Exception as err:

@@ -208,7 +208,6 @@ class ConsoleInputGetter:
         """ Get Input Method Arguments
         This method will in charge to evaluate how to process the current operation been provided via input string
         :param argument_list:
-        :param function_arguments:
         :return:
         """
         _execute = False
