@@ -21,10 +21,11 @@ class AccountsArtifacts:
     """ Account Artifacts
     This class will store all the information regarding account artifacts
     """
-    def __init__(self, logger, ethereum_client, silence_flag=False):
+    def __init__(self, logger, ethereum_client, silence_flag=False, test_flag=False):
         self.logger = logger
         self.ethereum_client = ethereum_client
         self.silence_flag = silence_flag
+        self.test_flag = test_flag
         # convert to ether
         self.account_data = {
             'NULL': {
@@ -35,8 +36,9 @@ class AccountsArtifacts:
                 'instance': None
             }
         }
-        self._setup_ganache_accounts()
-        self._setup_random_accounts()
+        if test_flag:
+            self._setup_ganache_accounts()
+            self._setup_random_accounts()
 
     def command_view_accounts(self):
         """ Command View Accounts

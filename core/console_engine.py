@@ -119,7 +119,7 @@ class GnosisConsoleEngine:
         self.console_getter = ConsoleInputGetter(self.logger)
         # Setup Console Account Artifacts
         self.account_artifacts = AccountsArtifacts(
-            self.logger, self.network_agent.get_ethereum_client(), self.quiet_flag
+            self.logger, self.network_agent.get_ethereum_client(), self.quiet_flag, self.test_flag
         )
         # Setup Console Token
         self.token_artifacts = TokenArtifacts(self.logger, self.network_agent.ethereum_client)
@@ -241,7 +241,7 @@ class GnosisConsoleEngine:
         :return:
         """
         self.quiet_flag = configuration['quiet']
-
+        self.test_flag = configuration['test']
         if configuration['debug']:
             self.logging_lvl = DEBUG0
 

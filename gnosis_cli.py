@@ -50,16 +50,16 @@ parser.add_argument('--contract', action='store', dest='contract_address', defau
                     help='', type=str)
 parser.add_argument('--erc20', action='append',
                     dest='erc20_collection', default=[],
-                    help='This init option, will store the values of the token addresses you like to operate with'
+                    help='This init option, will store the values of the erc20 token addresses you like to operate with'
                          ' during the execution of the Console.', type=str)
 parser.add_argument('--erc721', action='append',
                     dest='erc721_collection', default=[],
-                    help='This init option, will store the values of the token addresses you like to operate with'
-                         ' during the execution of the Console.', type=str)
+                    help='This init option, will store the values of the erc721 token addresses you like to operate '
+                         'with during the execution of the Console.', type=str)
 parser.add_argument('--test', action='store_true',
                     dest='test', default=False,
-                    help='This init option will launch the loading of local artifacts such a copy of the gnosis_safe &'
-                         'and 10 random local accounts and the 10 default accounts provided by the ganache local '
+                    help='This init option will launch the loading 10 random local accounts and '
+                         'the 10 default local accounts provided by the ganache'
                          'blockchain.')
 parser.add_argument('--version', action='version', version='%(prog)s 0.0.1a')
 
@@ -78,6 +78,7 @@ try:
         'safe': results.safe_address,
         'erc20': results.erc20_collection,
         'erc721': results.erc721_collection,
+        'test': results.test,
         'name': config['DEFAULT']['name'],
         'version': config['DEFAULT']['version']
     }
