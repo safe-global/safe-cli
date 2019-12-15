@@ -86,11 +86,11 @@ class ConsoleInputGetter:
             },
             'addOwnerWithThreshold': {
                 0: {'': 0},
-                1: {'--address': 1, '--uint': 1},
+                1: {'--address': 1, '--value': 1},
             },
             'changeThreshold': {
                 0: {'': 0},
-                1: {'--uint': 1},
+                1: {'--value': 1},
             },
             'loadMultipleOwner': {
                 0: {'': 0},
@@ -106,7 +106,7 @@ class ConsoleInputGetter:
             },
             'sendEther': {
                 0: {'': 0},
-                1: {'--address': 1, '--private_key': 1,
+                1: {'--address_to': 1, '--private_key': 1,
                     '--wei': 10, '--kwei': 10, '--babbage': 10, '--mwei': 10, '--lovelace': 10,
                     '--picoether': 10, '--gwei': 10, '--shannon': 10, '--nanoether': 10,
                     '--szabo': 10, '--microether': 10, '--micro': 10, '--finney': 10,
@@ -124,7 +124,7 @@ class ConsoleInputGetter:
             },
             'withdrawEther': {
                 0: {'': 0},
-                1: {'--address': 1,
+                1: {'--address_to': 1,
                     '--wei': 10, '--kwei': 10, '--babbage': 10, '--mwei': 10, '--lovelace': 10,
                     '--picoether': 10, '--gwei': 10, '--shannon': 10, '--nanoether': 10,
                     '--szabo': 10, '--microether': 10, '--micro': 10, '--finney': 10,
@@ -133,15 +133,15 @@ class ConsoleInputGetter:
             },
             'sendToken': {
                 0: {'': 0},
-                1: {'--address': 2, '--amount': 1, '--private_key': 1},
+                1: {'--token': 1, '--address_to': 1, '--amount': 1, '--private_key': 1},
             },
             'depositToken': {
                 0: {'': 0},
-                1: {'--address': 1, '--amount': 1, '--private_key': 1},
+                1: {'--token': 1, '--amount': 1, '--private_key': 1},
             },
             'withdrawToken': {
                 0: {'': 0},
-                1: {'--address': 2, '--amount': 1},
+                1: {'--token': 1, '--address_to': 1, '--amount': 1},
             },
             'updateSafe': {
                 0: {'': 0},
@@ -220,7 +220,7 @@ class ConsoleInputGetter:
                 if _execute:
                     self.logger.warn('--execute value previously found, this value will be ignored')
                 else:
-                    to_queue = True
+                    _queue = True
             elif '--now' == argument_item:
                 _now = True
 
@@ -243,7 +243,6 @@ class ConsoleInputGetter:
                     argument_positions_filled += 1
 
         arguments_to_fill = arguments_to_fill[:-1]
-
         return argument_list[0], arguments_to_fill
 
     def evaluate_arguments_based_on_priority(self, command_argument, argument_list):
@@ -261,7 +260,8 @@ class ConsoleInputGetter:
             '--wei': [], '--kwei': [], '--babbage': [], '--mwei': [], '--lovelace': [],
             '--picoether': [], '--gwei': [], '--shannon': [], '--nanoether': [], '--szabo': [],
             '--microether': [], '--micro': [], '--finney': [], '--milliether': [], '--milli': [],
-            '--ether': [], '--kether': [], '--grand': [], '--mether': [], '--gether': [], '--tether': [], '--network':[]
+            '--ether': [], '--kether': [], '--grand': [], '--mether': [], '--gether': [], '--tether': [],
+            '--network': [], '--token': [], '--address_to': [], '--value': []
         }
         try:
             priority_groups = self.argument_block_priorities[command_argument]

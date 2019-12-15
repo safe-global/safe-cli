@@ -54,9 +54,10 @@ class ConsoleInputHandler:
         elif command_argument == 'sendToken':
             if priority_group == 1:
                 token_address = desired_parsed_item_list[0][1][0]
-                address_to = desired_parsed_item_list[0][1][1]
-                token_amount = int(desired_parsed_item_list[1][1][0])
-                private_key = desired_parsed_item_list[2][1][0]
+                address_to = desired_parsed_item_list[1][1][0]
+                token_amount = int(desired_parsed_item_list[2][1][0])
+                private_key = desired_parsed_item_list[3][1][0]
+                print(token_address, address_to, token_amount, private_key)
                 return token_address, address_to, token_amount, private_key
         elif command_argument == 'depositToken':
             if priority_group == 1:
@@ -67,8 +68,8 @@ class ConsoleInputHandler:
         elif command_argument == 'withdrawToken':
             if priority_group == 1:
                 token_address = desired_parsed_item_list[0][1][0]
-                address_to = desired_parsed_item_list[0][1][1]
-                token_amount = int(desired_parsed_item_list[1][1][0])
+                address_to = desired_parsed_item_list[1][1][0]
+                token_amount = int(desired_parsed_item_list[2][1][0])
                 return token_address, address_to, token_amount
         elif command_argument == 'sendEther':
             if priority_group == 1:
