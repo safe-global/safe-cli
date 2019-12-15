@@ -211,7 +211,6 @@ class ConsoleInputGetter:
         :param function_arguments:
         :return:
         """
-
         _execute = False
         _queue = False
         _now = False
@@ -241,8 +240,8 @@ class ConsoleInputGetter:
             # Control for number of input arguments
             argument_positions_to_fill = len(function_arguments)
             argument_positions_filled = 0
-            for sub_index, argument_type in enumerate(function_arguments):
-                if argument_type[sub_index] in argument_item \
+            for sub_index_, argument_type in enumerate(function_arguments):
+                if argument_type[sub_index_] in argument_item \
                         and argument_positions_to_fill != 0 \
                         and argument_positions_to_fill > argument_positions_filled:
                     arguments_to_fill += self._get_method_argument_value(argument_item) + COMMA
@@ -305,7 +304,8 @@ class ConsoleInputGetter:
                     desired_data_size = int(priority_groups[index_group][parsed_item])
                     # Only when the Number of Elements in the Input Matches or is More than the
                     # Number of Desired Elements of a param_type
-                    if len(parsed_arguments[parsed_item]) >= desired_data_size and parsed_item in priority_groups[index_group]:
+                    if len(parsed_arguments[parsed_item]) >= desired_data_size and \
+                            parsed_item in priority_groups[index_group]:
                         # This Data Access is here to force the KeyError Exception so another iteration can
                         # be triggered, without adding
                         data = parsed_arguments[parsed_item][:desired_data_size]
@@ -347,7 +347,8 @@ class ConsoleInputGetter:
         :return: desired_parsed_item_list, priority_group, command_argument, argument_list
         """
         command_argument, argument_list = self._get_input_console_arguments(stream)
-        desired_parsed_item_list, priority_group = self.evaluate_arguments_based_on_priority(command_argument, argument_list)
+        desired_parsed_item_list, priority_group = \
+            self.evaluate_arguments_based_on_priority(command_argument, argument_list)
         if priority_group == -1:
             priority_groups = {-1: 'None'}
         else:

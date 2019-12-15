@@ -51,10 +51,12 @@ class NetworkAgent:
         if tmp_client.w3.isConnected():
             self.ethereum_client = tmp_client
             self.logger.debug0(STRING_DASHES)
-            self.logger.debug0('(+) Successfully retrieved a valid connection to [ {0} ] via {1}'.format(self.network, node_url))
+            self.logger.debug0('(+) Successfully retrieved a valid connection to [ {0} ] via {1}'.format(
+                self.network, node_url))
             self.logger.debug0(STRING_DASHES)
         else:
-            self.logger.error('(?) Unable to retrieved a valid connection to [ {0} ] via {1}'.format(self.network, node_url))
+            self.logger.error('(?) Unable to retrieved a valid connection to [ {0} ] via {1}'.format(
+                self.network, node_url))
 
     def get_current_node_endpoint(self):
         """ Get Current Node Endpoint
@@ -91,7 +93,8 @@ class NetworkAgent:
         self.logger.info(' ' + STRING_DASHES)
         self.logger.info('| {0:^14} | {1:^20} | {2:^98} |'.format('Network', 'Network Status', 'Node Url'))
         self.logger.info(' ' + STRING_DASHES)
-        self.logger.info('| {0:^14} | {1:^20} | {2:^98} |'.format(self.network.upper(), network_status, self.current_node_endpoint))
+        self.logger.info('| {0:^14} | {1:^20} | {2:^98} |'.format(
+            self.network.upper(), network_status, self.current_node_endpoint))
         self.logger.info(' ' + STRING_DASHES)
 
     def set_network_provider_endpoint(self, network, api_key=None):
@@ -108,7 +111,8 @@ class NetworkAgent:
                 self.network = 'mainnet'
                 self.current_node_endpoint = mainnet_node_url
             else:
-                self.logger.error('Infura API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(self.name, mainnet_node_url))
+                self.logger.error('Infura API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(
+                    self.name, mainnet_node_url))
 
         elif network == 'ropsten':
             ropsten_node_url = '{0}{1}'.format('https://ropsten.node.url/', api_key)
@@ -117,7 +121,8 @@ class NetworkAgent:
                 self.network = 'ropsten'
                 self.current_node_endpoint = ropsten_node_url
             else:
-                self.logger.error('API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(self.name, ropsten_node_url))
+                self.logger.error('API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(
+                    self.name, ropsten_node_url))
 
         elif network == 'rinkeby':
             rinkeby_node_url = '{0}{1}'.format('https://rinkeby.infura.io/v3/', api_key)
@@ -126,7 +131,8 @@ class NetworkAgent:
                 self.network = 'rinkeby'
                 self.current_node_endpoint = rinkeby_node_url
             else:
-                self.logger.error('API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(self.name, rinkeby_node_url))
+                self.logger.error('API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(
+                    self.name, rinkeby_node_url))
 
         elif network == 'ganache':
             self._setup_new_provider(self.default_node_endpoint)

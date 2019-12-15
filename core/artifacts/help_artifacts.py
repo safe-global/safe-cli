@@ -14,7 +14,8 @@ LOAD_SAFE_COMMAND_MSG = 'This command will sync with the --address that has been
                         'directly with the owned safe.'
 # ----------------------------------------------------------------------------------------------------------------------
 SET_NETWORK_MSG = 'setNetwork --network=<Network Name> --api_key=<Optional>'
-SET_NETWORK_COMMAND_MSG = 'This command will trigger the configuration of the current network environment for the gnosis-cli.'
+SET_NETWORK_COMMAND_MSG = 'This command will trigger the configuration of the' \
+                          ' current network environment for the gnosis-cli.'
 # ----------------------------------------------------------------------------------------------------------------------
 VIEW_NETWORKS_MSG = 'viewNetwork'
 VIEW_NETWORKS_COMMAND_MSG = 'This command will show the current network that gnosis-cli is currently connected to'
@@ -34,16 +35,20 @@ NEW_ACCOUNT_COMMAND_MSG = 'This command will trigger the creation of a new accou
 NEW_PAYLOAD_MSG = 'newPayload'
 NEW_PAYLOAD_COMMAND_MSG = 'This command will trigger the creation of a new payload artifact withing the gnosis-cli.'
 NEW_PAYLOAD_TX_MSG = 'newPayloadTx'
-NEW_PAYLOAD_TX_COMMAND_MSG = 'This command will trigger the creation of a new payload_tx artifact withing the gnosis-cli.'
+NEW_PAYLOAD_TX_COMMAND_MSG = 'This command will trigger the creation of' \
+                             ' a new payload_tx artifact withing the gnosis-cli.'
 NEW_TOKEN_MSG = 'newToken --address=<Token Address> --abi=<Path to Contract ABI>'
 NEW_TOKEN_COMMAND_MSG = 'This command will trigger the creation of a new token artifact withing the gnosis-cli.'
 # ----------------------------------------------------------------------------------------------------------------------
 QUIT_MSG = 'exit|quit|close'
 QUIT_COMMAND_MSG = 'This command will trigger the exit of the gnosis-cli/safe-cli/contract-cli'
 # ----------------------------------------------------------------------------------------------------------------------
-DISCLAIMER_MSG_0 = 'This is a proof of concept software under the MIT License, focused on the design of an interface, to directly interact with the'
-DISCLAIMER_MSG_1 = 'gnosis safe. Since this in early development, it is not advised, to use this prototype console in a non testing environment, such'
-DISCLAIMER_MSG_2 = 'as Mainnet or Ropsten. For now, is only recommended to use this sofware in testing networks such as Rinkeby or Ganache.'
+DISCLAIMER_MSG_0 = 'This is a proof of concept software under the MIT License, focused ' \
+                   'on the design of an interface, to directly interact with the'
+DISCLAIMER_MSG_1 = 'gnosis safe. Since this in early development, it is not advised, ' \
+                   'to use this prototype console in a non testing environment, such'
+DISCLAIMER_MSG_2 = 'as Mainnet or Ropsten. For now, is only recommended to use this ' \
+                   'sofware in testing networks such as Rinkeby or Ganache.'
 # ----------------------------------------------------------------------------------------------------------------------
 SAFE_BANNER_MSG = 'Console Safe Commands'
 CONTRACT_BANNER_MSG = 'Console Contract Commands'
@@ -71,7 +76,8 @@ ARE_OWNERS_COMMAND_MSG = 'This command will trigger the method isOwner for each 
 GET_OWNER_MSG = 'getOwners'
 GET_OWNER_COMMAND_MSG = 'This command will trigger the method getOwner within the loaded contract in the safe-cli.'
 GET_THRESHOLD_MSG = 'getThreshold'
-GET_THRESHOLD_COMMAND_MSG = 'This command will trigger the method getThreshold within the loaded contract in the safe-cli.'
+GET_THRESHOLD_COMMAND_MSG = 'This command will trigger the method getThreshold' \
+                            ' within the loaded contract in the safe-cli.'
 ADD_OWNER_MSG = 'addOwner --address=<Account Address>'
 ADD_OWNER_COMMAND_MSG = 'This function will trigger de insertion of a new owner within the actual network ' \
                         'in the safe-cli.'
@@ -90,8 +96,10 @@ REMOVE_OWNERS_MSG = 'removeOwners --address=<Old Account Address> ... --address=
 REMOVE_OWNERS_COMMAND_MSG = 'This command will trigger the transaction method responsable for the removal of one' \
                             ' or more --address provided via user input.'
 # ----------------------------------------------------------------------------------------------------------------------
-SEND_ETHER_MSG = 'sendEther --address=<Address To> --private_key=<Private Key from> --ether=(supported from --wei to --tether)'
-SEND_ETHER_COMMAND_MSG = 'This command will trigger the trasaction method to make a send ether procedure between two parties'
+SEND_ETHER_MSG = 'sendEther --address=<Address To> --private_key=<Private Key from>' \
+                 ' --ether=(supported from --wei to --tether)'
+SEND_ETHER_COMMAND_MSG = 'This command will trigger the trasaction method to' \
+                         ' make a send ether procedure between two parties'
 DEPOSIT_ETHER_MSG = 'depositEther --private_key=<Private Key from> --ether=(supported from --wei to --tether)'
 DEPOSIT_ETHER_COMMAND_MSG = 'This command will trigger the transaction method to make a deposit of ether in the safe' \
                             ' that is currently loaded in the safe-cli'
@@ -99,7 +107,8 @@ WITHDRAW_ETHER_MSG = 'withdrawEther --address=<Address To>  --ether=(supported f
 WITHDRAW_ETHER_COMMAND_MSG = 'This command will trigger the transaction method to make a withdraw of ether in the' \
                              ' safe that is currently loaded in the safe-cli.'
 # ----------------------------------------------------------------------------------------------------------------------
-SEND_TOKEN_MSG = 'sendToken --address=<Token Address> --address=<Address To> --amount<> --private_key=<From User Private Key>'
+SEND_TOKEN_MSG = 'sendToken --address=<Token Address> --address=<Address To>' \
+                 ' --amount<> --private_key=<From User Private Key>'
 SEND_TOKEN_COMMAND_MSG = 'This command will trigger the transaction method to make a send procedure between to parties.'
 DEPOSIT_TOKEN_MSG = 'depositToken --address=<Token Address> --amount<> --private_key=<From User Private Key>'
 DEPOSIT_TOKEN_COMMAND_MSG = 'This command will trigger the transaction method to make a deposit of tokens in the safe' \

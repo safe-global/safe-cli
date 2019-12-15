@@ -112,7 +112,8 @@ class AccountsArtifacts:
                     self.logger.debug0('Match found in owner list while checking address generated via private_key')
                     return local_account
         except Exception as err:
-            self.logger.debug0('Miss Match in generated account via private_key when comparing address in owner list of the contract')
+            self.logger.debug0('Miss Match in generated account via private_key when '
+                               'comparing address in owner list of the contract')
             self.logger.error('Unable to get_local_account() {0} {1}'.format(type(err), err))
 
     def _setup_random_accounts(self, account_number=10):

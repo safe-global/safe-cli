@@ -44,7 +44,8 @@ class ConsoleInputValidation:
             return True, ''
         elif param_type == 'uint160'and param <= 1461501637330902918203684832716283019655932542975:
             return True, ''
-        elif param_type == 'uint256'and param <= 115792089237316195423570985008687907853269984665640564039457584007913129639935:
+        elif param_type == 'uint256'and \
+                param <= 115792089237316195423570985008687907853269984665640564039457584007913129639935:
             return True, ''
         return False, 'Not a valid {0} (Does not fit the current type for the function input)'.format(param_type)
 
@@ -54,7 +55,6 @@ class ConsoleInputValidation:
         :param api_key:
         :return:
         """
-
         try:
             valid_api_key = re.search('[aA-zZ,0-9]*', api_key).group(0)
             if len(api_key) is INFURA_API_KEY_LENGTH and valid_api_key != '':

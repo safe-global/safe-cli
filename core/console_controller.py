@@ -7,6 +7,7 @@ from core.artifacts.help_artifacts import InformationArtifacts
 # Import ConsoleInputGetter for Testing Purposes
 from core.input.console_input_getter import ConsoleInputGetter
 from core.input.console_input_handler import ConsoleInputHandler
+
 # Import EtherHelper for unifying ether amount quantities
 from core.artifacts.utils.ether_helper import EtherHelper
 
@@ -110,7 +111,7 @@ class ConsoleController:
         _execute, _queue, _ = self.console_getter.get_input_affix_arguments(argument_list)
         if command_argument == 'info':
             safe_interface.command_safe_information()
-        elif (command_argument == 'help'):
+        elif command_argument == 'help':
             self.console_information.command_view_safe_information()
         elif command_argument == 'nonce':
             safe_interface.command_safe_nonce()
@@ -169,7 +170,8 @@ class ConsoleController:
                     old_owner_address = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
                     previous_owner_address = safe_interface.setinel_helper(old_owner_address)
-                    safe_interface.command_safe_remove_owner(previous_owner_address, old_owner_address, _execute, _queue)
+                    safe_interface.command_safe_remove_owner(
+                        previous_owner_address, old_owner_address, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -182,7 +184,8 @@ class ConsoleController:
                     old_owner_address, new_owner_address = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
                     previous_owner_address = safe_interface.setinel_helper(old_owner_address)
-                    safe_interface.command_safe_swap_owner(previous_owner_address, old_owner_address, new_owner_address, _execute, _queue)
+                    safe_interface.command_safe_swap_owner(
+                        previous_owner_address, old_owner_address, new_owner_address, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -192,7 +195,8 @@ class ConsoleController:
                     token_address, address_to, token_amount, private_key = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
                     local_account = Account.privateKeyToAccount(private_key)
-                    safe_interface.command_send_token(address_to, token_address, token_amount, local_account, _execute, _queue)
+                    safe_interface.command_send_token(
+                        address_to, token_address, token_amount, local_account, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -345,13 +349,15 @@ class ConsoleController:
 
                         # remark: Add to the Batch Solver
                         elif queue_flag:
-                            self.logger.info('(Future Implementation) executeBatch when you are ready to launch the transactions that you queued up!')
+                            self.logger.info('(Future Implementation) executeBatch when you are ready to launch '
+                                             'the transactions that you queued up!')
                         else:
                             self.logger.info(contract_methods[item]['call'].format(function_arguments, address_from))
                             resolution = eval(contract_methods[item]['call'].format(function_arguments, address_from))
                             self.logger.info(resolution)
                     else:
-                        self.logger.warn('--execute, --query or --queue arguments needed in order to properly operate with the current contract')
+                        self.logger.warn('--execute, --query or --queue arguments needed in order to properly '
+                                         'operate with the current contract')
 
         except Exception as err:
             self.logger.debug0('operate_with_contract() {0}'.format(err))

@@ -94,7 +94,6 @@ class ContractArtifacts:
                 contract_name, contract_instance, contract_abi, contract_bytecode, contract_address
             )
 
-    # FIX MESSAGE OR WHAT EVER WHEN THE ALIAS DOES NOT FIT THE NAME
     def retrive_from_stored_values(self, alias, key=None):
         """ Retrieve From Stored Values
         This function will retrieve stored data related to account_artifacts, payload_data, token_data, contract_data

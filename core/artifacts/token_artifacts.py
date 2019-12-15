@@ -96,7 +96,7 @@ class TokenArtifacts:
         :return:
         """
         if command_argument == 'newToken' and argument_list == []:
-            new_token_entry = self._new_token_helper(token_options)
+            new_token_entry = self._new_token_helper()
             self.logger.info('newToken: ' + str(new_token_entry))
             return self.add_token_artifact(new_token_entry, new_token_entry['name'])
         else:
@@ -143,10 +143,9 @@ class TokenArtifacts:
             self.token_data['uToken' + str(len(self.token_data))] = self.new_token_entry(
                 token_artifact['address'], token_artifact['instance'], token_artifact['type'], token_artifact['name'])
 
-    def _new_token_helper(self, token_options):
+    def _new_token_helper(self):
         """ New Token Helper
         This function will trigger the behaviour for the newToken, when the --inputs are None
-        :param token_options:
         :return:
         """
         token_type = None
@@ -154,8 +153,8 @@ class TokenArtifacts:
         token_alias = None
         token_address = None
         for item in token_options:
-            text = ('%s : ' % (item)).rjust(20)
-            token_answer = prompt(HTML((' <strong>%s</strong> ') % text.title()))
+            text = ('%s : ' % item).rjust(20)
+            token_answer = prompt(HTML(' <strong>%s</strong> ' % text.title()))
             if item == 'type':
                 if token_answer == 'ERC20':
                     token_type = TypeOfTokens.ERC20
@@ -184,7 +183,4 @@ class TokenArtifacts:
                             self.logger.error('Unable to get erc721 contract, are you sure this is a valid token address?')
                 else:
                     self.logger.error('Address is not valid')
-
         return self.new_token_entry(token_address, token_instance, token_type, token_alias)
-
-

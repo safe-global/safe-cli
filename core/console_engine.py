@@ -349,7 +349,9 @@ class GnosisConsoleEngine:
             wei_amount = self.ether_helper.get_unify_ether_amount([('--wei', [balance])])
             text_badge, tmp_amount = self.ether_helper.get_proper_ether_amount(wei_amount)
             amount = '{0} {1}'.format(str(tmp_amount), text_badge)
-        return HTML((' [ <strong>Sender:</strong> %s | <strong>PK:</strong> %s | <strong>Balance:</strong> %s ]') % (sender_address, sender_private_key, amount))
+        return HTML(' [ <strong>Sender:</strong> %s'
+                    ' | <strong>PK:</strong> %s'
+                    ' | <strong>Balance:</strong> %s ]' % (sender_address, sender_private_key, amount))
 
     def _get_prompt_text(self, affix_stream='', stream=''):
         """ Get Prompt Text
@@ -358,4 +360,5 @@ class GnosisConsoleEngine:
         :param stream:
         :return:
         """
-        return HTML(('<ansiblue>[ </ansiblue><strong>./%s</strong><ansiblue> ][ </ansiblue><strong>%s</strong><ansiblue> ]: </ansiblue>') % (affix_stream, stream))
+        return HTML('<ansiblue>[ </ansiblue><strong>./%s</strong><ansiblue> ]'
+                    '[ </ansiblue><strong>%s</strong><ansiblue> ]: </ansiblue>' % (affix_stream, stream))

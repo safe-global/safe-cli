@@ -86,8 +86,8 @@ class PayloadArtifacts:
         alias = ''
         compose_answer = '{'
         for item in payload_options:
-            text = ('\'%s\' : ' % (item)).rjust(20)
-            answer = prompt(HTML((' <strong>%s</strong> ') % text))
+            text = ('\'%s\' : ' % item).rjust(20)
+            answer = prompt(HTML(' <strong>%s</strong> ' % text))
             if answer == '':
                 if (item == 'gas') or (item == 'gasPrice') or (item == 'nonce') or (item == 'safe_tx_gas'):
                     compose_answer += '\'%s\' : %s' % (item, str(0)) + ', '

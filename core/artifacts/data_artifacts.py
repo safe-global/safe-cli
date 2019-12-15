@@ -62,7 +62,8 @@ class DataArtifacts:
         """ From Alias get Value
         This function will retrieve the data from a given value if it's stored in the data structures of the common artifacts
         for the console (account, contract, paload, token)
-        :param stream:
+        :param stream_value:
+        :param artifact_type:
         :return:
         """
         value_from_artifact = ''
