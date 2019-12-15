@@ -348,7 +348,7 @@ class GnosisConsoleEngine:
             balance = self.network_agent.ethereum_client.w3.eth.getBalance(sender_address)
             wei_amount = self.ether_helper.get_unify_ether_amount([('--wei', [balance])])
             text_badge, tmp_amount = self.ether_helper.get_proper_ether_amount(wei_amount)
-            amount = '{0} {1}'.format(str(tmp_amount)[:-10], text_badge)
+            amount = '{0} {1}'.format(str(tmp_amount), text_badge)
         return HTML((' [ <strong>Sender:</strong> %s | <strong>PK:</strong> %s | <strong>Balance:</strong> %s ]') % (sender_address, sender_private_key, amount))
 
     def _get_prompt_text(self, affix_stream='', stream=''):

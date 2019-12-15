@@ -17,16 +17,6 @@ from gnosis.eth.contracts import (
     get_safe_V1_0_0_contract, get_safe_V0_0_1_contract, get_erc20_contract
 )
 
-# multisend_txs = [MultiSendTx(MultiSendOperation.CALL, safe_address, value, d) for d in (data, data_2)]
-# safe_multisend_data = self.multi_send.prepare_tx(multisend_txs)['data']
-# safe_tx = SafeTx(self.ethereum_client, safe_address, to,
-#                  0, safe_multisend_data, SafeOperation.DELEGATE_CALL.value,
-#                  safe_tx_gas, base_gas, self.gas_price, None, None, safe_nonce=0)
-# safe_tx.sign(owners[0].key)
-#
-# self.assertEqual(safe_tx.call(tx_sender_address=self.ethereum_test_account.address), 1)
-# tx_hash, _ = safe_tx.execute(tx_sender_private_key=self.ethereum_test_account.key)
-
 class ConsoleSafeCommands:
     """ Console Safe Commands
     This class will perform the command call to the different artifacts and the class methods
@@ -63,6 +53,9 @@ class ConsoleSafeCommands:
 
         # Trigger information on class init
         self.command_safe_information()
+
+        self.auto_fill_token_decimals = True
+        self.auto_execute = False
 
     def _setup_gas_price(self):
         if self.network_agent.network == 'ganache':
@@ -137,6 +130,26 @@ class ConsoleSafeCommands:
                     return previous_owner
                 except IndexError:
                     self.logger.error('Sentinel Address not found, returning NULLADDRESS')
+
+    def command_set_auto_execute(self, value):
+        if (value == 'ON') or (value == 'on'):
+            self.logger.info('setAutoExecute in effect')
+            self.auto_execute = True
+        elif (value == 'OFF') or (value == 'off'):
+            self.logger.info('setAutoExecute no longer in effect')
+            self.auto_execute = False
+        else:
+            self.logger.error('Unable to change setAutoFillTokenDecimals')
+
+    def command_set_auto_fill_token_decimals(self, value):
+        if (value == 'ON') or (value == 'on'):
+            self.logger.info('setAutoFillTokenDecimals in effect')
+            self.auto_fill_token_decimals = True
+        elif (value == 'OFF') or (value == 'off'):
+            self.logger.info('setAutoFillTokenDecimals no longer in effect')
+            self.auto_fill_token_decimals = False
+        else:
+            self.logger.error('Unable to change setAutoFillTokenDecimals')
 
     def command_load_owner(self, private_key):
         try:
@@ -396,6 +409,17 @@ class ConsoleSafeCommands:
             return 'X'
         return ' '
 
+    def command_view_owners(self):
+        """ Command Safe Get Owners
+        This function will retrieve and show the loaded owners of the safe
+        :return:
+        """
+        self.log_formatter.log_section_left_side('Loaded Owner Data')
+        for owner_index, owner in enumerate(self.local_owner_account_list):
+            information_data = ' (#) Owner {0} | Address: {1} | Sender: [{2}] | Balance: {3} '.format(owner_index, owner.address, self.is_sender(owner.address), self.ethereum_client.w3.eth.getBalance(owner.address))
+            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+        self.logger.info(' ' + STRING_DASHES)
+
     def command_safe_get_owners(self):
         """ Command Safe Get Owners
         This function will retrieve and show the get owners of the safe
@@ -620,9 +644,12 @@ class ConsoleSafeCommands:
         """
         try:
             # Preview the current token balance of the safe before the transaction
-            # self.command_view_token_balance()
+            self.command_view_token_balance()
             self.log_formatter.log_section_left_side('Send Token')
-            safe_tx = self.ethereum_client.erc20.send_tokens(address_to, int(token_amount), token_contract_address, local_account.privateKey)
+            erc20 = get_erc20_contract(self.ethereum_client.w3, token_contract_address)
+            if self.auto_fill_token_decimals:
+                token_amount = (token_amount * pow(10, erc20.functions.decimals().call()))
+            safe_tx = self.ethereum_client.erc20.send_tokens(address_to, token_amount, token_contract_address, local_account.privateKey)
 
             # Perform the transaction
             tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx, timeout=60)
@@ -633,7 +660,7 @@ class ConsoleSafeCommands:
             # self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
 
             # Preview the current token balance of the safe after the transaction
-            # self.command_view_token_balance()
+            self.command_view_token_balance()
         except Exception as err:
             self.logger.error('Unable to command_send_token_raw(): {0} {1}'.format(type(err), err))
 
@@ -660,11 +687,13 @@ class ConsoleSafeCommands:
         """
         try:
             # Preview the current token balance of the safe before the transaction
-            # self.command_view_token_balance()
+            self.command_view_token_balance()
             sender_data = {'from': self.safe_operator.address}
             erc20 = get_erc20_contract(self.ethereum_client.w3, token_contract_address)
+            if self.auto_fill_token_decimals:
+                token_amount = (token_amount * pow(10, erc20.functions.decimals().call()))
 
-            payload_data = HexBytes(erc20.functions.transfer(address_to, int(token_amount)).buildTransaction(sender_data)['data'])
+            payload_data = HexBytes(erc20.functions.transfer(address_to, token_amount).buildTransaction(sender_data)['data'])
 
             # Perform the transaction
             self.perform_transaction(payload_data, address_to=token_contract_address)
@@ -676,7 +705,7 @@ class ConsoleSafeCommands:
                                                                           token_contract_address)
             self.logger.info(current_token_balance)
             self.logger.info(current_user_balance)
-            # self.command_view_token_balance()
+            self.command_view_token_balance()
         except Exception as err:
             self.logger.error('Unable to command_withdraw_token_raw(): {0} {1}'.format(type(err), err))
 

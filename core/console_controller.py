@@ -260,6 +260,8 @@ class ConsoleController:
 
         elif command_argument == 'viewBalance':
             safe_interface.command_view_balance()
+        elif command_argument == 'viewOwners':
+            safe_interface.command_view_owners()
         elif command_argument == 'viewSender':
             safe_interface.command_view_default_sender()
         elif command_argument == 'viewNetwork':
@@ -288,6 +290,14 @@ class ConsoleController:
             self.logger.info('load multiple owners')
         elif command_argument == 'unloadMultipleOwners':
             self.logger.info('load multiple owners')
+
+        elif command_argument == 'setAutoFillTokenDecimals':
+            safe_interface.command_set_auto_fill_token_decimals(argument_list[0])
+
+        elif command_argument == 'setAutoExecute':
+            safe_interface.command_set_auto_fill_token_decimals(argument_list[0])
+
+
 
     def operate_with_contract(self, stream, contract_methods, contract_instance):
         """ Operate With Contract

@@ -147,6 +147,12 @@ class ConsoleInputGetter:
                 0: {'': 0},
                 1: {'--address': 1},
             },
+            'setAutoFillDecimals': {
+                0: {'': 0}
+            },
+            'setAutoExecute': {
+                0: {'': 0}
+            }
         }
 
     @staticmethod

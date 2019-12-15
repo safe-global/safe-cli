@@ -5,8 +5,13 @@
 from prompt_toolkit.formatted_text import HTML
 
 # simple_function_operand = '((--address=)(0x([aA-zZ,0-9]{62}|[aA-zZ,0-9]{40}))?)|((--uint=)([0-9]{0,})?)|(--queue)?(--execute)?'
-console_method_names = 'isOwner|getOwners|getThreshold|addOwner|swapOwner|removeOwner|changeThreshold|sendEther|sendToken|VERSION|NAME|code|nonce|addOwnerWithThreshold|viewSender|loadOwner|loadMultipleOwners|removeMultipleOwners|unloadOwner|updateSafe'
-console_commands = 'viewNetwork|viewAccounts|viewContracts|newPayload|newTxPayload|newAccount|newContract|setNetwork|setDefaultSender|loadContract|loadSafe|viewPayloads|viewTokens|newTokens|viewSender|viewBalance'
+console_method_names = 'isOwner|getOwners|getThreshold|addOwner|swapOwner|removeOwner|changeThreshold|sendEther' \
+                       '|sendToken|VERSION|NAME|code|nonce|addOwnerWithThreshold|viewSender|loadOwner' \
+                       '|loadMultipleOwners|removeMultipleOwners|unloadOwner|updateSafe|depositEther|' \
+                       'withdrawEther|depositToken|withdrawToken|sendToken|viewOwners'
+console_commands = 'viewNetwork|viewAccounts|viewContracts|newPayload|newTxPayload|newAccount|newContract|' \
+                   'setNetwork|setDefaultSender|loadContract|loadSafe|viewPayloads|viewTokens|newTokens|' \
+                   'viewSender|viewBalance'
 console_quit_commands = 'exit|quit|close'
 console_help_commands = 'help|about|info'
 console_known_networks = 'ropsten|mainnet|ganache|rinkeby'
@@ -26,7 +31,8 @@ function_name = [
     'isOwner', 'getOwners', 'swapOwners', 'removeOwner', 'addOwner', 'addOwnersWithThreshold', 'changeOwner'
     'getThreshold', 'changeThreshold', 'sendEther', 'sendToken', 'viewAccounts', 'viewContract', 'viewTokens',
     'viewPayloads', 'viewSender', 'loadOwner', 'loadMultipleOwners', 'removeMultipleOwners', 'unloadOwner',
-    'unloadMultipleOwners', 'viewBalance', 'depositEther', 'depositToken', 'withdrawEther', 'withdrawToken'
+    'unloadMultipleOwners', 'viewBalance', 'depositEther', 'depositToken', 'withdrawEther', 'withdrawToken',
+    'setAutoFillTokenDecimals', 'viewOwners'
 ]
 
 function_params = {
@@ -54,7 +60,10 @@ function_params = {
     'depositEther': '_',
     'depositToken': '_',
     'withdrawToken': '_',
-    'withdrawEther': '_'
+    'withdrawEther': '_',
+    'setAutoFillTokenDecimals': '_',
+    'setAutoExecute': '_',
+    'viewOwners': '_'
 }
 
 function_parms_color = {
