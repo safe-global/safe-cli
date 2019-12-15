@@ -32,6 +32,7 @@ console_getter = ConsoleInputGetter(logger)
 network_agent = NetworkAgent(logger)
 console_handler = ConsoleInputHandler(logger)
 
+
 def test_get_load_safe():
     load_safe_command = 'loadSafe --address=0x5b1869D9A4C187F2EAa108f3062412ecf0526b24'
     desired_parsed_item_list, priority_group, command_argument, argument_list = \
