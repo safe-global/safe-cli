@@ -47,10 +47,10 @@ class ConsoleController:
         # load console console commands trigger procedures
         self.logger.debug0('(+) [ Operating with General Console ]: ' + command_argument)
         if command_argument == 'loadContract':
-            contract_alias = self.console_handler.input_handler(
-                command_argument, desired_parsed_item_list, priority_group)
-            self.contract_interface = self.console_engine.run_contract_console(contract_alias)
-
+            if priority_group == 0:
+                contract_alias = self.console_handler.input_handler(
+                    command_argument, desired_parsed_item_list, priority_group)
+                self.contract_interface = self.console_engine.run_contract_console(contract_alias)
         elif command_argument == 'loadSafe':
             if priority_group == 1:
                 safe_address = self.console_handler.input_handler(
@@ -302,11 +302,15 @@ class ConsoleController:
             for item in contract_methods:
                 if contract_methods[item]['name'] in stream:
                     splitted_stream = stream.split(' ')
-                    function_name, function_arguments, address_from, execute_flag, queue_flag, query_flag = \
-                        self.console_getter.get_input_method_arguments(splitted_stream, contract_methods[item]['arguments'])
-                    self.logger.debug0('command: {0} | arguments: {1} | execute_flag: {2} | query_flag: {3} | '.format(function_name, function_arguments, execute_flag, queue_flag))
+                    address_from = ''
+                    # This function Call now longer works, break in compatibility
+                    execute_flag, queue_flag, _ = self.console_getter.get_input_affix_arguments(splitted_stream)
+                    function_name, function_arguments = \
+                        self.console_getter.retrieve_contract_data(splitted_stream, contract_methods[item]['arguments'])
+                    self.logger.debug0('command: {0} | arguments: {1} | execute_flag: {2} | query_flag: {3} | '.format(
+                        function_name, function_arguments, execute_flag, queue_flag))
 
-                    if execute_flag or query_flag or queue_flag:
+                    if execute_flag or queue_flag:
                         # remark: Transaction Solver
                         if execute_flag:
                             if contract_methods[item]['name'].startswith('get'):
@@ -320,14 +324,13 @@ class ConsoleController:
                             # this is the hash to be signed, maybe call for approve dialog, approveHash dialogue,
                             # map functions to be performed by the gnosis_py library
 
-                        # remark: Call Solver
-                        elif query_flag:
-                            self.logger.info(contract_methods[item]['call'].format(function_arguments, address_from))
-                            resolution = eval(contract_methods[item]['call'].format(function_arguments, address_from))
-                            self.logger.info(resolution)
                         # remark: Add to the Batch Solver
                         elif queue_flag:
                             self.logger.info('(Future Implementation) executeBatch when you are ready to launch the transactions that you queued up!')
+                        else:
+                            self.logger.info(contract_methods[item]['call'].format(function_arguments, address_from))
+                            resolution = eval(contract_methods[item]['call'].format(function_arguments, address_from))
+                            self.logger.info(resolution)
                     else:
                         self.logger.warn('--execute, --query or --queue arguments needed in order to properly operate with the current contract')
 

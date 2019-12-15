@@ -82,7 +82,7 @@ class GnosisConsoleEngine:
         self.logger = None
 
         # Use Launch Configuration
-        self._setup_console_logger_configuration(init_configuration)
+        self._setup_console_logger_init(init_configuration)
 
         # CustomLogger Format Definition: Output Init Configuration
         formatter = logging.Formatter(fmt='%(asctime)s - [ %(levelname)s ]: %(message)s',
@@ -138,26 +138,31 @@ class GnosisConsoleEngine:
         # Setup: Log Formatter
         self.log_formatter = LogMessageFormatter(self.logger)
 
-        self._setup_console_token_configuration(init_configuration)
+        self._setup_console_token_init(init_configuration)
 
         # Run Console
         self._setup_console_init(init_configuration)
 
-    def exit_command(self, command_argument):
+    def exit_command(self, command_argument, argument_list):
+        _, _, _now = self.console_getter.get_input_affix_arguments(argument_list)
         if (command_argument == 'close') or (command_argument == 'quit') or (command_argument == 'exit'):
-            if (self.active_session == TypeOfConsole.SAFE_CONSOLE) \
-                    or (self.active_session == TypeOfConsole.CONTRACT_CONSOLE):
-                result = yes_no_dialog(
-                    title='Exiting {0}'.format(self.active_session.value),
-                    text='All data regarding loaded owners & sender configuration will be lost, '
-                         'Are you sure you want to exit the {0}?'.format(self.active_session.value)).run()
-            else:
-                result = yes_no_dialog(
-                    title='Exiting {0}'.format(self.active_session.value),
-                    text='All data regarding accounts, tokens, contracts & payloads will be lost, '
-                         'Are you sure you want to exit the {0}?'.format(self.active_session.value)).run()
+            if not _now:
+                if (self.active_session == TypeOfConsole.SAFE_CONSOLE) \
+                        or (self.active_session == TypeOfConsole.CONTRACT_CONSOLE):
+                    result = yes_no_dialog(
+                        title='Exiting {0}'.format(self.active_session.value),
+                        text='All data regarding loaded owners & sender configuration will be lost, '
+                             'Are you sure you want to exit the {0}?'.format(self.active_session.value)).run()
+                else:
+                    result = yes_no_dialog(
+                        title='Exiting {0}'.format(self.active_session.value),
+                        text='All data regarding accounts, tokens, contracts & payloads will be lost, '
+                             'Are you sure you want to exit the {0}?'.format(self.active_session.value)).run()
+                if result:
+                    self.active_session = TypeOfConsole.GNOSIS_CONSOLE
+                    raise EOFError
 
-            if result:
+            elif _now:
                 self.active_session = TypeOfConsole.GNOSIS_CONSOLE
                 raise EOFError
 
@@ -206,7 +211,7 @@ class GnosisConsoleEngine:
                             self.logger.error('Something Went Wrong Opss {0}  {1}'.format(type(err), err))
                             self.active_session = TypeOfConsole.GNOSIS_CONSOLE
 
-                    self.exit_command(command_argument)
+                    self.exit_command(command_argument, argument_list)
                 except KeyboardInterrupt:
                     # remark: Control-C pressed. Try again.
                     continue
@@ -229,7 +234,7 @@ class GnosisConsoleEngine:
             completer=self.session_config['completer'],
             lexer=self.session_config['contract_lexer'])
 
-    def _setup_console_logger_configuration(self, configuration):
+    def _setup_console_logger_init(self, configuration):
         """ Setup Console Init Configuration
         This function will perform the necessary actions to setup the parameters provided in the initialization
         :param configuration:
@@ -243,7 +248,7 @@ class GnosisConsoleEngine:
         # CustomLogger Instance Creation
         self.logger = CustomLogger(self.name, self.logging_lvl)
 
-    def _setup_console_token_configuration(self, configuration):
+    def _setup_console_token_init(self, configuration):
         """ Setup Console Token Configuration
 
         :param configuration:
@@ -266,6 +271,8 @@ class GnosisConsoleEngine:
         if configuration['safe'] is not None:
             if self.network_agent.ethereum_client.w3.isAddress(configuration['safe']):
                 try:
+                    self.log_formatter.log_entry_message('Entering Safe Console')
+                    set_title('Safe Console')
                     self.logger.debug0(configuration['safe'])
                     self.run_safe_console(configuration['safe'], configuration['private_key'])
                 except Exception as err:
@@ -323,8 +330,7 @@ class GnosisConsoleEngine:
         :return:
         """
         try:
-            self.log_formatter.log_entry_message('Entering Safe Console')
-            set_title('Safe Console')
+
             self.safe_interface = ConsoleSafeCommands(safe_address, self.logger, self.data_artifacts, self.network_agent)
             if private_key_list is not None:
                 self.logger.info(private_key_list)

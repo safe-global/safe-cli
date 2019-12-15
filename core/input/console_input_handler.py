@@ -95,5 +95,5 @@ class ConsoleInputHandler:
                 private_key = desired_parsed_item_list[0][1][0]
                 return private_key
         elif command_argument == 'unloadOwner':
-                private_key = desired_parsed_item_list[0][1][0]
-                return private_key
+            private_key = desired_parsed_item_list[0][1][0]
+            return private_key

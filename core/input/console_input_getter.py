@@ -198,52 +198,53 @@ class ConsoleInputGetter:
             return self._get_quoted_argument(value.split('=')[1])
         return value.split('=')[1]
 
-    def get_input_method_arguments(self, argument_list, function_arguments):
+    def get_input_affix_arguments(self, argument_list):
         """ Get Input Method Arguments
         This method will in charge to evaluate how to process the current operation been provided via input string
         :param argument_list:
         :param function_arguments:
         :return:
         """
-        arguments_to_fill = ''
-        execute_value = False
-        to_queue = False
-        to_query = False
-        address_from = ''
 
-        # Control for number of input arguments
-        argument_positions_to_fill = len(function_arguments)
-        argument_positions_filled = 0
+        _execute = False
+        _queue = False
+        _now = False
 
         for sub_index, argument_item in enumerate(argument_list):
-            if '--from=' in argument_item:
-                address_from = self._get_method_argument_value(argument_item)
-            elif '--execute' == argument_item:
-                if to_queue or to_query:
-                    self.logger.warn('--queue|--query value already parsed, this value will be ignored')
+            if '--execute' == argument_item:
+                if _queue:
+                    self.logger.warn('--queue  value previously found, this value will be ignored')
                 else:
-                    execute_value = True
-            elif '--query' == argument_item:
-                if execute_value or to_queue:
-                    self.logger.warn('--execute|--queue value already parsed, this value will be ignored')
-                else:
-                    to_query = True
+                    _execute = True
             elif '--queue' == argument_item:
-                if execute_value or to_query:
-                    self.logger.warn('--execute|--query value already parsed, this value will be ignored')
+                if _execute:
+                    self.logger.warn('--execute value previously found, this value will be ignored')
                 else:
                     to_queue = True
-            else:
-                for sub_index, argument_type in enumerate(function_arguments):
-                    if argument_type[sub_index] in argument_item \
-                            and argument_positions_to_fill != 0 \
-                            and argument_positions_to_fill > argument_positions_filled:
-                        arguments_to_fill += self._get_method_argument_value(argument_item) + COMMA
-                        argument_positions_filled += 1
+            elif '--now' == argument_item:
+                _now = True
 
-                arguments_to_fill = arguments_to_fill[:-1]
+        return _execute, _queue, _now
 
-        return argument_list[0], arguments_to_fill, address_from, execute_value, to_queue, to_query
+    def retrieve_contract_data(self, argument_list, function_arguments):
+        """ Retrieve Contract Data
+        This function was used to generate the spots for the dynamic mapping of the contract abi.
+        """
+        arguments_to_fill = ''
+        for sub_index, argument_item in enumerate(argument_list):
+            # Control for number of input arguments
+            argument_positions_to_fill = len(function_arguments)
+            argument_positions_filled = 0
+            for sub_index, argument_type in enumerate(function_arguments):
+                if argument_type[sub_index] in argument_item \
+                        and argument_positions_to_fill != 0 \
+                        and argument_positions_to_fill > argument_positions_filled:
+                    arguments_to_fill += self._get_method_argument_value(argument_item) + COMMA
+                    argument_positions_filled += 1
+
+        arguments_to_fill = arguments_to_fill[:-1]
+
+        return argument_list[0], arguments_to_fill
 
     def evaluate_arguments_based_on_priority(self, command_argument, argument_list):
         """ Get Arguments Based on Priority
