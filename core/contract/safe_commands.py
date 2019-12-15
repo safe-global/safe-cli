@@ -58,6 +58,9 @@ class ConsoleSafeCommands:
         self.log_formatter = LogMessageFormatter(self.logger)
         self.ether_helper = EtherHelper(self.logger, self.ethereum_client)
 
+        # Transaction Queue for Batching
+        self.tx_queue = []
+
         # Trigger information on class init
         self.command_safe_information()
 
@@ -240,10 +243,12 @@ class ConsoleSafeCommands:
             safe_tx = self.safe_tx_multi_sign(safe_tx, self.local_owner_account_list)
             safe_tx_receipt = None
 
-            # The current tx was well formed
-            information_data = ' (#) isValid Tx: {0}'.format(safe_tx.call())
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-            if safe_tx.call():
+            is_valid_tx = safe_tx.call()
+            if is_valid_tx:
+                # The current tx was well formed
+                information_data = ' (#) isValid Tx: {0}'.format(is_valid_tx)
+                self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
+
                 if execute:
                     # Execute the current transaction
                     safe_tx_hash, _ = safe_tx.execute(
@@ -252,10 +257,10 @@ class ConsoleSafeCommands:
                     )
                     # Retrieve the receipt
                     safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
-                    self.logger.info(safe_tx_receipt)
-                    # self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
-                    # elif batch:
-                    #    self.logger.info('To Be Implemented')
+                    self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
+
+                # elif batch:
+                #    self.logger.info('To Be Implemented')
 
         except Exception as err:
             self.logger.error('Unable to perform_transaction(): {0} {1}'.format(type(err), err))
@@ -623,7 +628,8 @@ class ConsoleSafeCommands:
             tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx, timeout=60)
 
             # Format Receipt with Logger
-            self.logger.info(tx_receipt)
+            # self.logger.info(tx_receipt)
+            self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
             # self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
 
             # Preview the current token balance of the safe after the transaction
@@ -702,8 +708,8 @@ class ConsoleSafeCommands:
             tx_receipt = self.ethereum_client.get_transaction_receipt(tx_hash, timeout=60)
 
             # Format Receipt with Logger
-            # self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
-            self.logger.info(tx_receipt)
+            # self.logger.info(tx_receipt)
+            self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
 
             # Preview the current ether balance of the safe after the transaction
             self.command_view_ether_balance()
