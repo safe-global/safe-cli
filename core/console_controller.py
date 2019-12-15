@@ -279,9 +279,10 @@ class ConsoleController:
                 safe_interface.command_load_owner(private_key)
 
         elif command_argument == 'unloadOwner':
-            private_key = self.console_handler.input_handler(
-                command_argument, desired_parsed_item_list, priority_group)
-            safe_interface.command_unload_owner(private_key)
+            if priority_group == 1:
+                private_key = self.console_handler.input_handler(
+                    command_argument, desired_parsed_item_list, priority_group)
+                safe_interface.command_unload_owner(private_key)
 
         elif command_argument == 'loadMultipleOwners':
             self.logger.info('load multiple owners')
