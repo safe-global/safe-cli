@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# Import EtherHelper
 from core.artifacts.utils.ether_helper import EtherHelper
+
+# Import Log Formatter: Receipts, Headers
 from core.logger.log_message_formatter import LogMessageFormatter
 
 # Constants
@@ -16,6 +19,7 @@ from gnosis.eth.contracts import (
     get_safe_V1_0_0_contract, get_safe_V0_0_1_contract, get_erc20_contract
 )
 
+
 class ConsoleSafeCommands:
     """ Console Safe Commands
     This class will perform the command call to the different artifacts and the class methods
@@ -29,7 +33,7 @@ class ConsoleSafeCommands:
 
         # Default gas prices
         self.safe_tx_gas = 300000
-        self.base_gas = 100000
+        self.base_gas = 200000
         self.gas_price = self.ethereum_client.w3.eth.gasPrice
 
         # local accounts from loaded owners via loadOwner --private_key=
@@ -129,43 +133,6 @@ class ConsoleSafeCommands:
                     return previous_owner
                 except IndexError:
                     self.logger.error('Sentinel Address not found, returning NULLADDRESS')
-
-    def command_view_gas(self):
-        header_data = '-:[ {0} ]:-'.format('Current Gas Configuration')
-        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
-        information_data = ' (#) BaseGas value {0}'.format(self.base_gas)
-        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-        information_data = ' (#) SafeTxGas value {0}'.format(self.safe_tx_gas)
-        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-        self.logger.info(' ' + STRING_DASHES)
-
-    def command_set_base_gas(self, value):
-        header_data = '-:[ {0} ]:-'.format('setBaseGas')
-        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
-        if int(value) > 0:
-            self.base_gas = int(value)
-            information_data = ' (#) setBaseGas to value {0}'.format(self.base_gas)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-            self.logger.info(' ' + STRING_DASHES)
-        else:
-            information_data = ' (#) setBaseGas to default value {0}'.format(self.base_gas)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-            self.logger.info(' ' + STRING_DASHES)
-
-    def command_set_safe_tx_gas(self, value):
-        header_data = '-:[ {0} ]:-'.format('setSafeTxGas')
-        self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
-        if int(value) > 0:
-            self.base_gas = int(value)
-            self.logger.info(' ' + STRING_DASHES)
-            information_data = ' (#) setSafeTxGas to value {0}'.format(self.safe_tx_gas)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-            self.logger.info(' ' + STRING_DASHES)
-        else:
-            self.logger.info(' ' + STRING_DASHES)
-            information_data = ' (#) setSafeTxGas to default value {0}'.format(self.safe_tx_gas)
-            self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
-            self.logger.info(' ' + STRING_DASHES)
 
     def command_set_auto_execute(self, value):
         header_data = '-:[ {0} ]:-'.format('setAutoExecute')
@@ -574,12 +541,13 @@ class ConsoleSafeCommands:
             # Preview the current status of the safe version before the transaction
             self.command_safe_version()
             self.command_master_copy()
+
             # Default sender data
-            sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice': self._setup_gas_price()}
+            sender_data = {'from': str(self.sender_address), 'gas': self.base_gas, 'gasPrice': self._setup_gas_price()}
 
             # Generating the function payload data
             payload_data = HexBytes(self.safe_instance.functions.changeMasterCopy(
-                address_version).buildTransaction(sender_data)['data'])
+                address_version).buildTransaction(sender_data)['data']).hex()
             self.log_formatter.tx_data_formatter(sender_data, payload_data)
 
             # Perform the transaction
@@ -603,7 +571,7 @@ class ConsoleSafeCommands:
             # Preview the current status of the safe before the transaction
             self.command_safe_get_threshold()
             # Default sender data
-            sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice': self._setup_gas_price()}
+            sender_data = {'from': str(self.sender_address), 'gas': self.base_gas, 'gasPrice': self._setup_gas_price()}
 
             # Generating the function payload data
             payload_data = HexBytes(self.safe_instance.functions.changeThreshold(
@@ -634,7 +602,7 @@ class ConsoleSafeCommands:
             self.command_safe_get_owners()
 
             # Default sender data
-            sender_data = {'from': self.sender_address, 'gas': 200000, 'gasPrice': self._setup_gas_price()}
+            sender_data = {'from': self.sender_address, 'gas': self.base_gas, 'gasPrice': self._setup_gas_price()}
 
             # If threshold is not set, make a increment of 1
             if new_threshold is None:
@@ -674,7 +642,7 @@ class ConsoleSafeCommands:
             self.command_safe_get_threshold()
             self.command_safe_get_owners()
             # Default sender data
-            sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice': self._setup_gas_price()}
+            sender_data = {'from': str(self.sender_address), 'gas': self.base_gas, 'gasPrice': self._setup_gas_price()}
             if self.safe_operator.retrieve_threshold() >= 2:
                 new_threshold = self.safe_operator.retrieve_threshold() - 1
             else:
@@ -817,7 +785,7 @@ class ConsoleSafeCommands:
             signed_tx = self.ethereum_client.w3.eth.account.signTransaction(dict(
                 nonce=self.ethereum_client.w3.eth.getTransactionCount(local_account.address),
                 gasPrice=self._setup_gas_price(),
-                gas=2000000,
+                gas=self.base_gas,
                 to=address_to,
                 value=self.ethereum_client.w3.toWei(wei_amount, 'wei')
             ), HexBytes(local_account.privateKey).hex())

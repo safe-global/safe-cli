@@ -298,32 +298,8 @@ be prompted with a **ConnectionError** exception.
     10:50:30 AM - [ INFO ]: |  (#) Nonce: 31                                                                                                                             |
     10:50:30 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     ```
-
-  Command **viewGas**
-  
-  This command will show the current gas configuration withing the safe-cli.
-  
-    ```
-    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: viewGas                                                                                                                                                                                                   
-    11:13:53 AM - [ INFO ]:  -:[ Current Gas Configuration ]:------------------------------------------------------------------------------------------------------------
-    11:13:53 AM - [ INFO ]: |  (#) BaseGas value 100000                                                                                                                  |
-    11:13:53 AM - [ INFO ]: |  (#) SafeTxGas value 300000                                                                                                                |
-    11:13:53 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
-    ```
-  
-  Command **viewGas**
-  
-  This command will show the current gas configuration withing the safe-cli.
-  
-    ```
-    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: viewGas                                                                                                                                                                                                   
-    11:13:53 AM - [ INFO ]:  -:[ Current Gas Configuration ]:------------------------------------------------------------------------------------------------------------
-    11:13:53 AM - [ INFO ]: |  (#) BaseGas value 100000                                                                                                                  |
-    11:13:53 AM - [ INFO ]: |  (#) SafeTxGas value 300000                                                                                                                |
-    11:13:53 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
-    ```
-  
-  Command setAutoFillTokenDecimals ON / OFF
+    
+  Command **setAutoFillTokenDecimals ON / OFF**
   
   This command will enable the calculation of the proper amount of decimals to fill in a token transaction. Otherwise
   you'll need to put the proper number of 0.
@@ -334,7 +310,7 @@ be prompted with a **ConnectionError** exception.
     11:19:44 AM - [ INFO ]: |  (#) setAutoFillTokenDecimals is (no longer) in effect                                                                                     |
     11:19:44 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     ```
-  Command setAutoExecute ON / OFF
+  Command **setAutoExecute ON / OFF**
   
   This command will enable the auto execution of the transactions without needing to use --execute in the safe-cli. 
   
@@ -343,28 +319,6 @@ be prompted with a **ConnectionError** exception.
     11:21:55 AM - [ INFO ]:  -:[ setAutoExecute ]:-----------------------------------------------------------------------------------------------------------------------
     11:21:55 AM - [ INFO ]: |  (#) setAutoExecute is (no longer) in effect                                                                                               |
     11:21:55 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
-    ```
-  
-  Command setBaseGas 10000
-  
-  This command will set up the base_gas used to perform transaction within the safe-cli.
-  
-    ```
-    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: setBaseGas 10000                                                                                                                                                                                         
-    11:31:15 AM - [ INFO ]:  -:[ setBaseGas ]:---------------------------------------------------------------------------------------------------------------------------
-    11:31:15 AM - [ INFO ]: |  (#) setBaseGas to value 10000                                                                                                             |
-    11:31:15 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
-    ```
-  
-  Command setSafeTxGas 10000
-  
-  This command will set up the safe_tx_gas used to perform transaction within the safe-cli.
-  
-    ```
-    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: setSafeTxGas 10000                                                                                                                                                                                         
-    11:31:15 AM - [ INFO ]:  -:[ setSafeTxGas ]:-------------------------------------------------------------------------------------------------------------------------
-    11:31:15 AM - [ INFO ]: |  (#) setSafeTxGas to value 10000                                                                                                           |
-    11:31:15 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     ```
   
   Command **VERSION**:
@@ -484,35 +438,35 @@ be prompted with a **ConnectionError** exception.
   
   ```
 
-+ Command **addOwnerWithThreshold <new-owner-address> <new-threshold-uint>**:
++ Command **addOwnerWithThreshold "new-owner-address" "new-threshold"**:
 
   ```
   [ ./safe-cli ][ Safe (0x(0*40)) ]>:  addOwnerWithThreshold 0x(0*40) 3
   
   ```
 
-+ Command **changeOwner | swapOwner  <old-owner-address>  <new-owner-address>**:
++ Command **changeOwner | swapOwner  "old-owner-address"  "new-owner-address"**:
 
   ```
   [ ./safe-cli ][ Safe (0x(0*40)) ]>:  changeOwner | swapOwner 0x(0*40) 0x(0*40) 
   
   ```
 
-+ Command **removeOwner  <old-owner-address>**:
++ Command **removeOwner "old-owner-address"**:
 
   ```
   [ ./safe-cli ][ Safe (0x(0*40)) ]>:  changeOwner | swapOwner 0x(0*40) 0x(0*40) 
   
   ```
 
-+ Command **sendEther  <to-address> <amount-of-ether-uint>**:
++ Command **sendEther**:
 
   ```
   [./safe-cli ][ Safe (0x(0*40)) ]>:  sendEther 0x(0*40) --ether= --miliEther= --wei= -- 
   
   ```
 
-+ Command **sendToken <to-address> <token-alias> <amount-of-tokens-uint>**:
++ Command **sendToken**:
 
   ```
   [./safe-cli ][ Safe (0x(0*40)) ]>:  sendToken 0x(0*40) name.Token --ether= --miliEther= --wei=
