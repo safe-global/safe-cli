@@ -211,6 +211,8 @@ class ConsoleSafeCommands:
                 self.local_owner_account_list.append(local_owner)
                 self.logger.debug0('[ Local Account Added ]: {0}'.format(self.local_owner_account_list))
                 self.setup_sender()
+                self.account_artifacts.add_account_artifact(
+                    local_owner.address, private_key, alias='safeOwner_')
             else:
                 self.logger.error('Local Owner is not part of the safe owners, unable to loadOwner')
         except Exception as err:
@@ -751,8 +753,9 @@ class ConsoleSafeCommands:
         :return:
         """
         try:
-            self.command_send_token(address_to=self.safe_operator.address, token_address=token_address, token_amount=token_amount,
-                                    local_account=local_account, _execute=_execute, _queue=_queue)
+            self.command_send_token(address_to=self.safe_operator.address, token_address=token_address,
+                                    token_amount=token_amount, local_account=local_account,
+                                    _execute=_execute, _queue=_queue)
         except Exception as err:
             self.logger.error('Unable to command_deposit_token_raw(): {0} {1}'.format(type(err), err))
 

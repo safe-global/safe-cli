@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# Import Contract Reader Module
+from core.utils.contract_reader import ContractReader
+
 # Import Console Commands Module
 from core.contract.safe_commands import ConsoleSafeCommands
 from core.contract.contract_commands import ConsoleContractCommands
@@ -104,6 +107,9 @@ class GnosisConsoleEngine:
         self.logger.addHandler(file_handler)
         self.logger.addHandler(console_handler)
 
+        # Setup Contract ABI Reader
+        self.contract_reader = ContractReader(self.logger)
+
         # Setup EthereumClient
         self.network_agent = NetworkAgent(self.logger, init_configuration['network'], init_configuration['api_key'])
 
@@ -139,12 +145,12 @@ class GnosisConsoleEngine:
         self.log_formatter = LogMessageFormatter(self.logger)
 
         self._setup_console_token_init(init_configuration)
-
+        self._setup_console_contract_configuration(init_configuration)
         # Run Console
         self._setup_console_init(init_configuration)
 
     def exit_command(self, command_argument, argument_list):
-        _, _, _now = self.console_getter.get_input_affix_arguments(argument_list)
+        _, _, _, _now = self.console_getter.get_input_affix_arguments(argument_list)
         if (command_argument == 'close') or (command_argument == 'quit') or (command_argument == 'exit'):
             if not _now:
                 if (self.active_session == TypeOfConsole.SAFE_CONSOLE) \
@@ -276,8 +282,8 @@ class GnosisConsoleEngine:
                     self.logger.debug0(configuration['safe'])
                     self.run_safe_console(configuration['safe'], configuration['private_key'])
                 except Exception as err:
-                    self.logger.err('{0}'.format(self.name))
-                    self.logger.err(err)
+                    self.logger.error('{0}'.format(self.name))
+                    self.logger.error(err)
         else:
             # Info Header: Finished loading all the components of the gnosis-cli
             if not self.quiet_flag:
@@ -290,20 +296,25 @@ class GnosisConsoleEngine:
         :param configuration:
         :return:
         """
-
-        if configuration['contract'] and configuration['abi']:
+        if configuration['abi'] and configuration['contract']:
             self.logger.debug0(configuration['contract'])
             self.logger.debug0(configuration['abi'])
-            self.logger.info('This should load the contract information')
 
-        # if contract_artifacts is not None:
-        #     # remark: Pre-Loading of the Contract Assets (Safe v1.1.0, Safe v1.0.0, Safe v-0.0.1)
-        #     #  for testing purposes
-        #     for artifact_index, artifact_item in enumerate(contract_artifacts):
-        #         self.contract_artifacts.add_contract_artifact(
-        #             artifact_item['name'], artifact_item['instance'],
-        #             artifact_item['abi'], artifact_item['bytecode'],
-        #             artifact_item['address'], alias=contract_artifacts['name'])
+            for contract_index, contract_abi in enumerate(configuration['abi']):
+                contract_address = configuration['contract'][contract_index]
+                contract_abi, contract_bytecode, contract_name = self.contract_reader.read_from(contract_abi)
+
+                contract_instance = self.network_agent.ethereum_client.w3.eth.contract(
+                    abi=contract_abi, address=contract_address)
+
+                self.contract_artifacts.add_contract_artifact(
+                    contract_name, contract_instance, contract_abi, contract_bytecode, contract_address, contract_name)
+
+        elif configuration['abi'] and not configuration['contract']:
+            for contract_abi in configuration['abi']:
+                contract_abi, contract_bytecode, contract_name = self.contract_reader.read_from(contract_abi)
+                self.contract_artifacts.add_contract_artifact(
+                    contract_name, None, contract_abi, contract_bytecode, None, contract_name)
 
     def run_contract_console(self, contract_alias):
         """ Run Contract Console
@@ -314,7 +325,8 @@ class GnosisConsoleEngine:
         try:
             self.log_formatter.log_entry_message('Entering Contract Console')
             set_title('Contract Console')
-            self.contract_interface = self.contract_artifacts.retrive_from_stored_values(contract_alias, 'instance')
+            self.contract_interface = self.data_artifacts.retrive_from_stored_values(
+                contract_alias, 'instance', 'contract')
             self.logger.debug0('Contract Instance {0} Loaded'.format(self.contract_interface))
             self.contract_methods = ConsoleContractCommands().map_contract_methods(self.contract_interface)
             self.active_session = TypeOfConsole.CONTRACT_CONSOLE
@@ -331,7 +343,6 @@ class GnosisConsoleEngine:
         :return:
         """
         try:
-
             self.safe_interface = ConsoleSafeCommands(safe_address, self.logger, self.data_artifacts, self.network_agent)
             if private_key_list is not None:
                 self.logger.debug0(private_key_list)
@@ -344,6 +355,12 @@ class GnosisConsoleEngine:
             self.logger.error(err)
 
     def get_toolbar_text(self, sender_address=None, sender_private_key=None):
+        """ Get Toolbar Text
+
+        :param sender_address:
+        :param sender_private_key:
+        :return:
+        """
         amount = 0
         if (sender_address is not None) and (sender_private_key is not None):
             balance = self.network_agent.ethereum_client.w3.eth.getBalance(sender_address)

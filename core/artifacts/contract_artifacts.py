@@ -93,30 +93,3 @@ class ContractArtifacts:
             self.contract_data[str(contract_name)] = self.new_contract_entry(
                 contract_name, contract_instance, contract_abi, contract_bytecode, contract_address
             )
-
-    def retrive_from_stored_values(self, alias, key=None):
-        """ Retrieve From Stored Values
-        This function will retrieve stored data related to account_artifacts, payload_data, token_data, contract_data
-        :param alias:
-        :param key:
-        :param artifact_type:
-        :return:
-        """
-        data = 'COCO'
-        try:
-            self.logger.debug0('Searching for Stored Artifact: [ Alias ( {0} ) | Key ( {1} ) ]'.format(alias, key))
-
-            try:
-                if key is None:
-                    data = self.contract_data[alias]
-                    self.logger.debug0(
-                        'Data Found without Key: [ Alias ( {0} ) | Data ( {1} ) ]'.format(alias, data))
-                data = self.contract_data[alias][key]
-                self.logger.debug0('Data Found with Key: [ Alias ( {0} ) | Key ( {1} ) | Data ( {2} ) ]'.format(
-                    alias, key, data)
-                )
-            except KeyError:
-                self.logger.error('Unable to find the proper value for key & alias provided')
-            return data
-        except Exception as err:
-            self.logger.error('Unknown Error: [ Type ( {0} ) | Error ( {1} ) ]'.format(type(err), err))

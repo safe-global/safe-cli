@@ -212,9 +212,16 @@ class ConsoleInputGetter:
         """
         _execute = False
         _queue = False
+        _query = False
         _now = False
 
         for sub_index, argument_item in enumerate(argument_list):
+            if '--query' == argument_item:
+                if _queue:
+                    self.logger.warn('--queue  value previously found, this value will be ignored')
+                else:
+                    _query = True
+
             if '--execute' == argument_item:
                 if _queue:
                     self.logger.warn('--queue  value previously found, this value will be ignored')
@@ -228,7 +235,7 @@ class ConsoleInputGetter:
             elif '--now' == argument_item:
                 _now = True
 
-        return _execute, _queue, _now
+        return _query, _execute, _queue, _now
 
     def retrieve_contract_data(self, argument_list, function_arguments):
         """ Retrieve Contract Data

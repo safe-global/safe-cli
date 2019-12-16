@@ -108,7 +108,7 @@ class ConsoleController:
         :return:
         """
         self.logger.debug0('(+) [ Operating with Safe Console ]: ' + command_argument)
-        _execute, _queue, _ = self.console_getter.get_input_affix_arguments(argument_list)
+        _query, _execute, _queue, _ = self.console_getter.get_input_affix_arguments(argument_list)
         if command_argument == 'info':
             safe_interface.command_safe_information()
         elif command_argument == 'help':
@@ -327,15 +327,21 @@ class ConsoleController:
                     splitted_stream = stream.split(' ')
                     address_from = ''
                     # This function Call now longer works, break in compatibility
-                    execute_flag, queue_flag, _ = self.console_getter.get_input_affix_arguments(splitted_stream)
+                    _query, _execute, _queue, _ = self.console_getter.get_input_affix_arguments(splitted_stream)
                     function_name, function_arguments = \
                         self.console_getter.retrieve_contract_data(splitted_stream, contract_methods[item]['arguments'])
                     self.logger.debug0('command: {0} | arguments: {1} | execute_flag: {2} | query_flag: {3} | '.format(
-                        function_name, function_arguments, execute_flag, queue_flag))
+                        function_name, function_arguments, _execute, _queue))
 
-                    if execute_flag or queue_flag:
-                        # remark: Transaction Solver
-                        if execute_flag:
+                    if _execute or _queue or _query:
+                        if _query:
+                            # remark: Call Solver
+                            self.logger.info(contract_methods[item]['call'].format(function_arguments, address_from))
+                            resolution = eval(contract_methods[item]['call'].format(function_arguments, address_from))
+                            self.logger.info(resolution)
+
+                        elif _execute:
+                            # remark: Transaction Solver
                             if contract_methods[item]['name'].startswith('get'):
                                 self.logger.warn('transact() operation is discourage if you are using a getter method')
                             # if address_from != '':
@@ -347,14 +353,11 @@ class ConsoleController:
                             # this is the hash to be signed, maybe call for approve dialog, approveHash dialogue,
                             # map functions to be performed by the gnosis_py library
 
-                        # remark: Add to the Batch Solver
-                        elif queue_flag:
+                        elif _queue:
+                            # remark: Add to the Batch Solver
                             self.logger.info('(Future Implementation) executeBatch when you are ready to launch '
                                              'the transactions that you queued up!')
-                        else:
-                            self.logger.info(contract_methods[item]['call'].format(function_arguments, address_from))
-                            resolution = eval(contract_methods[item]['call'].format(function_arguments, address_from))
-                            self.logger.info(resolution)
+
                     else:
                         self.logger.warn('--execute, --query or --queue arguments needed in order to properly '
                                          'operate with the current contract')
