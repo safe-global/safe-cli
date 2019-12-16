@@ -139,6 +139,7 @@ be prompted with a **ConnectionError** exception.
   This Command will show the current stored accounts that the console currently holds.
 
     ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: viewAccounts   
     10:35:13 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     10:35:13 AM - [ INFO ]: |    Account     |                   Address                    |                                Private Key                                 | 
     10:35:13 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
@@ -273,6 +274,7 @@ be prompted with a **ConnectionError** exception.
     This Command will show the current information for the loaded safe within safe-cli.
 
     ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: info   
     10:50:27 AM - [ INFO ]:  ===========================================================:[ Safe Information ]:===========================================================
     10:50:27 AM - [ INFO ]:  -:[ Safe Owner Data ]:----------------------------------------------------------------------------------------------------------------------
     10:50:28 AM - [ INFO ]: |  (#) Owner 0 | Address: 0x9fF08f7FfF6ab9E3817e33612EbfBCD18d0E165c | Sender: [ ] | Balance: 6857186045000000000                            |
@@ -329,7 +331,7 @@ be prompted with a **ConnectionError** exception.
     ```
     [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: setAutoFillTokenDecimals ON / OFF                                                                                                                                                                                                   
     11:19:44 AM - [ INFO ]:  -:[ setAutoFillTokenDecimals ]:-------------------------------------------------------------------------------------------------------------
-    11:19:44 AM - [ INFO ]: |  (#) setAutoFillTokenDecimals is (no longer) in effect                                                                                                 |
+    11:19:44 AM - [ INFO ]: |  (#) setAutoFillTokenDecimals is (no longer) in effect                                                                                     |
     11:19:44 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     ```
   Command setAutoExecute ON / OFF
@@ -339,106 +341,136 @@ be prompted with a **ConnectionError** exception.
     ```
     [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: setAutoExecute ON / OFF 
     11:21:55 AM - [ INFO ]:  -:[ setAutoExecute ]:-----------------------------------------------------------------------------------------------------------------------
-    11:21:55 AM - [ INFO ]: |  (#) setAutoExecute is in effect                                                                                                           |
+    11:21:55 AM - [ INFO ]: |  (#) setAutoExecute is (no longer) in effect                                                                                               |
     11:21:55 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     ```
   
   Command setBaseGas 10000
+  
+  This command will set up the base_gas used to perform transaction within the safe-cli.
+  
     ```
-    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: setAutoExecute ON / OFF 
-    11:21:55 AM - [ INFO ]:  -:[ setAutoExecute ]:-----------------------------------------------------------------------------------------------------------------------
-    11:21:55 AM - [ INFO ]: |  (#) setAutoExecute is in effect                                                                                                           |
-    11:21:55 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: setBaseGas 10000                                                                                                                                                                                         
+    11:31:15 AM - [ INFO ]:  -:[ setBaseGas ]:---------------------------------------------------------------------------------------------------------------------------
+    11:31:15 AM - [ INFO ]: |  (#) setBaseGas to value 10000                                                                                                             |
+    11:31:15 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     ```
   
   Command setSafeTxGas 10000
   
+  This command will set up the safe_tx_gas used to perform transaction within the safe-cli.
+  
+    ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: setSafeTxGas 10000                                                                                                                                                                                         
+    11:31:15 AM - [ INFO ]:  -:[ setSafeTxGas ]:-------------------------------------------------------------------------------------------------------------------------
+    11:31:15 AM - [ INFO ]: |  (#) setSafeTxGas to value 10000                                                                                                           |
+    11:31:15 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
+    ```
   
   Command **VERSION**:
-
-  ```
-  [ ./safe-cli ][ Safe (0x(0*40)) ]>: VERSION
-  11/30/2019 05:01:41 PM - [INFO]:  | Version: 1.1.0 | 
   
-  ```
+  This command will show the current version of the contract safe that has been loaded.
+    
+    ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: VERSION                                                                                                                                                                                                   
+    11:40:57 AM - [ INFO ]:  -:[ Safe Version ]:-------------------------------------------------------------------------------------------------------------------------
+    11:40:57 AM - [ INFO ]: |  (#) MasterCopy Version: 1.0.0                                                                                                             |
+    11:40:57 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
+    ```
 
   Command **NAME**:
 
-  ```
-  [ ./safe-cli ][ Safe (0x(0*40)) ]>: NAME
-  11/30/2019 05:01:57 PM - [INFO]:  | Name: Gnosis Safe | 
-  
-  ```
+    This command will show the name of the contract safe that has been loaded.
+
+    ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: NAME                                                                                                                                                                                                      
+    11:41:14 AM - [ INFO ]:  -:[ Safe Name ]:----------------------------------------------------------------------------------------------------------------------------
+    11:41:14 AM - [ INFO ]: |  (#) MasterCopy Name: Gnosis Safe                                                                                                          |
+    11:41:14 AM - [ INFO ]:  -------------------------------------------------------------------------------------------------------------------------------------------- 
+    ```
 
   Command **code**:
-
-  ```
-  [ ./safe-cli ][ Safe (0x(0*40)) ]>: code
-  11/30/2019 05:00:50 PM - [INFO]:  | Code: b'`\x80`@Rs\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff`\x00T\x16\x7f\xa6\x19Hn\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00`\x005\x14\x15`PW\x80`\x00R` `\x00\xf3[6`\x00\x807`\x00\x806`\x00\x84Z\xf4=`\x00\x80>`\x00\x81\x14\x15`pW=`\x00\xfd[=`\x00\xf3\xfe\xa2ebzzr1X \xb6\x0eAj\xb5\xb1wj .}8\xfd6\xa1@\xb6\x12\x13\xfe\xf71="\xff\xbeUy\no\xd7\x07dsolcC\x00\x05\x0b\x002' | 
   
-  ```
+  This function will show the current code for the loaded safe.
+
+    ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: code     
+    11:41:19 AM - [ INFO ]:  -:[ Safe Code ]:----------------------------------------------------------------------------------------------------------------------------
+    11:41:19 AM - [ INFO ]: |  (#) Code: 0x608060405273ffffffffffffffffffffffffffffffffffffffff600054163660008037600080366000845af43d6000803e6000811415603d573d6000fd5b3d6000f3fea165627a7a723058201e7d648b83cfac072cbccefc2ffc62a6999d4a050ee87a721942de1da9670db80029 |
+    11:41:19 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
+    ```
 
   Command **nonce**:
 
-  ```
-  [ ./safe-cli ][ Safe (0x(0*40)) ]>: nonce
-  11/30/2019 05:02:43 PM - [INFO]:  | Nonce: 0 | 
-  
-  ```
+    This command will return the current nonce for the loaded safe.
+    
+    ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: nonce                                                                                                                                                                                                     
+    11:43:58 AM - [ INFO ]:  -:[ Safe Nonce ]:---------------------------------------------------------------------------------------------------------------------------
+    11:43:59 AM - [ INFO ]: |  (#) Nonce: 31                                                                                                                             |
+    11:43:59 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
+    ```
 
-  Command **exit | quit | close**:
++ Command **exit | quit | close**:
 
-  This command will return you to the gnosis-cli prompt.
+  This Command will exit the safe-cli. If --now it's not provided the console will prompt a confirmation dialog.
 
-  ```
-  [ ./safe-cli ][ Safe (0x(0*40)) ]>: exit | close | quit
-  
-  ```
+    ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: exit | quit | close
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: exit | quit | close --now
+    ```
 
-  Command **isOwner <owner-address>**:
+  Command **isOwner --address="owner-address"**:
 
-+ ```
-  [ ./safe-cli ][ Safe (0x(0*40)) ]>: isOwner 0x(0*40)                           
-  11/30/2019 05:04:28 PM - [INFO]:  | Owner with Address: xd03ea8624C8C5987235048901fB614fDcA89b117 | isOwner: True  | 
-  
-  [ ./safe-cli ][ Safe (0x(0*40)) ]>: isOwner 0x(0*40)                           
-  11/30/2019 05:04:28 PM - [INFO]:  | Owner with Address: xd03ea8624C8C5987235048901fB614fDcA89b117 | isOwner: False  | 
-  
-  ```
+    This command will evaluate if the current owner provided is part of the safe owners.
 
-+ Command **areOwners <owner-address-0> to <owner-address-n>**
+    ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: isOwner --address=0xd03ea8624C8C5987235048901fB614fDcA89b117                                                                                                                                              
+    11:45:40 AM - [ INFO ]:  -:[ Safe Owners ]:--------------------------------------------------------------------------------------------------------------------------
+    11:45:41 AM - [ INFO ]: |  (#) Owner with Address: 0xd03ea8624C8C5987235048901fB614fDcA89b117 | isOwner: False                                                       |
+    11:45:41 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
+    
+  [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: isOwner --address=0x9fF08f7FfF6ab9E3817e33612EbfBCD18d0E165c                                                                                                                                              
+    11:46:06 AM - [ INFO ]:  -:[ Safe Owners ]:--------------------------------------------------------------------------------------------------------------------------
+    11:46:07 AM - [ INFO ]: |  (#) Owner with Address: 0x9fF08f7FfF6ab9E3817e33612EbfBCD18d0E165c | isOwner: True                                                        |
+    11:46:07 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------  
+    ```
 
-  ```
-  [ ./safe-cli ][ Safe (0x(0*40)) ]>: areOwners 0x(0*40) 0x(0*40) 0x(0*40) 0x(0*40) 0x(0*40)
-  11/30/2019 05:05:21 PM - [INFO]:  | Owner with Address: xd03ea8624C8C5987235048901fB614fDcA89b117 | isOwner: True  | 
-  11/30/2019 05:05:21 PM - [INFO]:  | Owner with Address: x95cED938F7991cd0dFcb48F0a06a40FA1aF46EBC | isOwner: True  | 
-  11/30/2019 05:05:21 PM - [INFO]:  | Owner with Address: x3E5e9111Ae8eB78Fe1CC3bb8915d5D461F3Ef9A9 | isOwner: True  | 
-  11/30/2019 05:05:21 PM - [INFO]:  | Owner with Address: x28a8746e75304c0780E011BEd21C72cD78cd535E | isOwner: True  | 
-  11/30/2019 05:05:21 PM - [INFO]:  | Owner with Address: xACa94ef8bD5ffEE41947b4585a84BdA5a3d3DA6E | isOwner: True  | 
-  
-  ```
++ Command **areOwners <owner-address-0> to <owner-address-n>** **[TODO]**
+
+    This command will evaluate if the provided owners are part of the safe owners.
+
+    ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: areOwners 0x(0*40) 0x(0*40) 0x(0*40) 0x(0*40) 0x(0*40)                                                                                                                                            
+    11:45:40 AM - [ INFO ]:  -:[ Safe Owners ]:--------------------------------------------------------------------------------------------------------------------------
+    11:45:41 AM - [ INFO ]: |  (#) Owner with Address: 0xd03ea8624C8C5987235048901fB614fDcA89b117 | isOwner: False                                                       |
+    11:45:41 AM - [ INFO ]: |  (#) Owner with Address: 0xd03ea8624C8C5987235048901fB614fDcA89b117 | isOwner: False                                                       |
+    11:45:41 AM - [ INFO ]: |  (#) Owner with Address: 0xd03ea8624C8C5987235048901fB614fDcA89b117 | isOwner: False                                                       |
+    11:45:41 AM - [ INFO ]: |  (#) Owner with Address: 0xd03ea8624C8C5987235048901fB614fDcA89b117 | isOwner: False                                                       |
+    11:45:41 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
+    ```
 
 + Command **getOwners**:
-
-  ```
-  [ ./safe-cli ][ Safe (0x(0*40)) ]>:  getOwners
-  11/30/2019 05:06:16 PM - [INFO]:  | Owner Address: 0xd03ea8624C8C5987235048901fB614fDcA89b117 | 
-  11/30/2019 05:06:16 PM - [INFO]:  | Owner Address: 0x95cED938F7991cd0dFcb48F0a06a40FA1aF46EBC | 
-  11/30/2019 05:06:16 PM - [INFO]:  | Owner Address: 0x3E5e9111Ae8eB78Fe1CC3bb8915d5D461F3Ef9A9 | 
-  11/30/2019 05:06:16 PM - [INFO]:  | Owner Address: 0x28a8746e75304c0780E011BEd21C72cD78cd535E | 
-  11/30/2019 05:06:16 PM - [INFO]:  | Owner Address: 0xACa94ef8bD5ffEE41947b4585a84BdA5a3d3DA6E | 
-  
-  ```
+    
+    This command will show the current owners of the safe that has been loaded in the safe-cli.
+    
+    ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: getOwners   
+    11:35:18 AM - [ INFO ]:  -:[ Safe Owner Data ]:----------------------------------------------------------------------------------------------------------------------
+    11:35:18 AM - [ INFO ]: |  (#) Owner 0 | Address: 0x9fF08f7FfF6ab9E3817e33612EbfBCD18d0E165c | Sender: [ ] | Balance: 6857186045000000000                            |
+    11:35:18 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
+    ```
 
 + Command **getThreshold**:
 
-  ```
-  [ ./safe-cli ][ Safe (0x(0*40)) ]>:  getThreshold
-  11/30/2019 05:14:23 PM - [INFO]:  | Threshold: 5 | 
-  
-  ```
+    ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: getThreshold                                                                                                                                                                                              
+    11:51:53 AM - [ INFO ]:  -:[ Safe Threshold ]:-----------------------------------------------------------------------------------------------------------------------
+    11:51:53 AM - [ INFO ]: |  (#) Threshold: 1                                                                                                                          |
+    11:51:53 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
+    ```
 
-+ Command **changeThreshold <new-threshold-uint>**:
++ Command **changeThreshold "new-threshold"**:
 
   ```
   [ ./safe-cli ][ Safe (0x(0*40)) ]>: changeThreshold 10
