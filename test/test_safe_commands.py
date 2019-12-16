@@ -264,7 +264,7 @@ def test_deposit_ether():
     amount_value = ether_helper.get_unify_ether_amount([('--ether', [2])])
 
     previous_user_balance = network_agent.ethereum_client.w3.eth.getBalance(local_account.address)
-    console_safe.command_deposit_ether(amount_value, local_account)
+    console_safe.command_deposit_ether(amount_value, local_account, _execute=True)
 
     current_balance = network_agent.ethereum_client.w3.eth.getBalance(console_safe.safe_operator.address)
     current_user_balance = network_agent.ethereum_client.w3.eth.getBalance(local_account.address)
@@ -325,7 +325,7 @@ def test_deposit_token():
     assert console_safe.sender_address == '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 
     # Deposit Token in Safe
-    console_safe.command_deposit_token(token_address, token_amount, local_owner)
+    console_safe.command_deposit_token(token_address, token_amount, local_owner, _execute=True)
     current_safe_token_balance = network_agent.ethereum_client.erc20.get_balance(console_safe.safe_operator.address, token_address)
     current_user_token_balance = network_agent.ethereum_client.erc20.get_balance(address_to, token_address)
 

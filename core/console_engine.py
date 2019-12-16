@@ -144,8 +144,10 @@ class GnosisConsoleEngine:
         # Setup: Log Formatter
         self.log_formatter = LogMessageFormatter(self.logger)
 
+        # Setup Token & Contract Artifacts
         self._setup_console_token_init(init_configuration)
         self._setup_console_contract_configuration(init_configuration)
+
         # Run Console
         self._setup_console_init(init_configuration)
 

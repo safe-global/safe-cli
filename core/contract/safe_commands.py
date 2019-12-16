@@ -546,7 +546,7 @@ class ConsoleSafeCommands:
             self.command_safe_get_threshold()
             self.command_safe_get_owners()
             # Default sender data, since the sender is a local account just sender.addres
-            sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice': 0}
+            sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice':  self._setup_gas_price()}
 
             # Generating the function payload data
             payload_data = HexBytes(self.safe_instance.functions.swapOwner(
@@ -603,7 +603,7 @@ class ConsoleSafeCommands:
             # Preview the current status of the safe before the transaction
             self.command_safe_get_threshold()
             # Default sender data
-            sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice': 0}
+            sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice': self._setup_gas_price()}
 
             # Generating the function payload data
             payload_data = HexBytes(self.safe_instance.functions.changeThreshold(
@@ -674,7 +674,7 @@ class ConsoleSafeCommands:
             self.command_safe_get_threshold()
             self.command_safe_get_owners()
             # Default sender data
-            sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice': 0}
+            sender_data = {'from': str(self.sender_address), 'gas': 200000, 'gasPrice': self._setup_gas_price()}
             if self.safe_operator.retrieve_threshold() >= 2:
                 new_threshold = self.safe_operator.retrieve_threshold() - 1
             else:
@@ -728,14 +728,19 @@ class ConsoleSafeCommands:
             if self.auto_fill_token_decimals:
                 token_amount = (token_amount * pow(10, erc20.functions.decimals().call()))
 
-            safe_tx = self.ethereum_client.erc20.send_tokens(
-                address_to, token_amount, token_address, local_account.privateKey)
+            if _execute:
+                safe_tx = self.ethereum_client.erc20.send_tokens(
+                    address_to, token_amount, token_address, local_account.privateKey)
 
-            # Perform the transaction
-            tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx, timeout=60)
+                # Perform the transaction
+                tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx, timeout=60)
 
-            # Format Receipt with Logger
-            self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
+                # Format Receipt with Logger
+                self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
+
+            elif _queue:
+                # remark: Since the send resolves the current transaction, the current step needs a work around
+                self.tx_queue.append('sendToken')
 
             # Preview the current token balance of the safe after the transaction
             self.command_view_token_balance()
@@ -817,14 +822,18 @@ class ConsoleSafeCommands:
                 value=self.ethereum_client.w3.toWei(wei_amount, 'wei')
             ), HexBytes(local_account.privateKey).hex())
 
-            # Sign the transaction
-            tx_hash = self.ethereum_client.w3.eth.sendRawTransaction(signed_tx.rawTransaction)
+            if _execute:
+                # Sign the transaction
+                tx_hash = self.ethereum_client.w3.eth.sendRawTransaction(signed_tx.rawTransaction)
 
-            # Perform the transaction
-            tx_receipt = self.ethereum_client.get_transaction_receipt(tx_hash, timeout=60)
+                # Perform the transaction
+                tx_receipt = self.ethereum_client.get_transaction_receipt(tx_hash, timeout=60)
 
-            # Format Receipt with Logger
-            self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
+                # Format Receipt with Logger
+                self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
+
+            elif _queue:
+                self.tx_queue.append('Not sendEther/depositEther')
 
             # Preview the current ether balance of the safe after the transaction
             self.command_view_ether_balance()
@@ -842,7 +851,7 @@ class ConsoleSafeCommands:
         """
         try:
             # Compose transaction for depositEther
-            self.command_send_ether(self.safe_operator.address, wei_amount, local_account)
+            self.command_send_ether(self.safe_operator.address, wei_amount, local_account, _execute=_execute, _queue=_queue)
         except Exception as err:
             self.logger.error('Unable to command_deposit_ether_raw(): {0} {1}'.format(type(err), err))
 
