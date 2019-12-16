@@ -80,7 +80,6 @@ be prompted with a **ConnectionError** exception.
                             Alias ): isOwner
                             --address=gAccount0.addressblockchain.
       --version             show program's version number and exit
-
     ```
 
 ### [ Avaliable gnosis-cli Commands ]:
@@ -89,61 +88,57 @@ be prompted with a **ConnectionError** exception.
 
   This Command will show the current network and the current ***provider*** with the ***url node*** and **status**
 
-  ```
+    ```
     [ ./gnosis-cli ][  ]: viewNetwork                                                                                                                                                                                                                                              
     10:34:13 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     10:34:13 AM - [ INFO ]: |    Network     |    Network Status    |                                              Node Url                                              |
     10:34:13 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     10:34:13 AM - [ INFO ]: |    GANACHE     |      CONNECTED       |                                       http://localhost:8545                                        |
     10:34:13 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
-
-  ```
+    ```
 
 + Command **viewContracts**:
   
   This Command will show the current contracts that have been loaded within the gnosis-cli.
 
-  ```
+    ```
     [ ./gnosis-cli ][  ]: viewContracts                                                                                                                                                                                                                                            
     10:38:25 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     10:38:25 AM - [ INFO ]: |             Alias              |      ContractName      |                      Address                       |     ABI      |   Bytecode   |
     10:38:25 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     10:38:25 AM - [ INFO ]: |        GnosisSafeV1.1.0        |    GnosisSafeV1.1.0    |     0x5b1869D9A4C187F2EAa108f3062412ecf0526b24     |     True     |     True     |
     10:38:25 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
-
-  ```
+    ```
 
 + Command **viewTokens**:
 
   This Command will show the current stored tokens that the console currently holds.
 
-  ```
+    ```
     [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: viewTokens                                                                                                                                                                                                
     10:40:59 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     10:40:59 AM - [ INFO ]: |    Symbol     |                  Address                   |                         Instance                         |        Type        | 
     10:40:59 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     10:40:59 AM - [ INFO ]: |     CHUZA     | 0xE64ffc4f665b92149B21B3E0de99C9E3bbCc0953 | <web3.utils.datatypes.Contract object at 0x7f340792e890> | TypeOfTokens.ERC20 | 
     10:40:59 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
-      
-  ```
+    ```
 
 + Command **viewOwners**:
 
   This Command will show the current loaded owners within the safe-cli.
 
-  ```
+    ```
     [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: viewOwners                                                                                                                                                                                                
     10:41:48 AM - [ INFO ]:  -:[ Loaded Owner Data ]:--------------------------------------------------------------------------------------------------------------------
     10:41:48 AM - [ INFO ]: |  (#) Owner 0 | Address: 0x9fF08f7FfF6ab9E3817e33612EbfBCD18d0E165c | Sender: [X] | Balance: 6857186045000000000                            |
     10:41:48 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
-
-  ```
+    ```
 
 + Command **viewAccounts**:
 
   This Command will show the current stored accounts that the console currently holds.
 
-  ```
+    ```
     10:35:13 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     10:35:13 AM - [ INFO ]: |    Account     |                   Address                    |                                Private Key                                 | 
     10:35:13 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
@@ -168,12 +163,11 @@ be prompted with a **ConnectionError** exception.
     10:35:13 AM - [ INFO ]: |   rAccount17   |  0x5ee922012CfAfDe99e52eb80DB99f17b157f297F  |     0xbea8f805581e6223e098527119686d816d8c92ecf11533346c74f96110b568d2     |
     10:35:13 AM - [ INFO ]: |   rAccount18   |  0x6cA9634fF9899003b952dA9C86301707FD2eb6Cf  |     0x9abf2e520a567ac6d62be94c4fefb1acaf76a9cd11ffbcc40968cf9e3337c3c4     |
     10:35:13 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
-
-  ```
+    ```
 
 + Command **loadSafe --address="safe-address"**:
 
-  ```
+    ```
     [ ./gnosis-cli ][  ]: loadSafe --address=0x6C6862EDEB82E767990C0b14d99753927f1afB4B  
     10:44:32 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     10:44:32 AM - [ INFO ]: |                                                        :[ Entering Safe Console ]:                                                         |
@@ -200,56 +194,55 @@ be prompted with a **ConnectionError** exception.
     10:44:35 AM - [ INFO ]: |  (#) Fallback Handler: 0x0000000000000000000000000000000000000000                                                                          |
     10:44:35 AM - [ INFO ]: |  (#) Nonce: 31                                                                                                                             |
     10:44:35 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
+    ```
 
-  ```
-
-+ Command **loadContract  **--alias="contract-alias"**:
++ Command **loadContract  --alias="contract-alias"**:
 
     This command will load a contract instance, if --abi/--contract has been passed on launch or via newContract.
     
-  ```
+    ```
     [ ./gnosis-cli ][  ]: loadContract --alias=GnosisSafeV1.1.0                                                                                                                                                                                                                    
     10:46:29 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     10:46:29 AM - [ INFO ]: |                                                      :[ Entering Contract Console ]:                                                       |
     10:46:29 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
 
-  ```
+    ```
 
 + Command **newContract --address=<contract-address> --abi_path=<abi-path>**: **[TODO]**
 
-  ``` 
+    ``` 
     [ ./gnosis-cli ][  ]: newContract   
   
-  ```
+    ```
 
 + Command **newToken**:
 
     This command will create a new token object to be used as custom sender in the gnosis-cli.
 
-  ```
+    ```
     [ ./gnosis-cli ][  ]: newToken                                                                                                                                                                                                                                                 
               Type :  ERC20                                                                                                                                                                                                                                                    
            Address :  0xE64ffc4f665b92149B21B3E0de99C9E3bbCc0953                                                                                                                                                                                                               
     10:51:01 AM - [ INFO ]: newToken: {'address': '0xE64ffc4f665b92149B21B3E0de99C9E3bbCc0953', 'instance': <web3.utils.datatypes.Contract object at 0x7fcbd63d74d0>, 'type': <TypeOfTokens.ERC20: 'ERC20'>, 'name': CHUZA}
-  ```
+    ```
 
 + Command **newPayload**:
 
     This command will create a new payload object to be used as custom sender in the gnosis-cli.
-  ```
+    ```
     [ ./gnosis-cli ][  ]: newPayload                                                               
              'alias' :  0      
               'from' :  0x      
                'gas' :  0      
           'gasPrice' :  0
     newPayload:  {'from' : '0x', 'gas' : 0, 'gasPrice' : 0}
-  ```
+    ```
 
-+ Command **setNetwork  <network-name> --api_key=<infura-api-key>**:
++ Command **setNetwork --network="network-name" --api_key="infura-api-key"**:
 
   This command will set the current network to operate with in the gnosis-cli.
 
-  ```
+    ```
     [ ./gnosis-cli ][  ]: setNetwork --network=rinkeby --api_key=b3fa360a82cd459e8f1b459b3cf9127c                                                                                                                                                                                  
     10:54:47 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     10:54:47 AM - [ INFO ]: |    Network     |    Network Status    |                                              Node Url                                              |
@@ -262,22 +255,24 @@ be prompted with a **ConnectionError** exception.
     10:55:08 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
     10:55:08 AM - [ INFO ]: |    GANACHE     |      CONNECTED       |                                       http://localhost:8545                                        |
     10:55:08 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
-  ```
+    ```
 
 + Command **exit | quit | close**:
 
   This Command will exit the gnosis-cli. If --now it's not provided the console will prompt a confirmation dialog.
 
-  ```
+    ```
     [ ./gnosis-cli ][  ]: exit | quit | close
     [ ./gnosis-cli ][  ]: exit | quit | close --now
-  ```
+    ```
 
 ### [ Avaliable safe-cli Commands ]:
 
 + Command **info**:
+    
+    This Command will show the current information for the loaded safe within safe-cli.
 
-  ```
+    ```
     10:50:27 AM - [ INFO ]:  ===========================================================:[ Safe Information ]:===========================================================
     10:50:27 AM - [ INFO ]:  -:[ Safe Owner Data ]:----------------------------------------------------------------------------------------------------------------------
     10:50:28 AM - [ INFO ]: |  (#) Owner 0 | Address: 0x9fF08f7FfF6ab9E3817e33612EbfBCD18d0E165c | Sender: [ ] | Balance: 6857186045000000000                            |
@@ -300,8 +295,65 @@ be prompted with a **ConnectionError** exception.
     10:50:29 AM - [ INFO ]: |  (#) Fallback Handler: 0x0000000000000000000000000000000000000000                                                                          |
     10:50:30 AM - [ INFO ]: |  (#) Nonce: 31                                                                                                                             |
     10:50:30 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
-  ```
+    ```
 
+  Command **viewGas**
+  
+  This command will show the current gas configuration withing the safe-cli.
+  
+    ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: viewGas                                                                                                                                                                                                   
+    11:13:53 AM - [ INFO ]:  -:[ Current Gas Configuration ]:------------------------------------------------------------------------------------------------------------
+    11:13:53 AM - [ INFO ]: |  (#) BaseGas value 100000                                                                                                                  |
+    11:13:53 AM - [ INFO ]: |  (#) SafeTxGas value 300000                                                                                                                |
+    11:13:53 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
+    ```
+  
+  Command **viewGas**
+  
+  This command will show the current gas configuration withing the safe-cli.
+  
+    ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: viewGas                                                                                                                                                                                                   
+    11:13:53 AM - [ INFO ]:  -:[ Current Gas Configuration ]:------------------------------------------------------------------------------------------------------------
+    11:13:53 AM - [ INFO ]: |  (#) BaseGas value 100000                                                                                                                  |
+    11:13:53 AM - [ INFO ]: |  (#) SafeTxGas value 300000                                                                                                                |
+    11:13:53 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
+    ```
+  
+  Command setAutoFillTokenDecimals ON / OFF
+  
+  This command will enable the calculation of the proper amount of decimals to fill in a token transaction. Otherwise
+  you'll need to put the proper number of 0.
+  
+    ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: setAutoFillTokenDecimals ON / OFF                                                                                                                                                                                                   
+    11:19:44 AM - [ INFO ]:  -:[ setAutoFillTokenDecimals ]:-------------------------------------------------------------------------------------------------------------
+    11:19:44 AM - [ INFO ]: |  (#) setAutoFillTokenDecimals is (no longer) in effect                                                                                                 |
+    11:19:44 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
+    ```
+  Command setAutoExecute ON / OFF
+  
+  This command will enable the auto execution of the transactions without needing to use --execute in the safe-cli. 
+  
+    ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: setAutoExecute ON / OFF 
+    11:21:55 AM - [ INFO ]:  -:[ setAutoExecute ]:-----------------------------------------------------------------------------------------------------------------------
+    11:21:55 AM - [ INFO ]: |  (#) setAutoExecute is in effect                                                                                                           |
+    11:21:55 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
+    ```
+  
+  Command setBaseGas 10000
+    ```
+    [ ./safe-cli ][ Safe (0x6C6862EDEB82E767990C0b14d99753927f1afB4B) ]: setAutoExecute ON / OFF 
+    11:21:55 AM - [ INFO ]:  -:[ setAutoExecute ]:-----------------------------------------------------------------------------------------------------------------------
+    11:21:55 AM - [ INFO ]: |  (#) setAutoExecute is in effect                                                                                                           |
+    11:21:55 AM - [ INFO ]:  --------------------------------------------------------------------------------------------------------------------------------------------
+    ```
+  
+  Command setSafeTxGas 10000
+  
+  
   Command **VERSION**:
 
   ```
