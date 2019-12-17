@@ -51,7 +51,7 @@ from core.constants.console_constant import gnosis_commands
 from core.eth_assets.helper.ether_helper import EtherHelper
 
 
-class GnosisConsoleEngine:
+class GnosisManager:
     """ Gnosis Console Engine
     This class will perform the core activities for the console, launch the general purpose console, and the give
     access to the safe console via loadSafe --address=0x0*40 & access to the general contract_cli console via
@@ -68,8 +68,9 @@ class GnosisConsoleEngine:
 
         # References to the methods for the sub consoles
         self.safe_interface = None
-        self.contract_methods = None
         self.contract_interface = None
+
+        self.contract_methods = None
 
         self.session_config = {
             'prompt': self._get_prompt_text(affix_stream=self.prompt_text),
@@ -116,30 +117,31 @@ class GnosisConsoleEngine:
         # Load Artifacts: Gnosis Console
         self.console_information = InformationArtifacts(self.logger)
         self.console_information.command_view_disclaimer()
+
         # Setup Contract Payloads
-        self.payload_artifacts = Payloads(self.logger)
+        # self.payload_artifacts = Payloads(self.logger)
         # Setup Contract Artifacts
-        self.contract_artifacts = ContractArtifacts(self.logger)
+        # self.contract_artifacts = ContractArtifacts(self.logger)
 
         # Setup Console Input Getter
         self.console_getter = ConsoleInputGetter(self.logger)
+
         # Setup Console Account Artifacts
-        self.account_artifacts = Accounts(
-            self.logger, self.network_agent.get_ethereum_client(), self.quiet_flag, self.test_flag
-        )
+        # self.account_artifacts = Accounts(self.logger, self.network_agent.get_ethereum_client(),
+        #                                   self.quiet_flag, self.test_flag)
         # Setup Console Token
-        self.token_artifacts = Tokens(self.logger, self.network_agent.ethereum_client)
+        # self.token_artifacts = Tokens(self.logger, self.network_agent.ethereum_client)
 
         # Setup DataArtifacts
-        self.data_artifacts = AssetsEngine(
-            self.logger, self.account_artifacts, self.payload_artifacts,
-            self.token_artifacts, self.contract_artifacts
-        )
+        # self.data_artifacts = AssetsEngine(self.logger, self.account_artifacts,
+        #                                    self.payload_artifacts, self.token_artifacts,
+        #                                    self.contract_artifacts)
         # Pass DataArtifacts to Controller
-        self.console_controller = ConsoleController(self.logger, self.network_agent, self.data_artifacts, self)
+        # self.console_controller = ConsoleController(self.logger, self.network_agent,
+        #                                             self.data_artifacts, self)
 
         # Load Ether Helper for the bottom toolbar
-        self.ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
+        # self.ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
 
         # Setup: Log Formatter
         self.log_formatter = LogMessageFormatter(self.logger)

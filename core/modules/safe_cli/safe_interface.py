@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Import EtherHelper
-from core.eth_assets.helper.ether_helper import EtherHelper
-
 # Import Log Formatter: Receipts, Headers
 from core.logger.log_message_formatter import LogMessageFormatter
 
@@ -20,7 +17,7 @@ class SafeInterface:
     """ Console Safe Commands
     This class will perform the command call to the different eth_assets and the class methods
     """
-    def __init__(self, logger, network_agent, safe_address):
+    def __init__(self, logger, network_agent, safe_address, ethereum_assets):
         self.logger = logger
 
         # NetworkAgent: ethereum_client
@@ -31,6 +28,9 @@ class SafeInterface:
 
         # Safe interface
         self.safe_interface = self._safe_interface_resolver(safe_address)
+
+        # Safe Interface
+        self.ethereum_assets = ethereum_assets
 
         # Setup: LogFormatter
         self.log_formatter = LogMessageFormatter(self.logger)

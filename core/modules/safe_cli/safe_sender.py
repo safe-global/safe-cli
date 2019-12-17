@@ -1,14 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Constants: Style
-from core.constants.console_constant import STRING_DASHES
-
 # Import HexBytes Module: Signatures
 from hexbytes import HexBytes
 
 # Exceptions: _add, _remove operations
-from core.modules.safe_cli.exceptions.safe_sender_exceptions import SafeSenderNotFound, SafeSenderAlreadyLoaded
+from core.modules.safe_cli.exceptions.safe_sender_exceptions import SafeSenderNotFound, SafeSenderAlreadyLoaded, SafeSenderNotEnoughSigners
 
 # Import LogMessageFormatter: view_functions
 from core.logger.log_message_formatter import LogMessageFormatter
@@ -176,7 +173,7 @@ class SafeSender:
         if self.safe_interface.retrieve_threshold() == self.sender_account_list:
             return True
         self.logger.warn('Not Enough Signatures Loaded/Stored in local_accounts_list')
-        return False
+        raise SafeSenderNotEnoughSigners
 
     def load_owner(self, private_key):
         try:
@@ -209,3 +206,21 @@ class SafeSender:
             self.logger.error('[ Safe Sender ]: Sender is not part of the safe owners')
         except Exception as err:
             self.logger.error(err)
+
+    # Sender Data so it should be here
+    def set_toolbar_text(self, sender_address=None, sender_private_key=None):
+        """ Get Toolbar Text
+
+        :param sender_address:
+        :param sender_private_key:
+        :return:
+        """
+        amount = 0
+        if (sender_address is not None) and (sender_private_key is not None):
+            balance = self.network_agent.ethereum_client.w3.eth.getBalance(sender_address)
+            wei_amount = self.ether_helper.get_unify_ether_amount([('--wei', [balance])])
+            text_badge, tmp_amount = self.ether_helper.get_proper_ether_amount(wei_amount)
+            amount = '{0} {1}'.format(str(tmp_amount), text_badge)
+        return HTML(' [ <strong>Sender:</strong> %s'
+                    ' | <strong>PK:</strong> %s'
+                    ' | <strong>Balance:</strong> %s ]' % (sender_address, sender_private_key, amount))

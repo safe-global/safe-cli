@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# Import Completer & SyntaxLexer
+from core.modules.safe_cli.prompt_components.safe_lexer import SafeLexer
+from core.modules.safe_cli.prompt_components.safe_completer import SafeCompleter
+
 # Import LogMessageFormatter: view_functions
 from core.logger.log_message_formatter import LogMessageFormatter
 
@@ -20,6 +24,8 @@ class SafeConfiguration:
         # Configuration variable
         self.auto_execute = False
         self.auto_fill_token_decimals = False
+
+
 
     def view_auto_execute(self):
         self.log_formatter.log_section_left_side('setAutoExecute')
@@ -48,3 +54,4 @@ class SafeConfiguration:
 
         # Preview status for auto_fill_token_decimals
         self.view_auto_fill_token_decimals()
+

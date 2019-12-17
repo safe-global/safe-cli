@@ -5,7 +5,7 @@
 from core.constants.console_constant import NULL_ADDRESS
 
 # Import GnosisConsoleEngine Module
-from core.console_engine import GnosisConsoleEngine
+from core.gnosis_manager import GnosisManager
 
 # Import ConnectionError Exception: (Ganache not loaded)
 from requests.exceptions import ConnectionError
@@ -88,7 +88,7 @@ try:
     }
 
     # Init GnosisConsoleEngine with current configuration
-    gnosis_console_engine = GnosisConsoleEngine(init_configuration)
+    gnosis_console_engine = GnosisManager(init_configuration)
 
 except ConnectionError:
     print('Launch [ "ganache-cli -d" ] command or setup [ network + api_key ] before you try to run the console again!')

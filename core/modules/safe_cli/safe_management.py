@@ -46,7 +46,6 @@ class SafeManagement:
 
             # Preview the current status of the safe after the transaction
             self.safe_information.preview_threshold_owners()
-
         except Exception as err:
             self.logger.error('Unable to command_safe_change_threshold(): {0} {1}'.format(type(err), err))
 
@@ -101,7 +100,6 @@ class SafeManagement:
         :param _queue:
         :return:
         """
-        # give list of owners and get the previous owner
         try:
             # Preview the current status of the safe before the transaction
             self.safe_information.preview_threshold_owners()
@@ -144,7 +142,6 @@ class SafeManagement:
                 new_threshold = self.safe_interface.retrieve_threshold()
 
             # Generating the function payload data
-
             self.logger.info('| Sender: {0} | Previous Owner: {1} | Owner to Remove: {2} | Threshold: {3} | '.format(
                 self.safe_sender.sender_address, previous_owner_address, owner_address, int(new_threshold)))
             self.log_formatter.log_dash_splitter()

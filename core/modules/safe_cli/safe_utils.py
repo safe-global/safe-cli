@@ -1,6 +1,5 @@
-
-
-from core.constants.console_constant import NULL_ADDRESS
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 
 class SafeUtils:

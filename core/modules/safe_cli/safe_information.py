@@ -33,7 +33,7 @@ class SafeInformation:
 
     def preview_threshold_owners(self):
         self.view_safe_threshold()
-        self.view_safe_owners()
+        self.safe_sender.view_safe_owners()
 
     def preview_version_change(self):
         self.view_master_copy()
@@ -45,10 +45,8 @@ class SafeInformation:
         :return:
         """
         self.log_formatter.log_banner_header('Safe Information')
-        self.view_safe_owners()
+        self.preview_threshold_owners()
         # self.command_view_balance()
-        self.view_safe_threshold()
-
         self.log_formatter.log_section_left_side('Safe General Information')
         self.view_safe_name(block_style=False)
         self.view_master_copy(block_style=False)

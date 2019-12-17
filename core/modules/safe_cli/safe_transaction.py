@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# Exceptions: _add, _remove operations
+from core.modules.safe_cli.exceptions.safe_sender_exceptions import SafeSenderNotEnoughSigners
+
 # Import Log Formatter: Receipts, Headers
 from core.logger.log_message_formatter import LogMessageFormatter
 
@@ -19,6 +22,11 @@ from gnosis.safe.safe import SafeOperation
 class SafeTransaction:
     """ Console Safe Commands
     This class will perform the command call to the different eth_assets and the class methods
+    :param logger:
+    :param network_agent:
+    :param safe_interface:
+    :param safe_sender:
+    :param safe_configuration:
     """
     def __init__(self, logger, network_agent, safe_interface, safe_sender, safe_configuration):
         self.logger = logger
@@ -45,11 +53,17 @@ class SafeTransaction:
         self.tx_queue = []
 
     def _fix_gas_price(self):
+        """
+
+        """
         if self.network_agent.network == 'ganache':
             return 0
         return self.ethereum_client.w3.eth.gasPrice
 
     def safe_tx_sender_payload(self):
+        """
+
+        """
         return {'from': self.safe_sender.sender_address, 'gas': self.base_gas, 'gasPrice': self.gas_price}
 
     def safe_tx_multi_sign(self, safe_tx):
@@ -67,8 +81,10 @@ class SafeTransaction:
                     self.log_formatter.log_data(' (#) Sign with Private Key: {0}', HexBytes(signer.privateKey).hex())
                     self.log_formatter.log_dash_splitter()
                 return safe_tx
+        except SafeSenderNotEnoughSigners:
+            raise SafeSenderNotEnoughSigners
         except Exception as err:
-            self.logger.error('Unable to multi_sign_safe_tx(): {0} {1}'.format(type(err), err))
+            self.logger.error('Unexpected error in multi_sign_safe_tx(): {0} {1}'.format(type(err), err))
 
     def safe_tx_multi_approve(self, safe_tx):
         """ Safe Tx Multi Approve
@@ -84,10 +100,16 @@ class SafeTransaction:
                     self.log_formatter.log_data(' (#) Owner Address: {0}', signer.address)
                     self.log_formatter.log_data(' (#) Approving Tx with Hash: {0}', HexBytes(safe_tx.safe_tx_hash).hex())
                     self.log_formatter.log_dash_splitter()
+
+        except SafeSenderNotEnoughSigners:
+            raise SafeSenderNotEnoughSigners
         except Exception as err:
-            self.logger.error('Unable to multi_approve_safe_tx(): {0} {1}'.format(type(err), err))
+            self.logger.error('Unexpected error in safe_tx_multi_approve(): {0} {1}'.format(type(err), err))
 
     def _setup_safe_tx_values(self, address_to, wei_value):
+        """
+
+        """
         if wei_value is None:
             wei_value = 0
         if address_to is None:
@@ -136,10 +158,16 @@ class SafeTransaction:
                     self.logger.info('Tx Added to Batch Queue')
                     self.tx_queue.append(safe_tx)
 
+        except SafeSenderNotEnoughSigners as err:
+            self.logger.error(err)
+
         except Exception as err:
-            self.logger.error('Unable to perform_transaction(): {0} {1}'.format(type(err), err))
+            self.logger.error('Unexpected error in perform_transaction(): {0} {1}'.format(type(err), err))
 
     def _is_valid_tx(self, safe_tx):
+        """
+
+        """
         is_valid_tx = safe_tx.call()
         if is_valid_tx:
             # The current safe_tx is properly form
