@@ -51,15 +51,21 @@ from core.constants.console_constant import gnosis_commands
 from core.eth_assets.helper.ether_helper import EtherHelper
 
 
+# Controllers
+from core.modules.safe_cli.safe_controller import SafeController
+from core.modules.contract_cli.contract_controller import ContractController
+from core.modules.gnosis_cli.gnosis_controller import GnosisController
+
+
 class GnosisManager:
     """ Gnosis Console Engine
     This class will perform the core activities for the console, launch the general purpose console, and the give
     access to the safe console via loadSafe --address=0x0*40 & access to the general contract_cli console via
     loadContract --alias=GnosisSafeV1.1.0_1
     """
-    def __init__(self, init_configuration):
+    def __init__(self, configuration):
         self.name = self.__class__.__name__
-        self.prompt_text = init_configuration['name']
+        self.prompt_text = configuration['name']
         # Setup the console files logs if does not exists
         LogFileManager().create_log_files()
 
@@ -83,10 +89,15 @@ class GnosisManager:
 
         # Custom Logger Init Configuration: Default Values
         self.logging_lvl = INFO
+        if configuration['debug']:
+            self.logging_lvl = DEBUG0
+
         self.logger = None
+        # CustomLogger Instance Creation
+        self.logger = CustomLogger(self.name, self.logging_lvl)
 
         # Use Launch Configuration
-        self._setup_console_logger_init(init_configuration)
+        self._setup_console_logger_init(configuration)
 
         # CustomLogger Format Definition: Output Init Configuration
         formatter = logging.Formatter(fmt='%(asctime)s - [ %(levelname)s ]: %(message)s',
@@ -112,7 +123,7 @@ class GnosisManager:
         self.contract_reader = ContractReader(self.logger)
 
         # Setup EthereumClient
-        self.network_agent = NetworkAgent(self.logger, init_configuration['network'], init_configuration['api_key'])
+        self.network_agent = NetworkAgent(self.logger, configuration['network'], configuration['api_key'])
 
         # Load Artifacts: Gnosis Console
         self.console_information = InformationArtifacts(self.logger)
@@ -125,6 +136,9 @@ class GnosisManager:
 
         # Setup Console Input Getter
         self.console_getter = ConsoleInputGetter(self.logger)
+
+
+
 
         # Setup Console Account Artifacts
         # self.account_artifacts = Accounts(self.logger, self.network_agent.get_ethereum_client(),
@@ -140,6 +154,11 @@ class GnosisManager:
         # self.console_controller = ConsoleController(self.logger, self.network_agent,
         #                                             self.data_artifacts, self)
 
+
+        # Controllers
+        self.safe_controller = SafeController()
+        self.contract_controller = ConsoleController()
+
         # Load Ether Helper for the bottom toolbar
         # self.ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
 
@@ -151,9 +170,9 @@ class GnosisManager:
         # self._setup_console_contract_configuration(init_configuration)
 
         # Run Console
-        self._setup_console_init(init_configuration)
+        self._setup_console_init(configuration)
 
-    def exit_command(self, command_argument, argument_list):
+    def _exit(self, command_argument, argument_list):
         _, _, _, _now = self.console_getter.get_input_affix_arguments(argument_list)
         if (command_argument == 'close') or (command_argument == 'quit') or (command_argument == 'exit'):
             if not _now:
@@ -188,21 +207,17 @@ class GnosisManager:
                 try:
                     if self.active_session == TypeOfConsole.SAFE_CONSOLE:
                         self.console_controller.operate_with_safe(
-                            desired_parsed_item_list,
-                            priority_group,
-                            command_argument,
-                            argument_list,
+                            desired_parsed_item_list, priority_group,
+                            command_argument, argument_list,
                             self.safe_interface)
-
                     else:
                         try:
-                            self.console_controller.operate_with_console(
-                                desired_parsed_item_list, priority_group, command_argument, argument_list)
+                            self.console_controller.operate_with_console(desired_parsed_item_list, priority_group, command_argument, argument_list)
                         except Exception as err:
                             self.logger.error('Something Went Wrong Opss {0}  {1}'.format(type(err), err))
                             self.active_session = TypeOfConsole.GNOSIS_CONSOLE
 
-                    self.exit_command(command_argument, argument_list)
+                    self._exit(command_argument, argument_list)
                 except KeyboardInterrupt:
                     # remark: Control-C pressed. Try again.
                     continue
@@ -227,11 +242,6 @@ class GnosisManager:
         """
         self.quiet_flag = configuration['quiet']
         self.test_flag = configuration['test']
-        if configuration['debug']:
-            self.logging_lvl = DEBUG0
-
-        # CustomLogger Instance Creation
-        self.logger = CustomLogger(self.name, self.logging_lvl)
 
     def _setup_console_init(self, configuration):
         """ Setup Console Safe Configuration

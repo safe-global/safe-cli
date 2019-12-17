@@ -43,7 +43,7 @@ class EtherHelper:
         :return:
         """
         ether_amount = 0
-        if ether_amounts != []:
+        if ether_amounts:
             self.logger.debug0('[ Badge Id ]: {0:^14} | {1}'.format(ether_badge, ether_amounts))
             for ether_badge_amount in ether_amounts:
                 if ether_badge == '--wei':
@@ -100,3 +100,8 @@ class EtherHelper:
             final_amount += self.unify_ether_badge_amounts(item_data[0], item_data[1])
         self.logger.debug0('{0} Ether'.format(self.ethereum_client.w3.fromWei(final_amount, 'ether')))
         return final_amount
+
+    def get_simplified_balance(self, sender_address):
+        balance = self.ethereum_client.w3.eth.getBalance(sender_address)
+        wei_amount = self.get_unify_ether_amount([('--wei', [balance])])
+        return self.get_proper_ether_amount(wei_amount)

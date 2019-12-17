@@ -208,7 +208,7 @@ class SafeSender:
             self.logger.error(err)
 
     # Sender Data so it should be here
-    def set_toolbar_text(self, sender_address=None, sender_private_key=None):
+    def get_toolbar_text(self, sender_address=None, sender_private_key=None):
         """ Get Toolbar Text
 
         :param sender_address:
