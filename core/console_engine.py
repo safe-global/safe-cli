@@ -2,14 +2,14 @@
 # -*- coding: utf-8 -*-
 
 # Import Contract Reader Module
-from core.utils.contract_reader import ContractReader
+from core.eth_assets.helper.contract_reader import ContractReader
 
 # Import Console Commands Module
-from core.contract.safe_commands import ConsoleSafeCommands
-from core.contract.contract_commands import ConsoleContractCommands
+from core.modules.safe_cli import ConsoleSafeCommands
+from core.modules.contract_cli.contract_commands import ConsoleContractCommands
 
 # Import Handlers of the Console
-from core.console_controller import ConsoleController
+from core.modules.gnosis_cli.gnosis_controller import ConsoleController
 from core.input.console_input_getter import ConsoleInputGetter
 from core.net.network_agent import NetworkAgent
 
@@ -18,16 +18,16 @@ from prompt_toolkit import HTML
 from prompt_toolkit.shortcuts import set_title
 
 # Import Completer & SyntaxLexer
-from core.contract.utils.syntax_lexer import SyntaxLexer
-from core.contract.utils.command_completer import CommandCompleter
+from core.modules.contract_cli import SyntaxLexer
+from core.modules.contract_cli import CommandCompleter
 
 # Import Console Artifacts
-from core.artifacts.data_artifacts import DataArtifacts
-from core.artifacts.contract_artifacts import ContractArtifacts
-from core.artifacts.payload_artifacts import PayloadArtifacts
-from core.artifacts.account_artifacts import AccountsArtifacts
-from core.artifacts.token_artifacts import TokenArtifacts
-from core.artifacts.help_artifacts import InformationArtifacts
+from core.eth_assets.assets_engine import AssetsEngine
+from core.eth_assets.contracts import ContractArtifacts
+from core.eth_assets.payloads import Payloads
+from core.eth_assets.accounts import Accounts
+from core.eth_assets.tokens import Tokens
+from core.eth_assets.help_artifacts import InformationArtifacts
 
 # Import PromptToolkit Package
 from prompt_toolkit.completion import WordCompleter
@@ -48,13 +48,13 @@ from core.logger.log_message_formatter import LogMessageFormatter
 from core.constants.console_constant import gnosis_commands
 
 # Import EtherHelper for unifying ether amount quantities
-from core.artifacts.utils.ether_helper import EtherHelper
+from core.eth_assets.helper.ether_helper import EtherHelper
 
 
 class GnosisConsoleEngine:
     """ Gnosis Console Engine
     This class will perform the core activities for the console, launch the general purpose console, and the give
-    access to the safe console via loadSafe --address=0x0*40 & access to the general contract console via
+    access to the safe console via loadSafe --address=0x0*40 & access to the general contract_cli console via
     loadContract --alias=GnosisSafeV1.1.0_1
     """
     def __init__(self, init_configuration):
@@ -117,21 +117,21 @@ class GnosisConsoleEngine:
         self.console_information = InformationArtifacts(self.logger)
         self.console_information.command_view_disclaimer()
         # Setup Contract Payloads
-        self.payload_artifacts = PayloadArtifacts(self.logger)
+        self.payload_artifacts = Payloads(self.logger)
         # Setup Contract Artifacts
         self.contract_artifacts = ContractArtifacts(self.logger)
 
         # Setup Console Input Getter
         self.console_getter = ConsoleInputGetter(self.logger)
         # Setup Console Account Artifacts
-        self.account_artifacts = AccountsArtifacts(
+        self.account_artifacts = Accounts(
             self.logger, self.network_agent.get_ethereum_client(), self.quiet_flag, self.test_flag
         )
         # Setup Console Token
-        self.token_artifacts = TokenArtifacts(self.logger, self.network_agent.ethereum_client)
+        self.token_artifacts = Tokens(self.logger, self.network_agent.ethereum_client)
 
         # Setup DataArtifacts
-        self.data_artifacts = DataArtifacts(
+        self.data_artifacts = AssetsEngine(
             self.logger, self.account_artifacts, self.payload_artifacts,
             self.token_artifacts, self.contract_artifacts
         )
@@ -145,8 +145,8 @@ class GnosisConsoleEngine:
         self.log_formatter = LogMessageFormatter(self.logger)
 
         # Setup Token & Contract Artifacts
-        self._setup_console_token_init(init_configuration)
-        self._setup_console_contract_configuration(init_configuration)
+        # self._setup_console_token_init(init_configuration)
+        # self._setup_console_contract_configuration(init_configuration)
 
         # Run Console
         self._setup_console_init(init_configuration)
@@ -174,43 +174,24 @@ class GnosisConsoleEngine:
                 self.active_session = TypeOfConsole.GNOSIS_CONSOLE
                 raise EOFError
 
-    def run_console_session(self, prompt_text):
+    def run(self):
         """ Run Console Session
         This function will launch the gnosis cli
-        :param prompt_text:
         :return:
         """
-        if self.active_session == TypeOfConsole.GNOSIS_CONSOLE:
-            set_title('Gnosis Console')
-            prompt_text = self.session_config['prompt']
-        console_session = self.get_console_session()
+        prompt_text = self.session_config['prompt']
+        console_session = self.get_gnosis_console()
         try:
             while True:
                 try:
                     if self.active_session == TypeOfConsole.SAFE_CONSOLE:
-                        stream = console_session.prompt(
-                            prompt_text,
-                            bottom_toolbar=self.get_toolbar_text(
-                                self.safe_interface.sender_address,
-                                self.safe_interface.sender_private_key),
-                            refresh_interval=0.5)
-                    else:
-                        stream = console_session.prompt(prompt_text)
-                    desired_parsed_item_list, priority_group, command_argument, argument_list = \
-                        self.console_getter.get_gnosis_input_command_argument(stream)
-                    if self.active_session == TypeOfConsole.CONTRACT_CONSOLE:
-                        try:
-                            self.console_controller.operate_with_contract(
-                                stream, self.contract_methods, self.contract_interface)
-                        except Exception:
-                            self.active_session = TypeOfConsole.GNOSIS_CONSOLE
-                    elif self.active_session == TypeOfConsole.SAFE_CONSOLE:
-                        try:
-                            self.console_controller.operate_with_safe(
-                                desired_parsed_item_list, priority_group,
-                                command_argument, argument_list, self.safe_interface)
-                        except Exception:
-                            self.active_session = TypeOfConsole.GNOSIS_CONSOLE
+                        self.console_controller.operate_with_safe(
+                            desired_parsed_item_list,
+                            priority_group,
+                            command_argument,
+                            argument_list,
+                            self.safe_interface)
+
                     else:
                         try:
                             self.console_controller.operate_with_console(
@@ -229,18 +210,12 @@ class GnosisConsoleEngine:
         except Exception as err:
             self.logger.error(err)
 
-    def get_console_session(self):
+    def get_gnosis_console(self):
         """ Get Console Session
         Get Console Session based on the self.active_session =
         :return:
         """
-        if self.active_session is not TypeOfConsole.GNOSIS_CONSOLE:
-            return PromptSession(
-                completer=self.session_config['contract_completer'],
-                lexer=self.session_config['contract_lexer'])
-        return PromptSession(
-            completer=self.session_config['completer'],
-            lexer=self.session_config['contract_lexer'])
+        return PromptSession(completer=self.session_config['completer'], lexer=self.session_config['contract_lexer'])
 
     def _setup_console_logger_init(self, configuration):
         """ Setup Console Init Configuration
@@ -256,122 +231,15 @@ class GnosisConsoleEngine:
         # CustomLogger Instance Creation
         self.logger = CustomLogger(self.name, self.logging_lvl)
 
-    def _setup_console_token_init(self, configuration):
-        """ Setup Console Token Configuration
-
-        :param configuration:
-        :return:
-        """
-        if configuration['erc20']:
-            self.logger.debug0(configuration['erc20'])
-            self.token_artifacts.pre_load_erc20_artifacts(configuration['erc20'])
-
-        if configuration['erc721']:
-            self.logger.debug0(configuration['erc721'])
-            self.token_artifacts.pre_load_erc20_artifacts(configuration['erc721'])
-
     def _setup_console_init(self, configuration):
         """ Setup Console Safe Configuration
 
         :param configuration:
         :return:
         """
-        if configuration['safe'] is not None:
-            if self.network_agent.ethereum_client.w3.isAddress(configuration['safe']):
-                try:
-                    self.log_formatter.log_entry_message('Entering Safe Console')
-                    set_title('Safe Console')
-                    self.logger.debug0(configuration['safe'])
-                    self.run_safe_console(configuration['safe'], configuration['private_key'])
-                except Exception as err:
-                    self.logger.error('{0}'.format(self.name))
-                    self.logger.error(err)
-        else:
-            # Info Header: Finished loading all the components of the gnosis-cli
-            if not self.quiet_flag:
-                self.log_formatter.log_entry_message('Entering Gnosis Cli')
-            self.run_console_session(self.prompt_text)
-
-    def _setup_console_contract_configuration(self, configuration):
-        """ Setup Console Contract Configuration
-        This function will load contract artifacts for the console to have access to
-        :param configuration:
-        :return:
-        """
-        if configuration['abi'] and configuration['contract']:
-            self.logger.debug0(configuration['contract'])
-            self.logger.debug0(configuration['abi'])
-
-            for contract_index, contract_abi in enumerate(configuration['abi']):
-                contract_address = configuration['contract'][contract_index]
-                contract_abi, contract_bytecode, contract_name = self.contract_reader.read_from(contract_abi)
-
-                contract_instance = self.network_agent.ethereum_client.w3.eth.contract(
-                    abi=contract_abi, address=contract_address)
-
-                self.contract_artifacts.add_contract_artifact(
-                    contract_name, contract_instance, contract_abi, contract_bytecode, contract_address, contract_name)
-
-        elif configuration['abi'] and not configuration['contract']:
-            for contract_abi in configuration['abi']:
-                contract_abi, contract_bytecode, contract_name = self.contract_reader.read_from(contract_abi)
-                self.contract_artifacts.add_contract_artifact(
-                    contract_name, None, contract_abi, contract_bytecode, None, contract_name)
-
-    def run_contract_console(self, contract_alias):
-        """ Run Contract Console
-        This function will run the contract console
-        :param contract_alias:
-        :return:
-        """
-        try:
-            self.log_formatter.log_entry_message('Entering Contract Console')
-            set_title('Contract Console')
-            self.contract_interface = self.data_artifacts.retrive_from_stored_values(
-                contract_alias, 'instance', 'contract')
-            self.logger.debug0('Contract Instance {0} Loaded'.format(self.contract_interface))
-            self.contract_methods = ConsoleContractCommands().map_contract_methods(self.contract_interface)
-            self.active_session = TypeOfConsole.CONTRACT_CONSOLE
-            self.run_console_session(
-                prompt_text=self._get_prompt_text(affix_stream='contract-cli', stream=contract_alias))
-        except KeyError as err:
-            self.logger.error(err)
-
-    def run_safe_console(self, safe_address, private_key_list=None):
-        """ Run Safe Console
-        This function will run the safe console
-        :param safe_address:
-        :param private_key_list:
-        :return:
-        """
-        try:
-            self.safe_interface = ConsoleSafeCommands(safe_address, self.logger, self.data_artifacts, self.network_agent)
-            if private_key_list is not None:
-                self.logger.debug0(private_key_list)
-                for private_key_owner in private_key_list:
-                    self.safe_interface.command_load_owner(private_key_owner)
-            self.active_session = TypeOfConsole.SAFE_CONSOLE
-            self.run_console_session(
-                prompt_text=self._get_prompt_text(affix_stream='safe-cli', stream='Safe (' + safe_address + ')'))
-        except KeyError as err:
-            self.logger.error(err)
-
-    def get_toolbar_text(self, sender_address=None, sender_private_key=None):
-        """ Get Toolbar Text
-
-        :param sender_address:
-        :param sender_private_key:
-        :return:
-        """
-        amount = 0
-        if (sender_address is not None) and (sender_private_key is not None):
-            balance = self.network_agent.ethereum_client.w3.eth.getBalance(sender_address)
-            wei_amount = self.ether_helper.get_unify_ether_amount([('--wei', [balance])])
-            text_badge, tmp_amount = self.ether_helper.get_proper_ether_amount(wei_amount)
-            amount = '{0} {1}'.format(str(tmp_amount), text_badge)
-        return HTML(' [ <strong>Sender:</strong> %s'
-                    ' | <strong>PK:</strong> %s'
-                    ' | <strong>Balance:</strong> %s ]' % (sender_address, sender_private_key, amount))
+        if not self.quiet_flag:
+            self.log_formatter.log_entry_message('Entering Gnosis Cli')
+        self.run(self.prompt_text)
 
     def _get_prompt_text(self, affix_stream='', stream=''):
         """ Get Prompt Text

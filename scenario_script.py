@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Import Contract Reader Module
-from core.utils.contract_reader import ContractReader
+from core.eth_assets.helper.contract_reader import ContractReader
 
 # Import Ethereum Client Module
 from gnosis.eth.ethereum_client import EthereumClient

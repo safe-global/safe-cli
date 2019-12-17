@@ -16,6 +16,9 @@ class LogMessageFormatter:
         self.logger = logger
         self.empty_value = ' - Empty - '
 
+    def log_dash_splitter(self):
+        self.logger.info(' ' + STRING_DASHES)
+
     def log_error_footer(self, msg='Error.'):
         message = self.header_block(msg, '-')
         self.logger.error(message)
@@ -36,6 +39,10 @@ class LogMessageFormatter:
     def log_section_left_side(self, msg='Left Side Log Header'):
         header_data = '-:[ {0} ]:-'.format(msg)
         self.logger.info(' {0}{1}'.format(header_data, '-' * (140 - len(header_data))))
+
+    def log_data(self, name=' (#) Test Name: {0} ', msg='Data'):
+        information_data = name.format(msg)
+        self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
 
     @staticmethod
     def header_block(msg, filler=' ', str_count=140):

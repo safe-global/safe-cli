@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Import Contract Reader Module
-from core.utils.contract_reader import ContractReader
+from core.eth_assets.helper.contract_reader import ContractReader
 
 # Import Ethereum Client Module
 from gnosis.eth.ethereum_client import EthereumClient
@@ -15,6 +15,10 @@ from eth_account import Account
 
 # Import Auto-Generated functions for retrieving instances of the Smart Contracts
 from gnosis.eth.tests.utils import deploy_example_erc20
+
+
+def setup_logger():
+    return
 
 
 def deploy_uxi_tokens(safe_address):

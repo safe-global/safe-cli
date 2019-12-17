@@ -239,7 +239,7 @@ class ConsoleInputGetter:
 
     def retrieve_contract_data(self, argument_list, function_arguments):
         """ Retrieve Contract Data
-        This function was used to generate the spots for the dynamic mapping of the contract abi.
+        This function was used to generate the spots for the dynamic mapping of the contract_cli abi.
         """
         arguments_to_fill = ''
         for sub_index, argument_item in enumerate(argument_list):

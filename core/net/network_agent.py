@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Import Socket Exception
-from core.net.exceptions.network_exceptions import NetworkAgentFatalException
+from core.net import NetworkAgentFatalException
 
 # Import Socket Module
 import socket

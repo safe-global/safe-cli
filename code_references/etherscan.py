@@ -34,7 +34,7 @@
 # if __name__ == '__main__':
 #     main()
 
-# give contract file, compile it and genertate the code,
+# give contract_cli file, compile it and genertate the code,
 # give abi .json build files with the data
 
 # Externally Owned Accounts (EOA) : these accounts are controlled by their private key.
@@ -54,11 +54,11 @@
 
 
 # https://github.com/ethereum/EIPs/blob/master/EIPS/eip-55.md
-# from ethereum import utils
+# from ethereum import helper
 #
 # def checksum_encode(addr): # Takes a 20-byte binary address as input
 #     o = ''
-#     v = utils.big_endian_to_int(utils.sha3(addr.hex()))
+#     v = helper.big_endian_to_int(helper.sha3(addr.hex()))
 #     for i, c in enumerate(addr.hex()):
 #         if c in '0123456789':
 #             o += c

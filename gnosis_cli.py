@@ -43,7 +43,7 @@ parser.add_argument('--safe', action='store',
                     help='This init option, will store the value of the safe address you like to operate with during'
                          ' the execution of the Console. This value will launch directly the safe avoiding '
                          'the gnosis-cli.', type=str)
-parser.add_argument('--contract', action='append', dest='contract_collection', default=[],
+parser.add_argument('--contract_cli', action='append', dest='contract_collection', default=[],
                     help='', type=str)
 parser.add_argument('--abi', action='append',
                     dest='abi_collection', default=[],
@@ -77,7 +77,7 @@ try:
         'network': results.network,
         'private_key': results.private_key_collection,
         'api_key': results.api_key,
-        'contract': results.contract_collection,
+        'contract_cli': results.contract_collection,
         'safe': results.safe_address,
         'erc20': results.erc20_collection,
         'erc721': results.erc721_collection,

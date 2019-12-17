@@ -6,7 +6,7 @@ from enum import Enum
 
 class TypeOfConsole(Enum):
     GNOSIS_CONSOLE = 'gnosis-cli'
-    CONTRACT_CONSOLE = 'contract-cli'
+    CONTRACT_CONSOLE = 'contract_cli-cli'
     SAFE_CONSOLE = 'safe-cli'
 
 
