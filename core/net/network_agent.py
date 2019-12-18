@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Import Socket Exception
-from core.net import NetworkAgentFatalException
+from core.net.exceptions.network_exceptions import NetworkAgentFatalException
 
 # Import Socket Module
 import socket
@@ -72,7 +72,7 @@ class NetworkAgent:
         """
         return self.ethereum_client
 
-    def command_set_network(self, value):
+    def set_network(self, value):
         """ Command Set Network
         This function will perform the setNetwork functionality in the gnosis-cli
         :param value:
@@ -80,7 +80,7 @@ class NetworkAgent:
         """
         self.set_network_provider_endpoint(value)
 
-    def command_view_networks(self):
+    def view_networks(self):
         """ Command View Networks
         This function will retrieve and show the current network used by the ethereum client
             :return:
@@ -139,7 +139,7 @@ class NetworkAgent:
             self.network = 'ganache'
             self.current_node_endpoint = self.default_node_endpoint
 
-        self.command_view_networks()
+        self.view_networks()
 
     def network_status(self):
         """ Network Status

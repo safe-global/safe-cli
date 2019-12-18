@@ -3,9 +3,9 @@ from core.logger.custom_logger import CustomLogger
 from logging import INFO
 import logging
 
-from core.eth_assets.accounts import Accounts
-from core.eth_assets.tokens import Tokens
-from core.eth_assets.assets_engine import AssetsEngine
+from core.eth_assets.components.accounts import Accounts
+from core.eth_assets.components.tokens import Tokens
+from core.eth_assets.ethereum_assets import EthereumAssets
 from core.input.console_input_getter import ConsoleInputGetter
 from core.modules.safe_cli import ConsoleSafeCommands
 from core.net.network_agent import NetworkAgent
@@ -33,7 +33,7 @@ account_artifacts = Accounts(logger, network_agent.get_ethereum_client(), False)
 # Setup Console Token
 token_artifacts = Tokens(logger, network_agent.ethereum_client)
 # Setup DataArtifacts
-data_artifacts = AssetsEngine(logger, account_artifacts, None, token_artifacts, None)
+data_artifacts = EthereumAssets(logger, account_artifacts, None, token_artifacts, None)
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -55,7 +55,7 @@ def test_load_legit_safe_owner():
 
     # Load Owner
     private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-    local_owner = account_artifacts.get_local_account(private_key, console_safe.safe_operator.retrieve_owners())
+    local_owner = account_artifacts.get_local_verified_account(private_key, console_safe.safe_operator.retrieve_owners())
 
     if local_owner in console_safe.local_owner_account_list:
         logger.error('Local Owner Already in local_owner_account_list')
@@ -73,7 +73,7 @@ def test_load_un_legit_safe_owner():
 
     # Load Owner
     private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
-    local_owner = account_artifacts.get_local_account(private_key, console_safe.safe_operator.retrieve_owners())
+    local_owner = account_artifacts.get_local_verified_account(private_key, console_safe.safe_operator.retrieve_owners())
 
     if local_owner in console_safe.local_owner_account_list:
         logger.error('Local Owner Already in local_owner_account_list')

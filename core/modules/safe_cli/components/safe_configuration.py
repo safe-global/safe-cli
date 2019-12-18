@@ -25,8 +25,6 @@ class SafeConfiguration:
         self.auto_execute = False
         self.auto_fill_token_decimals = False
 
-
-
     def view_auto_execute(self):
         self.log_formatter.log_section_left_side('setAutoExecute')
         self.log_formatter.log_data(' (#) setAutoExecute set to {0}', self.auto_execute)

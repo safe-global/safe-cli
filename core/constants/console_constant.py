@@ -6,7 +6,7 @@ from enum import Enum
 
 class TypeOfConsole(Enum):
     GNOSIS_CONSOLE = 'gnosis-cli'
-    CONTRACT_CONSOLE = 'contract_cli-cli'
+    CONTRACT_CONSOLE = 'contract_cli.log-cli'
     SAFE_CONSOLE = 'safe-cli'
 
 
@@ -27,12 +27,6 @@ TX_ADDRESS_LENGTH = 66
 # String Size of API Keys
 INFURA_API_KEY_LENGTH = 32
 ETHERSCAN_API_KEY_LENGTH = 34
-
-gnosis_commands = [
-    'about', 'info', 'help', 'newContract', 'loadContract', 'setNetwork', 'viewNetwork', 'viewTokens',
-    'close', 'quit', 'viewContracts', 'viewAccounts', 'newAccount', 'setAutofill', 'newToken',
-    'viewPayloads', 'newPayload', 'newTxPayload', 'setDefaultSender', 'loadSafe'
-]
 
 # API_POOL with gnosis_asociated accounts 100 calls per day * 10 atleast
 API_KEY_DICT = {

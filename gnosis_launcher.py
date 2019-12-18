@@ -16,7 +16,7 @@ import argparse
 # Import ConfigParser Module
 import configparser
 
-# Define ArgParse Arguments for the GnosisConsoleEngine
+# Define ArgParse Arguments for the GnosisManager
 parser = argparse.ArgumentParser()
 parser.add_argument('--quiet', action='store_true',
                     dest='quiet', default=False,
@@ -43,7 +43,7 @@ parser.add_argument('--safe', action='store',
                     help='This init option, will store the value of the safe address you like to operate with during'
                          ' the execution of the Console. This value will launch directly the safe avoiding '
                          'the gnosis-cli.', type=str)
-parser.add_argument('--contract_cli', action='append', dest='contract_collection', default=[],
+parser.add_argument('--contract_cli.log', action='append', dest='contract_collection', default=[],
                     help='', type=str)
 parser.add_argument('--abi', action='append',
                     dest='abi_collection', default=[],
@@ -67,17 +67,17 @@ parser.add_argument('--version', action='version', version='%(prog)s 0.0.1a')
 
 try:
     config = configparser.ConfigParser()
-    config.read('./gnosis_cli.ini')
+    config.read('./gnosis_launcher.ini')
 
     # Retrieve ArgParse values
     results = parser.parse_args()
-    init_configuration = {
+    configuration = {
         'quiet': results.quiet,
         'debug': results.debug,
         'network': results.network,
         'private_key': results.private_key_collection,
         'api_key': results.api_key,
-        'contract_cli': results.contract_collection,
+        'contract_cli.log': results.contract_collection,
         'safe': results.safe_address,
         'erc20': results.erc20_collection,
         'erc721': results.erc721_collection,
@@ -88,7 +88,8 @@ try:
     }
 
     # Init GnosisConsoleEngine with current configuration
-    gnosis_console_engine = GnosisManager(init_configuration)
+    gnosis_manager = GnosisManager(configuration)
+    gnosis_manager.start()
 
 except ConnectionError:
     print('Launch [ "ganache-cli -d" ] command or setup [ network + api_key ] before you try to run the console again!')

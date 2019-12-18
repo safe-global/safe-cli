@@ -36,7 +36,7 @@ class ConsoleContractCommands:
         query like function input but not output + doble Mayus name Event, otherwise functions with input,output
         transact it's required
 
-        :param contract_instance: current contract_cli instance used in the console
+        :param contract_instance: current contract_cli.log instance used in the console
         :return: dictionary with the methods of the current instance provided
         """
         contract_methods = {}

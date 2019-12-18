@@ -98,6 +98,6 @@ meta = {
     'changeThreshold': HTML('Command <ansired>changeThreshold</ansired> will change the current threshold <u>uint</u> for the one provided.'),
     'sendEther': HTML('Command <ansired>sendEther</ansired> will send Ether/Wei to a valid account <u>address</u>.'),
     'sendToken': HTML('Command <ansired>sendToken</ansired> will send Token to a valid account <u>address</u>.'),
-    'NAME': HTML('Command <ansired>NAME</ansired> will show current name of the <u>contract_cli</u>.'),
-    'VERSION': HTML('Command <ansired>VERSION</ansired>  will show current version of the <u>contract_cli</u>.'),
+    'NAME': HTML('Command <ansired>NAME</ansired> will show current name of the <u>contract_cli.log</u>.'),
+    'VERSION': HTML('Command <ansired>VERSION</ansired>  will show current version of the <u>contract_cli.log</u>.'),
 }

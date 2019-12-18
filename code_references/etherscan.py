@@ -34,7 +34,7 @@
 # if __name__ == '__main__':
 #     main()
 
-# give contract_cli file, compile it and genertate the code,
+# give contract_cli.log file, compile it and genertate the code,
 # give abi .json build files with the data
 
 # Externally Owned Accounts (EOA) : these accounts are controlled by their private key.

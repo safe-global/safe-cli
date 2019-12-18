@@ -2,31 +2,29 @@
 # -*- coding: utf-8 -*-
 
 # Constants
-from core.constants.console_constant import NULL_ADDRESS, STRING_DASHES
+from core.constants.console_constant import STRING_DASHES
 
 # Import HexBytes Module
-from hexbytes import HexBytes
 
 # Import Gnosis-Py Modules
 from gnosis.eth.contracts import (
-    get_erc20_contract, get_erc721_contract
+    get_erc20_contract
 )
 # Import LogMessageFormatter: view_functions
 from core.logger.log_message_formatter import LogMessageFormatter
 
 # Import Constants: view_fall_back_handler
-from core.constants.console_constant import NULL_ADDRESS
 
 # Import HexBytes Module: view_code in hex
 from hexbytes import HexBytes
-from core.modules.safe_cli.safe_transaction import SafeTransaction
 
 
 class SafeToken:
     def __init__(self, logger, network_agent, safe_interface, safe_transaction, safe_configuration, ethereum_assets):
         self.name = self.__class__.__name__
         self.logger = logger
-        self.safe_interface = safe_interface
+
+        self.safe_instance = safe_interface.safe_instance
         self.network_agent = network_agent
         self.log_formatter = LogMessageFormatter(self.logger)
         self.safe_transaction = safe_transaction
@@ -68,7 +66,8 @@ class SafeToken:
 
             elif _queue:
                 # remark: Since the send resolves the current transaction, the current step needs a work around
-                self.tx_queue.append('sendToken')
+                # self.tx_queue.append('sendToken')
+                self.logger.info.append('queue')
 
             # Preview the current token balance of the safe after the transaction
             self.view_token_balance()
@@ -86,7 +85,7 @@ class SafeToken:
         :return:
         """
         try:
-            self.send_token(address_to=self.safe_interface.address, token_address=token_address,
+            self.send_token(address_to=self.safe_instance.address, token_address=token_address,
                             token_amount=token_amount, local_account=local_account, _execute=_execute, _queue=_queue)
         except Exception as err:
             self.logger.error('Unable to command_deposit_token_raw(): {0} {1}'.format(type(err), err))
@@ -104,7 +103,7 @@ class SafeToken:
         try:
             # Preview the current token balance of the safe before the transaction
             # self.command_view_token_balance()
-            sender_data = {'from': self.safe_interface.address}
+            sender_data = {'from': self.safe_instance.address}
 
             erc20 = get_erc20_contract(self.ethereum_client.w3, token_address)
             if self.safe_configuration.auto_fill_token_decimals:
@@ -117,9 +116,9 @@ class SafeToken:
             self.safe_transaction.perform_transaction(payload_data, address_to=token_address, _execute=_execute, _queue=_queue)
 
             # Preview the current token balance of the safe after the transaction
-            current_token_balance = self.ethereum_client.erc20.get_balance(self.safe_interface.address,
+            current_token_balance = self.ethereum_client.erc20.get_balance(self.safe_instance.address,
                                                                            token_address)
-            current_user_balance = self.ethereum_client.erc20.get_balance(self.safe_interface.address,
+            current_user_balance = self.ethereum_client.erc20.get_balance(self.safe_instance.address,
                                                                           token_address)
             self.logger.debug0(current_token_balance)
             self.logger.debug0(current_user_balance)
@@ -140,7 +139,7 @@ class SafeToken:
                 token_symbol.append(token_item)
                 token_address.append(current_token_address)
 
-            balance_data = self.ethereum_client.erc20.get_balances(self.safe_interface.address, token_address)
+            balance_data = self.ethereum_client.erc20.get_balances(self.safe_instance.address, token_address)
             current_name_to_show = ''
             for index, item in enumerate(balance_data):
                 if item['token_address'] is not None:

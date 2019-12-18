@@ -31,7 +31,7 @@ class SafeTransaction:
     def __init__(self, logger, network_agent, safe_interface, safe_sender, safe_configuration):
         self.logger = logger
 
-        self.safe_interface = safe_interface
+        self.safe_instance = safe_interface.safe_instance
         self.safe_sender = safe_sender
         # NetworkAgent: None
         self.network_agent = network_agent
@@ -47,12 +47,12 @@ class SafeTransaction:
         self.base_gas = 200000
 
         # Due to an unknow issue in Safe(), in ganache network gasPrice it's set to 0, otherwise the tx does not execute
-        self.gas_price = self._fix_gas_price()
+        self.gas_price = self.fix_gas_price()
 
         # Transaction Queue for Batching
         self.tx_queue = []
 
-    def _fix_gas_price(self):
+    def fix_gas_price(self):
         """
 
         """
@@ -113,7 +113,7 @@ class SafeTransaction:
         if wei_value is None:
             wei_value = 0
         if address_to is None:
-            address_to = self.safe_interface.address
+            address_to = self.safe_instance.address
         return address_to, wei_value
 
     def perform_transaction(self, payload_data, wei_value=None, address_to=None, _execute=False, _queue=False):
@@ -130,12 +130,12 @@ class SafeTransaction:
         address_to, wei_value = self._setup_safe_tx_values(address_to, wei_value)
         try:
             # Retrieve safe nonce
-            safe_nonce = self.safe_interface.retrieve_nonce()
+            safe_nonce = self.safe_instance.retrieve_nonce()
 
             # Create the safe_tx
-            safe_tx = self.safe_interface.build_multisig_tx(
+            safe_tx = self.safe_instance.build_multisig_tx(
                 address_to, wei_value, payload_data, SafeOperation.CALL.value,
-                self.safe_tx_gas, self.base_gas, self._fix_gas_price(),
+                self.safe_tx_gas, self.base_gas, self.fix_gas_price(),
                 NULL_ADDRESS, NULL_ADDRESS, b'', safe_nonce=safe_nonce)
 
             # Multi sign the safe_tx
@@ -147,7 +147,7 @@ class SafeTransaction:
                     safe_tx_hash, _ = safe_tx.execute(
                         self.safe_sender.sender_private_key,
                         tx_gas=self.base_gas + self.safe_tx_gas,
-                        tx_gas_price=self._fix_gas_price())
+                        tx_gas_price=self.fix_gas_price())
 
                     # Retrieve the receipt
                     safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)

@@ -9,7 +9,7 @@ from hexbytes import HexBytes
 
 
 class SafeManagement:
-    def __init__(self, logger, safe_interface, safe_sender, safe_information, safe_transaction):
+    def __init__(self, logger, safe_interface, safe_sender, safe_information, safe_transaction, ethereum_assets):
         self.name = self.__class__.__name__
         self.logger = logger
 
@@ -17,6 +17,7 @@ class SafeManagement:
         self.safe_sender = safe_sender
         self.safe_information = safe_information
         self.safe_transaction = safe_transaction
+        self.ethereum_assets = ethereum_assets
 
         # Formatter: view functions
         self.log_formatter = LogMessageFormatter(self.logger)

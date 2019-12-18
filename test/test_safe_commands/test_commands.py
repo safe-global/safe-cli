@@ -6,9 +6,9 @@ import logging
 from hexbytes import HexBytes
 from eth_account import Account
 
-from core.eth_assets.accounts import Accounts
-from core.eth_assets.tokens import Tokens
-from core.eth_assets.assets_engine import AssetsEngine
+from core.eth_assets.components.accounts import Accounts
+from core.eth_assets.components.tokens import Tokens
+from core.eth_assets.ethereum_assets import EthereumAssets
 from core.input.console_input_getter import ConsoleInputGetter
 from core.modules.safe_cli import ConsoleSafeCommands
 from core.eth_assets.helper.ether_helper import EtherHelper
@@ -63,7 +63,7 @@ account_artifacts = Accounts(logger, network_agent.get_ethereum_client(), False)
 # Setup Console Token
 token_artifacts = Tokens(logger, network_agent.ethereum_client)
 # Setup DataArtifacts
-data_artifacts = AssetsEngine(logger, account_artifacts, None, token_artifacts, None)
+data_artifacts = EthereumAssets(logger, account_artifacts, None, token_artifacts, None)
 # ----------------------------------------------------------------------------------------------------------------------
 
 

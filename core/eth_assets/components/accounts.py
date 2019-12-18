@@ -16,18 +16,24 @@ from core.constants.console_constant import STRING_DASHES, NULL_ADDRESS
 # Import Account Artifacts Module
 from core.eth_assets.constants.assets_type import TypeOfAccount
 
+# Data Structure should be reworked as follows:
+# [(Address, Name), { 'network': network, 'address': local_account.address, 'private_key': HexBytes(local_account.privateKey).hex(), 'local_account': local_account }]
+
 
 class Accounts:
     """ Account Artifacts
     This class will store all the information regarding account eth_assets
+    :param logger:
+    :param ethereum_client:
     """
     def __init__(self, logger, ethereum_client, silence_flag=False, test_flag=False):
         self.logger = logger
         self.ethereum_client = ethereum_client
         self.silence_flag = silence_flag
         self.test_flag = test_flag
+
         # convert to ether
-        self.account_data = {
+        self.data = {
             'NULL': {
                 'network': TypeOfAccount.LOCAL_ACCOUNT,
                 'balance': 0,
@@ -40,7 +46,7 @@ class Accounts:
             self._setup_ganache_accounts()
             self._setup_random_accounts()
 
-    def command_view_accounts(self):
+    def view_accounts(self):
         """ Command View Accounts
          This function will show the values currently stored withing he account artifact class
         :return:
@@ -48,15 +54,15 @@ class Accounts:
         self.logger.info(' ' + STRING_DASHES)
         self.logger.info('| {0:^14} | {1:^44} | {2:^74} | '.format('Account', 'Address', 'Private Key'))
         self.logger.info(' ' + STRING_DASHES)
-        for item in self.account_data:
+        for item in self.data:
             self.logger.info('| {0:^14} | {1:^44} | {2:^74} |'.format(
-                item, self.account_data[item]['address'], str(self.account_data[item]['private_key']))
+                item, self.data[item]['address'], str(self.data[item]['private_key']))
             )
         self.logger.info(' ' + STRING_DASHES)
 
     def new_account_entry(self, network, local_account):
         """ New Account Entry
-        This function will generate a new entry dictionary for a contract_cli artifact that has been loaded
+        This function will generate a new entry dictionary for a contract_cli.log artifact that has been loaded
         :param network:
         :param local_account:
         :return:
@@ -79,8 +85,8 @@ class Accounts:
         if private_key != '' and address == '':
             try:
                 local_account = Account.privateKeyToAccount(HexBytes(private_key))
-                self.account_data[(alias + str(len(self.account_data)-1))] = self.new_account_entry(network, local_account)
-                return self.account_data
+                self.data[(alias + str(len(self.data) - 1))] = self.new_account_entry(network, local_account)
+                return self.data
             except Exception as err:
                 self.logger.error('Unable to add_account() {0} {1}'.format(type(err), err))
         elif private_key != '' and address != '':
@@ -91,29 +97,31 @@ class Accounts:
                     raise Exception
             except Exception as err:
                 self.logger.error('Unable to add_account() {0} {1}'.format(type(err), err))
-            self.account_data[(alias + str(len(self.account_data)-1))] = self.new_account_entry(network, local_account)
-            return self.account_data
+            self.data[(alias + str(len(self.data) - 1))] = self.new_account_entry(network, local_account)
+            return self.data
         else:
             self.logger.error('Not enough values were given to the add_account()')
 
-    def get_local_account(self, private_key, owner_address_list):
+    def remove_account(self):
+        return
+
+    def get_local_verified_account(self, private_key, account_address_list):
         """ Get Local Account
-        This function will retrieve a local account to be set as sender in the current contract_cli safe you are loaded
-        in. It will compare the list of actual owners vs the generated address being created using a private_key, if
-        there is no matching withing the owner_list of the contract_cli an error will be prompted.
-        :param private_key:
-        :param owner_address_list:
+        This function will retrieve a local account if the generated account via private_key belongs to a list of owners
+        of a contract.
+        :param private_key: New owner private_key to be loaded within a safe-cli/contract-cli
+        :param account_address_list: List of owners of the loaded contract within safe-cli/contract-cli
         :return:
         """
         try:
             local_account = Account.privateKeyToAccount(private_key)
-            for owner_address in owner_address_list:
+            for owner_address in account_address_list:
                 if local_account.address == owner_address:
                     self.logger.debug0('Match found in owner list while checking address generated via private_key')
                     return local_account
         except Exception as err:
             self.logger.debug0('Miss Match in generated account via private_key when '
-                               'comparing address in owner list of the contract_cli')
+                               'comparing address in owner list of the contract_cli.log')
             self.logger.error('Unable to get_local_account() {0} {1}'.format(type(err), err))
 
     def _setup_random_accounts(self, account_number=10):

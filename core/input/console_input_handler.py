@@ -3,10 +3,8 @@
 
 
 class ConsoleInputHandler:
-    def __init__(self, logger, data_artifact=None):
+    def __init__(self):
         self.name = self.__class__.__name__
-        self.logger = logger
-        self.data_artifact = data_artifact
 
     def input_handler(self, command_argument, desired_parsed_item_list, priority_group):
         if command_argument == 'loadContract':

@@ -7,7 +7,7 @@ class LogFileManager:
     This class will create the log files if does not exist
     """
     def __init__(self):
-        self.gnosis_log = './log/general_console.log'
+        self.gnosis_log = './log/gnosis_cli.log'
         # self.contract_log = './log/contract_console.log'
         # self.safe_log = './log/safe_console.log'
 

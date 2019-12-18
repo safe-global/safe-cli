@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-# Import Logging Packa
+# Import Logging Package
 from logging import getLoggerClass, addLevelName, NOTSET
 
 # Import Custom Logging Level Constants

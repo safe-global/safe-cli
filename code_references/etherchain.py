@@ -19,14 +19,14 @@
 # list pending transactions (takes arguments)
 # print(e.transactions_pending())
 # describe the constructor invokation and other transaction in a human readable way
-# contract_cli = e.account("0x6090A6e47849629b7245Dfa1Ca21D94cd15878Ef")
-# print("constructor:{}".format(contract_cli.abi.describe_constructor(contract_cli.constructor_args)))
-# for tx in contract_cli.transactions(direction="in", length=10000)["data"]:
+# contract_cli.log = e.account("0x6090A6e47849629b7245Dfa1Ca21D94cd15878Ef")
+# print("constructor:{}".format(contract_cli.log.abi.describe_constructor(contract_cli.log.constructor_args)))
+# for tx in contract_cli.log.transactions(direction="in", length=10000)["data"]:
 #     tx_obj = e.transaction(tx["parenthash"])[0]
-#     print("transaction: [IN] <== %s : %s".format((str(tx_obj["hash"]), str(contract_cli.abi.describe_input(tx_obj["input"])))))
+#     print("transaction: [IN] <== %s : %s".format((str(tx_obj["hash"]), str(contract_cli.log.abi.describe_input(tx_obj["input"])))))
 
-# or just shorthand dump contract_cli with extra info
-# contract_cli.describe_contract()
+# or just shorthand dump contract_cli.log with extra info
+# contract_cli.log.describe_contract()
 
 # directly work with the backend api interface
 # print(e.get_transaction("c98061e6e1c9a293f57d59d53f4e171bb62afe3e5b6264e9a770406a81fb1f07"))

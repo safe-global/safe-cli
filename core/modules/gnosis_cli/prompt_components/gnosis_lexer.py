@@ -6,7 +6,7 @@
 from prompt_toolkit.lexers import Lexer
 
 # Import Regex Expresions from Contract Console Constants Package
-from core.modules.safe_cli.constants.contract_constants import (
+from core.modules.contract_cli.constants.contract_constants import (
     console_quit_commands, console_method_names, address_param, uint_param, console_commands, console_contract_execution_commands, console_help_commands, console_known_networks, ether_params
 )
 
@@ -24,7 +24,7 @@ KNOWN_NETWORKS_COLOR = 'DarkSalmon'
 INFORMATION_COLOR = 'LightYellow'
 
 
-class SafeLexer(Lexer):
+class GnosisLexer(Lexer):
     """ Syntax Lexer
     This Class will perform the syntax highlight for known user input commands
     """

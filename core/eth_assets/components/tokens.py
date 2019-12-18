@@ -26,8 +26,7 @@ class Tokens:
     def __init__(self, logger, ethereum_client):
         self.logger = logger
         self.ethereum_client = ethereum_client
-        self.token_data = {}
-
+        self.data = {}
 
     def _setup_console_token_init(self, configuration):
         """ Setup Console Token Configuration
@@ -42,9 +41,6 @@ class Tokens:
         if configuration['erc721']:
             self.logger.debug0(configuration['erc721'])
             self.token_artifacts.pre_load_erc20_artifacts(configuration['erc721'])
-
-
-
 
     def pre_load_erc20_artifacts(self, token_erc20_artifacts):
         """ Pre Load Artifacts
@@ -70,7 +66,7 @@ class Tokens:
                         self.add_token_artifact(token_artifact, token_artifact['name'])
                     except Exception as err:
                         self.logger.error(err)
-                        self.logger.error('Unable to get erc20 contract_cli, are you sure this is a valid token address?')
+                        self.logger.error('Unable to get erc20 contract_cli.log, are you sure this is a valid token address?')
                 else:
                     self.logger.error('Address for erc20 token is not valid')
         self.logger.debug0(STRING_DASHES)
@@ -100,7 +96,7 @@ class Tokens:
                         self.add_token_artifact(token_artifact, token_artifact['name'])
                     except Exception as err:
                         self.logger.error(err)
-                        self.logger.error('Unable to get erc721 contract_cli, are you sure this is a valid token address?')
+                        self.logger.error('Unable to get erc721 contract_cli.log, are you sure this is a valid token address?')
                 else:
                     self.logger.error('Address for erc721 token is not valid')
         self.logger.debug0(STRING_DASHES)
@@ -128,10 +124,10 @@ class Tokens:
         self.logger.info(' ' + STRING_DASHES)
         self.logger.info('| {0:^13} | {1:^42} | {2:^56} | {3:^18} | '.format('Symbol', 'Address', 'Instance', 'Type'))
         self.logger.info(' ' + STRING_DASHES)
-        for item in self.token_data:
+        for item in self.data:
             self.logger.info('| {0:^13} | {1} | {2} | {3} | '.format(
-                item, self.token_data[item]['address'],
-                self.token_data[item]['instance'], self.token_data[item]['type'])
+                item, self.data[item]['address'],
+                self.data[item]['instance'], self.data[item]['type'])
             )
         self.logger.info(' ' + STRING_DASHES)
 
@@ -155,10 +151,10 @@ class Tokens:
         :return:
         """
         if alias != '':
-            self.token_data[alias] = self.new_token_entry(
+            self.data[alias] = self.new_token_entry(
                 token_artifact['address'], token_artifact['instance'], token_artifact['type'], token_artifact['name'])
         else:
-            self.token_data['uToken' + str(len(self.token_data))] = self.new_token_entry(
+            self.data['uToken' + str(len(self.data))] = self.new_token_entry(
                 token_artifact['address'], token_artifact['instance'], token_artifact['type'], token_artifact['name'])
 
     def _new_token_helper(self):
@@ -190,7 +186,7 @@ class Tokens:
                             token_alias = token_instance.functions.symbol().call()
                         except Exception as err:
                             self.logger.error(err)
-                            self.logger.error('Unable to get erc20 contract_cli, are you sure this is a valid token address?')
+                            self.logger.error('Unable to get erc20 contract_cli.log, are you sure this is a valid token address?')
                     elif token_type == TypeOfTokens.ERC721:
                         try:
                             token_address = token_answer
@@ -198,7 +194,7 @@ class Tokens:
                             token_alias = token_instance.functions.symbol().call()
                         except Exception as err:
                             self.logger.error(err)
-                            self.logger.error('Unable to get erc721 contract_cli, are you sure this is a valid token address?')
+                            self.logger.error('Unable to get erc721 contract_cli.log, are you sure this is a valid token address?')
                 else:
                     self.logger.error('Address is not valid')
         return self.new_token_entry(token_address, token_instance, token_type, token_alias)

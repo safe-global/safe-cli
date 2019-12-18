@@ -7,7 +7,7 @@ from core.constants.console_constant import STRING_DASHES
 # Help Message Constants
 # ----------------------------------------------------------------------------------------------------------------------
 LOAD_CONTRACT_MSG = 'loadContract --alias=<Contract Name>'
-LOAD_CONTRACT_COMMAND_MSG = 'This command will prompt the user with the options to create a new contract_cli entrie ' \
+LOAD_CONTRACT_COMMAND_MSG = 'This command will prompt the user with the options to create a new contract_cli.log entrie ' \
                             'in the console (To Be Implemented).'
 LOAD_SAFE_MSG = 'loadSafe --address=<Contract Address>'
 LOAD_SAFE_COMMAND_MSG = 'This command will sync with the --address that has been provided by de user to operate ' \
@@ -29,7 +29,7 @@ VIEW_TOKENS_MSG = 'viewTokens'
 VIEW_TOKENS_COMMAND_MSG = 'This command will show the current status of the tokens the user has pre/loaded.'
 # ----------------------------------------------------------------------------------------------------------------------
 NEW_CONTRACT_MSG = 'newContract --address=<Contract Address> --abi=<Path to Contract ABI>'
-NEW_CONTRACT_COMMAND_MSG = 'This command will trigger the creation of a new contract_cli artifact withing the gnosis-cli.'
+NEW_CONTRACT_COMMAND_MSG = 'This command will trigger the creation of a new contract_cli.log artifact withing the gnosis-cli.'
 NEW_ACCOUNT_MSG = 'newAccount --private_key=<Account Private Key>'
 NEW_ACCOUNT_COMMAND_MSG = 'This command will trigger the creation of a new account artifact withing the gnosis-cli.'
 NEW_PAYLOAD_MSG = 'newPayload'
@@ -41,7 +41,7 @@ NEW_TOKEN_MSG = 'newToken --address=<Token Address> --abi=<Path to Contract ABI>
 NEW_TOKEN_COMMAND_MSG = 'This command will trigger the creation of a new token artifact withing the gnosis-cli.'
 # ----------------------------------------------------------------------------------------------------------------------
 QUIT_MSG = 'exit|quit|close'
-QUIT_COMMAND_MSG = 'This command will trigger the exit of the gnosis-cli/safe-cli/contract_cli-cli'
+QUIT_COMMAND_MSG = 'This command will trigger the exit of the gnosis-cli/safe-cli/contract_cli.log-cli'
 # ----------------------------------------------------------------------------------------------------------------------
 DISCLAIMER_MSG_0 = 'This is a proof of concept software under the MIT License, focused ' \
                    'on the design of an interface, to directly interact with the'
@@ -74,10 +74,10 @@ IS_OWNER_COMMAND_MSG = 'This commmand will trigger the evaluation of the address
 ARE_OWNER_MSG = 'areOwners --address=<Account Address> ... --address=<Account Address>'
 ARE_OWNERS_COMMAND_MSG = 'This command will trigger the method isOwner for each address provided by in the user input.'
 GET_OWNER_MSG = 'getOwners'
-GET_OWNER_COMMAND_MSG = 'This command will trigger the method getOwner within the loaded contract_cli in the safe-cli.'
+GET_OWNER_COMMAND_MSG = 'This command will trigger the method getOwner within the loaded contract_cli.log in the safe-cli.'
 GET_THRESHOLD_MSG = 'getThreshold'
 GET_THRESHOLD_COMMAND_MSG = 'This command will trigger the method getThreshold' \
-                            ' within the loaded contract_cli in the safe-cli.'
+                            ' within the loaded contract_cli.log in the safe-cli.'
 ADD_OWNER_MSG = 'addOwner --address=<Account Address>'
 ADD_OWNER_COMMAND_MSG = 'This function will trigger de insertion of a new owner within the actual network ' \
                         'in the safe-cli.'

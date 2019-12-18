@@ -17,7 +17,7 @@ class Payloads:
     def __init__(self, logger):
         self.name = self.__class__.__name__
         self.logger = logger
-        self.payload_data = {}
+        self.data = {}
 
     def command_view_payloads(self):
         """ Command View Payloads
@@ -29,8 +29,8 @@ class Payloads:
         self.logger.info('| {0:^14} | {1:^121} |'.format('Alias', 'Payload'))
         self.logger.info(' ' + STRING_DASHES)
         self.logger.debug0(STRING_DASHES)
-        for item in self.payload_data:
-            self.logger.info('| {0:^14} | {1:^121} |'.format(item, self.payload_data[item]['payload']))
+        for item in self.data:
+            self.logger.info('| {0:^14} | {1:^121} |'.format(item, self.data[item]['payload']))
         self.logger.info(' ' + STRING_DASHES)
 
     def command_new_payload(self, command_argument, argument_list):
@@ -69,12 +69,12 @@ class Payloads:
         :return:
         """
         if alias != '':
-            self.payload_data[alias] = self.new_payload_entry(payload_artifact, alias)
-            return self.payload_data
-        self.payload_data['uPayload' + str(len(self.payload_data))] = self.new_payload_entry(
-            payload_artifact, 'uPayload_' + str(len(self.payload_data))
+            self.data[alias] = self.new_payload_entry(payload_artifact, alias)
+            return self.data
+        self.data['uPayload' + str(len(self.data))] = self.new_payload_entry(
+            payload_artifact, 'uPayload_' + str(len(self.data))
         )
-        return self.payload_data
+        return self.data
 
     @staticmethod
     def _new_payload_helper(payload_options):

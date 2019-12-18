@@ -5,6 +5,16 @@
 from enum import Enum
 
 
+class TypeOfAssets(Enum):
+    """ Type Of Assets
+    Enum defining known types of Token
+    """
+    ACCOUNT = 'account'
+    CONTRACT = 'contract'
+    PAYLOAD = 'payload'
+    TOKEN = 'token'
+
+
 class TypeOfAccount(Enum):
     """ Type Of Account
     Enum defining known types of accounts

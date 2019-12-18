@@ -13,22 +13,22 @@ class ContractController:
     """ Console Controller
     This class will represent and function as pseudo-controller for the execution of the proper commands
     """
-    def __init__(self, logger, network_agent, data_artifact, console_engine):
+    def __init__(self, logger, network_agent, ethereum_assets, gnosis_engine):
         self.logger = logger
 
-        self.data_artifact = data_artifact
-        self.contract_artifacts = self.data_artifact.contract_artifacts
-        self.account_artifacts = self.data_artifact.account_artifacts
-        self.payload_artifacts = self.data_artifact.payload_artifacts
-        self.token_artifacts = self.data_artifact.token_artifacts
+        self.ethereum_assets = ethereum_assets
+        self.contracts = self.ethereum_assets.contracts
+        self.accounts = self.ethereum_assets.accounts
+        self.payloads = self.ethereum_assets.payloads
+        self.tokens = self.ethereum_assets.tokens
         self.network_agent = network_agent
         self.console_information = InformationArtifacts(self.logger)
 
-        self.console_engine = console_engine
+        self.gnosis_engine = gnosis_engine
         self.safe_interface = None
         self.contract_interface = None
         self.console_getter = ConsoleInputGetter(self.logger)
-        self.console_handler = ConsoleInputHandler(self.logger, self.data_artifact)
+        self.console_handler = ConsoleInputHandler()
 
     def operate_with_contract(self, stream, contract_methods, contract_instance):
         """ Operate With Contract
@@ -36,7 +36,7 @@ class ContractController:
         :param stream: command_argument (method to call) that will trigger the operation
         :param contract_methods: dict with all the avaliable methods retrieved from the abi file
         :param contract_instance: only for eval() so it can be triggered
-        :return: if method found, a method from the current contract_cli will be triggered, success or
+        :return: if method found, a method from the current contract_cli.log will be triggered, success or
         not depends on the establishing of the proper values.
         """
         try:
@@ -79,7 +79,7 @@ class ContractController:
 
                     else:
                         self.logger.warn('--execute, --query or --queue arguments needed in order to properly '
-                                         'operate with the current contract_cli')
+                                         'operate with the current contract_cli.log')
 
         except Exception as err:
             self.logger.debug0('operate_with_contract() {0}'.format(err))

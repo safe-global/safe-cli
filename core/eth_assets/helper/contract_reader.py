@@ -13,7 +13,7 @@ STRING_DASHES = '----------' * 14
 
 class ContractReader:
     """ Build Contract Reader
-    This class will provide functionality for the extraction of the abi and bytecode for any given contract_cli
+    This class will provide functionality for the extraction of the abi and bytecode for any given contract_cli.log
     """
     def __init__(self, logger=None):
         self.name = self.__class__.__name__
@@ -23,8 +23,8 @@ class ContractReader:
     def read_from(file_path):
         """ Read From
         This method will read the json file provided within the current file_path, and return in it's found the abi
-        and the bytecode for the current contract_cli.
-        :param file_path: path to the build files of the current contract_cli
+        and the bytecode for the current contract_cli.log.
+        :param file_path: path to the build files of the current contract_cli.log
         :return: contract_abi, contract_bytecode
         """
         contract_abi = {}
@@ -39,7 +39,7 @@ class ContractReader:
             try:
                 contract_abi = json_data["abi"]
                 print('| {contract_name} ABI has been found within the file '
-                      'path provided for the current contract_cli '.format(contract_name=contract_name))
+                      'path provided for the current contract_cli.log '.format(contract_name=contract_name))
             except KeyError:
                 print('Unable to Retrieve ABI from .json build')
                 pass
@@ -47,7 +47,7 @@ class ContractReader:
             try:
                 contract_bytecode = json_data["bytecode"]
                 print('| {contract_name} Bytecode has been found within the file '
-                      'path provided for the current contract_cli '.format(contract_name=contract_name))
+                      'path provided for the current contract_cli.log '.format(contract_name=contract_name))
             except KeyError:
                 print('| Unable to Retrieve Bytecode from .json build ')
                 pass

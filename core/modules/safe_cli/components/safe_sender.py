@@ -7,8 +7,15 @@ from hexbytes import HexBytes
 # Exceptions: _add, _remove operations
 from core.modules.safe_cli.exceptions.safe_sender_exceptions import SafeSenderNotFound, SafeSenderAlreadyLoaded, SafeSenderNotEnoughSigners
 
-# Import LogMessageFormatter: view_functions
+# Import LogMessageFormatter: view_functions()
 from core.logger.log_message_formatter import LogMessageFormatter
+
+# Import HTML for defining the prompt style
+from prompt_toolkit import HTML
+
+
+# Import EtherHelper
+from core.eth_assets.helper.ether_helper import EtherHelper
 
 # Constants
 MARK = 'X'
@@ -16,12 +23,12 @@ UN_MARK = ' '
 
 
 class SafeSender:
-    def __init__(self, logger, safe_interface, network_agent, ethereum_assets):
+    def __init__(self, logger, network_agent, safe_interface, ethereum_assets):
         self.name = self.__class__.__name__
         self.logger = logger
 
         # SafeInterface: safe_instance
-        self.safe_interface = safe_interface
+        self.safe_instance = safe_interface.safe_instance
 
         # Sender list
         self.sender_account_list = []
@@ -30,17 +37,20 @@ class SafeSender:
         self.sender_private_key = None
         self.sender_address = None
 
-        # Network Agent: ethereum_client
+        # NetworkAgent: ethereum_client
         self.network_agent = network_agent
 
         # EthereumClient: get_balance()
         self.ethereum_client = network_agent.ethereum_client
 
-        # Account Artifacts: get_local_account()
-        self.account_artifacts = ethereum_assets.account_artifacts
+        # Accounts: get_local_account()
+        self.accounts = ethereum_assets.accounts
 
-        # view functions
+        # LogFormatter: view_functions()
         self.log_formatter = LogMessageFormatter(self.logger)
+
+        # EtherHelper: balance with ether units
+        self.ether_helper = EtherHelper(self.logger, self.ethereum_client)
 
     def is_sender(self, address):
         if address == self.sender_address:
@@ -60,9 +70,9 @@ class SafeSender:
         :return:
         """
         self.log_formatter.log_section_left_side('Safe Owner Data')
-        for owner_index, owner in enumerate(self.safe_interface.functions.getOwners().call()):
+        for owner_index, owner in enumerate(self.safe_instance.functions.getOwners().call()):
             information_data = ' (#) Owner {0} | Address: {1} | Sender: [{2}] | Balance: {3} '.format(
-                owner_index, owner, self._is_sender(owner), self.ethereum_client.w3.eth.getBalance(owner))
+                owner_index, owner, self.is_sender(owner), self.ethereum_client.w3.eth.getBalance(owner))
             self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         self.log_formatter.log_dash_splitter()
 
@@ -140,7 +150,7 @@ class SafeSender:
             self.logger.debug0('[ Safe Sender ]: New sender account added {0}'.format(self.sender_account_list))
 
             # Add new element account to EthereumAssets.Accounts
-            self.account_artifacts.add_account_artifact(
+            self.accounts.add_account_artifact(
                 sender_account.address, sender_account.private_key, alias='safeOwner_')
             self.logger.debug0('[ Safe Sender ]: Current Senders {0}'.format(self.sender_account_list))
             return True
@@ -148,7 +158,6 @@ class SafeSender:
             raise SafeSenderNotFound
 
     def _remove_sender(self, sender_account):
-
         if (sender_account is not None) and (sender_account in self.sender_account_list):
             for stored_sender in self.sender_account_list:
                 # Found Match
@@ -156,7 +165,7 @@ class SafeSender:
                     self.logger.debug0('[ Safe Sender ]: Removing sender account {0} from sender_account_list'.format(
                         sender_account))
 
-                    # Remove new element account to EthereumAssets.Accounts
+                    # Remove new element account to EthereumAssets.accounts
                     # todo: implement remove element from EthereumAssets.Accounts
                     self.sender_account_list.remove(sender_account)
             self.logger.debug0('[ Safe Sender ]: Current Senders {0}'.format(self.sender_account_list))
@@ -170,16 +179,16 @@ class SafeSender:
         limiting the execution of operations vs de current lenght of the list of account_local
         :return:
         """
-        if self.safe_interface.retrieve_threshold() == self.sender_account_list:
+        if self.safe_instance.retrieve_threshold() == self.sender_account_list:
             return True
-        self.logger.warn('Not Enough Signatures Loaded/Stored in local_accounts_list')
+        self.logger.warn('Not Enough Signatures Loaded/Stored in sender_accounts_list')
         raise SafeSenderNotEnoughSigners
 
     def load_owner(self, private_key):
         try:
             self.logger.debug0('[ Safe Sender ]: Loading new Sender {0}'.format(HexBytes(private_key).hex()))
-            new_sender = self.account_artifacts.get_local_account(
-                HexBytes(private_key).hex(), self.safe_interface.retrieve_owners())
+            new_sender = self.accounts.get_local_verified_account(
+                HexBytes(private_key).hex(), self.safe_instance.retrieve_owners())
 
             # If the add is a success, setup sender again as planned
             if self._add_sender(new_sender):
@@ -195,8 +204,8 @@ class SafeSender:
     def unload_owner(self, private_key):
         try:
             self.logger.debug0('[ Safe Sender ]: Loading new Sender {0}'.format(HexBytes(private_key).hex()))
-            old_sender = self.account_artifacts.get_local_account(
-                HexBytes(private_key).hex(), self.safe_interface.retrieve_owners())
+            old_sender = self.accounts.get_local_verified_account(
+                HexBytes(private_key).hex(), self.safe_instance.retrieve_owners())
 
             # If the remove is a success, setup sender again as planned
             if self._remove_sender(old_sender):
@@ -207,20 +216,17 @@ class SafeSender:
         except Exception as err:
             self.logger.error(err)
 
-    # Sender Data so it should be here
-    def get_toolbar_text(self, sender_address=None, sender_private_key=None):
+    def get_toolbar_text(self):
         """ Get Toolbar Text
-
+        This function will return the data for the toolbar displaying the current sender
         :param sender_address:
         :param sender_private_key:
         :return:
         """
         amount = 0
-        if (sender_address is not None) and (sender_private_key is not None):
-            balance = self.network_agent.ethereum_client.w3.eth.getBalance(sender_address)
-            wei_amount = self.ether_helper.get_unify_ether_amount([('--wei', [balance])])
-            text_badge, tmp_amount = self.ether_helper.get_proper_ether_amount(wei_amount)
+        if (self.sender_address is not None) and (self.sender_private_key is not None):
+            text_badge, tmp_amount = self.ether_helper.get_simplified_balance(self.sender_address)
             amount = '{0} {1}'.format(str(tmp_amount), text_badge)
         return HTML(' [ <strong>Sender:</strong> %s'
                     ' | <strong>PK:</strong> %s'
-                    ' | <strong>Balance:</strong> %s ]' % (sender_address, sender_private_key, amount))
+                    ' | <strong>Balance:</strong> %s ]' % (self.sender_address, self.sender_private_key, amount))
