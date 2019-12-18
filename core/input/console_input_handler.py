@@ -35,12 +35,10 @@ class ConsoleInputHandler:
         elif command_argument == 'addOwner':
             if priority_group == 1:
                 new_owner_address = desired_parsed_item_list[0][1][0]
-                # new_owner_address = self.data_artifact.from_alias_get_value(desired_parsed_item_list[0][1][0], 'account')
                 return new_owner_address
         elif command_argument == 'addOwnerWithThreshold':
             if priority_group == 1:
                 new_owner_address = desired_parsed_item_list[0][1][0]
-                # new_owner_address = self.data_artifact.from_alias_get_value(desired_parsed_item_list[0][1][0], 'account')
                 new_threshold = int(desired_parsed_item_list[1][1][0])
                 return new_owner_address, new_threshold
         elif command_argument == 'removeOwner':
@@ -61,7 +59,6 @@ class ConsoleInputHandler:
                 return token_address, address_to, token_amount, private_key
         elif command_argument == 'depositToken':
             if priority_group == 1:
-                # token_address = self.data_artifact.from_alias_get_value(desired_parsed_item_list[0][1][0], 'token')
                 token_address = desired_parsed_item_list[0][1][0]
                 token_amount = int(desired_parsed_item_list[1][1][0])
                 private_key = desired_parsed_item_list[2][1][0]
@@ -88,7 +85,7 @@ class ConsoleInputHandler:
                 address_to = desired_parsed_item_list[0][1][0]
                 ethereum_amounts = desired_parsed_item_list[1:]
                 return address_to, ethereum_amounts
-        elif command_argument == 'updateSafe':
+        elif command_argument == 'changeMasterCopy':
             if priority_group == 1:
                 new_master_copy_address = desired_parsed_item_list[0][1][0]
                 return new_master_copy_address

@@ -32,13 +32,13 @@ class EthereumAssets:
         :return: Dict Data
         """
         if asset_type == 'account':
-            return self.accounts.account_data
+            return self.accounts.data
         elif asset_type == 'payload':
-            return self.payloads.payload_data
+            return self.payloads.data
         elif asset_type == 'token':
-            return self.tokens.token_data
+            return self.tokens.data
         elif asset_type == 'contract_cli.log':
-            return self.contracts.contract_data
+            return self.contracts.data
 
     def retrive_from_stored_values(self, alias, key=None, asset_type=None):
         """ Retrieve From Stored Values

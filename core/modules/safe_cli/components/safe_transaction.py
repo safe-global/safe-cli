@@ -28,11 +28,12 @@ class SafeTransaction:
     :param safe_sender:
     :param safe_configuration:
     """
-    def __init__(self, logger, network_agent, safe_interface, safe_sender, safe_configuration):
+    def __init__(self, logger, network_agent, safe_interface, safe_configuration):
         self.logger = logger
 
         self.safe_instance = safe_interface.safe_instance
-        self.safe_sender = safe_sender
+        self.safe_sender = safe_interface.safe_sender
+        self.safe_operator = safe_interface.safe_operator
         # NetworkAgent: None
         self.network_agent = network_agent
         self.ethereum_client = network_agent.ethereum_client
@@ -82,7 +83,7 @@ class SafeTransaction:
                     self.log_formatter.log_dash_splitter()
                 return safe_tx
         except SafeSenderNotEnoughSigners:
-            raise SafeSenderNotEnoughSigners
+            raise SafeSenderNotEnoughSigners(None)
         except Exception as err:
             self.logger.error('Unexpected error in multi_sign_safe_tx(): {0} {1}'.format(type(err), err))
 
@@ -102,7 +103,7 @@ class SafeTransaction:
                     self.log_formatter.log_dash_splitter()
 
         except SafeSenderNotEnoughSigners:
-            raise SafeSenderNotEnoughSigners
+            raise SafeSenderNotEnoughSigners(None)
         except Exception as err:
             self.logger.error('Unexpected error in safe_tx_multi_approve(): {0} {1}'.format(type(err), err))
 
@@ -124,16 +125,16 @@ class SafeTransaction:
         :param address_to:
         :param _execute:
         :param _queue:
-        :return:
+        :return: Return True if safe_tx is perform, otherwise False
         """
         safe_tx_receipt = None
         address_to, wei_value = self._setup_safe_tx_values(address_to, wei_value)
         try:
             # Retrieve safe nonce
-            safe_nonce = self.safe_instance.retrieve_nonce()
+            safe_nonce = self.safe_operator.retrieve_nonce()
 
             # Create the safe_tx
-            safe_tx = self.safe_instance.build_multisig_tx(
+            safe_tx = self.safe_operator.build_multisig_tx(
                 address_to, wei_value, payload_data, SafeOperation.CALL.value,
                 self.safe_tx_gas, self.base_gas, self.fix_gas_price(),
                 NULL_ADDRESS, NULL_ADDRESS, b'', safe_nonce=safe_nonce)
@@ -152,14 +153,15 @@ class SafeTransaction:
                     # Retrieve the receipt
                     safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
                     self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
-
+                    return True
                 elif _queue:
                     # Queue the safe_tx if --queue was used
                     self.logger.info('Tx Added to Batch Queue')
                     self.tx_queue.append(safe_tx)
 
+            return False
         except SafeSenderNotEnoughSigners as err:
-            self.logger.error(err)
+            self.logger.error(err.message)
 
         except Exception as err:
             self.logger.error('Unexpected error in perform_transaction(): {0} {1}'.format(type(err), err))

@@ -27,8 +27,12 @@ class SafeSender:
         self.name = self.__class__.__name__
         self.logger = logger
 
+        # SafeInterface:
+        self.safe_interface = safe_interface
         # SafeInterface: safe_instance
-        self.safe_instance = safe_interface.safe_instance
+        self.safe_instance = self.safe_interface.safe_instance
+        # SafeInterface: safe class gnosis-py
+        self.safe_operator = self.safe_interface.safe_operator
 
         # Sender list
         self.sender_account_list = []
@@ -108,9 +112,6 @@ class SafeSender:
         # List to store ether for each loaded owner and find the one with the max balance ether
         sender_stored_ether = []
 
-        # Prompt header
-        self.log_formatter.log_section_left_side('Setup Sender Based On Ether')
-
         # Only establish the sender if len() equals 1
         if len(self.sender_account_list) >= 1:
             for index, sender in enumerate(self.sender_account_list):
@@ -151,11 +152,11 @@ class SafeSender:
 
             # Add new element account to EthereumAssets.Accounts
             self.accounts.add_account_artifact(
-                sender_account.address, sender_account.private_key, alias='safeOwner_')
-            self.logger.debug0('[ Safe Sender ]: Current Senders {0}'.format(self.sender_account_list))
+                sender_account.address, sender_account.privateKey, alias='safeOwner_')
+            self.logger.debug0('[ Safe Sender ]: Current senders {0}'.format(self.sender_account_list))
             return True
         else:
-            raise SafeSenderNotFound
+            raise SafeSenderNotFound(None)
 
     def _remove_sender(self, sender_account):
         if (sender_account is not None) and (sender_account in self.sender_account_list):
@@ -168,44 +169,59 @@ class SafeSender:
                     # Remove new element account to EthereumAssets.accounts
                     # todo: implement remove element from EthereumAssets.Accounts
                     self.sender_account_list.remove(sender_account)
-            self.logger.debug0('[ Safe Sender ]: Current Senders {0}'.format(self.sender_account_list))
+            self.logger.debug0('[ Safe Sender ]: Current senders {0}'.format(self.sender_account_list))
             return True
         else:
-            raise SafeSenderNotFound
+            raise SafeSenderNotFound(None)
+
+    def unload_owner_via_address(self, sender_address):
+        """ Unload_Owner_Via_Address
+
+        """
+        try:
+            for sender in self.sender_account_list:
+                if sender.address == sender_address:
+
+                    # If the remove is a success, setup sender again as planned
+                    if self._remove_sender(sender):
+                        self._update_sender()
+
+        except Exception as err:
+            self.logger.error(err)
 
     def are_enough_signatures_loaded(self):
-        """ Are Enough Signatures Loaded
+        """ Are_Enough_Signatures_Loaded
         This funcion eval if the current operation is in disposition to be executed, evaluating the number of threshold
         limiting the execution of operations vs de current lenght of the list of account_local
         :return:
         """
-        if self.safe_instance.retrieve_threshold() == self.sender_account_list:
+        if self.safe_operator.retrieve_threshold() <= len(self.sender_account_list):
             return True
-        self.logger.warn('Not Enough Signatures Loaded/Stored in sender_accounts_list')
-        raise SafeSenderNotEnoughSigners
+        # self.logger.warn('Not Enough Signatures Loaded/Stored in sender_accounts_list')
+        raise SafeSenderNotEnoughSigners(None)
 
     def load_owner(self, private_key):
         try:
-            self.logger.debug0('[ Safe Sender ]: Loading new Sender {0}'.format(HexBytes(private_key).hex()))
+            self.logger.debug0('[ Safe Sender ]: Loading new sender {0}'.format(HexBytes(private_key).hex()))
             new_sender = self.accounts.get_local_verified_account(
-                HexBytes(private_key).hex(), self.safe_instance.retrieve_owners())
+                HexBytes(private_key).hex(), self.safe_operator.retrieve_owners())
 
             # If the add is a success, setup sender again as planned
             if self._add_sender(new_sender):
                 self._setup_sender()
 
-        except SafeSenderNotFound:
-            self.logger.error('[ Safe Sender ]: Sender is not part of the safe owners, Unable to properly loadOwner')
-        except SafeSenderAlreadyLoaded:
-            self.logger.error('[ Safe Sender ]: Sender already in sender_account_list')
+        except SafeSenderNotFound as err:
+            self.logger.error(err.message)
+        except SafeSenderAlreadyLoaded as err:
+            self.logger.error(err.message)
         except Exception as err:
             self.logger.error(err)
 
     def unload_owner(self, private_key):
         try:
-            self.logger.debug0('[ Safe Sender ]: Loading new Sender {0}'.format(HexBytes(private_key).hex()))
+            self.logger.debug0('[ Safe Sender ]: Unloading old sender {0}'.format(HexBytes(private_key).hex()))
             old_sender = self.accounts.get_local_verified_account(
-                HexBytes(private_key).hex(), self.safe_instance.retrieve_owners())
+                HexBytes(private_key).hex(), self.safe_operator.retrieve_owners())
 
             # If the remove is a success, setup sender again as planned
             if self._remove_sender(old_sender):

@@ -12,12 +12,16 @@ from hexbytes import HexBytes
 
 
 class SafeInformation:
-    def __init__(self, logger, network_agent,  safe_interface, safe_sender):
+    def __init__(self, logger, network_agent, safe_interface, safe_sender):
         self.name = self.__class__.__name__
         self.logger = logger
 
         # SafeInterface:
         self.safe_interface = safe_interface
+        # SafeInterface: safe_instance
+        self.safe_instance = self.safe_interface.safe_instance
+        # SafeInterface: safe class gnosis-py
+        self.safe_operator = self.safe_interface.safe_operator
 
         # SafeSender: is_sender()
         self.safe_sender = safe_sender
@@ -54,6 +58,8 @@ class SafeInformation:
         self.view_proxy_copy(block_style=False)
         self.view_fallback_handler(block_style=False)
         self.view_safe_nonce(block_style=False)
+        self.log_formatter.log_dash_splitter()
+        self.log_formatter.log_banner_header('')
 
     def view_fallback_handler(self, block_style=True):
         """ Command Fallback Handler
@@ -75,7 +81,7 @@ class SafeInformation:
         """
         if block_style:
             self.log_formatter.log_section_left_side('Safe Proxy')
-        self.log_formatter.log_data(' (#) ProxyCopy: {0}', self.safe_interface.address)
+        self.log_formatter.log_data(' (#) ProxyCopy: {0}', self.safe_instance.address)
         if block_style:
             self.log_formatter.log_dash_splitter()
 
@@ -87,7 +93,7 @@ class SafeInformation:
         """
         if block_style:
             self.log_formatter.log_section_left_side('Safe MasterCopy')
-        self.log_formatter.log_data(' (#) MasterCopy: {0}', self.safe_interface.retrieve_master_copy_address())
+        self.log_formatter.log_data(' (#) MasterCopy: {0}', self.safe_operator.retrieve_master_copy_address())
         if block_style:
             self.log_formatter.log_dash_splitter()
 
@@ -99,7 +105,7 @@ class SafeInformation:
         """
         if block_style:
             self.log_formatter.log_section_left_side('Safe Nonce')
-        self.log_formatter.log_data(' (#) Nonce: {0} ', self.safe_interface.retrieve_nonce())
+        self.log_formatter.log_data(' (#) Nonce: {0} ', self.safe_operator.retrieve_nonce())
         if block_style:
             self.log_formatter.log_dash_splitter()
 
@@ -111,7 +117,7 @@ class SafeInformation:
         """
         if block_style:
             self.log_formatter.log_section_left_side('Safe Code')
-        self.log_formatter.log_data(' (#) Code: {0} ', HexBytes(self.safe_interface.retrieve_code()).hex())
+        self.log_formatter.log_data(' (#) Code: {0} ', HexBytes(self.safe_operator.retrieve_code()).hex())
         if block_style:
             self.log_formatter.log_dash_splitter()
 
@@ -123,7 +129,7 @@ class SafeInformation:
         """
         if block_style:
             self.log_formatter.log_section_left_side('Safe Version')
-        self.log_formatter.log_data(' (#) MasterCopy Version: {0} ', self.safe_interface.retrieve_version())
+        self.log_formatter.log_data(' (#) MasterCopy Version: {0} ', self.safe_operator.retrieve_version())
         if block_style:
             self.log_formatter.log_dash_splitter()
 
@@ -135,7 +141,7 @@ class SafeInformation:
         """
         if block_style:
             self.log_formatter.log_section_left_side('Safe Name')
-        self.log_formatter.log_data(' (#) MasterCopy Name: {0} ', self.safe_interface.functions.NAME().call())
+        self.log_formatter.log_data(' (#) MasterCopy Name: {0} ', self.safe_instance.functions.NAME().call())
         if block_style:
             self.log_formatter.log_dash_splitter()
 
@@ -147,7 +153,7 @@ class SafeInformation:
         """
         if block_style:
             self.log_formatter.log_section_left_side('Safe Threshold')
-        self.log_formatter.log_data(' (#) Threshold: {0} ', self.safe_interface.functions.getThreshold().call())
+        self.log_formatter.log_data(' (#) Threshold: {0} ', self.safe_instance.functions.getThreshold().call())
         if block_style:
             self.log_formatter.log_dash_splitter()
 
@@ -162,7 +168,7 @@ class SafeInformation:
             self.log_formatter.log_section_left_side('Safe Owners')
 
         information_data = ' (#) Owner with Address: {0} | isOwner: {1} '.format(
-            owner_address, self.safe_interface.retrieve_is_owner(owner_address))
+            owner_address, self.safe_operator.retrieve_is_owner(owner_address))
         self.logger.info('| {0}{1}|'.format(information_data, ' ' * (140 - len(information_data) - 1)))
         if block_style:
             self.log_formatter.log_dash_splitter()

@@ -20,14 +20,14 @@ from hexbytes import HexBytes
 
 
 class SafeToken:
-    def __init__(self, logger, network_agent, safe_interface, safe_transaction, safe_configuration, ethereum_assets):
+    def __init__(self, logger, network_agent, safe_interface, safe_configuration, ethereum_assets):
         self.name = self.__class__.__name__
         self.logger = logger
 
         self.safe_instance = safe_interface.safe_instance
         self.network_agent = network_agent
         self.log_formatter = LogMessageFormatter(self.logger)
-        self.safe_transaction = safe_transaction
+        self.safe_transaction = safe_interface.safe_transaction
         self.ethereum_client = network_agent.ethereum_client
         self.safe_configuration = safe_configuration
         self.ethereum_assets = ethereum_assets
@@ -45,7 +45,11 @@ class SafeToken:
         """
         try:
             # Preview the current token balance of the safe before the transaction
-            self.view_token_balance()
+            token_balance = self.ethereum_client.erc20.get_balance(self.safe_instance.address, token_address)
+            user_balance = self.ethereum_client.erc20.get_balance(local_account.address, token_address)
+            self.logger.debug0(token_balance)
+            self.logger.debug0(user_balance)
+            # self.view_token_balance()
 
             self.log_formatter.log_section_left_side('Send Token')
             erc20 = get_erc20_contract(self.ethereum_client.w3, token_address)
@@ -64,13 +68,17 @@ class SafeToken:
                 # Format Receipt with Logger
                 self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
 
+                token_balance = self.ethereum_client.erc20.get_balance(self.safe_instance.address, token_address)
+                user_balance = self.ethereum_client.erc20.get_balance(local_account.address, token_address)
+                self.logger.debug0(token_balance)
+                self.logger.debug0(user_balance)
             elif _queue:
                 # remark: Since the send resolves the current transaction, the current step needs a work around
                 # self.tx_queue.append('sendToken')
                 self.logger.info.append('queue')
 
             # Preview the current token balance of the safe after the transaction
-            self.view_token_balance()
+            # self.view_token_balance()
         except Exception as err:
             self.logger.error('Unable to command_send_token_raw(): {0} {1}'.format(type(err), err))
 
@@ -102,7 +110,12 @@ class SafeToken:
         """
         try:
             # Preview the current token balance of the safe before the transaction
+            # Preview the current token balance of the safe after the transaction
             # self.command_view_token_balance()
+            token_balance = self.ethereum_client.erc20.get_balance(self.safe_instance.address, token_address)
+            user_balance = self.ethereum_client.erc20.get_balance(address_to, token_address)
+            self.logger.debug0(token_balance)
+            self.logger.debug0(user_balance)
             sender_data = {'from': self.safe_instance.address}
 
             erc20 = get_erc20_contract(self.ethereum_client.w3, token_address)
@@ -113,16 +126,14 @@ class SafeToken:
                 address_to, token_amount).buildTransaction(sender_data)['data'])
 
             # Perform the transaction
-            self.safe_transaction.perform_transaction(payload_data, address_to=token_address, _execute=_execute, _queue=_queue)
-
-            # Preview the current token balance of the safe after the transaction
-            current_token_balance = self.ethereum_client.erc20.get_balance(self.safe_instance.address,
-                                                                           token_address)
-            current_user_balance = self.ethereum_client.erc20.get_balance(self.safe_instance.address,
-                                                                          token_address)
-            self.logger.debug0(current_token_balance)
-            self.logger.debug0(current_user_balance)
-            # self.command_view_token_balance()
+            if self.safe_transaction.perform_transaction(payload_data, address_to=token_address,
+                                                         _execute=_execute, _queue=_queue):
+                # Preview the current token balance of the safe after the transaction
+                token_balance = self.ethereum_client.erc20.get_balance(self.safe_instance.address, token_address)
+                user_balance = self.ethereum_client.erc20.get_balance(address_to, token_address)
+                self.logger.debug0(token_balance)
+                self.logger.debug0(user_balance)
+                # self.command_view_token_balance()
         except Exception as err:
             self.logger.error('Unable to command_withdraw_token_raw(): {0} {1}'.format(type(err), err))
 
@@ -134,8 +145,8 @@ class SafeToken:
             self.log_formatter.log_section_left_side('Safe Token Balance')
             token_address = []
             token_symbol = []
-            for token_item in self.ethereum_assets.token_data:
-                current_token_address = self.ethereum_assets.token_data[token_item]['address']
+            for token_item in self.ethereum_assets.tokens.data:
+                current_token_address = self.ethereum_assets.tokens.data[token_item]['address']
                 token_symbol.append(token_item)
                 token_address.append(current_token_address)
 
@@ -143,8 +154,8 @@ class SafeToken:
             current_name_to_show = ''
             for index, item in enumerate(balance_data):
                 if item['token_address'] is not None:
-                    for token_item in self.ethereum_assets.token_data:
-                        current_token_address = self.ethereum_assets.token_data[token_item]['address']
+                    for token_item in self.ethereum_assets.tokens.data:
+                        current_token_address = self.ethereum_assets.tokens.data[token_item]['address']
                         if current_token_address == item['token_address']:
                             current_name_to_show = token_item
                     information_data = ' (#) Total Safe {0} ({1}) Funds: {2} Token'.format(

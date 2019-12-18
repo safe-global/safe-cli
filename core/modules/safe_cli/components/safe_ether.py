@@ -7,16 +7,24 @@ from hexbytes import HexBytes
 # Import LogMessageFormatter: view_functions()
 from core.logger.log_message_formatter import LogMessageFormatter
 
+from core.eth_assets.helper.ether_helper import EtherHelper
+
 
 class SafeEther:
-    def __init__(self, logger, network_agent, safe_interface, safe_transaction, safe_configuration):
+    def __init__(self, logger, network_agent, safe_interface, safe_configuration):
         self.name = self.__class__.__name__
         self.logger = logger
 
+        self.safe_configuration = safe_configuration
+        self.auto_execute = self.safe_configuration.auto_execute
         self.network_agent = network_agent
         self.ethereum_client = self.network_agent.ethereum_client
         self.safe_interface = safe_interface
-        self.safe_transaction = safe_transaction
+        self.safe_instance = self.safe_interface.safe_instance
+        self.safe_operator = self.safe_interface.safe_operator
+        self.safe_transaction = self.safe_interface.safe_transaction
+
+        self.ether_helper = EtherHelper(self.logger, self.ethereum_client)
 
         # LogFormatter: view_functions()
         self.log_formatter = LogMessageFormatter(self.logger)
@@ -24,7 +32,7 @@ class SafeEther:
         # SafeConfiguration:
         self.safe_configuration = safe_configuration
 
-    def command_send_ether(self, address_to, wei_amount, local_account, _execute=False, _queue=False):
+    def send_ether(self, address_to, wei_amount, local_account, _execute=False, _queue=False):
         """ Command Send Ether
         This function will send ether to the address_to, wei_amount, from private_key
         :param address_to:
@@ -47,7 +55,7 @@ class SafeEther:
                 value=self.ethereum_client.w3.toWei(wei_amount, 'wei')
             ), HexBytes(local_account.privateKey).hex())
 
-            if _execute:
+            if self.auto_execute or _execute:
                 # Sign the transaction
                 tx_hash = self.ethereum_client.w3.eth.sendRawTransaction(signed_tx.rawTransaction)
 
@@ -57,13 +65,14 @@ class SafeEther:
                 # Format Receipt with Logger
                 self.log_formatter.tx_receipt_formatter(tx_receipt, detailed_receipt=True)
 
+                # Preview the current ether balance of the safe after the transaction
+                self.view_ether_balance()
+
             elif _queue:
                 self.safe_transaction.tx_queue.append('Not sendEther/depositEther')
 
-            # Preview the current ether balance of the safe after the transaction
-            self.view_ether_balance()
         except Exception as err:
-            self.logger.error('Unable to command_send_ether_raw(): {0} {1}'.format(type(err), err))
+            self.logger.error('Unable to send_ether(): {0} {1}'.format(type(err), err))
 
     def deposit_ether(self, wei_amount, local_account, _execute=False, _queue=False):
         """ Command Deposit Ether
@@ -76,9 +85,9 @@ class SafeEther:
         """
         try:
             # Compose transaction for depositEther
-            self.command_send_ether(self.safe_interface.address, wei_amount, local_account, _execute=_execute, _queue=_queue)
+            self.send_ether(self.safe_operator.address, wei_amount, local_account, _execute=_execute, _queue=_queue)
         except Exception as err:
-            self.logger.error('Unable to command_deposit_ether_raw(): {0} {1}'.format(type(err), err))
+            self.logger.error('Unable to deposit_ether(): {0} {1}'.format(type(err), err))
 
     def withdraw_ether(self, wei_amount, address_to, _execute=False, _queue=False):
         """ Command Withdraw Ether
@@ -94,12 +103,12 @@ class SafeEther:
             self.view_ether_balance()
 
             # Perform the transaction
-            self.safe_transaction.perform_transaction(b'', wei_amount, address_to, _execute=_execute, _queue=_queue)
+            if self.safe_transaction.perform_transaction(b'', wei_amount, address_to, _execute=_execute, _queue=_queue):
+                # Preview the current ether balance of the safe after the transaction
+                self.view_ether_balance()
 
-            # Preview the current ether balance of the safe after the transaction
-            self.view_ether_balance()
         except Exception as err:
-            self.logger.error('Unable to command_withdraw_ether_raw(): {0} {1}'.format(type(err), err))
+            self.logger.error('Unable to ether_raw(): {0} {1}'.format(type(err), err))
 
     # def command_view_balance(self):
     #     """ Command View Total Balance of the safe Ether + Tokens(Only if tokens are known via pre-loading)

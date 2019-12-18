@@ -14,6 +14,7 @@ from core.eth_assets.helper.ether_helper import EtherHelper
 # Import Account
 from eth_account import Account
 
+
 class SafeController:
     """ Console Controller
     This class will represent and function as pseudo-controller for the execution of the proper commands
@@ -34,6 +35,10 @@ class SafeController:
 
         self.safe_interface = safe_interface
         self.safe_sender = self.safe_interface.safe_sender
+        self.safe_management = self.safe_interface.safe_management
+        self.safe_ether = self.safe_interface.safe_ether
+        self.safe_token = self.safe_interface.safe_token
+        self.safe_information = self.safe_interface.safe_information
 
         self.safe_interface = None
 
@@ -54,27 +59,25 @@ class SafeController:
 
         _query, _execute, _queue, _ = self.console_getter.get_input_affix_arguments(argument_list)
         if command_argument == 'info':
-            self.safe_interface.command_safe_information()
-        elif command_argument == 'help':
-            self.console_information.command_view_safe_information()
+            self.safe_information.view_information()
         elif command_argument == 'nonce':
-            self.safe_interface.view_safe_nonce()
+            self.safe_information.view_safe_nonce()
         elif command_argument == 'code':
-            self.safe_interface.view_safe_code()
+            self.safe_information.view_safe_code()
         elif command_argument == 'VERSION':
-            self.safe_interface.view_safe_version()
+            self.safe_information.view_safe_version()
         elif command_argument == 'NAME':
-            self.safe_interface.view_safe_name()
+            self.safe_information.view_safe_name()
         elif command_argument == 'getOwners':
-            self.safe_interface.view_safe_owners()
+            self.safe_information.view_safe_owners()
         elif command_argument == 'getThreshold':
-            self.safe_interface.view_safe_threshold()
+            self.safe_information.view_safe_threshold()
         elif command_argument == 'isOwner':
             if priority_group == 1:
                 try:
                     owner_address = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    self.safe_interface.check_safe_owner(owner_address)
+                    self.safe_information.check_safe_owner(owner_address)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -86,7 +89,7 @@ class SafeController:
                 try:
                     new_threshold = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    self.safe_interface.command_safe_change_threshold(new_threshold, _execute, _queue)
+                    self.safe_management.change_threshold(new_threshold, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -95,7 +98,7 @@ class SafeController:
                 try:
                     new_owner_address, new_threshold = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    self.safe_interface.command_safe_add_owner_threshold(new_owner_address, new_threshold, _execute, _queue)
+                    self.safe_management.add_owner_with_threshold(new_owner_address, new_threshold, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -104,7 +107,7 @@ class SafeController:
                 try:
                     new_owner_address = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    self.safe_interface.command_safe_add_owner_threshold(new_owner_address, None, _execute, _queue)
+                    self.safe_management.add_owner_with_threshold(new_owner_address, None, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -113,9 +116,7 @@ class SafeController:
                 try:
                     old_owner_address = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    previous_owner_address = self.safe_interface.setinel_helper(old_owner_address)
-                    self.safe_interface.command_safe_remove_owner(
-                        previous_owner_address, old_owner_address, _execute, _queue)
+                    self.safe_management.remove_owner(old_owner_address, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -127,9 +128,8 @@ class SafeController:
                 try:
                     old_owner_address, new_owner_address = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    previous_owner_address = self.safe_interface.setinel_helper(old_owner_address)
-                    self.safe_interface.command_safe_swap_owner(
-                        previous_owner_address, old_owner_address, new_owner_address, _execute, _queue)
+
+                    self.safe_management.change_owner(old_owner_address, new_owner_address, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -139,7 +139,7 @@ class SafeController:
                     token_address, address_to, token_amount, private_key = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
                     local_account = Account.privateKeyToAccount(private_key)
-                    self.safe_interface.command_send_token(
+                    self.safe_token.send_token(
                         address_to, token_address, token_amount, local_account, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
@@ -150,7 +150,7 @@ class SafeController:
                     token_address, token_amount, private_key = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
                     local_account = Account.privateKeyToAccount(private_key)
-                    self.safe_interface.command_deposit_token(token_address, token_amount, local_account, _execute, _queue)
+                    self.safe_token.deposit_token(token_address, token_amount, local_account, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -159,7 +159,7 @@ class SafeController:
                 try:
                     token_address, address_to, token_amount = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    self.safe_interface.command_withdraw_token(address_to, token_address, token_amount, _execute, _queue)
+                    self.safe_token.withdraw_token(address_to, token_address, token_amount, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -171,7 +171,7 @@ class SafeController:
                     local_account = Account.privateKeyToAccount(private_key)
                     ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
                     amount = ether_helper.get_unify_ether_amount(ether_amounts)
-                    self.safe_interface.command_send_ether(address_to, amount, local_account, _execute, _queue)
+                    self.safe_ether.send_ether(address_to, amount, local_account, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -183,7 +183,7 @@ class SafeController:
                     local_account = Account.privateKeyToAccount(private_key)
                     ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
                     amount = ether_helper.get_unify_ether_amount(ether_amounts)
-                    self.safe_interface.command_deposit_ether(amount, local_account, _execute, _queue)
+                    self.safe_ether.deposit_ether(amount, local_account, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -194,16 +194,16 @@ class SafeController:
                         command_argument, desired_parsed_item_list, priority_group)
                     ether_helper = EtherHelper(self.logger, self.network_agent.ethereum_client)
                     amount = ether_helper.get_unify_ether_amount(ether_amounts)
-                    self.safe_interface.command_withdraw_ether(amount, address_to, _execute, _queue)
+                    self.safe_ether.withdraw_ether(amount, address_to, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
-        elif command_argument == 'updateSafe':
+        elif command_argument == 'changeMasterCopy':
             if priority_group == 1:
                 try:
                     new_master_copy_address = self.console_handler.input_handler(
                         command_argument, desired_parsed_item_list, priority_group)
-                    self.safe_interface.command_safe_change_version(new_master_copy_address, _execute, _queue)
+                    self.safe_management.change_master_copy(new_master_copy_address, _execute, _queue)
                 except Exception as err:
                     self.logger.error(err)
 
@@ -226,13 +226,13 @@ class SafeController:
             if priority_group == 1:
                 private_key = self.console_handler.input_handler(
                     command_argument, desired_parsed_item_list, priority_group)
-                safe_interface.load_owner(private_key)
+                self.safe_sender.load_owner(private_key)
 
         elif command_argument == 'unloadOwner':
             if priority_group == 1:
                 private_key = self.console_handler.input_handler(
                     command_argument, desired_parsed_item_list, priority_group)
-                safe_interface.command_unload_owner(private_key)
+                self.safe_sender.unload_owner(private_key)
 
         elif command_argument == 'loadMultipleOwners':
             self.logger.info('load multiple owners')
@@ -240,7 +240,7 @@ class SafeController:
             self.logger.info('load multiple owners')
 
         elif command_argument == 'setAutoFillTokenDecimals':
-            safe_interface.command_set_auto_fill_token_decimals(argument_list[0])
+            self.safe_interface.command_set_auto_fill_token_decimals(argument_list[0])
 
         elif command_argument == 'setAutoExecute':
-            safe_interface.command_set_auto_execute(argument_list[0])
+            self.safe_interface.command_set_auto_execute(argument_list[0])

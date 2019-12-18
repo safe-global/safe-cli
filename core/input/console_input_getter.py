@@ -72,6 +72,10 @@ class ConsoleInputGetter:
                 0: {'': 0},
                 1: {'--address': 2},
             },
+            'changeOwner': {
+                0: {'': 0},
+                1: {'--address': 2},
+            },
             'removeOwner': {
                 0: {'': 0},
                 1: {'--address': 1},
@@ -143,7 +147,7 @@ class ConsoleInputGetter:
                 0: {'': 0},
                 1: {'--token': 1, '--address_to': 1, '--amount': 1},
             },
-            'updateSafe': {
+            'changeMasterCopy': {
                 0: {'': 0},
                 1: {'--address': 1},
             },

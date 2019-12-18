@@ -11,7 +11,7 @@ from prompt_toolkit import PromptSession
 from prompt_toolkit.shortcuts import yes_no_dialog
 
 # Importing Custom Logger & Logging Modules
-from core.logger.custom_logger import CustomLogger
+from core.logger.custom_logger import CustomLogger, DEBUG0
 from logging import INFO
 import logging
 
@@ -55,7 +55,7 @@ class SafeEngine:
         self.ethereum_assets = ethereum_assets
 
         # Custom Logger Init Configuration: Default Values
-        self.logging_lvl = INFO
+        self.logging_lvl = DEBUG0
         self.logger = CustomLogger(self.name, self.logging_lvl)
         self._setup_logger()
 
@@ -129,7 +129,6 @@ class SafeEngine:
             prompt_text = self.get_prompt_text(affix_stream='safe-cli', stream='Safe (' + self.safe_address + ')')
             prompt_session = PromptSession(completer=SafeCompleter(), lexer=SafeLexer())
             self.gnosis_manager.active_prompt = TypeOfConsole.SAFE_CONSOLE
-
             self.safe_controller = SafeController(self.logger, self.network_agent,
                                                   self.safe_interface, self.ethereum_assets)
             while True:

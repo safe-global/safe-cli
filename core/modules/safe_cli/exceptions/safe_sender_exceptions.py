@@ -10,13 +10,14 @@ class SafeSenderNotEnoughSigners(Exception):
     :param _trace
     :return SafeSenderNotFound Exception Message
     """
-    def __init__(self, console_type, _err, _trace, *args):
+    def __init__(self, _trace, *args):
         self.name = self.__class__.__name__
-        self.console_type = console_type
-        self.err = _err
+        self.console_type = 'safe-cli'
+        self.err = 'Not Enough Signers'
         self.trace = _trace
-        self.message = '{0}, in  {1} Unable to perform proper operations: [ {2} ]'.format(self.name, console_type, _err)
-        super(SafeSenderNotEnoughSigners, self).__init__(self.message, _err, console_type, *args)
+        self.message = '{0}, in  {1} Unable to perform proper operations: [ {2} ]'.format(
+            self.name, self.console_type, self.err)
+        super(SafeSenderNotEnoughSigners, self).__init__(self.message, self.err, self.console_type, *args)
 
 
 class SafeSenderNotFound(Exception):
@@ -27,13 +28,13 @@ class SafeSenderNotFound(Exception):
     :param _trace
     :return SafeSenderNotFound Exception Message
     """
-    def __init__(self, console_type, _err, _trace, *args):
+    def __init__(self, _trace, *args):
         self.name = self.__class__.__name__
-        self.console_type = console_type
-        self.err = _err
+        self.console_type = 'SafeSender'
+        self.err = 'Sender Not Found'
         self.trace = _trace
-        self.message = '{0}, in  {1} Unable to perform proper operations: [ {2} ]'.format(self.name, console_type, _err)
-        super(SafeSenderNotFound, self).__init__(self.message, _err, console_type, *args)
+        self.message = '{0} in {1}, Unable to perform proper operations: [ {2} ]'.format(self.name, self.console_type, self.err)
+        super(SafeSenderNotFound, self).__init__(self.message, self.err, self.console_type, *args)
 
 
 class SafeSenderAlreadyLoaded(Exception):
@@ -44,10 +45,11 @@ class SafeSenderAlreadyLoaded(Exception):
     :param _trace
     :return Fatal Exception Message
     """
-    def __init__(self, console_type, _err, _trace, *args):
+    def __init__(self, _trace, *args):
         self.name = self.__class__.__name__
-        self.console_type = console_type
-        self.err = _err
+        self.console_type = 'safe-cli'
+        self.err = 'Sender Already Loaded'
         self.trace = _trace
-        self.message = '{0}, in  {1} Unable to perform proper operations: [ {2} ]'.format(self.name, console_type, _err)
-        super(SafeSenderAlreadyLoaded, self).__init__(self.message, _err, console_type, *args)
+        self.message = '{0}, in  {1} Unable to perform proper operations: [ {2} ]'.format(
+            self.name, self.console_type, self.err)
+        super(SafeSenderAlreadyLoaded, self).__init__(self.message, self.err, self.console_type, *args)

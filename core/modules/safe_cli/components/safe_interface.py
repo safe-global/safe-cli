@@ -33,39 +33,28 @@ class SafeInterface:
         # EthereumClient: w3
         self.ethereum_client = network_agent.ethereum_client
 
-        # Safe interface
-        self.safe_instance = self._safe_interface_resolver(safe_address)
-
         # Safe Interface
         self.ethereum_assets = ethereum_assets
 
         # Setup: LogFormatter
         self.log_formatter = LogMessageFormatter(self.logger)
 
+        # SafeInterface:
+        self.safe_operator, self.safe_instance = self._safe_interface_resolver(safe_address)
+        # SafeConfiguration: configuration
         self.safe_configuration = safe_configuration
-
-        # SafeSender:
-        self.safe_sender = SafeSender(self.logger, self.network_agent,
-                                      self.safe_instance, self.ethereum_assets)
-        # SafeInformation:
-        self.safe_information = SafeInformation(self.logger, self.network_agent,
-                                                self.safe_instance, self.safe_sender)
+        # SafeSender: sender
+        self.safe_sender = SafeSender(self.logger, self.network_agent, self, self.ethereum_assets)
+        # SafeInformation: view_functions()
+        self.safe_information = SafeInformation(self.logger, self.network_agent, self, self.safe_sender)
         # SafeTransaction: safe_ether, safe_token, safe_management
-        self.safe_transaction = SafeTransaction(self.logger, self.network_agent,
-                                                self.safe_instance, self.safe_sender,
-                                                self.safe_configuration)
-        # SafeEther
-        self.safe_ether = SafeEther(self.logger, self.network_agent,
-                                    self.safe_instance, self.safe_transaction,
-                                    self.safe_configuration)
-        # SafeToken
-        self.safe_token = SafeToken(self.logger, self.network_agent,
-                                    self.safe_instance, self.safe_transaction,
-                                    self.safe_configuration, self.ethereum_assets)
+        self.safe_transaction = SafeTransaction(self.logger, self.network_agent, self, self.safe_configuration)
+        # SafeEther:
+        self.safe_ether = SafeEther(self.logger, self.network_agent, self, self.safe_configuration)
+        # SafeToken:
+        self.safe_token = SafeToken(self.logger, self.network_agent, self, self.safe_configuration, self.ethereum_assets)
         # SafeManagement:
-        self.safe_management = SafeManagement(self.logger, self.safe_instance,
-                                              self.safe_sender, self.safe_transaction,
-                                              self.safe_information, self.ethereum_assets)
+        self.safe_management = SafeManagement(self.logger, self, self.ethereum_assets)
 
     def _safe_interface_resolver(self, safe_address):
         """ Setup Safe Resolver
@@ -77,11 +66,11 @@ class SafeInterface:
         safe_version = safe_interface.retrieve_version()
 
         if safe_version == '1.1.0':
-            # self.log_formatter.log_section_left_side('Safe Version 1.1.0 Found')
-            return safe_interface.get_contract()
+            self.log_formatter.log_section_left_side('Safe Version 1.1.0 Found')
+            return safe_interface, safe_interface.get_contract()
         elif safe_version == '1.0.0':
-            # self.log_formatter.log_section_left_side('Safe Version 1.0.0 Found')
-            return get_safe_V1_0_0_contract(self.ethereum_client.w3, safe_address)
+            self.log_formatter.log_section_left_side('Safe Version 1.0.0 Found')
+            return safe_interface, get_safe_V1_0_0_contract(self.ethereum_client.w3, safe_address)
         else:
-            # self.log_formatter.log_section_left_side('Safe Version 0.0.1 Found')
-            return get_safe_V0_0_1_contract(self.ethereum_client.w3, safe_address)
+            self.log_formatter.log_section_left_side('Safe Version 0.0.1 Found')
+            return safe_interface, get_safe_V0_0_1_contract(self.ethereum_client.w3, safe_address)
