@@ -36,9 +36,6 @@ class GnosisController:
         self.safe_engine = self.gnosis_engine.safe_engine
         self.contract_engine = self.gnosis_engine.contract_engine
 
-        self.safe_interface = None
-        self.contract_interface = None
-
         self.console_getter = ConsoleInputGetter(self.logger)
         self.console_handler = ConsoleInputHandler()
 
@@ -57,16 +54,16 @@ class GnosisController:
             if priority_group == 0:
                 contract_alias = self.console_handler.input_handler(
                     command_argument, desired_parsed_item_list, priority_group)
-                self.contract_interface = self.contract_engine.run(contract_alias)
+                self.contract_engine.run(contract_alias)
         elif command_argument == 'loadSafe':
             if priority_group == 1:
                 safe_address = self.console_handler.input_handler(
                     command_argument, desired_parsed_item_list, priority_group)
-                self.safe_interface = self.safe_engine.run(safe_address)
+                self.safe_engine.run(safe_address)
 
         # view console commands procedures
         elif command_argument == 'viewTokens':
-            self.tokens.command_view_tokens()
+            self.tokens.view_tokens()
         elif command_argument == 'viewNetwork':
             self.network_agent.view_networks()
         elif command_argument == 'viewContracts':
@@ -74,7 +71,7 @@ class GnosisController:
         elif command_argument == 'viewAccounts':
             self.accounts.view_accounts()
         elif command_argument == 'viewPayloads':
-            self.payloads.command_view_payloads()
+            self.payloads.view_payloads()
 
         # new console commands trigger procedures
         elif command_argument == 'newAccount':
@@ -84,7 +81,7 @@ class GnosisController:
         elif command_argument == 'newTxPayload':
             self.payloads.command_new_payload(command_argument, argument_list)
         elif command_argument == 'newToken':
-            self.tokens.command_new_token(command_argument, argument_list)
+            self.tokens.new_token(command_argument, argument_list)
 
         # setter console commands trigger procedures
         elif command_argument == 'setNetwork':

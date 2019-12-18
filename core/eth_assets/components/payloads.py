@@ -19,7 +19,7 @@ class Payloads:
         self.logger = logger
         self.data = {}
 
-    def command_view_payloads(self):
+    def view_payloads(self):
         """ Command View Payloads
         This function will prompt the current state of the payload_artifact if the command viewPayloads is provided
         by the user

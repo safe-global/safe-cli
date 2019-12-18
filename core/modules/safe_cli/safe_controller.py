@@ -218,9 +218,9 @@ class SafeController:
         elif command_argument == 'viewAccounts':
             self.accounts.view_accounts()
         elif command_argument == 'viewPayloads':
-            self.payloads.command_view_payloads()
+            self.payloads.view_payloads()
         elif command_argument == 'viewTokens':
-            self.tokens.command_view_tokens()
+            self.tokens.view_tokens()
 
         elif command_argument == 'loadOwner':
             if priority_group == 1:

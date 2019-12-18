@@ -36,11 +36,11 @@ class Tokens:
         """
         if configuration['erc20']:
             self.logger.debug0(configuration['erc20'])
-            self.token_artifacts.pre_load_erc20_artifacts(configuration['erc20'])
+            self.pre_load_erc20_artifacts(configuration['erc20'])
 
         if configuration['erc721']:
             self.logger.debug0(configuration['erc721'])
-            self.token_artifacts.pre_load_erc20_artifacts(configuration['erc721'])
+            self.pre_load_erc20_artifacts(configuration['erc721'])
 
     def pre_load_erc20_artifacts(self, token_erc20_artifacts):
         """ Pre Load Artifacts
@@ -102,7 +102,7 @@ class Tokens:
         self.logger.debug0(STRING_DASHES)
         self.logger.debug0('')
 
-    def command_new_token(self, command_argument, argument_list):
+    def new_token(self, command_argument, argument_list):
         """ Command New Token
         This function will launch the proper prompt for building a new token
         :param command_argument:
@@ -116,7 +116,7 @@ class Tokens:
         else:
             self.logger.info('newToken and complete the input requirements')
 
-    def command_view_tokens(self):
+    def view_tokens(self):
         """ Command View Tokens
         This function will show the current token_data, trigger via user input command "viewTokens"
         :return:

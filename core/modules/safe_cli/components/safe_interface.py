@@ -65,7 +65,10 @@ class SafeInterface:
         safe_interface = Safe(safe_address, self.ethereum_client)
         safe_version = safe_interface.retrieve_version()
 
-        if safe_version == '1.1.0':
+        if safe_version == '1.1.1':
+            self.log_formatter.log_section_left_side('Safe Version 1.1.1 Found')
+            return
+        elif safe_version == '1.1.0':
             self.log_formatter.log_section_left_side('Safe Version 1.1.0 Found')
             return safe_interface, safe_interface.get_contract()
         elif safe_version == '1.0.0':
