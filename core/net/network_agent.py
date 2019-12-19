@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Import Socket Exception
-from core.net.exceptions.network_exceptions import NetworkAgentFatalException
+from core.net.exceptions.network_exceptions import NetworkAgentFatalException, NetworkAgentSocketError
 
 # Import Socket Module
 import socket
@@ -37,6 +37,8 @@ class NetworkAgent:
         # Default Ethereum Node Endpoint for the EthereumClient
         self.default_node_endpoint = 'http://localhost:8545'
         self.current_node_endpoint = ''
+
+        # NetworkAgent: SetNetwork
         if self.network_status() or network == 'ganache':
             self.set_network_provider_endpoint(network, api_key)
 
@@ -46,10 +48,10 @@ class NetworkAgent:
             :param node_url:
             :return: self.ethereum_client, othewise it will return an error
         """
-        tmp_client = EthereumClient(ethereum_node_url=node_url)
+        ethereum_client = EthereumClient(ethereum_node_url=node_url)
         self.logger.debug0(' | Setup Network Agent  | ')
-        if tmp_client.w3.isConnected():
-            self.ethereum_client = tmp_client
+        if ethereum_client.w3.isConnected():
+            self.ethereum_client = ethereum_client
             self.logger.debug0(STRING_DASHES)
             self.logger.debug0('(+) Successfully retrieved a valid connection to [ {0} ] via {1}'.format(
                 self.network, node_url))
@@ -85,17 +87,23 @@ class NetworkAgent:
         This function will retrieve and show the current network used by the ethereum client
             :return:
         """
-        if self.network_status():
-            network_status = 'CONNECTED'
-        else:
-            network_status = 'DISCONNECTED'
+        try:
+            if self.network_status():
+                network_status = 'CONNECTED'
+            else:
+                network_status = 'DISCONNECTED'
 
-        self.logger.info(' ' + STRING_DASHES)
-        self.logger.info('| {0:^14} | {1:^20} | {2:^98} |'.format('Network', 'Network Status', 'Node Url'))
-        self.logger.info(' ' + STRING_DASHES)
-        self.logger.info('| {0:^14} | {1:^20} | {2:^98} |'.format(
-            self.network.upper(), network_status, self.current_node_endpoint))
-        self.logger.info(' ' + STRING_DASHES)
+            self.logger.info(' ' + STRING_DASHES)
+            self.logger.info('| {0:^14} | {1:^20} | {2:^98} |'.format('Network', 'Network Status', 'Node Url'))
+            self.logger.info(' ' + STRING_DASHES)
+            self.logger.info('| {0:^14} | {1:^20} | {2:^98} |'.format(
+                self.network.upper(), network_status, self.current_node_endpoint))
+            self.logger.info(' ' + STRING_DASHES)
+
+        except NetworkAgentSocketError as err:
+            self.logger.error(err.message)
+        except Exception as err:
+            self.logger.error(err)
 
     def set_network_provider_endpoint(self, network, api_key=None):
         """ Set Network
@@ -150,8 +158,8 @@ class NetworkAgent:
             socket.setdefaulttimeout(self.polling_timeout)
             socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((self.polling_address, self.polling_port))
             return True
-        except socket.error:
-            return False
+        except socket.error as err:
+            raise NetworkAgentSocketError(self.name, err, '')
         except Exception as err:
             # Empty param should be trace for further debugging in case it's needed
             self.logger.error('{0}: Something went really wrong: {1}'.format(self.name, err))

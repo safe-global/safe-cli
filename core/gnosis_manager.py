@@ -54,11 +54,15 @@ class GnosisManager:
         # Setup the console files logs if does not exists
         LogFileManager().create_log_files()
 
+        # TypeOfConsole:
         self.active_prompt = TypeOfConsole.GNOSIS_CONSOLE
 
-        # References to the methods for the sub consoles
-        self.safe_interface = None
-        self.contract_interface = None
+        # GnosisEngine:
+        self.gnosis_engine = None
+        # SafeEngine:
+        self.safe_engine = None
+        # ContractEngine:
+        self.contract_engine = None
 
         # Custom Logger: init
         self.logging_lvl = INFO
@@ -66,7 +70,6 @@ class GnosisManager:
             self.logging_lvl = DEBUG0
 
         self.logger = CustomLogger(self.name, self.logging_lvl)
-        # Setup: configure file handler, console handler and log path
         self._setup_logger()
 
         # InformationArtifacts: view_disclaimer()
@@ -75,26 +78,29 @@ class GnosisManager:
 
         # Setup NetworkAgent: setup ethereum network provider
         self.network_agent = NetworkAgent(self.logger, configuration['network'], configuration['api_key'])
+        # EthereumClient:
         self.ethereum_client = self.network_agent.ethereum_client
+
+        # Setup: Log Formatter
+        self.log_formatter = LogMessageFormatter(self.logger)
 
         # Setup Console Input Getter
         self.console_getter = ConsoleInputGetter(self.logger)
 
+        # Accounts:
         self.accounts = Accounts(self.logger, self.ethereum_client)
+        # Tokens:
         self.tokens = Tokens(self.logger, self.ethereum_client)
+        # Payloads:
         self.payloads = Payloads(self.logger)
+        # Contracts:
         self.contracts = Contracts(self.logger)
 
         # Setup EthereumAssets: shared object
         self.ethereum_assets = EthereumAssets(self.logger, self.accounts, self.payloads, self.tokens, self.contracts)
 
-        self.gnosis_engine = None
-        self.safe_engine = None
-        self.contract_engine = None
+        # Engines: init
         self._init_modules()
-
-        # Setup: Log Formatter
-        self.log_formatter = LogMessageFormatter(self.logger)
 
     def _init_modules(self):
         """ Init_Modules
