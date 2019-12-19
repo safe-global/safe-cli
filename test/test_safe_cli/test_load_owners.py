@@ -3,9 +3,15 @@ from core.logger.custom_logger import CustomLogger
 from logging import INFO
 import logging
 
+
+from core.eth_assets.components.contracts import Contracts
+from core.eth_assets.components.payloads import Payloads
 from core.eth_assets.components.accounts import Accounts
 from core.eth_assets.components.tokens import Tokens
+
 from core.eth_assets.ethereum_assets import EthereumAssets
+
+
 from core.input.console_input_getter import ConsoleInputGetter
 from core.modules.safe_cli import ConsoleSafeCommands
 from core.net.network_agent import NetworkAgent

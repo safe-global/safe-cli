@@ -7,10 +7,13 @@ from hexbytes import HexBytes
 from eth_account import Account
 
 from core.eth_assets.components.accounts import Accounts
+from core.eth_assets.components.contracts import Contracts
+from core.eth_assets.components.payloads import Payloads
 from core.eth_assets.components.tokens import Tokens
+
 from core.eth_assets.ethereum_assets import EthereumAssets
 from core.input.console_input_getter import ConsoleInputGetter
-from core.modules.safe_cli import ConsoleSafeCommands
+
 from core.eth_assets.helper.ether_helper import EtherHelper
 from core.net.network_agent import NetworkAgent
 from test.utils.scenario_script import deploy_gnosis_safe_v1_1_0, deploy_uxi_tokens, deploy_gnosis_safe_v1_1_1
@@ -41,6 +44,7 @@ def setinel_helper(address_value, safe_interface):
             except IndexError:
                 logger.error('Sentinel Address not found, returning NULLADDRESS')
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 # Setting Up Components
 # ----------------------------------------------------------------------------------------------------------------------
@@ -52,18 +56,20 @@ formatter = logging.Formatter(fmt='%(asctime)s - [ %(levelname)s ]: %(message)s'
 console_handler = logging.StreamHandler()
 console_handler.setFormatter(formatter)
 console_handler.setLevel(level=logging_lvl)
+
 # Custom Logger Console/File Handler Configuration
 logger.addHandler(console_handler)
 
+# NetworkAgent:
 network_agent = NetworkAgent(logger)
-# Setup Console Input Getter
-console_getter = ConsoleInputGetter(logger)
-# Setup Console Account Artifacts
-account_artifacts = Accounts(logger, network_agent.get_ethereum_client(), False)
-# Setup Console Token
-token_artifacts = Tokens(logger, network_agent.ethereum_client)
-# Setup DataArtifacts
-data_artifacts = EthereumAssets(logger, account_artifacts, None, token_artifacts, None)
+# InputGetter:
+getter = ConsoleInputGetter(logger)
+# Accounts:
+accounts = Accounts(logger, network_agent.ethereum_client, False)
+# Tokens:
+tokens = Tokens(logger, network_agent.ethereum_client)
+# EthereumAssets:
+ethereum_assets = EthereumAssets(logger, accounts, None, tokens, None)
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -77,7 +83,7 @@ token_address = deploy_uxi_tokens(safe_address)
 
 
 def test_load_safe():
-    console_safe = ConsoleSafeCommands(safe_address, logger, data_artifacts, network_agent)
+    console_safe = ConsoleSafeCommands(safe_address, logger, ethereum_assets, network_agent)
 
     # Assert if the current Safe was properly setup
     assert console_safe.safe_operator.address == safe_address
@@ -89,7 +95,7 @@ def test_load_safe():
 
 def test_add_owner():
     # Load Safe
-    console_safe = ConsoleSafeCommands(safe_address, logger, data_artifacts, network_agent)
+    console_safe = ConsoleSafeCommands(safe_address, logger, ethereum_assets, network_agent)
 
     # Load Owner
     owner_private_key_safe = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
@@ -112,7 +118,7 @@ def test_add_owner():
 
 def test_change_threshold():
     # Load Safe
-    console_safe = ConsoleSafeCommands(safe_address, logger, data_artifacts, network_agent)
+    console_safe = ConsoleSafeCommands(safe_address, logger, ethereum_assets, network_agent)
 
     # Load Fst Owner
     fst_private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
@@ -143,7 +149,7 @@ def test_change_threshold():
 
 def test_swap_owner():
     # Load Safe
-    console_safe = ConsoleSafeCommands(safe_address, logger, data_artifacts, network_agent)
+    console_safe = ConsoleSafeCommands(safe_address, logger, ethereum_assets, network_agent)
 
     # Load Fst Owner
     fst_private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
@@ -178,7 +184,7 @@ def test_swap_owner():
 
 def test_remove_owner():
     # Load Safe
-    console_safe = ConsoleSafeCommands(safe_address, logger, data_artifacts, network_agent)
+    console_safe = ConsoleSafeCommands(safe_address, logger, ethereum_assets, network_agent)
 
     # Load Fst Owner
     fst_private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
@@ -202,7 +208,7 @@ def test_remove_owner():
 
 def test_deposit_ether():
     # Load Safe
-    console_safe = ConsoleSafeCommands(safe_address, logger, data_artifacts, network_agent)
+    console_safe = ConsoleSafeCommands(safe_address, logger, ethereum_assets, network_agent)
 
     # Load Fst Owner
     fst_private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
@@ -233,7 +239,7 @@ def test_deposit_ether():
 
 def test_withdraw_ether():
     # Load Safe
-    console_safe = ConsoleSafeCommands(safe_address, logger, data_artifacts, network_agent)
+    console_safe = ConsoleSafeCommands(safe_address, logger, ethereum_assets, network_agent)
 
     # Load Fst Owner
     fst_private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
@@ -267,7 +273,7 @@ def test_deposit_token():
     address_to = '0x90F8bf6A479f320ead074411a4B0e7944Ea8c9C1'
 
     # Load Safe
-    console_safe = ConsoleSafeCommands(safe_address, logger, data_artifacts, network_agent)
+    console_safe = ConsoleSafeCommands(safe_address, logger, ethereum_assets, network_agent)
     previous_safe_token_balance = network_agent.ethereum_client.erc20.get_balance(console_safe.safe_operator.address, token_address)
     previous_user_token_balance = network_agent.ethereum_client.erc20.get_balance(address_to, token_address)
 
@@ -293,7 +299,7 @@ def test_deposit_token():
 
 def test_withdraw_token():
     # Load Safe
-    console_safe = ConsoleSafeCommands(safe_address, logger, data_artifacts, network_agent)
+    console_safe = ConsoleSafeCommands(safe_address, logger, ethereum_assets, network_agent)
 
     # Load Fst Owner
     fst_private_key = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'
@@ -322,7 +328,7 @@ def test_withdraw_token():
 
 def test_change_master_copy():
     # Load Safe
-    console_safe = ConsoleSafeCommands(safe_address, logger, data_artifacts, network_agent)
+    console_safe = ConsoleSafeCommands(safe_address, logger, ethereum_assets, network_agent)
 
     # Load Owner
     owner_private_key_safe = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'

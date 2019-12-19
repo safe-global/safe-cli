@@ -8,7 +8,7 @@ from prompt_toolkit.completion import Completer, Completion
 from prompt_toolkit import HTML
 
 # Import
-from core.modules.safe_cli.constants.contract_constants import (
+from core.modules.safe_cli.constants.safe_constants import (
     function_name, function_params, arg_keywords, function_parms_color, meta
 )
 

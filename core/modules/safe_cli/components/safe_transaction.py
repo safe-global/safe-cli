@@ -88,6 +88,7 @@ class SafeTransaction:
                     self.log_formatter.log_data(' (#) Sign with Private Key: {0}', HexBytes(signer.privateKey).hex())
                     self.log_formatter.log_dash_splitter()
                 return safe_tx
+
         except SafeSenderNotEnoughSigners:
             raise SafeSenderNotEnoughSigners(None)
         except Exception as err:
@@ -163,6 +164,7 @@ class SafeTransaction:
                     safe_tx_receipt = self.ethereum_client.get_transaction_receipt(safe_tx_hash, timeout=60)
                     self.log_formatter.tx_receipt_formatter(safe_tx_receipt, detailed_receipt=True)
                     return True
+
                 elif _queue:
                     # Queue the safe_tx if --queue was used
                     self.logger.info('Tx Added to Batch Queue')

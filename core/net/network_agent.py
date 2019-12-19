@@ -2,7 +2,8 @@
 # -*- coding: utf-8 -*-
 
 # Import Socket Exception
-from core.net.exceptions.network_exceptions import NetworkAgentFatalException, NetworkAgentSocketError
+from core.net.exceptions.network_exceptions import (
+    NetworkAgentFatalException, NetworkAgentSocketError, NetworkAgentMissingApiKey)
 
 # Import Socket Module
 import socket
@@ -45,34 +46,23 @@ class NetworkAgent:
     def _setup_new_provider(self, node_url):
         """ Setup New Provider
         This function will setup the proper provider based on the node_url, if it's connected it will setup the
-            :param node_url:
-            :return: self.ethereum_client, othewise it will return an error
+        :param node_url:
+        :return: self.ethereum_client, othewise it will return an error
         """
-        ethereum_client = EthereumClient(ethereum_node_url=node_url)
-        self.logger.debug0(' | Setup Network Agent  | ')
-        if ethereum_client.w3.isConnected():
-            self.ethereum_client = ethereum_client
-            self.logger.debug0(STRING_DASHES)
-            self.logger.debug0('(+) Successfully retrieved a valid connection to [ {0} ] via {1}'.format(
-                self.network, node_url))
-            self.logger.debug0(STRING_DASHES)
-        else:
-            self.logger.error('(?) Unable to retrieved a valid connection to [ {0} ] via {1}'.format(
-                self.network, node_url))
-
-    def get_current_node_endpoint(self):
-        """ Get Current Node Endpoint
-        This function will return the current node endpoint url
-            :return:
-        """
-        return self.current_node_endpoint
-
-    def get_ethereum_client(self):
-        """ Get Ethereum Client
-        This function will retrieve and return the current EthereumClient
-            :return:
-        """
-        return self.ethereum_client
+        try:
+            ethereum_client = EthereumClient(ethereum_node_url=node_url)
+            self.logger.debug0(' | Setup Network Agent  | ')
+            if ethereum_client.w3.isConnected():
+                self.ethereum_client = ethereum_client
+                self.logger.debug0(STRING_DASHES)
+                self.logger.debug0('(+) Successfully retrieved a valid connection to [ {0} ] via {1}'.format(
+                    self.network, node_url))
+                self.logger.debug0(STRING_DASHES)
+            else:
+                self.logger.warn('(?) Unable to retrieved a valid connection to [ {0} ] via {1}'.format(
+                    self.network, node_url))
+        except Exception as err:
+            raise NetworkAgentFatalException(self.name, err, '')
 
     def set_network(self, value):
         """ Command Set Network
@@ -80,7 +70,12 @@ class NetworkAgent:
         :param value:
         :return:
         """
-        self.set_network_provider_endpoint(value)
+        try:
+            self.set_network_provider_endpoint(value)
+        except NetworkAgentSocketError as err:
+            self.logger.error(err.message)
+        except NetworkAgentFatalException as err:
+            self.logger.error(err.message)
 
     def view_networks(self):
         """ Command View Networks
@@ -103,14 +98,14 @@ class NetworkAgent:
         except NetworkAgentSocketError as err:
             self.logger.error(err.message)
         except Exception as err:
-            self.logger.error(err)
+            raise NetworkAgentFatalException(self.name, err, '')
 
     def set_network_provider_endpoint(self, network, api_key=None):
         """ Set Network
         This function will set the current enpoint for the ethereum client
-            :param network:
-            :param api_key:
-            :return:
+        :param network:
+        :param api_key:
+        :return:
         """
         if network == 'mainnet':
             mainnet_node_url = '{0}{1}'.format('https://mainnet.infura.io/v3/', api_key)
@@ -119,8 +114,9 @@ class NetworkAgent:
                 self.network = 'mainnet'
                 self.current_node_endpoint = mainnet_node_url
             else:
-                self.logger.error('Infura API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(
-                    self.name, mainnet_node_url))
+                message = 'Missing API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(
+                    self.name, mainnet_node_url)
+                raise NetworkAgentMissingApiKey(self.name, message, '')
 
         elif network == 'ropsten':
             ropsten_node_url = '{0}{1}'.format('https://ropsten.node.url/', api_key)
@@ -129,8 +125,9 @@ class NetworkAgent:
                 self.network = 'ropsten'
                 self.current_node_endpoint = ropsten_node_url
             else:
-                self.logger.error('API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(
-                    self.name, ropsten_node_url))
+                message = 'Missing API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(
+                    self.name, ropsten_node_url)
+                raise NetworkAgentMissingApiKey(self.name, message, '')
 
         elif network == 'rinkeby':
             rinkeby_node_url = '{0}{1}'.format('https://rinkeby.infura.io/v3/', api_key)
@@ -139,8 +136,9 @@ class NetworkAgent:
                 self.network = 'rinkeby'
                 self.current_node_endpoint = rinkeby_node_url
             else:
-                self.logger.error('API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(
-                    self.name, rinkeby_node_url))
+                message = 'Missing API KEY needed, {0} Unable to retrieve a valid connection to {1} '.format(
+                    self.name, rinkeby_node_url)
+                raise NetworkAgentMissingApiKey(self.name, message, '')
 
         elif network == 'ganache':
             self._setup_new_provider(self.default_node_endpoint)
@@ -152,15 +150,15 @@ class NetworkAgent:
     def network_status(self):
         """ Network Status
         This Function will check the availability of the network connection
-            :return True if there is internet connectivity otherwise False
+        :return True if there is internet connectivity otherwise False
         """
         try:
             socket.setdefaulttimeout(self.polling_timeout)
             socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((self.polling_address, self.polling_port))
             return True
+
         except socket.error as err:
             raise NetworkAgentSocketError(self.name, err, '')
         except Exception as err:
-            # Empty param should be trace for further debugging in case it's needed
             self.logger.error('{0}: Something went really wrong: {1}'.format(self.name, err))
             raise NetworkAgentFatalException(self.name, err, '')
