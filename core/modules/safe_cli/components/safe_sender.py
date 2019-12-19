@@ -23,6 +23,13 @@ UN_MARK = ' '
 
 
 class SafeSender:
+    """ SafeSender
+    This class will perform the logic needed to manage the main sender for the safe-cli operations
+    :param logger:
+    :param network_agent:
+    :param safe_interface:
+    :param ethereum_assets:
+    """
     def __init__(self, logger, network_agent, safe_interface, ethereum_assets):
         self.name = self.__class__.__name__
         self.logger = logger
@@ -56,14 +63,24 @@ class SafeSender:
         # EtherHelper: balance with ether units
         self.ether_helper = EtherHelper(self.logger, self.ethereum_client)
 
-    def is_sender(self, address):
-        if address == self.sender_address:
+    def is_sender(self, sender_address):
+        """ Is_Sender
+        This function wil return MARK if current address
+        :param sender_address:
+        :return: If True MARK else UN_MARK
+        """
+        if sender_address == self.sender_address:
             return MARK
         return UN_MARK
 
-    def is_sender_loaded(self, address):
+    def is_sender_loaded(self, sender_address):
+        """ Is_Sender_Loaded
+        This function will return MARK if current address within the sender_account_list
+        :param sender_address:
+        :return: If True MARK else UN_MARK
+        """
         for sender in self.sender_account_list:
-            if address == sender.address:
+            if sender_address == sender.address:
                 return MARK
         return UN_MARK
 
@@ -81,8 +98,9 @@ class SafeSender:
         self.log_formatter.log_dash_splitter()
 
     def view_owners(self):
-        """ Command Safe Get Owners
-        This function will retrieve and show the loaded owners of the safe
+        """ View_Owners
+        This function will retrieve and show the owners within the safe-cli, marking the sender with and "[X]" and if it's
+        currently loaded with another "[X]"
         :return:
         """
         self.log_formatter.log_section_left_side('Loaded Owner Data')
@@ -94,7 +112,7 @@ class SafeSender:
         self.log_formatter.log_dash_splitter()
 
     def view_sender(self):
-        """ Command View Default Sender
+        """ View_Sender
         This function will retrieve and show the sender value of the safe
         :return:
         """
@@ -104,7 +122,7 @@ class SafeSender:
         self.log_formatter.log_dash_splitter()
 
     def _setup_sender(self, msg_header='Setup Sender'):
-        """ Setup Sender
+        """ Setup_Sender
         This functions will find the best fit owner to be the sender of the transactions, the moment the user
         loads a viable owner account
         :return:
@@ -112,7 +130,7 @@ class SafeSender:
         # List to store ether for each loaded owner and find the one with the max balance ether
         sender_stored_ether = []
 
-        # Only establish the sender if len() equals 1
+        # Only establish the sender if len() equals to 1 or more
         if len(self.sender_account_list) >= 1:
             for index, sender in enumerate(self.sender_account_list):
                 sender_ether = self.ethereum_client.w3.eth.getBalance(sender.address)
@@ -133,16 +151,30 @@ class SafeSender:
             self.log_formatter.log_dash_splitter()
 
     def _update_sender(self, msg_header='Update Sender'):
+        """ Update_Sender
+        This function will update the current sender_address/sender_private_key
+        :param msg_header:
+        :return:
+        """
         # Since the sender has to be valid, might as well reset the values to default and setup again
         # this way we avoid the search for a valid sender to be removed.
         self._reset_sender()
         self._setup_sender(msg_header)
 
     def _reset_sender(self):
+        """ Reset_Sender
+        This function will reset the current sender_address/sender_private_key
+        :return:
+        """
         self.sender_address = None
         self.sender_private_key = None
 
     def _add_sender(self, sender_account):
+        """ Add_Sender
+        This function will add a sender to the sender_account_list
+        :param sender_account:
+        :return:
+        """
         if (sender_account is not None) and (sender_account in self.sender_account_list):
             raise SafeSenderAlreadyLoaded
 
@@ -159,6 +191,11 @@ class SafeSender:
             raise SafeSenderNotFound(None)
 
     def _remove_sender(self, sender_account):
+        """ Remove_Sender
+        This function will remove a sender from the sender_account_list
+        :param sender_account:
+        :return: True otherwise raise SafeSenderNotFound
+        """
         if (sender_account is not None) and (sender_account in self.sender_account_list):
             for stored_sender in self.sender_account_list:
                 # Found Match
@@ -176,7 +213,8 @@ class SafeSender:
 
     def unload_owner_via_address(self, sender_address):
         """ Unload_Owner_Via_Address
-
+        This function will remove a sender from the sender_account_list via address
+        :param sender_address:
         """
         try:
             for sender in self.sender_account_list:
@@ -186,12 +224,15 @@ class SafeSender:
                     if self._remove_sender(sender):
                         self._update_sender()
 
+            self.logger.debug0('[ Safe Sender ]: Current senders {0}'.format(self.sender_account_list))
+        except SafeSenderNotFound as err:
+            self.logger.error(err.message)
         except Exception as err:
             self.logger.error(err)
 
     def are_enough_signatures_loaded(self):
         """ Are_Enough_Signatures_Loaded
-        This funcion eval if the current operation is in disposition to be executed, evaluating the number of threshold
+        This function eval if the current operation is in disposition to be executed, evaluating the number of threshold
         limiting the execution of operations vs de current lenght of the list of account_local
         :return:
         """
@@ -201,6 +242,11 @@ class SafeSender:
         raise SafeSenderNotEnoughSigners(None)
 
     def load_owner(self, private_key):
+        """ Load_Owner
+        This function will load a sender using a private_key
+        :param private_key:
+        :return:
+        """
         try:
             self.logger.debug0('[ Safe Sender ]: Loading new sender {0}'.format(HexBytes(private_key).hex()))
             new_sender = self.accounts.get_local_verified_account(
@@ -218,6 +264,11 @@ class SafeSender:
             self.logger.error(err)
 
     def unload_owner(self, private_key):
+        """ Unload_Owner
+        This funtion will unload a sender using the private_key
+        :param private_key:
+        :return:
+        """
         try:
             self.logger.debug0('[ Safe Sender ]: Unloading old sender {0}'.format(HexBytes(private_key).hex()))
             old_sender = self.accounts.get_local_verified_account(
@@ -235,8 +286,6 @@ class SafeSender:
     def get_toolbar_text(self):
         """ Get Toolbar Text
         This function will return the data for the toolbar displaying the current sender
-        :param sender_address:
-        :param sender_private_key:
         :return:
         """
         amount = 0

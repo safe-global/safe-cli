@@ -20,16 +20,36 @@ from hexbytes import HexBytes
 
 
 class SafeToken:
-    def __init__(self, logger, network_agent, safe_interface, safe_configuration, ethereum_assets):
+    """ SafeToken
+    This class will give access to the transfer using tokens ERC20 & Todo: ERC720
+    :param logger:
+    :param network_agent:
+    :param safe_interface:
+    :param ethereum_assets:
+    This class
+    """
+    def __init__(self, logger, network_agent, safe_interface, ethereum_assets):
         self.name = self.__class__.__name__
         self.logger = logger
 
-        self.safe_instance = safe_interface.safe_instance
-        self.network_agent = network_agent
+        # LogFormatter: view_functions()
         self.log_formatter = LogMessageFormatter(self.logger)
-        self.safe_transaction = safe_interface.safe_transaction
+
+        # NetworkAgent: ethereum_client()
+        self.network_agent = network_agent
+        # EthereumClient:
         self.ethereum_client = network_agent.ethereum_client
-        self.safe_configuration = safe_configuration
+
+        # SafeInterface:
+        self.safe_interface = safe_interface
+        # SafeInstance:
+        self.safe_instance = self.safe_interface.safe_instance
+        # SafeTransaction
+        self.safe_transaction = self.safe_interface.safe_transaction
+        # SafeConfiguration:
+        self.safe_configuration = self.safe_interface.safe_configuration
+
+        # EthereumAssets:
         self.ethereum_assets = ethereum_assets
 
     def send_token(self, address_to, token_address, token_amount, local_account, _execute=False, _queue=False):

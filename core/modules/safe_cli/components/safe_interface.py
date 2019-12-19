@@ -23,6 +23,11 @@ from core.modules.safe_cli.components.safe_transaction import SafeTransaction
 class SafeInterface:
     """ Console Safe Commands
     This class will perform the command call to the different eth_assets and the class methods
+    :param logger:
+    :param network_agent:
+    :param safe_address:
+    :param safe_configuration:
+    :param ethereum_assets:
     """
     def __init__(self, logger, network_agent, safe_address, safe_configuration, ethereum_assets):
         self.logger = logger
@@ -33,7 +38,7 @@ class SafeInterface:
         # EthereumClient: w3
         self.ethereum_client = network_agent.ethereum_client
 
-        # Safe Interface
+        # EthereumAssets
         self.ethereum_assets = ethereum_assets
 
         # Setup: LogFormatter
@@ -46,13 +51,13 @@ class SafeInterface:
         # SafeSender: sender
         self.safe_sender = SafeSender(self.logger, self.network_agent, self, self.ethereum_assets)
         # SafeInformation: view_functions()
-        self.safe_information = SafeInformation(self.logger, self.network_agent, self, self.safe_sender)
+        self.safe_information = SafeInformation(self.logger, self.network_agent, self)
         # SafeTransaction: safe_ether, safe_token, safe_management
-        self.safe_transaction = SafeTransaction(self.logger, self.network_agent, self, self.safe_configuration)
+        self.safe_transaction = SafeTransaction(self.logger, self.network_agent, self)
         # SafeEther:
-        self.safe_ether = SafeEther(self.logger, self.network_agent, self, self.safe_configuration)
+        self.safe_ether = SafeEther(self.logger, self.network_agent, self)
         # SafeToken:
-        self.safe_token = SafeToken(self.logger, self.network_agent, self, self.safe_configuration, self.ethereum_assets)
+        self.safe_token = SafeToken(self.logger, self.network_agent, self, self.ethereum_assets)
         # SafeManagement:
         self.safe_management = SafeManagement(self.logger, self, self.ethereum_assets)
 

@@ -30,10 +30,9 @@ class SafeLexer(Lexer):
     """
     @staticmethod
     def __is_valid_argument(regular_expresion, stream):
-        """ Is Valid Argument
+        """ Is_Valid_Argument
         This function will try to retrieve a piece of input stream, if group(0) does not raise AttributeError it will
-        return True, otherwise False
-
+        return True, otherwise False.
         :param regular_expresion:
         :param stream:
         :return:
@@ -45,7 +44,7 @@ class SafeLexer(Lexer):
             return False
 
     def lex_document(self, document):
-        """ Lex Document
+        """ Lex_Document
         This function will change the color of the document text to fit the proper syntax highlight
         :param document: stream input provided by the console user
         :return: output colored syntax
@@ -54,7 +53,7 @@ class SafeLexer(Lexer):
         # colors = list(sorted(NAMED_COLORS, key=NAMED_COLORS.get))
 
         def get_line(lineno):
-            """
+            """ Get_Line
             This function will parse the current word being written in the console and using regular expressions, if
             the current word matches a known pattern it will be provided with a color highlight
             :param lineno: line number

@@ -10,23 +10,40 @@ from hexbytes import HexBytes
 # Import SafeUtils: sentinel_helper
 from core.modules.safe_cli.components.safe_utils import SafeUtils
 
+
 class SafeManagement:
+    """ SafeManagement
+    This class will give access to the management functions within the safe. This class will give change_threshold,
+    add_owner, change_owner, remove_owner, update_master_copy
+    :param logger:
+    :param safe_interface:
+    :param ethereum_assets:
+    """
     def __init__(self, logger, safe_interface, ethereum_assets):
         self.name = self.__class__.__name__
         self.logger = logger
 
-        self.safe_interface = safe_interface
-        self.safe_instance = safe_interface.safe_instance
-        self.safe_operator = safe_interface.safe_operator
-        self.safe_sender = safe_interface.safe_sender
-        self.safe_information = safe_interface.safe_information
-        self.safe_transaction = safe_interface.safe_transaction
-        self.ethereum_assets = ethereum_assets
-
-        self.safe_utils = SafeUtils(self.logger, self.safe_interface)
-
         # Formatter: view functions
         self.log_formatter = LogMessageFormatter(self.logger)
+
+        # SafeInterface:
+        self.safe_interface = safe_interface
+        # SafeInstance:
+        self.safe_instance = safe_interface.safe_instance
+        # SafeOperator:
+        self.safe_operator = safe_interface.safe_operator
+        # SafeSender:
+        self.safe_sender = safe_interface.safe_sender
+        # SafeInformation:
+        self.safe_information = safe_interface.safe_information
+        # SafeTransaction:
+        self.safe_transaction = safe_interface.safe_transaction
+
+        # SafeUtils:
+        self.safe_utils = SafeUtils(self.logger, self.safe_interface)
+
+        # EthereumAssets:
+        self.ethereum_assets = ethereum_assets
 
     def change_threshold(self, new_threshold, _execute=False, _queue=False):
         """ Command Safe Change Threshold

@@ -11,26 +11,34 @@ from core.eth_assets.helper.ether_helper import EtherHelper
 
 
 class SafeEther:
-    def __init__(self, logger, network_agent, safe_interface, safe_configuration):
+    def __init__(self, logger, network_agent, safe_interface):
         self.name = self.__class__.__name__
         self.logger = logger
-
-        self.safe_configuration = safe_configuration
-        self.auto_execute = self.safe_configuration.auto_execute
-        self.network_agent = network_agent
-        self.ethereum_client = self.network_agent.ethereum_client
-        self.safe_interface = safe_interface
-        self.safe_instance = self.safe_interface.safe_instance
-        self.safe_operator = self.safe_interface.safe_operator
-        self.safe_transaction = self.safe_interface.safe_transaction
-
-        self.ether_helper = EtherHelper(self.logger, self.ethereum_client)
 
         # LogFormatter: view_functions()
         self.log_formatter = LogMessageFormatter(self.logger)
 
-        # SafeConfiguration:
-        self.safe_configuration = safe_configuration
+        # NetworkAgent: ethereum_client
+        self.network_agent = network_agent
+
+        # EthereumClient:
+        self.ethereum_client = self.network_agent.ethereum_client
+
+        # SafeInterface:
+        self.safe_interface = safe_interface
+        # SafeInstance:
+        self.safe_instance = self.safe_interface.safe_instance
+        # SafeOperator:
+        self.safe_operator = self.safe_interface.safe_operator
+        # SafeTransaction:
+        self.safe_transaction = self.safe_interface.safe_transaction
+
+        # SafeConfiguration: auto_execute()
+        self.safe_configuration = self.safe_interface.safe_configuration
+        self.auto_execute = self.safe_configuration.auto_execute
+
+        # EtherHelper:
+        self.ether_helper = EtherHelper(self.logger, self.ethereum_client)
 
     def send_ether(self, address_to, wei_amount, local_account, _execute=False, _queue=False):
         """ Command Send Ether

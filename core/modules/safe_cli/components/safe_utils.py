@@ -6,7 +6,10 @@ class SafeUtils:
     def __init__(self, logger, safe_interface):
         self.name = self.__class__.__name__
         self.logger = logger
+
+        # SafeInterface:
         self.safe_interface = safe_interface
+        # SafeOperator:
         self.safe_operator = self.safe_interface.safe_operator
 
     def setinel_helper(self, address_value):

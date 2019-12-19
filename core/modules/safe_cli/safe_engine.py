@@ -41,6 +41,12 @@ SAFE_ENGINE_LOG = './log/safe_cli.log'
 
 
 class SafeEngine:
+    """ SafeEngine
+    This class will run the safe prompt and interact with components via command line
+    :param network_agent:
+    :param ethereum_assets:
+    :param gnosis_manager:
+    """
     def __init__(self, network_agent, ethereum_assets, gnosis_manager):
         self.name = self.__class__.__name__
 
@@ -154,6 +160,12 @@ class SafeEngine:
             self.logger.error(err)
 
     def _exit(self, command_argument, argument_list):
+        """ _Exit
+        This function will exit the current prompt
+        :param command_argument:
+        :param argument_list:
+        :return:
+        """
         _, _, _, _now = self.getter.get_input_affix_arguments(argument_list)
         if (command_argument == 'close') or (command_argument == 'quit') or (command_argument == 'exit'):
             if not _now:

@@ -18,6 +18,10 @@ from eth_account import Account
 class SafeController:
     """ Console Controller
     This class will represent and function as pseudo-controller for the execution of the proper commands
+    :param logger:
+    :param network_agent:
+    :param safe_interface:
+    :param ethereum_assets:
     """
     def __init__(self, logger, network_agent, safe_interface, ethereum_assets):
         self.logger = logger
@@ -27,21 +31,29 @@ class SafeController:
         self.ethereum_assets = ethereum_assets
 
         # EthereumAssets: accounts, payloads, tokens
+        # Accounts:
         self.accounts = self.ethereum_assets.accounts
+        # Payloads:
         self.payloads = self.ethereum_assets.payloads
+        # Tokens:
         self.tokens = self.ethereum_assets.tokens
 
         self.console_information = InformationArtifacts(self.logger)
 
+        # SafeInterface:
         self.safe_interface = safe_interface
+        # SafeSender:
         self.safe_sender = self.safe_interface.safe_sender
+        # SafeManagement:
         self.safe_management = self.safe_interface.safe_management
+        # SafeEther:
         self.safe_ether = self.safe_interface.safe_ether
+        # SafeToken:
         self.safe_token = self.safe_interface.safe_token
+        # SafeInformation:
         self.safe_information = self.safe_interface.safe_information
 
-        self.safe_interface = None
-
+        # Getter/Handler
         self.console_getter = ConsoleInputGetter(self.logger)
         self.console_handler = ConsoleInputHandler()
 
@@ -52,7 +64,6 @@ class SafeController:
         :param priority_group:
         :param command_argument:
         :param argument_list:
-        :param safe_interface:
         :return:
         """
         self.logger.debug0('(+) [ Operating with Safe Console ]: ' + command_argument)
@@ -213,6 +224,7 @@ class SafeController:
         #     self.safe_interface.command_view_owners()
         # elif command_argument == 'viewSender':
         #     self.safe_interface.command_view_default_sender()
+
         elif command_argument == 'viewNetwork':
             self.network_agent.view_networks()
         elif command_argument == 'viewAccounts':

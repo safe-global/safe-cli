@@ -14,11 +14,12 @@ from core.modules.safe_cli.constants.contract_constants import (
 
 
 class SafeCompleter(Completer):
-    """ Command Completer
+    """ Safe_Completer
     This class will perform the utilities regarding auto-completion of known user input commands
+
     """
     def get_completions(self, document, complete_event):
-        """ Get Completions
+        """ Get_Completions
         This will function will provide the completions for param types and function name
         :param document:
         :param complete_event:

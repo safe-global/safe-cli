@@ -12,7 +12,11 @@ from hexbytes import HexBytes
 
 
 class SafeInformation:
-    def __init__(self, logger, network_agent, safe_interface, safe_sender):
+    """ SafeInformation
+    This function will give access to viewing functions to display relevant data within the safe-cli
+
+    """
+    def __init__(self, logger, network_agent, safe_interface):
         self.name = self.__class__.__name__
         self.logger = logger
 
@@ -24,7 +28,7 @@ class SafeInformation:
         self.safe_operator = self.safe_interface.safe_operator
 
         # SafeSender: is_sender()
-        self.safe_sender = safe_sender
+        self.safe_sender = self.safe_interface.safe_sender
 
         # NetworkAgent: ethereum_client, w3
         self.network_agent = network_agent
