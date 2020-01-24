@@ -171,6 +171,23 @@ class SafeOperator:
                         self.safe_info.threshold = threshold
             except ValueError:
                 print_formatted_text(HTML(f'<ansired>Cannot parse owner. Is it checksummed?</ansired>'))
+        elif first_command == 'change_master_copy':
+            #TODO Check that master copy is valid
+            try:
+                new_master_copy = rest_command[0]
+                if not Web3.isChecksumAddress(new_master_copy):
+                    raise ValueError(new_master_copy)
+                elif new_master_copy == self.safe_info.master_copy:
+                    print_formatted_text(HTML(f'<ansired>Master copy {new_master_copy} is the current one</ansired>'))
+                else:
+                    transaction = self.safe_contract.functions.changeMasterCopy(
+                        new_master_copy
+                    ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
+                    if self.execute_safe_internal_transaction(transaction['data']):
+                        self.safe_info.master_copy = new_master_copy
+                        self.safe_info.version = self.safe.retrieve_version()
+            except ValueError:
+                print_formatted_text(HTML(f'<ansired>Cannot parse new master-copy. Is it checksummed?</ansired>'))
         return True
 
     def execute_safe_internal_transaction(self, data: bytes) -> bool:
@@ -189,6 +206,7 @@ class SafeOperator:
             print_formatted_text(HTML(f'<ansired>Tx with tx-hash={tx_hash.hex()} still not mined</ansired>'))
         return False
 
+    # TODO Set sender so we can save gas in that signature
     def sign_transaction(self, safe_tx: SafeTx) -> bool:
         owners = self.safe_info.owners
         threshold = self.safe_info.threshold

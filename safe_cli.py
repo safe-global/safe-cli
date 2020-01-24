@@ -25,10 +25,11 @@ safe_operator = SafeOperator(safe_address, infura_project_id)
 
 session = PromptSession()
 safe_commands = ['help', 'get_threshold', 'get_nonce', 'get_owners', 'load_cli_owner', 'unload_cli_owner',
-                 'show_cli_owners', 'add_owner', 'change_threshold', 'remove_owner', 'refresh']
+                 'change_master_copy', 'show_cli_owners', 'add_owner', 'change_threshold', 'remove_owner', 'refresh']
 safe_command_completer = WordCompleter(safe_commands, ignore_case=True)
 
 
+# TODO Auto load owners (e.g. if in PRIVATE_KEYS environment var)
 def bottom_toolbar():
     return HTML(f'nonce=Safe-Cli <b><style bg="ansired">v0.0.1</style></b>!')
 
