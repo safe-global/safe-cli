@@ -1,4 +1,4 @@
 prompt_toolkit==3.0.2
-gnosis-py==2.0.6
+gnosis-py==2.0.8
 requests==2.22.0
-web3==5.4.0
+web3==5.5.0

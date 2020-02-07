@@ -1,17 +1,11 @@
 import argparse
-from typing import List
 
-from eth_account import Account
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.completion import WordCompleter
-from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.lexers import PygmentsLexer
 from pygments.lexers.shell import BashLexer
 from safe_operator import SafeOperator
-
-from gnosis.eth import EthereumClient
-from gnosis.safe import Safe
 
 parser = argparse.ArgumentParser()
 parser.add_argument('safe_address', help='Address of Safe to use')
@@ -34,29 +28,34 @@ def bottom_toolbar():
     return HTML(f'nonce=Safe-Cli <b><style bg="ansired">v0.0.1</style></b>!')
 
 
-while True:
-    try:
-        command = session.prompt(HTML(f'<bold><ansiblue>{safe_address}</ansiblue><ansired> > </ansired></bold>'),
-                                 auto_suggest=AutoSuggestFromHistory(),
-                                 bottom_toolbar=safe_operator.bottom_toolbar,
-                                 lexer=PygmentsLexer(BashLexer),
-                                 completer=safe_command_completer)
-    except KeyboardInterrupt:
-        continue
-    except EOFError:
-        break
+def process_command(command: str):
+    if not command:
+        return
+
+    commands = command.strip().split()
+    first_command = commands[0].lower()
+    rest_command = commands[1:]
+
+    if first_command not in safe_commands:
+        print_formatted_text('I still cannot help you')
     else:
-        if not command:
-            continue
-
-        commands = command.strip().split()
-        first_command = commands[0].lower()
-        rest_command = commands[1:]
-
-        if first_command not in safe_commands:
+        if first_command == 'help':
             print_formatted_text('I still cannot help you')
         else:
-            if first_command == 'help':
-                print_formatted_text('I still cannot help you')
-            else:
-                safe_operator.process_command(first_command, rest_command)
+            return safe_operator.process_command(first_command, rest_command)
+
+
+if __name__ == '__main__':
+    while True:
+        try:
+            command = session.prompt(HTML(f'<bold><ansiblue>{safe_address}</ansiblue><ansired> > </ansired></bold>'),
+                                     auto_suggest=AutoSuggestFromHistory(),
+                                     bottom_toolbar=safe_operator.bottom_toolbar,
+                                     lexer=PygmentsLexer(BashLexer),
+                                     completer=safe_command_completer)
+        except KeyboardInterrupt:
+            continue
+        except EOFError:
+            break
+        else:
+            process_command(command)

@@ -1,14 +1,8 @@
-import argparse
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Set
+from typing import List, Optional, Set
 
 from eth_account import Account
-from prompt_toolkit import HTML, PromptSession, print_formatted_text
-from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-from prompt_toolkit.completion import WordCompleter
-from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.lexers import PygmentsLexer
-from pygments.lexers.shell import BashLexer
+from prompt_toolkit import HTML, print_formatted_text
 from web3 import Web3
 
 from gnosis.eth import EthereumClient
