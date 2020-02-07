@@ -9,16 +9,17 @@ from safe_operator import SafeOperator
 
 parser = argparse.ArgumentParser()
 parser.add_argument('safe_address', help='Address of Safe to use')
-parser.add_argument('infura_project_id', help='Infura Project id')
+parser.add_argument('node_url', help='Ethereum node url')
 args = parser.parse_args()
 
 safe_address = args.safe_address
-infura_project_id = args.infura_project_id
+node_url = args.node_url
 
 
 session = PromptSession()
 safe_commands = ['help', 'get_threshold', 'get_nonce', 'get_owners', 'load_cli_owner', 'unload_cli_owner',
-                 'change_master_copy', 'show_cli_owners', 'add_owner', 'change_threshold', 'remove_owner', 'refresh']
+                 'change_master_copy', 'show_cli_owners', 'add_owner', 'change_threshold', 'remove_owner', 'refresh',
+                 'send_ether', 'send_erc20']
 safe_command_completer = WordCompleter(safe_commands, ignore_case=True)
 
 
@@ -42,7 +43,7 @@ def process_command(command: str, safe_operator: SafeOperator):
 
 
 if __name__ == '__main__':
-    safe_operator = SafeOperator(safe_address, infura_project_id)
+    safe_operator = SafeOperator(safe_address, node_url)
     while True:
         try:
             command = session.prompt(HTML(f'<bold><ansiblue>{safe_address}</ansiblue><ansired> > </ansired></bold>'),

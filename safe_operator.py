@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from gnosis.eth.contracts import get_erc20_contract
 from typing import List, Optional, Set
 
 from eth_account import Account
@@ -8,14 +9,6 @@ from web3 import Web3
 from gnosis.eth import EthereumClient
 from gnosis.eth.constants import SENTINEL_ADDRESS
 from gnosis.safe import Safe, SafeTx
-
-INFURA_ENDPOINTS = {
-    'mainnet': 'https://mainnet.infura.io/v3/',
-    'goerli': 'https://goerli.infura.io/v3/',
-    'kovan': 'https://kovan.infura.io/v3/',
-    'rinkeby': 'https://rinkeby.infura.io/v3/',
-    'ropsten': 'https://ropsten.infura.io/v3/',
-}
 
 
 @dataclass
@@ -29,11 +22,12 @@ class SafeInfo:
 
 
 class SafeOperator:
-    def __init__(self, address: str, infura_project_id: str, network: str = 'rinkeby'):
+    def __init__(self, address: str, node_url: str):
         self.address = address
-        self.infura_project_id = infura_project_id
-        self.node_url = INFURA_ENDPOINTS[network] + infura_project_id
+        self.node_url = node_url
         self.ethereum_client = EthereumClient(self.node_url)
+        self.network = self.ethereum_client.get_network_name()
+        self.network_name = self.network.name
         self.safe = Safe(address, self.ethereum_client)
         self.safe_contract = self.safe.get_contract()
         self.safe_info: SafeInfo = self.get_safe_info()
@@ -41,9 +35,10 @@ class SafeOperator:
         self.default_sender: Optional[Account] = None
 
     def bottom_toolbar(self):
-        return HTML(f'<b><style fg="ansiyellow">safe-version={self.safe_info.version} nonce={self.safe_info.nonce} '
+        return HTML(f'<b><style fg="ansiyellow">network={self.network_name} safe-version={self.safe_info.version} '
+                    f'nonce={self.safe_info.nonce} '
                     f'threshold={self.safe_info.threshold} owners={self.safe_info.owners} '
-                    f'master-copy={self.safe_info.master_copy} node-url={self.node_url}</style></b>')
+                    f'master-copy={self.safe_info.master_copy}</style></b>')
 
     def get_safe_info(self) -> SafeInfo:
         safe = self.safe
@@ -90,7 +85,7 @@ class SafeOperator:
                 self.accounts.add(account)
                 balance = self.ethereum_client.get_balance(account.address)
                 print_formatted_text(HTML(f'Loaded account <b>{account.address}</b> '
-                                          f'with balance={Web3.fromWei(balance, "ether")}'))
+                                          f'with balance={Web3.fromWei(balance, "ether")} ether'))
                 if not self.default_sender and balance > 0:
                     print_formatted_text(HTML(f'Set account <b>{account.address}</b> as default sender of txs'))
                     self.default_sender = account
@@ -111,7 +106,7 @@ class SafeOperator:
                 return False
             try:
                 threshold = int(rest_command[0])
-            except ValueError:
+            except (IndexError, ValueError):
                 print_formatted_text(HTML(f'<ansired>Cannot parse threshold</ansired>'))
 
             if threshold == self.safe_info.threshold:
@@ -143,7 +138,7 @@ class SafeOperator:
                     if self.execute_safe_internal_transaction(transaction['data']):
                         self.safe_info.owners = self.safe.retrieve_owners()
                         self.safe_info.threshold = threshold
-            except ValueError:
+            except (IndexError, ValueError):
                 print_formatted_text(HTML(f'<ansired>Cannot parse owner. Is it checksummed?</ansired>'))
         elif first_command == 'remove_owner':
             try:
@@ -163,7 +158,7 @@ class SafeOperator:
                     if self.execute_safe_internal_transaction(transaction['data']):
                         self.safe_info.owners = self.safe.retrieve_owners()
                         self.safe_info.threshold = threshold
-            except ValueError:
+            except (IndexError, ValueError):
                 print_formatted_text(HTML(f'<ansired>Cannot parse owner. Is it checksummed?</ansired>'))
         elif first_command == 'change_master_copy':
             #TODO Check that master copy is valid
@@ -180,12 +175,39 @@ class SafeOperator:
                     if self.execute_safe_internal_transaction(transaction['data']):
                         self.safe_info.master_copy = new_master_copy
                         self.safe_info.version = self.safe.retrieve_version()
-            except ValueError:
+            except (IndexError, ValueError):
                 print_formatted_text(HTML(f'<ansired>Cannot parse new master-copy. Is it checksummed?</ansired>'))
+        elif first_command == 'send_ether':
+            try:
+                address = rest_command[0]
+                if not Web3.isChecksumAddress(address):
+                    print_formatted_text(HTML(f'<ansired>Cannot parse address. Is it checksummed?</ansired>'))
+                value = int(rest_command[1])
+                return self.execute_safe_transaction(address, value, b'')
+            except (IndexError, ValueError):
+                print_formatted_text(HTML(f'<ansired>Usage: send_ether <address> <value>. Cannot parse</ansired>'))
+        elif first_command == 'send_erc20':
+            try:
+                address = rest_command[0]
+                token_address = rest_command[1]
+                if not (Web3.isChecksumAddress(address) and Web3.isChecksumAddress(token_address)):
+                    print_formatted_text(HTML(f'<ansired>Cannot parse address or token-address.'
+                                              f'Is it checksummed?</ansired>'))
+                value = int(rest_command[2])
+                transaction = get_erc20_contract(self.ethereum_client.w3, token_address).functions.transfer(
+                    address, value
+                ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
+                return self.execute_safe_transaction(token_address, 0, transaction['data'])
+            except (IndexError, ValueError):
+                print_formatted_text(HTML(f'<ansired>Usage: send_erc20 <address> <token-address> <value>. Cannot parse'
+                                          f'</ansired>'))
         return False
 
     def execute_safe_internal_transaction(self, data: bytes) -> bool:
-        safe_tx = self.safe.build_multisig_tx(self.address, 0, data)
+        return self.execute_safe_transaction(self.address, 0, data)
+
+    def execute_safe_transaction(self, to: str, value: int, data: bytes) -> bool:
+        safe_tx = self.safe.build_multisig_tx(to, value, data)
         if not self.sign_transaction(safe_tx):
             return False
         print_formatted_text(HTML(f'Result: <ansigreen>{safe_tx.call(self.default_sender.address)}'
