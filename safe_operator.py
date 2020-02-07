@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from gnosis.eth.contracts import get_erc20_contract
 from typing import List, Optional, Set
 
 from eth_account import Account
@@ -8,6 +7,7 @@ from web3 import Web3
 
 from gnosis.eth import EthereumClient
 from gnosis.eth.constants import SENTINEL_ADDRESS
+from gnosis.eth.contracts import get_erc20_contract
 from gnosis.safe import Safe, SafeTx
 
 
@@ -185,7 +185,7 @@ class SafeOperator:
                 value = int(rest_command[1])
                 return self.execute_safe_transaction(address, value, b'')
             except (IndexError, ValueError):
-                print_formatted_text(HTML(f'<ansired>Usage: send_ether <address> <value>. Cannot parse</ansired>'))
+                print_formatted_text(HTML(f'<ansired>Usage: send_ether address value. Cannot parse</ansired>'))
         elif first_command == 'send_erc20':
             try:
                 address = rest_command[0]
@@ -199,9 +199,12 @@ class SafeOperator:
                 ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
                 return self.execute_safe_transaction(token_address, 0, transaction['data'])
             except (IndexError, ValueError):
-                print_formatted_text(HTML(f'<ansired>Usage: send_erc20 <address> <token-address> <value>. Cannot parse'
+                print_formatted_text(HTML(f'<ansired>Usage: send_erc20 address token-address value. Cannot parse'
                                           f'</ansired>'))
         return False
+
+    def send_ether(self, to: str, value: int):
+        return self.execute_safe_transaction(to, value, b'')
 
     def execute_safe_internal_transaction(self, data: bytes) -> bool:
         return self.execute_safe_transaction(self.address, 0, data)

@@ -6,6 +6,7 @@ from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.lexers import PygmentsLexer
 from pygments.lexers.shell import BashLexer
 from safe_operator import SafeOperator
+from web3 import Web3
 
 parser = argparse.ArgumentParser()
 parser.add_argument('safe_address', help='Address of Safe to use')
@@ -42,8 +43,26 @@ def process_command(command: str, safe_operator: SafeOperator):
             return safe_operator.process_command(first_command, rest_command)
 
 
+def check_ethereum_address(address: str) -> bool:
+    if not Web3.isChecksumAddress(address):
+        raise argparse.ArgumentTypeError(f'{address} is not a valid checksummed ethereum address')
+    return address
+
+
 if __name__ == '__main__':
     safe_operator = SafeOperator(safe_address, node_url)
+
+    def send_ether(args):
+        safe_operator.send_ether(args.address, args.value)
+
+    # Test parsers
+    prompt_parser = argparse.ArgumentParser(prog='')
+    subparsers = prompt_parser.add_subparsers()
+    parser_send_ether = subparsers.add_parser('send_ether')
+    parser_send_ether.add_argument('address', type=check_ethereum_address)
+    parser_send_ether.add_argument('value', type=int)
+    parser_send_ether.set_defaults(func=send_ether)
+
     while True:
         try:
             command = session.prompt(HTML(f'<bold><ansiblue>{safe_address}</ansiblue><ansired> > </ansired></bold>'),
@@ -51,9 +70,15 @@ if __name__ == '__main__':
                                      bottom_toolbar=safe_operator.bottom_toolbar,
                                      lexer=PygmentsLexer(BashLexer),
                                      completer=safe_command_completer)
-        except KeyboardInterrupt:
-            continue
+            if not command.strip():
+                continue
+
+            args = prompt_parser.parse_args(command.split())
+            args.func(args)
         except EOFError:
             break
-        else:
+        except KeyboardInterrupt:
+            continue
+        except (argparse.ArgumentError, argparse.ArgumentTypeError, SystemExit):  # FIXME
+            print(command)
             process_command(command, safe_operator)
