@@ -1,0 +1,12 @@
+dist: xenial
+language: python
+cache: pip
+python:
+  - "3.8"
+env:
+  global:
+  - PIP_USE_MIRRORS=true
+install:
+  - pip install -r requirements.txt
+script:
+  - python -m unittest

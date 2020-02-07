@@ -14,7 +14,6 @@ args = parser.parse_args()
 
 safe_address = args.safe_address
 infura_project_id = args.infura_project_id
-safe_operator = SafeOperator(safe_address, infura_project_id)
 
 
 session = PromptSession()
@@ -24,11 +23,8 @@ safe_command_completer = WordCompleter(safe_commands, ignore_case=True)
 
 
 # TODO Auto load owners (e.g. if in PRIVATE_KEYS environment var)
-def bottom_toolbar():
-    return HTML(f'nonce=Safe-Cli <b><style bg="ansired">v0.0.1</style></b>!')
 
-
-def process_command(command: str):
+def process_command(command: str, safe_operator: SafeOperator):
     if not command:
         return
 
@@ -37,7 +33,7 @@ def process_command(command: str):
     rest_command = commands[1:]
 
     if first_command not in safe_commands:
-        print_formatted_text('I still cannot help you')
+        print_formatted_text(f'Use a command in the list <ansired>{safe_commands}</ansired>')
     else:
         if first_command == 'help':
             print_formatted_text('I still cannot help you')
@@ -46,6 +42,7 @@ def process_command(command: str):
 
 
 if __name__ == '__main__':
+    safe_operator = SafeOperator(safe_address, infura_project_id)
     while True:
         try:
             command = session.prompt(HTML(f'<bold><ansiblue>{safe_address}</ansiblue><ansired> > </ansired></bold>'),
@@ -58,4 +55,4 @@ if __name__ == '__main__':
         except EOFError:
             break
         else:
-            process_command(command)
+            process_command(command, safe_operator)

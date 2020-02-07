@@ -182,7 +182,7 @@ class SafeOperator:
                         self.safe_info.version = self.safe.retrieve_version()
             except ValueError:
                 print_formatted_text(HTML(f'<ansired>Cannot parse new master-copy. Is it checksummed?</ansired>'))
-        return True
+        return False
 
     def execute_safe_internal_transaction(self, data: bytes) -> bool:
         safe_tx = self.safe.build_multisig_tx(self.address, 0, data)
