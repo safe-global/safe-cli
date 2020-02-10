@@ -26,7 +26,7 @@ class SafeOperator:
         self.address = address
         self.node_url = node_url
         self.ethereum_client = EthereumClient(self.node_url)
-        self.network = self.ethereum_client.get_network_name()
+        self.network = self.ethereum_client.get_network()
         self.network_name = self.network.name
         self.safe = Safe(address, self.ethereum_client)
         self.safe_contract = self.safe.get_contract()
