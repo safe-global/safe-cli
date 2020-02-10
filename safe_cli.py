@@ -3,11 +3,12 @@ import argparse
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.lexers import PygmentsLexer
-from pygments.lexers.shell import BashLexer
 from safe_operator import SafeOperator
 from safe_completer import SafeCompleter
 from safe_completer_constants import safe_commands
 from web3 import Web3
+from safe_lexer import SafeLexer
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('safe_address', help='Address of Safe to use')
@@ -65,7 +66,7 @@ if __name__ == '__main__':
             command = session.prompt(HTML(f'<bold><ansiblue>{safe_address}</ansiblue><ansired> > </ansired></bold>'),
                                      auto_suggest=AutoSuggestFromHistory(),
                                      bottom_toolbar=safe_operator.bottom_toolbar,
-                                     lexer=PygmentsLexer(BashLexer),
+                                     lexer=PygmentsLexer(SafeLexer),
                                      completer=SafeCompleter())
             if not command.strip():
                 continue
