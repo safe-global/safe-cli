@@ -6,7 +6,8 @@ from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.lexers import PygmentsLexer
 from pygments.lexers.shell import BashLexer
 from safe_operator import SafeOperator
-from web3 import Web3
+from safe_completer import SafeCompleter
+from safe_completer_constants import safe_commands
 
 parser = argparse.ArgumentParser()
 parser.add_argument('safe_address', help='Address of Safe to use')
@@ -18,10 +19,6 @@ node_url = args.node_url
 
 
 session = PromptSession()
-safe_commands = ['help', 'get_threshold', 'get_nonce', 'get_owners', 'load_cli_owner', 'unload_cli_owner',
-                 'change_master_copy', 'show_cli_owners', 'add_owner', 'change_threshold', 'remove_owner', 'refresh',
-                 'send_ether', 'send_erc20']
-safe_command_completer = WordCompleter(safe_commands, ignore_case=True)
 
 
 # TODO Auto load owners (e.g. if in PRIVATE_KEYS environment var)
@@ -43,42 +40,18 @@ def process_command(command: str, safe_operator: SafeOperator):
             return safe_operator.process_command(first_command, rest_command)
 
 
-def check_ethereum_address(address: str) -> bool:
-    if not Web3.isChecksumAddress(address):
-        raise argparse.ArgumentTypeError(f'{address} is not a valid checksummed ethereum address')
-    return address
-
-
 if __name__ == '__main__':
     safe_operator = SafeOperator(safe_address, node_url)
-
-    def send_ether(args):
-        safe_operator.send_ether(args.address, args.value)
-
-    # Test parsers
-    prompt_parser = argparse.ArgumentParser(prog='')
-    subparsers = prompt_parser.add_subparsers()
-    parser_send_ether = subparsers.add_parser('send_ether')
-    parser_send_ether.add_argument('address', type=check_ethereum_address)
-    parser_send_ether.add_argument('value', type=int)
-    parser_send_ether.set_defaults(func=send_ether)
-
     while True:
         try:
             command = session.prompt(HTML(f'<bold><ansiblue>{safe_address}</ansiblue><ansired> > </ansired></bold>'),
                                      auto_suggest=AutoSuggestFromHistory(),
                                      bottom_toolbar=safe_operator.bottom_toolbar,
                                      lexer=PygmentsLexer(BashLexer),
-                                     completer=safe_command_completer)
-            if not command.strip():
-                continue
-
-            args = prompt_parser.parse_args(command.split())
-            args.func(args)
-        except EOFError:
-            break
+                                     completer=SafeCompleter())
         except KeyboardInterrupt:
             continue
-        except (argparse.ArgumentError, argparse.ArgumentTypeError, SystemExit):  # FIXME
-            print(command)
+        except EOFError:
+            break
+        else:
             process_command(command, safe_operator)
