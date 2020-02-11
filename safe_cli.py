@@ -2,11 +2,13 @@ import argparse
 
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.lexers import PygmentsLexer
-from pygments.lexers.shell import BashLexer
 from safe_operator import SafeOperator
+from safe_completer import SafeCompleter
+from safe_completer_constants import safe_commands
 from web3 import Web3
+from safe_lexer import SafeLexer
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument('safe_address', help='Address of Safe to use')
@@ -18,10 +20,6 @@ node_url = args.node_url
 
 
 session = PromptSession()
-safe_commands = ['help', 'get_threshold', 'get_nonce', 'get_owners', 'load_cli_owner', 'unload_cli_owner',
-                 'change_master_copy', 'show_cli_owners', 'add_owner', 'change_threshold', 'remove_owner', 'refresh',
-                 'send_ether', 'send_erc20']
-safe_command_completer = WordCompleter(safe_commands, ignore_case=True)
 
 
 # TODO Auto load owners (e.g. if in PRIVATE_KEYS environment var)
@@ -68,8 +66,8 @@ if __name__ == '__main__':
             command = session.prompt(HTML(f'<bold><ansiblue>{safe_address}</ansiblue><ansired> > </ansired></bold>'),
                                      auto_suggest=AutoSuggestFromHistory(),
                                      bottom_toolbar=safe_operator.bottom_toolbar,
-                                     lexer=PygmentsLexer(BashLexer),
-                                     completer=safe_command_completer)
+                                     lexer=PygmentsLexer(SafeLexer),
+                                     completer=SafeCompleter())
             if not command.strip():
                 continue
 
