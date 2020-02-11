@@ -3,12 +3,11 @@ import argparse
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.lexers import PygmentsLexer
-from safe_operator import SafeOperator
 from safe_completer import SafeCompleter
 from safe_completer_constants import safe_commands
-from web3 import Web3
 from safe_lexer import SafeLexer
-
+from safe_operator import SafeOperator
+from web3 import Web3
 
 parser = argparse.ArgumentParser()
 parser.add_argument('safe_address', help='Address of Safe to use')

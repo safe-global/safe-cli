@@ -3,7 +3,6 @@
 # Import HTML Module
 from prompt_toolkit.formatted_text import HTML
 
-
 SAFE_ARGUMENT_COLOR = 'em'
 SAFE_EMPTY_ARGUMENT_COLOR = 'ansimagenta'
 
