@@ -12,7 +12,7 @@ source venv/bin/activate && pip install -r requirements.txt
 ## Using
 ```bash
 source venv/bin/activate
-python safe_cli <safe_address> <ethereum_node_url>
+python safe_cli.py <checksummed_safe_address> <ethereum_node_url>
 ```
 
 Then you should be on the prompt and see information about the Safe, like the owners, version, etc.
