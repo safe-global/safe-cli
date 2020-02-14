@@ -13,19 +13,19 @@ safe_commands = ['refresh', 'get_nonce', 'get_owners', 'get_threshold', 'show_cl
                  'change_master_copy', 'send_ether', 'send_erc20']
 
 safe_commands_arguments = {
-    'refresh': '',
-    'show_cli_owners': '(read-only)',
-    'get_threshold': '(read-only)',
-    'get_owners': '(read-only)',
-    'get_nonce': '(read-only)',
-    'load_cli_owner': '<account-private-key>',
-    'unload_cli_owner': '<address>',
     'add_owner': '<address>',
-    'change_threshold': '<address>',
-    'remove_owner': '<address>',
     'change_master_copy': '<address>',
-    'send_ether': '<address> <token_address> <value>',
-    'send_erc20': '<address> <value-wei>',
+    'change_threshold': '<address>',
+    'get_nonce': '(read-only)',
+    'get_owners': '(read-only)',
+    'get_threshold': '(read-only)',
+    'load_cli_owner': '<account-private-key>',
+    'refresh': '',
+    'remove_owner': '<address>',
+    'send_erc20': '<address> <token_address> <value>',
+    'send_ether': '<address> <value-wei>',
+    'show_cli_owners': '(read-only)',
+    'unload_cli_owner': '<address>',
 }
 
 safe_color_arguments = {
@@ -53,7 +53,7 @@ meta = {
                       'the current loaded safe.'),
     'change_threshold': HTML('Command <b>change_threshold</b> will change the current threshold <u>&lt;integer&gt;</u> '
                              'value for the loaded safe.'),
-    'send_ether': HTML('Command <b>send_ether</b> will try to send a Wei <u>&lt;value&gt;</u> to a check-summed account'
+    'send_ether': HTML('Command <b>send_ether</b> will try to send Wei <u>&lt;value&gt;</u> to a check-summed account'
                        ' <u>&lt;address&gt;</u> if enough funds are found, withing the current loaded safe.'),
     'send_erc20': HTML('Command <b>send_erc20</b> will try to send a Token <u>&lt;value&gt;</u> from a check-summed '
                        '<u>&lt;token-address&gt;</u>, to a check-summed account <u>&lt;address&gt;</u> if enough funds'

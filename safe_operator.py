@@ -1,3 +1,4 @@
+import os
 from dataclasses import dataclass
 from typing import List, Optional, Set
 
@@ -79,7 +80,7 @@ class SafeOperator:
                 print_formatted_text('Specify a private key to load')
             for key in keys:
                 try:
-                    account = Account.from_key(key)
+                    account = Account.from_key(os.environ.get(key, default=key))  # Try to get key from `environ`
                 except ValueError:
                     print_formatted_text(HTML(f'<ansired>Cannot load key=f{key}</ansired>'))
                 self.accounts.add(account)
@@ -147,6 +148,9 @@ class SafeOperator:
                     raise ValueError(owner_to_remove)
                 elif owner_to_remove not in self.safe_info.owners:
                     print_formatted_text(HTML(f'<ansired>Owner {owner_to_remove} is not an owner of the Safe'
+                                              f'</ansired>'))
+                elif len(self.safe_info.owners) == self.safe_info.threshold:
+                    print_formatted_text(HTML(f'<ansired>Having less owners than threshold is not allowed'
                                               f'</ansired>'))
                 else:
                     index_owner = self.safe_info.owners.index(owner_to_remove)

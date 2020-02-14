@@ -71,12 +71,12 @@ if __name__ == '__main__':
             if not command.strip():
                 continue
 
-            args = prompt_parser.parse_args(command.split())
-            args.func(args)
+            # args = prompt_parser.parse_args(command.split())
+            # args.func(args)
+            process_command(command, safe_operator)
         except EOFError:
             break
         except KeyboardInterrupt:
             continue
         except (argparse.ArgumentError, argparse.ArgumentTypeError, SystemExit):  # FIXME
-            print(command)
             process_command(command, safe_operator)
