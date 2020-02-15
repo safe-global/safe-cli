@@ -1,5 +1,6 @@
 import argparse
 
+import pyfiglet
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.lexers import PygmentsLexer
@@ -49,6 +50,8 @@ def check_ethereum_address(address: str) -> bool:
 
 if __name__ == '__main__':
     safe_operator = SafeOperator(safe_address, node_url)
+    print_formatted_text(pyfiglet.figlet_format('Gnosis Safe CLI'))
+    process_command('info', safe_operator)
 
     def send_ether(args):
         safe_operator.send_ether(args.address, args.value)
