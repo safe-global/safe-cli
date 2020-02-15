@@ -3,12 +3,11 @@ import argparse
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.lexers import PygmentsLexer
-from safe_operator import SafeOperator
 from safe_completer import SafeCompleter
 from safe_completer_constants import safe_commands
-from web3 import Web3
 from safe_lexer import SafeLexer
-
+from safe_operator import SafeOperator
+from web3 import Web3
 
 parser = argparse.ArgumentParser()
 parser.add_argument('safe_address', help='Address of Safe to use')
@@ -33,7 +32,8 @@ def process_command(command: str, safe_operator: SafeOperator):
     rest_command = commands[1:]
 
     if first_command not in safe_commands:
-        print_formatted_text(f'Use a command in the list <ansired>{safe_commands}</ansired>')
+        print_formatted_text(HTML(f'<b><ansired>Use a command in the list:</ansired></b> '
+                                  f'<ansigreen>{safe_commands}</ansigreen>'))
     else:
         if first_command == 'help':
             print_formatted_text('I still cannot help you')

@@ -1,22 +1,15 @@
-# -*- coding: utf-8 -*-
-
-# Import HTML Module
 from prompt_toolkit.formatted_text import HTML
-
 
 SAFE_ARGUMENT_COLOR = 'em'
 SAFE_EMPTY_ARGUMENT_COLOR = 'ansimagenta'
 
-
-safe_commands = ['refresh', 'get_nonce', 'get_owners', 'get_threshold', 'show_cli_owners',
-                 'load_cli_owner', 'unload_cli_owner', 'add_owner', 'change_threshold', 'remove_owner',
-                 'change_master_copy', 'send_ether', 'send_erc20']
 
 safe_commands_arguments = {
     'add_owner': '<address>',
     'change_master_copy': '<address>',
     'change_threshold': '<address>',
     'get_nonce': '(read-only)',
+    'info': '(read-only)',
     'get_owners': '(read-only)',
     'get_threshold': '(read-only)',
     'load_cli_owner': '<account-private-key>',
@@ -28,6 +21,8 @@ safe_commands_arguments = {
     'unload_cli_owner': '<address>',
 }
 
+safe_commands = list(safe_commands_arguments.keys())
+
 safe_color_arguments = {
     '(read-only)': SAFE_ARGUMENT_COLOR,
     '<address>': SAFE_ARGUMENT_COLOR,
@@ -38,6 +33,8 @@ safe_color_arguments = {
 }
 
 meta = {
+    'info': HTML('<b>info</b> will return all the information available for a Safe, with Gnosis Tx Service and '
+                 'Etherscan links if the network is supported'),
     'show_cli_owners': HTML('Command <b>show_cli_owners</b> will return a list of loaded <u>&lt;address&gt;</u> '
                             'account owners.'),
     'get_owners': HTML('Command <b>get_owners</b> will return a list of check-summed <u>&lt;address&gt;</u> '

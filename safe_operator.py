@@ -1,5 +1,5 @@
+import dataclasses
 import os
-from dataclasses import dataclass
 from typing import List, Optional, Set
 
 from eth_account import Account
@@ -11,15 +11,37 @@ from gnosis.eth.constants import SENTINEL_ADDRESS
 from gnosis.eth.contracts import get_erc20_contract
 from gnosis.safe import Safe, SafeTx
 
+ETHERSCAN_BY_NETWORK = {
+    1: 'https://etherscan.io',
+    3: 'https://ropsten.etherscan.io',
+    4: 'https://rinkeby.etherscan.io',
+    5: 'https://goerli.etherscan.io',
+    42: 'https://kovan.etherscan.io',
+}
 
-@dataclass
+SAFE_TX_SERVICE_BY_NETWORK = {
+    1: 'https://safe-transaction.mainnet.gnosis.io',
+    # 3:
+    4: 'https://safe-transaction.rinkeby.gnosis.io',
+    # 5:
+    # 42
+}
+
+@dataclasses.dataclass
 class SafeInfo:
     address: str
     nonce: int
     threshold: int
     owners: List[str]
     master_copy: str
+    fallback_handler: str
+    balance_ether: int
     version: str
+
+    def __str__(self):
+        return f'safe-version={self.version} nonce={self.nonce} threshold={self.threshold} owners={self.owners} ' \
+               f'master-copy={self.master_copy} fallback-hander={self.fallback_handler} ' \
+               f'balance_ether={self.balance_ether}'
 
 
 class SafeOperator:
@@ -29,6 +51,8 @@ class SafeOperator:
         self.ethereum_client = EthereumClient(self.node_url)
         self.network = self.ethereum_client.get_network()
         self.network_name = self.network.name
+        self.etherscan_address: Optional[str] = ETHERSCAN_BY_NETWORK.get(self.network.value)
+        self.safe_tx_service_address: Optional[str] = SAFE_TX_SERVICE_BY_NETWORK.get(self.network.value)
         self.safe = Safe(address, self.ethereum_client)
         self.safe_contract = self.safe.get_contract()
         self.safe_info: SafeInfo = self.get_safe_info()
@@ -36,15 +60,14 @@ class SafeOperator:
         self.default_sender: Optional[Account] = None
 
     def bottom_toolbar(self):
-        return HTML(f'<b><style fg="ansiyellow">network={self.network_name} safe-version={self.safe_info.version} '
-                    f'nonce={self.safe_info.nonce} '
-                    f'threshold={self.safe_info.threshold} owners={self.safe_info.owners} '
-                    f'master-copy={self.safe_info.master_copy}</style></b>')
+        return HTML(f'<b><style fg="ansiyellow">network={self.network_name} {self.safe_info}</style></b>')
 
     def get_safe_info(self) -> SafeInfo:
         safe = self.safe
+        balance_ether = Web3.fromWei(self.ethereum_client.get_balance(self.address), 'ether')
         return SafeInfo(self.address, safe.retrieve_nonce(), safe.retrieve_threshold(),
-                        safe.retrieve_owners(), safe.retrieve_master_copy_address(), safe.retrieve_version())
+                        safe.retrieve_owners(), safe.retrieve_master_copy_address(), safe.retrieve_fallback_handler(),
+                        balance_ether, safe.retrieve_version())
 
     def refresh_safe_info(self) -> SafeInfo:
         self.safe_info = self.get_safe_info()
@@ -59,6 +82,18 @@ class SafeOperator:
     def process_command(self, first_command: str, rest_command: List[str]) -> bool:
         if first_command == 'help':
             print_formatted_text('I still cannot help you')
+        elif first_command == 'info':
+            for key, value in dataclasses.asdict(self.safe_info).items():
+                print_formatted_text(HTML(f'<b><ansigreen>{key.capitalize()}</ansigreen></b>='
+                                          f'<ansiblue>{value}</ansiblue>'))
+            if self.safe_tx_service_address:
+                url = f'{self.safe_tx_service_address}/api/v1/safes/{self.address}/transactions/'
+                print_formatted_text(HTML(f'<b><ansigreen>Safe Tx Service</ansigreen></b>='
+                                          f'<ansiblue>{url}</ansiblue>'))
+            if self.etherscan_address:
+                url = f'{self.etherscan_address}/address/{self.address}'
+                print_formatted_text(HTML(f'<b><ansigreen>Etherscan</ansigreen></b>='
+                                          f'<ansiblue>{url}</ansiblue>'))
         elif first_command == 'get_threshold':
             print_formatted_text(self.safe.retrieve_threshold())
         elif first_command == 'get_nonce':

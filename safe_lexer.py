@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from pygments.lexers.shell import BashLexer
-from pygments.token import Name, Keyword, Text, Token
 import re
+
+from pygments.lexers.shell import BashLexer
+from pygments.token import Keyword, Name, Text, Token
 
 
 class SafeLexer(BashLexer):
