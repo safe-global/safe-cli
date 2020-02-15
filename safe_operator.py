@@ -2,8 +2,11 @@ import dataclasses
 import os
 from typing import List, Optional, Set
 
+import requests
+from colorama import Back, Fore, Style
 from eth_account import Account
 from prompt_toolkit import HTML, print_formatted_text
+from tabulate import tabulate
 from web3 import Web3
 
 from gnosis.eth import EthereumClient
@@ -94,6 +97,47 @@ class SafeOperator:
                 url = f'{self.etherscan_address}/address/{self.address}'
                 print_formatted_text(HTML(f'<b><ansigreen>Etherscan</ansigreen></b>='
                                           f'<ansiblue>{url}</ansiblue>'))
+        elif first_command == 'history':
+            if not self.safe_tx_service_address:
+                print_formatted_text(HTML(f'<ansired>No tx service available for '
+                                          f'network={self.network_name}</ansired>'))
+                if self.etherscan_address:
+                    url = f'{self.etherscan_address}/address/{self.address}'
+                    print_formatted_text(HTML(f'<b>Try Etherscan instead</b> {url}'))
+            else:
+                #FIXME Split this in a module with proper tests
+                url = f'{self.safe_tx_service_address}/api/v1/safes/{self.address}/transactions/'
+                print_formatted_text(url)
+                response = requests.get(url)
+                if response.ok:
+                    transactions = response.json().get('results', [])
+                    headers = ['nonce', 'to', 'value', 'transactionHash', 'safeTxHash']
+                    rows = []
+                    last_executed_tx = False
+                    for transaction in transactions:
+                        row = [transaction[header] for header in headers]
+                        data_decoded = transaction.get('dataDecoded')
+                        if data_decoded:
+                            row.append(data_decoded[0])  # FIXME if there are more decoded elements
+                        if transaction['transactionHash'] and transaction['isSuccessful']:
+                            row[0] = Fore.GREEN + str(row[0])  # For executed transactions we use green
+                            if not last_executed_tx:
+                                row[0] = Style.BRIGHT + row[0]
+                                last_executed_tx = True
+                        elif transaction['transactionHash']:
+                            row[0] = Fore.RED + str(row[0])  # For transactions failed
+                        else:
+                            row[0] = Fore.YELLOW + str(row[0])  # For non executed transactions we use yellow
+
+                        row[0] = Style.RESET_ALL + row[0]  # Reset all just in case
+                        rows.append(row)
+
+                    headers.append('dataDecoded')
+                    headers[0] = Style.BRIGHT + headers[0]
+                    print(tabulate(rows, headers=headers))
+                else:
+                    print_formatted_text(f'Cannot get transactions from {url}')
+
         elif first_command == 'get_threshold':
             print_formatted_text(self.safe.retrieve_threshold())
         elif first_command == 'get_nonce':

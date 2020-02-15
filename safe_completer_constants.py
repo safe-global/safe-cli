@@ -18,6 +18,7 @@ safe_commands_arguments = {
     'send_erc20': '<address> <token_address> <value>',
     'send_ether': '<address> <value-wei>',
     'show_cli_owners': '(read-only)',
+    'history': '(read-only)',
     'unload_cli_owner': '<address>',
 }
 
@@ -33,6 +34,8 @@ safe_color_arguments = {
 }
 
 meta = {
+    'history': HTML('<b>history</b> will return information of last transactions for the Safe '
+                    '(if tx service available for the network'),
     'info': HTML('<b>info</b> will return all the information available for a Safe, with Gnosis Tx Service and '
                  'Etherscan links if the network is supported'),
     'show_cli_owners': HTML('Command <b>show_cli_owners</b> will return a list of loaded <u>&lt;address&gt;</u> '
