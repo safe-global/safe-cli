@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from prompt_toolkit import HTML, print_formatted_text
 from typing import List, Optional, Type, Dict, Set
 from contract_reader import ContractReader
 from web3.contract import Contract
@@ -11,17 +12,9 @@ from contract_constants import (
     METHOD_ATTR_META_PATTERN, METHOD_TYPE_META_PATTERN
 )
 
-from prompt_toolkit.formatted_text import HTML
-
-from prompt_toolkit import HTML, PromptSession, print_formatted_text
-SAFE_ARGUMENT_COLOR = 'em'
-SAFE_EMPTY_ARGUMENT_COLOR = 'ansimagenta'
-
 METHOD_KEYWORDS: Set = set()
 METHOD_METHOD_META = {}
 METHOD_METHOD_TYPE_META = {}
-METHOD_COLOR_ARGUMETNS = {}
-METHOD_COMMAND_ARGUMENTS = {}
 
 
 class ContractOperator:
@@ -44,7 +37,7 @@ class ContractOperator:
             contract_methods = self.map(contract_instance)
             return contract_instance, contract_methods
         except Exception as err:
-            print(err)
+            print_formatted_text(err)
 
     @staticmethod
     def type_pattern(attr_type: str) -> str:
@@ -90,7 +83,6 @@ class ContractOperator:
         """
         for method in contract_methods:
             if contract_methods[method]['name'].lower() == first_command:
-                print('entry')
                 try:
                     # Split data for info and sender_info, then the assert, etc etc
                     sender_info = ''
@@ -98,15 +90,16 @@ class ContractOperator:
                     assert len(contract_methods[method]['attr']) == len(rest_command)
                     for attr in input_attr:
                         # Final Type_Validation, here?
-                        print('Final Type_Validation, Here?')
+                        print_formatted_text('Final Type_Validation, Here?')
                         # Contract it's used here, in the eval(), Change *rest_command for *input_attr
                         # Does not currently work, not filling properly the spots, sender_info it's not being taken
                         # into account.
-                    print(contract_methods[method]['call_pattern'].format(*rest_command, sender_info))
-                    # eval(contract_methods[method]['call_pattern'].format(*rest_command, sender_info))
 
-                    print(contract_methods[method]['transact_pattern'].format(*rest_command, sender_info))
-                    eval(contract_methods[method]['transact_pattern'].format(*rest_command, sender_info))
+                    print_formatted_text(contract_methods[method]['call_pattern'].format(*rest_command, sender_info))
+                    eval(contract_methods[method]['call_pattern'].format(*rest_command, sender_info))
+
+                    print_formatted_text(contract_methods[method]['transact_pattern'].format(*rest_command, sender_info))
+                    # eval(contract_methods[method]['transact_pattern'].format(*rest_command, sender_info))
                     return True
                 except AssertionError:
                     print('Not Enough Arguments')
@@ -145,19 +138,15 @@ class ContractOperator:
         # contract.functions.swapOwner(0x0000000000000000000000000000000000000000,
         # 0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000).call()
 
-        if (method_name.startswith('get') or method_name.startswith('is')) and method_type == 'function':
-            method_type = 'read-only'
-
-        # print_formatted_text(HTML(METHOD_TYPE_META_PATTERN % (method_name, method_type, method_state_mutability)))
-        #print_formatted_text(HTML(METHOD_ATTR_META_PATTERN % (method_attr_meta, method_attr_out_meta)))
         METHOD_KEYWORDS.add(method_name)
-        METHOD_METHOD_META[method_name] = HTML(METHOD_ATTR_META_PATTERN % (method_attr_meta, method_attr_out_meta))
-        METHOD_METHOD_TYPE_META[method_name] = HTML(METHOD_TYPE_META_PATTERN % (method_name, method_type, method_state_mutability))
+        METHOD_METHOD_META[method_name] = \
+            HTML(METHOD_ATTR_META_PATTERN % (method_attr_meta, method_attr_out_meta))
+        METHOD_METHOD_TYPE_META[method_name] = \
+            HTML(METHOD_TYPE_META_PATTERN % (method_name, method_type, method_state_mutability))
+
         return {
             'name': method_name,
-            'type': method_type,
             'attr': method_attr,
-            'attr_meta': METHOD_ATTR_META_PATTERN % (method_attr_meta, method_attr_out_meta),
             'attr_input_pattern': method_attr_input_pattern,
             'attr_security_pattern': method_attr_security_pattern,
             'eval_call_pattern': '^contract.functions.{0}('.format(method_name) +
@@ -178,15 +167,10 @@ class ContractOperator:
         """
         contract_instance_methods = {}
         try:
-            # todo: add method_type, getter, setter, function, procedure, event
-            # todo: add output, to better map function and procedure.
-            # Retrieve methods presents in the provided abi file
+            # Retrieve methods present within the provided abi file
             for method_index, method_data in enumerate(contract.functions.__dict__['abi']):
-                method_attr = []
-                method_attr_meta = []
                 # If current method_name, does not trigger, KeyError, try to retrieve method_attr
                 # If current length for method_attr it's at least one, build up the new entry
-                # print(method_data)
                 try:
                     method_state_mutability = method_data['stateMutability']
                 except KeyError:
@@ -222,16 +206,14 @@ class ContractOperator:
 
                         try:
                             method_outputs = method_data['outputs']
-                            # print(method_outputs)
                         except KeyError:
                             method_outputs = []
 
-                        attr_out_meta = ''
                         if len(method_outputs) >= 1:
                             attr_out_meta = ''
 
                             for index, method_attr_data in enumerate(method_outputs):
-                                # attr_meta: 'uint256 AttrName0, bytecode AttrName1'
+                                # attr_out_meta: 'uint256 AttrName0, bytecode AttrName1'
                                 if method_attr_data['name'] == '':
                                     tmp_method_attr_out_data = '_'
                                 else:
@@ -245,7 +227,6 @@ class ContractOperator:
                             self.new_method(method_name, method_type, method_state_mutability, attr_type,
                                             attr_in_meta[:-1], attr_pattern[:-2],
                                             security_pattern[:-2], attr_out_meta[:-1])
-                        # print(contract_instance_methods[method_index])
             return contract_instance_methods
         except Exception as err:
             print(type(err), err)
