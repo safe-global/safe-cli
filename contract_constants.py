@@ -37,4 +37,5 @@ RE_UINT_128 = r''
 RE_UINT_160 = r''
 RE_UINT_256 = r''
 
-METHOD_ATTR_META_PATTERN = 'Method <b>%s<b> with <b>(%s)<b> as input.'
+METHOD_TYPE_META_PATTERN = '<b>%s</b> <i>(%s %s)</i>'
+METHOD_ATTR_META_PATTERN = 'Command will take <b>%s</b> as <u>Input</u> &amp; will return <b>%s</b> as <u>Output</u>.'

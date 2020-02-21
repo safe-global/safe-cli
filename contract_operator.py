@@ -1,15 +1,27 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from typing import List, Optional, Type, Dict
+from typing import List, Optional, Type, Dict, Set
 from contract_reader import ContractReader
 from web3.contract import Contract
 from web3 import Web3
 from contract_constants import (
     RE_ADDRESS, RE_UINT_8, RE_UINT_16, RE_UINT_32, RE_UINT_64,
     RE_UINT_128, RE_UINT_160, RE_UINT_256, RE_BYTE32, RE_BYTES,
-    METHOD_ATTR_META_PATTERN
+    METHOD_ATTR_META_PATTERN, METHOD_TYPE_META_PATTERN
 )
+
+from prompt_toolkit.formatted_text import HTML
+
+from prompt_toolkit import HTML, PromptSession, print_formatted_text
+SAFE_ARGUMENT_COLOR = 'em'
+SAFE_EMPTY_ARGUMENT_COLOR = 'ansimagenta'
+
+METHOD_KEYWORDS: Set = set()
+METHOD_METHOD_META = {}
+METHOD_METHOD_TYPE_META = {}
+METHOD_COLOR_ARGUMETNS = {}
+METHOD_COMMAND_ARGUMENTS = {}
 
 
 class ContractOperator:
@@ -111,16 +123,20 @@ class ContractOperator:
         pass
 
     @staticmethod
-    def new_method(method_name: str, method_attr: List[str], method_attr_meta: str,
-                   method_attr_input_pattern: str, method_attr_security_pattern: str) -> Dict:
+    def new_method(method_name: str, method_type: str, method_state_mutability: str, method_attr: List[str],
+                   method_attr_meta: str, method_attr_input_pattern: str, method_attr_security_pattern: str,
+                   method_attr_out_meta: str) -> Dict:
         """ To Struct Method Artifacts
         This function will return a properly structured method artifact for contract_method dictionary
 
         :param method_name:
+        :param method_type:
+        :param method_state_mutability:
         :param method_attr:
         :param method_attr_meta:
         :param method_attr_input_pattern:
         :param method_attr_security_pattern:
+        :param method_attr_out_meta:
         :return:
         """
 
@@ -129,10 +145,19 @@ class ContractOperator:
         # contract.functions.swapOwner(0x0000000000000000000000000000000000000000,
         # 0x0000000000000000000000000000000000000000, 0x0000000000000000000000000000000000000000).call()
 
+        if (method_name.startswith('get') or method_name.startswith('is')) and method_type == 'function':
+            method_type = 'read-only'
+
+        # print_formatted_text(HTML(METHOD_TYPE_META_PATTERN % (method_name, method_type, method_state_mutability)))
+        #print_formatted_text(HTML(METHOD_ATTR_META_PATTERN % (method_attr_meta, method_attr_out_meta)))
+        METHOD_KEYWORDS.add(method_name)
+        METHOD_METHOD_META[method_name] = HTML(METHOD_ATTR_META_PATTERN % (method_attr_meta, method_attr_out_meta))
+        METHOD_METHOD_TYPE_META[method_name] = HTML(METHOD_TYPE_META_PATTERN % (method_name, method_type, method_state_mutability))
         return {
             'name': method_name,
+            'type': method_type,
             'attr': method_attr,
-            'attr_meta': METHOD_ATTR_META_PATTERN % (method_name, method_attr_meta),
+            'attr_meta': METHOD_ATTR_META_PATTERN % (method_attr_meta, method_attr_out_meta),
             'attr_input_pattern': method_attr_input_pattern,
             'attr_security_pattern': method_attr_security_pattern,
             'eval_call_pattern': '^contract.functions.{0}('.format(method_name) +
@@ -153,14 +178,23 @@ class ContractOperator:
         """
         contract_instance_methods = {}
         try:
+            # todo: add method_type, getter, setter, function, procedure, event
+            # todo: add output, to better map function and procedure.
             # Retrieve methods presents in the provided abi file
             for method_index, method_data in enumerate(contract.functions.__dict__['abi']):
                 method_attr = []
                 method_attr_meta = []
                 # If current method_name, does not trigger, KeyError, try to retrieve method_attr
                 # If current length for method_attr it's at least one, build up the new entry
+                # print(method_data)
+                try:
+                    method_state_mutability = method_data['stateMutability']
+                except KeyError:
+                    method_state_mutability = '_'
+
                 try:
                     method_name = method_data['name']
+                    method_type = method_data['type']
                 except KeyError:
                     continue
                 else:
@@ -171,21 +205,47 @@ class ContractOperator:
 
                     if len(method_inputs) >= 1:
                         attr_type = []
-                        attr_meta = ''
+                        attr_in_meta = ''
                         attr_pattern = ''
                         security_pattern = ''
                         for index, method_attr_data in enumerate(method_inputs):
                             # attr_type: ['uint256','bytecode']
-                            attr_type.append(str(method_attr_data['type']))
+                            attr_type.append(method_attr_data['type'])
                             # attr_meta: 'uint256 AttrName0, bytecode AttrName1'
-                            attr_meta += str(method_attr_data['type']) + ' ' + str(method_attr_data['name']) + ', '
+                            if method_attr_data['name'] == '':
+                                tmp_method_attr_in_data = '_'
+                            else:
+                                tmp_method_attr_in_data = method_attr_data['name']
+                            attr_in_meta += '&lt;' + method_attr_data['type'] + ' ' + tmp_method_attr_in_data + '&gt; '
                             attr_pattern += '{%s}, ' % index
-                            security_pattern += '%s, ' % self.type_pattern(str(method_attr_data['type']))
+                            security_pattern += '%s, ' % self.type_pattern(method_attr_data['type'])
+
+                        try:
+                            method_outputs = method_data['outputs']
+                            # print(method_outputs)
+                        except KeyError:
+                            method_outputs = []
+
+                        attr_out_meta = ''
+                        if len(method_outputs) >= 1:
+                            attr_out_meta = ''
+
+                            for index, method_attr_data in enumerate(method_outputs):
+                                # attr_meta: 'uint256 AttrName0, bytecode AttrName1'
+                                if method_attr_data['name'] == '':
+                                    tmp_method_attr_out_data = '_'
+                                else:
+                                    tmp_method_attr_out_data = method_attr_data['name']
+                                attr_out_meta += '&lt;' + method_attr_data['type'] + ' ' \
+                                                 + tmp_method_attr_out_data + '&gt; '
+                        else:
+                            attr_out_meta = '_ '
 
                         contract_instance_methods[method_index] = \
-                            self.new_method(method_name, attr_type, attr_meta[:-2], attr_pattern[:-2],
-                                            security_pattern[:-2])
-
+                            self.new_method(method_name, method_type, method_state_mutability, attr_type,
+                                            attr_in_meta[:-1], attr_pattern[:-2],
+                                            security_pattern[:-2], attr_out_meta[:-1])
+                        # print(contract_instance_methods[method_index])
             return contract_instance_methods
         except Exception as err:
             print(type(err), err)

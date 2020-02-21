@@ -7,6 +7,7 @@ from prompt_toolkit.lexers import PygmentsLexer
 from safe_completer_constants import safe_commands
 from prompt_toolkit.completion import WordCompleter
 from contract_operator import ContractOperator
+from contract_completer import ContractCompleter
 from contract_lexer import ContractLexer
 from web3 import Web3
 from typing import List, Optional, Type, Dict
@@ -68,7 +69,7 @@ if __name__ == '__main__':
             command = session.prompt(HTML(f'<bold><ansiblue>{contract_address}</ansiblue><ansired> > </ansired></bold>'),
                                      auto_suggest=AutoSuggestFromHistory(),
                                      lexer=PygmentsLexer(ContractLexer),
-                                     completer=WordCompleter(command_names))
+                                     completer=ContractCompleter())
             if not command.strip():
                 continue
 

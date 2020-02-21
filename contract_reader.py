@@ -34,19 +34,19 @@ class ContractReader:
 
             try:
                 contract_abi = json_data["abi"]
-                print('|  + {contract_name} ABI has been found within the file '
+                print('|  (+) {contract_name} ABI has been found within the file '
                       'path provided.'.format(contract_name=contract_name))
             except KeyError:
-                print('|  + {contract_name} ABI has NOT been found within the file '
+                print('|  (-) {contract_name} ABI has NOT been found within the file '
                       'path provided.'.format(contract_name=contract_name))
                 pass
 
             try:
                 contract_bytecode = json_data["bytecode"]
-                print('|  + {contract_name} Bytecode has been found within the file '
+                print('|  (+) {contract_name} Bytecode has been found within the file '
                       'path provided.'.format(contract_name=contract_name))
             except KeyError:
-                print('|  + {contract_name} Bytecode has NOT been found within the file '
+                print('|  (-) {contract_name} Bytecode has NOT been found within the file '
                       'path provided.'.format(contract_name=contract_name))
                 pass
             return contract_abi, contract_bytecode, contract_name
