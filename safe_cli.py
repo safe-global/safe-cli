@@ -22,8 +22,6 @@ node_url = args.node_url
 session = PromptSession()
 
 
-# TODO Auto load owners (e.g. if in PRIVATE_KEYS environment var)
-
 def process_command(command: str, safe_operator: SafeOperator):
     if not command:
         return

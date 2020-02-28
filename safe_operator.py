@@ -1,9 +1,9 @@
 import dataclasses
 import os
-from typing import List, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 import requests
-from colorama import Back, Fore, Style
+from colorama import Fore, Style
 from eth_account import Account
 from prompt_toolkit import HTML, print_formatted_text
 from tabulate import tabulate
@@ -26,6 +26,14 @@ SAFE_TX_SERVICE_BY_NETWORK = {
     1: 'https://safe-transaction.mainnet.gnosis.io',
     # 3:
     4: 'https://safe-transaction.rinkeby.gnosis.io',
+    # 5:
+    # 42
+}
+
+SAFE_RELAY_SERVICE_BY_NETWORK = {
+    1: 'https://safe-relay.gnosis.io',
+    # 3:
+    4: 'https://safe-relay.rinkeby.gnosis.io',
     # 5:
     # 42
 }
@@ -55,7 +63,8 @@ class SafeOperator:
         self.network = self.ethereum_client.get_network()
         self.network_name = self.network.name
         self.etherscan_address: Optional[str] = ETHERSCAN_BY_NETWORK.get(self.network.value)
-        self.safe_tx_service_address: Optional[str] = SAFE_TX_SERVICE_BY_NETWORK.get(self.network.value)
+        self.safe_tx_service_url: Optional[str] = SAFE_TX_SERVICE_BY_NETWORK.get(self.network.value)
+        self.safe_relay_service_url: Optional[str] = SAFE_RELAY_SERVICE_BY_NETWORK.get(self.network.value)
         self.safe = Safe(address, self.ethereum_client)
         self.safe_contract = self.safe.get_contract()
         self.safe_info: SafeInfo = self.get_safe_info()
@@ -89,16 +98,22 @@ class SafeOperator:
             for key, value in dataclasses.asdict(self.safe_info).items():
                 print_formatted_text(HTML(f'<b><ansigreen>{key.capitalize()}</ansigreen></b>='
                                           f'<ansiblue>{value}</ansiblue>'))
-            if self.safe_tx_service_address:
-                url = f'{self.safe_tx_service_address}/api/v1/safes/{self.address}/transactions/'
+            if self.safe_tx_service_url:
+                url = f'{self.safe_tx_service_url}/api/v1/safes/{self.address}/transactions/'
                 print_formatted_text(HTML(f'<b><ansigreen>Safe Tx Service</ansigreen></b>='
                                           f'<ansiblue>{url}</ansiblue>'))
+
+            if self.safe_relay_service_url:
+                url = f'{self.safe_relay_service_url}/api/v1/safes/{self.address}/transactions/'
+                print_formatted_text(HTML(f'<b><ansigreen>Safe Relay Service</ansigreen></b>='
+                                          f'<ansiblue>{url}</ansiblue>'))
+
             if self.etherscan_address:
                 url = f'{self.etherscan_address}/address/{self.address}'
                 print_formatted_text(HTML(f'<b><ansigreen>Etherscan</ansigreen></b>='
                                           f'<ansiblue>{url}</ansiblue>'))
         elif first_command == 'history':
-            if not self.safe_tx_service_address:
+            if not self.safe_tx_service_url:
                 print_formatted_text(HTML(f'<ansired>No tx service available for '
                                           f'network={self.network_name}</ansired>'))
                 if self.etherscan_address:
@@ -106,7 +121,7 @@ class SafeOperator:
                     print_formatted_text(HTML(f'<b>Try Etherscan instead</b> {url}'))
             else:
                 #FIXME Split this in a module with proper tests
-                url = f'{self.safe_tx_service_address}/api/v1/safes/{self.address}/transactions/'
+                url = f'{self.safe_tx_service_url}/api/v1/safes/{self.address}/transactions/'
                 print_formatted_text(url)
                 response = requests.get(url)
                 if response.ok:
@@ -116,9 +131,9 @@ class SafeOperator:
                     last_executed_tx = False
                     for transaction in transactions:
                         row = [transaction[header] for header in headers]
-                        data_decoded = transaction.get('dataDecoded')
+                        data_decoded: Dict[str, Any] = transaction.get('dataDecoded')
                         if data_decoded:
-                            row.append(data_decoded[0])  # FIXME if there are more decoded elements
+                            row.append(str(list(data_decoded.keys())))
                         if transaction['transactionHash'] and transaction['isSuccessful']:
                             row[0] = Fore.GREEN + str(row[0])  # For executed transactions we use green
                             if not last_executed_tx:
