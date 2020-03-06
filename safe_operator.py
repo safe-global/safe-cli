@@ -70,6 +70,7 @@ class SafeOperator:
         self.safe_info: SafeInfo = self.get_safe_info()
         self.accounts: Set[Account] = set()
         self.default_sender: Optional[Account] = None
+        self.executed_transactions: List[str] = []
 
     def bottom_toolbar(self):
         return HTML(f'<b><style fg="ansiyellow">network={self.network_name} {self.safe_info}</style></b>')
@@ -286,6 +287,7 @@ class SafeOperator:
         print_formatted_text(HTML(f'Result: <ansigreen>{safe_tx.call(self.default_sender.address)}'
                                   f'</ansigreen>'))
         tx_hash, _ = safe_tx.execute(self.default_sender.key)
+        self.executed_transactions.append(tx_hash.hex())
         print_formatted_text(HTML(f'<ansigreen>Executed tx with tx-hash={tx_hash.hex()}, waiting for receipt'
                                   f'</ansigreen>'))
         if self.ethereum_client.get_transaction_receipt(tx_hash, timeout=120):
