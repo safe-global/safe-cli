@@ -23,7 +23,7 @@ Loading owners is not needed if you just want to do `read-only` operations.
 
 To load owners:
 ```
-> load_cli_owner <account_private_key>
+> load_cli_owners <account_private_key>
 Loaded account 0xab...cd with balance=123 ether
 Set account 0xab..cd as default sender of txs
 ```
@@ -35,7 +35,7 @@ To check the loaded owners:
 
 To unload an owner:
 ```
-> unload_cli_owner <ethereum_checksummed_address>
+> unload_cli_owners <ethereum_checksummed_address>
 ```
 
 Operations currently supported:

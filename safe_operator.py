@@ -74,12 +74,197 @@ class SafeOperator:
     def bottom_toolbar(self):
         return HTML(f'<b><style fg="ansiyellow">network={self.network_name} {self.safe_info}</style></b>')
 
+    def get_transaction_history(self):
+        if not self.safe_tx_service_url:
+            print_formatted_text(HTML(f'<ansired>No tx service available for '
+                                      f'network={self.network_name}</ansired>'))
+            if self.etherscan_address:
+                url = f'{self.etherscan_address}/address/{self.address}'
+                print_formatted_text(HTML(f'<b>Try Etherscan instead</b> {url}'))
+        else:
+            # FIXME Split this in a module with proper tests
+            url = f'{self.safe_tx_service_url}/api/v1/safes/{self.address}/transactions/'
+            print_formatted_text(url)
+            response = requests.get(url)
+            if response.ok:
+                transactions = response.json().get('results', [])
+                headers = ['nonce', 'to', 'value', 'transactionHash', 'safeTxHash']
+                rows = []
+                last_executed_tx = False
+                for transaction in transactions:
+                    row = [transaction[header] for header in headers]
+                    data_decoded: Dict[str, Any] = transaction.get('dataDecoded')
+                    if data_decoded:
+                        row.append(str(list(data_decoded.keys())))
+                    if transaction['transactionHash'] and transaction['isSuccessful']:
+                        row[0] = Fore.GREEN + str(row[0])  # For executed transactions we use green
+                        if not last_executed_tx:
+                            row[0] = Style.BRIGHT + row[0]
+                            last_executed_tx = True
+                    elif transaction['transactionHash']:
+                        row[0] = Fore.RED + str(row[0])  # For transactions failed
+                    else:
+                        row[0] = Fore.YELLOW + str(row[0])  # For non executed transactions we use yellow
+
+                    row[0] = Style.RESET_ALL + row[0]  # Reset all just in case
+                    rows.append(row)
+
+                headers.append('dataDecoded')
+                headers[0] = Style.BRIGHT + headers[0]
+                print(tabulate(rows, headers=headers))
+            else:
+                print_formatted_text(f'Cannot get transactions from {url}')
+
+    def load_cli_owners(self, keys: List[str]):
+        for key in keys:
+            try:
+                account = Account.from_key(os.environ.get(key, default=key))  # Try to get key from `environ`
+            except ValueError:
+                print_formatted_text(HTML(f'<ansired>Cannot load key=f{key}</ansired>'))
+            self.accounts.add(account)
+            balance = self.ethereum_client.get_balance(account.address)
+            print_formatted_text(HTML(f'Loaded account <b>{account.address}</b> '
+                                      f'with balance={Web3.fromWei(balance, "ether")} ether'))
+            if not self.default_sender and balance > 0:
+                print_formatted_text(HTML(f'Set account <b>{account.address}</b> as default sender of txs'))
+                self.default_sender = account
+
+    def unload_cli_owners(self, owners: List[str]):
+        accounts_to_remove: Set[Account] = set()
+        for owner in owners:
+            for account in self.accounts:
+                if account.address == owner:
+                    if self.default_sender and self.default_sender.address == owner:
+                        self.default_sender = None
+                    accounts_to_remove.add(account)
+                    break
+        self.accounts = self.accounts.difference(accounts_to_remove)
+        if accounts_to_remove:
+            print_formatted_text(HTML(f'<ansigreen>Accounts have been deleted</ansigreen>'))
+        else:
+            print_formatted_text(HTML(f'<ansired>No account was deleted</ansired>'))
+
+    def show_cli_owners(self):
+        if not self.accounts:
+            print_formatted_text(HTML(f'<ansired>No accounts loaded</ansired>'))
+        else:
+            for account in self.accounts:
+                print_formatted_text(HTML(f'<ansigreen><b>Account</b> {account.address} loaded</ansigreen>'))
+            if self.default_sender:
+                print_formatted_text(HTML(f'<ansigreen><b>Default sender:</b> {self.default_sender.address}'
+                                          f'</ansigreen>'))
+            else:
+                print_formatted_text(HTML(f'<ansigreen>Not default sender set </ansigreen>'))
+
+    def add_owner(self, new_owner: str):
+        if not Web3.isChecksumAddress(new_owner):
+            raise ValueError(new_owner)
+        elif new_owner in self.safe_info.owners:
+            print_formatted_text(HTML(f'<ansired>Owner {new_owner} is already an owner of the Safe'
+                                      f'</ansired>'))
+        else:
+            # TODO Allow to set threshold
+            threshold = self.safe_info.threshold
+            transaction = self.safe_contract.functions.addOwnerWithThreshold(
+                new_owner, threshold
+            ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
+            if self.execute_safe_internal_transaction(transaction['data']):
+                self.safe_info.owners = self.safe.retrieve_owners()
+                self.safe_info.threshold = threshold
+
+    def remove_owner(self, owner_to_remove: str):
+        if not Web3.isChecksumAddress(owner_to_remove):
+            raise ValueError(owner_to_remove)
+        elif owner_to_remove not in self.safe_info.owners:
+            print_formatted_text(HTML(f'<ansired>Owner {owner_to_remove} is not an owner of the Safe'
+                                      f'</ansired>'))
+        elif len(self.safe_info.owners) == self.safe_info.threshold:
+            print_formatted_text(HTML(f'<ansired>Having less owners than threshold is not allowed'
+                                      f'</ansired>'))
+        else:
+            index_owner = self.safe_info.owners.index(owner_to_remove)
+            prev_owner = self.safe_info.owners[index_owner - 1] if index_owner else SENTINEL_ADDRESS
+            threshold = self.safe_info.threshold
+            transaction = self.safe_contract.functions.removeOwner(
+                prev_owner, owner_to_remove, threshold
+            ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
+            if self.execute_safe_internal_transaction(transaction['data']):
+                self.safe_info.owners = self.safe.retrieve_owners()
+                self.safe_info.threshold = threshold
+
+    def send_ether(self, address: str, value: int) -> bool:
+        return self.execute_safe_transaction(address, value, b'')
+
+    def send_erc20(self, address: str, token_address: str, value: int) -> bool:
+        transaction = get_erc20_contract(self.ethereum_client.w3, token_address).functions.transfer(
+            address, value
+        ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
+        return self.execute_safe_transaction(token_address, 0, transaction['data'])
+
+    def change_master_copy(self, new_master_copy: str):
+        # TODO Check that master copy is valid
+        if not Web3.isChecksumAddress(new_master_copy):
+            raise ValueError(new_master_copy)
+        elif new_master_copy == self.safe_info.master_copy:
+            print_formatted_text(HTML(f'<ansired>Master copy {new_master_copy} is the current one</ansired>'))
+        else:
+            transaction = self.safe_contract.functions.changeMasterCopy(
+                new_master_copy
+            ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
+            if self.execute_safe_internal_transaction(transaction['data']):
+                self.safe_info.master_copy = new_master_copy
+                self.safe_info.version = self.safe.retrieve_version()
+
+    def change_threshold(self, threshold: int):
+        if not self.require_default_sender():
+            return False
+        if threshold == self.safe_info.threshold:
+            print_formatted_text(HTML(f'<ansired>Threshold is already {threshold}</ansired>'))
+        elif threshold > len(self.safe_info.owners):
+            print_formatted_text(HTML(f'<ansired>Threshold={threshold} bigger than number '
+                                      f'of owners={len(self.safe_info.owners)}</ansired>'))
+        else:
+            transaction = self.safe_contract.functions.changeThreshold(
+                threshold
+            ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
+
+            if self.execute_safe_internal_transaction(transaction['data']):
+                self.safe_info.threshold = threshold
+
+    def print_info(self):
+        for key, value in dataclasses.asdict(self.safe_info).items():
+            print_formatted_text(HTML(f'<b><ansigreen>{key.capitalize()}</ansigreen></b>='
+                                      f'<ansiblue>{value}</ansiblue>'))
+        if self.safe_tx_service_url:
+            url = f'{self.safe_tx_service_url}/api/v1/safes/{self.address}/transactions/'
+            print_formatted_text(HTML(f'<b><ansigreen>Safe Tx Service</ansigreen></b>='
+                                      f'<ansiblue>{url}</ansiblue>'))
+
+        if self.safe_relay_service_url:
+            url = f'{self.safe_relay_service_url}/api/v1/safes/{self.address}/transactions/'
+            print_formatted_text(HTML(f'<b><ansigreen>Safe Relay Service</ansigreen></b>='
+                                      f'<ansiblue>{url}</ansiblue>'))
+
+        if self.etherscan_address:
+            url = f'{self.etherscan_address}/address/{self.address}'
+            print_formatted_text(HTML(f'<b><ansigreen>Etherscan</ansigreen></b>='
+                                      f'<ansiblue>{url}</ansiblue>'))
+
     def get_safe_info(self) -> SafeInfo:
         safe = self.safe
         balance_ether = Web3.fromWei(self.ethereum_client.get_balance(self.address), 'ether')
         return SafeInfo(self.address, safe.retrieve_nonce(), safe.retrieve_threshold(),
                         safe.retrieve_owners(), safe.retrieve_master_copy_address(), safe.retrieve_fallback_handler(),
                         balance_ether, safe.retrieve_version())
+
+    def get_threshold(self):
+        print_formatted_text(self.safe.retrieve_threshold())
+
+    def get_nonce(self):
+        print_formatted_text(self.safe.retrieve_nonce())
+
+    def get_owners(self):
+        print_formatted_text(self.safe.retrieve_owners())
 
     def refresh_safe_info(self) -> SafeInfo:
         self.safe_info = self.get_safe_info()
@@ -90,219 +275,6 @@ class SafeOperator:
             print_formatted_text(HTML(f'<ansired>Please load a default sender</ansired>'))
             return False
         return True
-
-    def process_command(self, first_command: str, rest_command: List[str]) -> bool:
-        if first_command == 'help':
-            print_formatted_text('I still cannot help you')
-        elif first_command == 'info':
-            for key, value in dataclasses.asdict(self.safe_info).items():
-                print_formatted_text(HTML(f'<b><ansigreen>{key.capitalize()}</ansigreen></b>='
-                                          f'<ansiblue>{value}</ansiblue>'))
-            if self.safe_tx_service_url:
-                url = f'{self.safe_tx_service_url}/api/v1/safes/{self.address}/transactions/'
-                print_formatted_text(HTML(f'<b><ansigreen>Safe Tx Service</ansigreen></b>='
-                                          f'<ansiblue>{url}</ansiblue>'))
-
-            if self.safe_relay_service_url:
-                url = f'{self.safe_relay_service_url}/api/v1/safes/{self.address}/transactions/'
-                print_formatted_text(HTML(f'<b><ansigreen>Safe Relay Service</ansigreen></b>='
-                                          f'<ansiblue>{url}</ansiblue>'))
-
-            if self.etherscan_address:
-                url = f'{self.etherscan_address}/address/{self.address}'
-                print_formatted_text(HTML(f'<b><ansigreen>Etherscan</ansigreen></b>='
-                                          f'<ansiblue>{url}</ansiblue>'))
-        elif first_command == 'history':
-            if not self.safe_tx_service_url:
-                print_formatted_text(HTML(f'<ansired>No tx service available for '
-                                          f'network={self.network_name}</ansired>'))
-                if self.etherscan_address:
-                    url = f'{self.etherscan_address}/address/{self.address}'
-                    print_formatted_text(HTML(f'<b>Try Etherscan instead</b> {url}'))
-            else:
-                #FIXME Split this in a module with proper tests
-                url = f'{self.safe_tx_service_url}/api/v1/safes/{self.address}/transactions/'
-                print_formatted_text(url)
-                response = requests.get(url)
-                if response.ok:
-                    transactions = response.json().get('results', [])
-                    headers = ['nonce', 'to', 'value', 'transactionHash', 'safeTxHash']
-                    rows = []
-                    last_executed_tx = False
-                    for transaction in transactions:
-                        row = [transaction[header] for header in headers]
-                        data_decoded: Dict[str, Any] = transaction.get('dataDecoded')
-                        if data_decoded:
-                            row.append(str(list(data_decoded.keys())))
-                        if transaction['transactionHash'] and transaction['isSuccessful']:
-                            row[0] = Fore.GREEN + str(row[0])  # For executed transactions we use green
-                            if not last_executed_tx:
-                                row[0] = Style.BRIGHT + row[0]
-                                last_executed_tx = True
-                        elif transaction['transactionHash']:
-                            row[0] = Fore.RED + str(row[0])  # For transactions failed
-                        else:
-                            row[0] = Fore.YELLOW + str(row[0])  # For non executed transactions we use yellow
-
-                        row[0] = Style.RESET_ALL + row[0]  # Reset all just in case
-                        rows.append(row)
-
-                    headers.append('dataDecoded')
-                    headers[0] = Style.BRIGHT + headers[0]
-                    print(tabulate(rows, headers=headers))
-                else:
-                    print_formatted_text(f'Cannot get transactions from {url}')
-
-        elif first_command == 'get_threshold':
-            print_formatted_text(self.safe.retrieve_threshold())
-        elif first_command == 'get_nonce':
-            print_formatted_text(self.safe.retrieve_nonce())
-        elif first_command == 'get_owners':
-            print_formatted_text(self.safe.retrieve_owners())
-        elif first_command == 'refresh':
-            print_formatted_text('Reloading Safe information')
-            self.refresh_safe_info()
-        elif first_command == 'show_cli_owners':
-            if not self.accounts:
-                print_formatted_text(HTML(f'<ansired>No accounts loaded</ansired>'))
-            else:
-                for account in self.accounts:
-                    print_formatted_text(HTML(f'<ansigreen>Account {account.address} loaded</ansigreen>'))
-        elif first_command == 'load_cli_owner':
-            keys = rest_command
-            if not keys:
-                print_formatted_text('Specify a private key to load')
-            for key in keys:
-                try:
-                    account = Account.from_key(os.environ.get(key, default=key))  # Try to get key from `environ`
-                except ValueError:
-                    print_formatted_text(HTML(f'<ansired>Cannot load key=f{key}</ansired>'))
-                self.accounts.add(account)
-                balance = self.ethereum_client.get_balance(account.address)
-                print_formatted_text(HTML(f'Loaded account <b>{account.address}</b> '
-                                          f'with balance={Web3.fromWei(balance, "ether")} ether'))
-                if not self.default_sender and balance > 0:
-                    print_formatted_text(HTML(f'Set account <b>{account.address}</b> as default sender of txs'))
-                    self.default_sender = account
-        elif first_command == 'unload_cli_owner':
-            owners = rest_command
-            accounts_to_remove: Set[Account] = set()
-            for owner in owners:
-                if not self.ethereum_client.w3.isChecksumAddress(owner):
-                    print_formatted_text(HTML(f'<ansired>Owner=f{owner} has invalid format</ansired>'))
-                else:
-                    for account in self.accounts:
-                        if account.address == owners:
-                            accounts_to_remove.add(account)
-                            break
-            self.accounts = self.accounts.difference(accounts_to_remove)
-        elif first_command == 'change_threshold':
-            if not self.require_default_sender():
-                return False
-            try:
-                threshold = int(rest_command[0])
-            except (IndexError, ValueError):
-                print_formatted_text(HTML(f'<ansired>Cannot parse threshold</ansired>'))
-
-            if threshold == self.safe_info.threshold:
-                print_formatted_text(HTML(f'<ansired>Threshold is already {threshold}</ansired>'))
-            elif threshold > len(self.safe_info.owners):
-                print_formatted_text(HTML(f'<ansired>Threshold={threshold} bigger than number '
-                                          f'of owners={len(self.safe_info.owners)}</ansired>'))
-            else:
-                transaction = self.safe_contract.functions.changeThreshold(
-                    threshold
-                ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
-
-                if self.execute_safe_internal_transaction(transaction['data']):
-                    self.safe_info.threshold = threshold
-        elif first_command == 'add_owner':
-            try:
-                new_owner = rest_command[0]
-                if not Web3.isChecksumAddress(new_owner):
-                    raise ValueError(new_owner)
-                elif new_owner in self.safe_info.owners:
-                    print_formatted_text(HTML(f'<ansired>Owner {new_owner} is already an owner of the Safe'
-                                              f'</ansired>'))
-                else:
-                    # TODO Allow to set threshold
-                    threshold = self.safe_info.threshold
-                    transaction = self.safe_contract.functions.addOwnerWithThreshold(
-                        new_owner, threshold
-                    ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
-                    if self.execute_safe_internal_transaction(transaction['data']):
-                        self.safe_info.owners = self.safe.retrieve_owners()
-                        self.safe_info.threshold = threshold
-            except (IndexError, ValueError):
-                print_formatted_text(HTML(f'<ansired>Cannot parse owner. Is it checksummed?</ansired>'))
-        elif first_command == 'remove_owner':
-            try:
-                owner_to_remove = rest_command[0]
-                if not Web3.isChecksumAddress(owner_to_remove):
-                    raise ValueError(owner_to_remove)
-                elif owner_to_remove not in self.safe_info.owners:
-                    print_formatted_text(HTML(f'<ansired>Owner {owner_to_remove} is not an owner of the Safe'
-                                              f'</ansired>'))
-                elif len(self.safe_info.owners) == self.safe_info.threshold:
-                    print_formatted_text(HTML(f'<ansired>Having less owners than threshold is not allowed'
-                                              f'</ansired>'))
-                else:
-                    index_owner = self.safe_info.owners.index(owner_to_remove)
-                    prev_owner = self.safe_info.owners[index_owner - 1] if index_owner else SENTINEL_ADDRESS
-                    threshold = self.safe_info.threshold
-                    transaction = self.safe_contract.functions.removeOwner(
-                        prev_owner, owner_to_remove, threshold
-                    ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
-                    if self.execute_safe_internal_transaction(transaction['data']):
-                        self.safe_info.owners = self.safe.retrieve_owners()
-                        self.safe_info.threshold = threshold
-            except (IndexError, ValueError):
-                print_formatted_text(HTML(f'<ansired>Cannot parse owner. Is it checksummed?</ansired>'))
-        elif first_command == 'change_master_copy':
-            #TODO Check that master copy is valid
-            try:
-                new_master_copy = rest_command[0]
-                if not Web3.isChecksumAddress(new_master_copy):
-                    raise ValueError(new_master_copy)
-                elif new_master_copy == self.safe_info.master_copy:
-                    print_formatted_text(HTML(f'<ansired>Master copy {new_master_copy} is the current one</ansired>'))
-                else:
-                    transaction = self.safe_contract.functions.changeMasterCopy(
-                        new_master_copy
-                    ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
-                    if self.execute_safe_internal_transaction(transaction['data']):
-                        self.safe_info.master_copy = new_master_copy
-                        self.safe_info.version = self.safe.retrieve_version()
-            except (IndexError, ValueError):
-                print_formatted_text(HTML(f'<ansired>Cannot parse new master-copy. Is it checksummed?</ansired>'))
-        elif first_command == 'send_ether':
-            try:
-                address = rest_command[0]
-                if not Web3.isChecksumAddress(address):
-                    print_formatted_text(HTML(f'<ansired>Cannot parse address. Is it checksummed?</ansired>'))
-                value = int(rest_command[1])
-                return self.execute_safe_transaction(address, value, b'')
-            except (IndexError, ValueError):
-                print_formatted_text(HTML(f'<ansired>Usage: send_ether address value. Cannot parse</ansired>'))
-        elif first_command == 'send_erc20':
-            try:
-                address = rest_command[0]
-                token_address = rest_command[1]
-                if not (Web3.isChecksumAddress(address) and Web3.isChecksumAddress(token_address)):
-                    print_formatted_text(HTML(f'<ansired>Cannot parse address or token-address.'
-                                              f'Is it checksummed?</ansired>'))
-                value = int(rest_command[2])
-                transaction = get_erc20_contract(self.ethereum_client.w3, token_address).functions.transfer(
-                    address, value
-                ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
-                return self.execute_safe_transaction(token_address, 0, transaction['data'])
-            except (IndexError, ValueError):
-                print_formatted_text(HTML(f'<ansired>Usage: send_erc20 address token-address value. Cannot parse'
-                                          f'</ansired>'))
-        return False
-
-    def send_ether(self, to: str, value: int):
-        return self.execute_safe_transaction(to, value, b'')
 
     def execute_safe_internal_transaction(self, data: bytes) -> bool:
         return self.execute_safe_transaction(self.address, 0, data)
@@ -351,3 +323,14 @@ class SafeOperator:
         """
 
         return True
+
+    def process_command(self, first_command: str, rest_command: List[str]) -> bool:
+        if first_command == 'help':
+            print_formatted_text('I still cannot help you')
+        elif first_command == 'history':
+            self.get_transaction_history()
+        elif first_command == 'refresh':
+            print_formatted_text('Reloading Safe information')
+            self.refresh_safe_info()
+
+        return False

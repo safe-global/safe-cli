@@ -12,14 +12,14 @@ safe_commands_arguments = {
     'info': '(read-only)',
     'get_owners': '(read-only)',
     'get_threshold': '(read-only)',
-    'load_cli_owner': '<account-private-key>',
+    'load_cli_owners': '<account-private-key>',
     'refresh': '',
     'remove_owner': '<address>',
     'send_erc20': '<address> <token_address> <value>',
     'send_ether': '<address> <value-wei>',
     'show_cli_owners': '(read-only)',
     'history': '(read-only)',
-    'unload_cli_owner': '<address>',
+    'unload_cli_owners': '<address>',
 }
 
 safe_commands = list(safe_commands_arguments.keys())
@@ -58,9 +58,9 @@ meta = {
     'send_erc20': HTML('Command <b>send_erc20</b> will try to send a Token <u>&lt;value&gt;</u> from a check-summed '
                        '<u>&lt;token-address&gt;</u>, to a check-summed account <u>&lt;address&gt;</u> if enough funds'
                        ' are found, withing the current loaded safe.'),
-    'unload_cli_owner': HTML('Command <b>unload_cli_owner</b> will unload a check-summed <u>&lt;address&gt;</u> '
+    'unload_cli_owners': HTML('Command <b>unload_cli_owners</b> will unload a check-summed <u>&lt;address&gt;</u> '
                              'from the current loaded account owners.'),
-    'load_cli_owner': HTML('Command <b>load_cli_owner</b> will try to load a new owner via '
+    'load_cli_owners': HTML('Command <b>load_cli_owners</b> will try to load a new owner via '
                            '<u>&lt;account-private-key&gt;</u>.'),
     'refresh': HTML('Command <b>refresh</b> will refresh the information for the current loaded safe.'),
     'change_master_copy': HTML('Command <b>change_master_copy</b> will try to update the current version of the loaded '

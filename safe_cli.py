@@ -1,6 +1,7 @@
 import argparse
 
 import pyfiglet
+from prompt_parser import get_prompt_parser
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.lexers import PygmentsLexer
@@ -8,7 +9,6 @@ from safe_completer import SafeCompleter
 from safe_completer_constants import safe_commands
 from safe_lexer import SafeLexer
 from safe_operator import SafeOperator
-from web3 import Web3
 
 parser = argparse.ArgumentParser()
 parser.add_argument('safe_address', help='Address of Safe to use')
@@ -40,27 +40,13 @@ def process_command(command: str, safe_operator: SafeOperator):
             return safe_operator.process_command(first_command, rest_command)
 
 
-def check_ethereum_address(address: str) -> bool:
-    if not Web3.isChecksumAddress(address):
-        raise argparse.ArgumentTypeError(f'{address} is not a valid checksummed ethereum address')
-    return address
-
-
 if __name__ == '__main__':
     safe_operator = SafeOperator(safe_address, node_url)
     print_formatted_text(pyfiglet.figlet_format('Gnosis Safe CLI'))
-    process_command('info', safe_operator)
-
-    def send_ether(args):
-        safe_operator.send_ether(args.address, args.value)
+    safe_operator.print_info()
 
     # Test parsers
-    prompt_parser = argparse.ArgumentParser(prog='')
-    subparsers = prompt_parser.add_subparsers()
-    parser_send_ether = subparsers.add_parser('send_ether')
-    parser_send_ether.add_argument('address', type=check_ethereum_address)
-    parser_send_ether.add_argument('value', type=int)
-    parser_send_ether.set_defaults(func=send_ether)
+    prompt_parser = get_prompt_parser(safe_operator)
 
     while True:
         try:
@@ -72,9 +58,8 @@ if __name__ == '__main__':
             if not command.strip():
                 continue
 
-            # args = prompt_parser.parse_args(command.split())
-            # args.func(args)
-            process_command(command, safe_operator)
+            args = prompt_parser.parse_args(command.split())
+            args.func(args)
         except EOFError:
             break
         except KeyboardInterrupt:
