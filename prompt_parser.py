@@ -50,6 +50,12 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     def get_owners(args):
         safe_operator.get_owners()
 
+    def get_info(args):
+        safe_operator.print_info()
+
+    def get_refresh(args):
+        safe_operator.refresh_safe_info()
+
     # Cli owners
     parser_show_cli_owners = subparsers.add_parser('show_cli_owners')
     parser_show_cli_owners.set_defaults(func=show_cli_owners)
@@ -102,5 +108,11 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_get_nonce.set_defaults(func=get_nonce)
     parser_get_owners = subparsers.add_parser('get_owners')
     parser_get_owners.set_defaults(func=get_owners)
+
+    # Info and refresh
+    parser_info = subparsers.add_parser('info')
+    parser_info.set_defaults(func=get_info)
+    parser_refresh = subparsers.add_parser('refresh')
+    parser_refresh.set_defaults(func=get_refresh)
 
     return prompt_parser

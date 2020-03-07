@@ -52,7 +52,7 @@ class SafeInfo:
     def __str__(self):
         return f'safe-version={self.version} nonce={self.nonce} threshold={self.threshold} owners={self.owners} ' \
                f'master-copy={self.master_copy} fallback-hander={self.fallback_handler} ' \
-               f'balance_ether={self.balance_ether}'
+               f'balance-ether={self.balance_ether:.4f}'
 
 
 class SafeOperator:
