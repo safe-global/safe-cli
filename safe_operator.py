@@ -45,6 +45,7 @@ class SafeInfo:
     threshold: int
     owners: List[str]
     master_copy: str
+    modules: List[str]
     fallback_handler: str
     balance_ether: int
     version: str
@@ -158,9 +159,7 @@ class SafeOperator:
                 print_formatted_text(HTML(f'<ansigreen>Not default sender set </ansigreen>'))
 
     def add_owner(self, new_owner: str):
-        if not Web3.isChecksumAddress(new_owner):
-            raise ValueError(new_owner)
-        elif new_owner in self.safe_info.owners:
+        if new_owner in self.safe_info.owners:
             print_formatted_text(HTML(f'<ansired>Owner {new_owner} is already an owner of the Safe'
                                       f'</ansired>'))
         else:
@@ -174,9 +173,7 @@ class SafeOperator:
                 self.safe_info.threshold = threshold
 
     def remove_owner(self, owner_to_remove: str):
-        if not Web3.isChecksumAddress(owner_to_remove):
-            raise ValueError(owner_to_remove)
-        elif owner_to_remove not in self.safe_info.owners:
+        if owner_to_remove not in self.safe_info.owners:
             print_formatted_text(HTML(f'<ansired>Owner {owner_to_remove} is not an owner of the Safe'
                                       f'</ansired>'))
         elif len(self.safe_info.owners) == self.safe_info.threshold:
@@ -204,9 +201,7 @@ class SafeOperator:
 
     def change_master_copy(self, new_master_copy: str):
         # TODO Check that master copy is valid
-        if not Web3.isChecksumAddress(new_master_copy):
-            raise ValueError(new_master_copy)
-        elif new_master_copy == self.safe_info.master_copy:
+        if new_master_copy == self.safe_info.master_copy:
             print_formatted_text(HTML(f'<ansired>Master copy {new_master_copy} is the current one</ansired>'))
         else:
             transaction = self.safe_contract.functions.changeMasterCopy(
@@ -231,6 +226,21 @@ class SafeOperator:
 
             if self.execute_safe_internal_transaction(transaction['data']):
                 self.safe_info.threshold = threshold
+
+    def enable_module(self, module_address: str):
+        # TODO Check that master copy is valid
+        if new_master_copy == self.safe_info.master_copy:
+            print_formatted_text(HTML(f'<ansired>Master copy {new_master_copy} is the current one</ansired>'))
+        else:
+            transaction = self.safe_contract.functions.changeMasterCopy(
+                new_master_copy
+            ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
+            if self.execute_safe_internal_transaction(transaction['data']):
+                self.safe_info.master_copy = new_master_copy
+                self.safe_info.version = self.safe.retrieve_version()
+
+    def disable_module(self, module_address: str):
+        pass
 
     def print_info(self):
         for key, value in dataclasses.asdict(self.safe_info).items():
