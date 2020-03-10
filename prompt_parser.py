@@ -54,7 +54,7 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
         safe_operator.print_info()
 
     def get_refresh(args):
-        safe_operator.refresh_safe_info()
+        safe_operator.refresh_safe_cli_info()
 
     # Cli owners
     parser_show_cli_owners = subparsers.add_parser('show_cli_owners')

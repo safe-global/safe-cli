@@ -39,12 +39,13 @@ SAFE_RELAY_SERVICE_BY_NETWORK = {
 }
 
 @dataclasses.dataclass
-class SafeInfo:
+class SafeCliInfo:
     address: str
     nonce: int
     threshold: int
     owners: List[str]
     master_copy: str
+    modules: List[str]
     fallback_handler: str
     balance_ether: int
     version: str
@@ -52,7 +53,7 @@ class SafeInfo:
     def __str__(self):
         return f'safe-version={self.version} nonce={self.nonce} threshold={self.threshold} owners={self.owners} ' \
                f'master-copy={self.master_copy} fallback-hander={self.fallback_handler} ' \
-               f'balance-ether={self.balance_ether:.4f}'
+               f'modules={self.modules} balance-ether={self.balance_ether:.4f}'
 
 
 class SafeOperator:
@@ -67,13 +68,13 @@ class SafeOperator:
         self.safe_relay_service_url: Optional[str] = SAFE_RELAY_SERVICE_BY_NETWORK.get(self.network.value)
         self.safe = Safe(address, self.ethereum_client)
         self.safe_contract = self.safe.get_contract()
-        self.safe_info: SafeInfo = self.get_safe_info()
+        self.safe_cli_info: SafeCliInfo = self.get_safe_cli_info()
         self.accounts: Set[Account] = set()
         self.default_sender: Optional[Account] = None
         self.executed_transactions: List[str] = []
 
     def bottom_toolbar(self):
-        return HTML(f'<b><style fg="ansiyellow">network={self.network_name} {self.safe_info}</style></b>')
+        return HTML(f'<b><style fg="ansiyellow">network={self.network_name} {self.safe_cli_info}</style></b>')
 
     def get_transaction_history(self):
         if not self.safe_tx_service_url:
@@ -160,38 +161,38 @@ class SafeOperator:
     def add_owner(self, new_owner: str):
         if not Web3.isChecksumAddress(new_owner):
             raise ValueError(new_owner)
-        elif new_owner in self.safe_info.owners:
+        elif new_owner in self.safe_cli_info.owners:
             print_formatted_text(HTML(f'<ansired>Owner {new_owner} is already an owner of the Safe'
                                       f'</ansired>'))
         else:
             # TODO Allow to set threshold
-            threshold = self.safe_info.threshold
+            threshold = self.safe_cli_info.threshold
             transaction = self.safe_contract.functions.addOwnerWithThreshold(
                 new_owner, threshold
             ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
             if self.execute_safe_internal_transaction(transaction['data']):
-                self.safe_info.owners = self.safe.retrieve_owners()
-                self.safe_info.threshold = threshold
+                self.safe_cli_info.owners = self.safe.retrieve_owners()
+                self.safe_cli_info.threshold = threshold
 
     def remove_owner(self, owner_to_remove: str):
         if not Web3.isChecksumAddress(owner_to_remove):
             raise ValueError(owner_to_remove)
-        elif owner_to_remove not in self.safe_info.owners:
+        elif owner_to_remove not in self.safe_cli_info.owners:
             print_formatted_text(HTML(f'<ansired>Owner {owner_to_remove} is not an owner of the Safe'
                                       f'</ansired>'))
-        elif len(self.safe_info.owners) == self.safe_info.threshold:
+        elif len(self.safe_cli_info.owners) == self.safe_cli_info.threshold:
             print_formatted_text(HTML(f'<ansired>Having less owners than threshold is not allowed'
                                       f'</ansired>'))
         else:
-            index_owner = self.safe_info.owners.index(owner_to_remove)
-            prev_owner = self.safe_info.owners[index_owner - 1] if index_owner else SENTINEL_ADDRESS
-            threshold = self.safe_info.threshold
+            index_owner = self.safe_cli_info.owners.index(owner_to_remove)
+            prev_owner = self.safe_cli_info.owners[index_owner - 1] if index_owner else SENTINEL_ADDRESS
+            threshold = self.safe_cli_info.threshold
             transaction = self.safe_contract.functions.removeOwner(
                 prev_owner, owner_to_remove, threshold
             ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
             if self.execute_safe_internal_transaction(transaction['data']):
-                self.safe_info.owners = self.safe.retrieve_owners()
-                self.safe_info.threshold = threshold
+                self.safe_cli_info.owners = self.safe.retrieve_owners()
+                self.safe_cli_info.threshold = threshold
 
     def send_ether(self, address: str, value: int) -> bool:
         return self.execute_safe_transaction(address, value, b'')
@@ -206,34 +207,34 @@ class SafeOperator:
         # TODO Check that master copy is valid
         if not Web3.isChecksumAddress(new_master_copy):
             raise ValueError(new_master_copy)
-        elif new_master_copy == self.safe_info.master_copy:
+        elif new_master_copy == self.safe_cli_info.master_copy:
             print_formatted_text(HTML(f'<ansired>Master copy {new_master_copy} is the current one</ansired>'))
         else:
             transaction = self.safe_contract.functions.changeMasterCopy(
                 new_master_copy
             ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
             if self.execute_safe_internal_transaction(transaction['data']):
-                self.safe_info.master_copy = new_master_copy
-                self.safe_info.version = self.safe.retrieve_version()
+                self.safe_cli_info.master_copy = new_master_copy
+                self.safe_cli_info.version = self.safe.retrieve_version()
 
     def change_threshold(self, threshold: int):
         if not self.require_default_sender():
             return False
-        if threshold == self.safe_info.threshold:
+        if threshold == self.safe_cli_info.threshold:
             print_formatted_text(HTML(f'<ansired>Threshold is already {threshold}</ansired>'))
-        elif threshold > len(self.safe_info.owners):
+        elif threshold > len(self.safe_cli_info.owners):
             print_formatted_text(HTML(f'<ansired>Threshold={threshold} bigger than number '
-                                      f'of owners={len(self.safe_info.owners)}</ansired>'))
+                                      f'of owners={len(self.safe_cli_info.owners)}</ansired>'))
         else:
             transaction = self.safe_contract.functions.changeThreshold(
                 threshold
             ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
 
             if self.execute_safe_internal_transaction(transaction['data']):
-                self.safe_info.threshold = threshold
+                self.safe_cli_info.threshold = threshold
 
     def print_info(self):
-        for key, value in dataclasses.asdict(self.safe_info).items():
+        for key, value in dataclasses.asdict(self.safe_cli_info).items():
             print_formatted_text(HTML(f'<b><ansigreen>{key.capitalize()}</ansigreen></b>='
                                       f'<ansiblue>{value}</ansiblue>'))
         if self.safe_tx_service_url:
@@ -251,12 +252,13 @@ class SafeOperator:
             print_formatted_text(HTML(f'<b><ansigreen>Etherscan</ansigreen></b>='
                                       f'<ansiblue>{url}</ansiblue>'))
 
-    def get_safe_info(self) -> SafeInfo:
+    def get_safe_cli_info(self) -> SafeCliInfo:
         safe = self.safe
         balance_ether = Web3.fromWei(self.ethereum_client.get_balance(self.address), 'ether')
-        return SafeInfo(self.address, safe.retrieve_nonce(), safe.retrieve_threshold(),
-                        safe.retrieve_owners(), safe.retrieve_master_copy_address(), safe.retrieve_fallback_handler(),
-                        balance_ether, safe.retrieve_version())
+        safe_info = safe.retrieve_all_info()
+        return SafeCliInfo(self.address, safe_info.nonce, safe_info.threshold,
+                           safe_info.owners, safe_info.master_copy, safe_info.modules, safe_info.fallback_handler,
+                           balance_ether, safe_info.version)
 
     def get_threshold(self):
         print_formatted_text(self.safe.retrieve_threshold())
@@ -267,9 +269,9 @@ class SafeOperator:
     def get_owners(self):
         print_formatted_text(self.safe.retrieve_owners())
 
-    def refresh_safe_info(self) -> SafeInfo:
-        self.safe_info = self.get_safe_info()
-        return self.safe_info
+    def refresh_safe_cli_info(self) -> SafeCliInfo:
+        self.safe_cli_info = self.get_safe_cli_info()
+        return self.safe_cli_info
 
     def require_default_sender(self) -> bool:
         if not self.default_sender:
@@ -291,7 +293,7 @@ class SafeOperator:
         print_formatted_text(HTML(f'<ansigreen>Executed tx with tx-hash={tx_hash.hex()}, waiting for receipt'
                                   f'</ansigreen>'))
         if self.ethereum_client.get_transaction_receipt(tx_hash, timeout=120):
-            self.safe_info.nonce += 1
+            self.safe_cli_info.nonce += 1
             return True
         else:
             print_formatted_text(HTML(f'<ansired>Tx with tx-hash={tx_hash.hex()} still not mined</ansired>'))
@@ -299,8 +301,8 @@ class SafeOperator:
 
     # TODO Set sender so we can save gas in that signature
     def sign_transaction(self, safe_tx: SafeTx) -> bool:
-        owners = self.safe_info.owners
-        threshold = self.safe_info.threshold
+        owners = self.safe_cli_info.owners
+        threshold = self.safe_cli_info.threshold
         selected_accounts: List[Account] = []  # Need to be sorted
         for account in self.accounts:
             if account.address in owners:
@@ -333,6 +335,6 @@ class SafeOperator:
             self.get_transaction_history()
         elif first_command == 'refresh':
             print_formatted_text('Reloading Safe information')
-            self.refresh_safe_info()
+            self.refresh_safe_cli_info()
 
         return False
