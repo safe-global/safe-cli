@@ -233,6 +233,35 @@ class SafeOperator:
             if self.execute_safe_internal_transaction(transaction['data']):
                 self.safe_cli_info.threshold = threshold
 
+    def enable_module(self, module_address: str):
+        if not self.require_default_sender():
+            return False
+        if module_address in self.safe_cli_info.modules:
+            print_formatted_text(HTML(f'<ansired>Module {module_address} is already enabled</ansired>'))
+        else:
+            transaction = self.safe_contract.functions.enableModule(
+                module_address
+            ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
+            if self.execute_safe_internal_transaction(transaction['data']):
+                self.safe_cli_info.modules = self.safe.retrieve_modules()
+
+    def disable_module(self, module_address: str):
+        if not self.require_default_sender():
+            return False
+        if module_address not in self.safe_cli_info.modules:
+            print_formatted_text(HTML(f'<ansired>Module {module_address} is not enabled</ansired>'))
+        else:
+            pos = self.safe_cli_info.modules.index(module_address)
+            if pos == 0:
+                previous_address = SENTINEL_ADDRESS
+            else:
+                previous_address = self.safe_cli_info.modules[pos - 1]
+            transaction = self.safe_contract.functions.disableModule(
+                previous_address, module_address
+            ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
+            if self.execute_safe_internal_transaction(transaction['data']):
+                self.safe_cli_info.modules = self.safe.retrieve_modules()
+
     def print_info(self):
         for key, value in dataclasses.asdict(self.safe_cli_info).items():
             print_formatted_text(HTML(f'<b><ansigreen>{key.capitalize()}</ansigreen></b>='
@@ -286,7 +315,8 @@ class SafeOperator:
         safe_tx = self.safe.build_multisig_tx(to, value, data)
         if not self.sign_transaction(safe_tx):
             return False
-        print_formatted_text(HTML(f'Result: <ansigreen>{safe_tx.call(self.default_sender.address)}'
+        call_result = safe_tx.call(self.default_sender.address)
+        print_formatted_text(HTML(f'Result: <ansigreen>{call_result}'
                                   f'</ansigreen>'))
         tx_hash, _ = safe_tx.execute(self.default_sender.key)
         self.executed_transactions.append(tx_hash.hex())

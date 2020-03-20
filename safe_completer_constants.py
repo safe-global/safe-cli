@@ -8,17 +8,19 @@ safe_commands_arguments = {
     'add_owner': '<address>',
     'change_master_copy': '<address>',
     'change_threshold': '<address>',
+    'disable_module': '<address>',
+    'enable_module': '<address>',
     'get_nonce': '(read-only)',
-    'info': '(read-only)',
     'get_owners': '(read-only)',
     'get_threshold': '(read-only)',
+    'history': '(read-only)',
+    'info': '(read-only)',
     'load_cli_owners': '<account-private-key>',
     'refresh': '',
     'remove_owner': '<address>',
     'send_erc20': '<address> <token_address> <value>',
     'send_ether': '<address> <value-wei>',
     'show_cli_owners': '(read-only)',
-    'history': '(read-only)',
     'unload_cli_owners': '<address>',
 }
 
@@ -47,6 +49,8 @@ meta = {
     'add_owner': HTML('Command <b>add_owner</b> will add a check-summed <u>&lt;address&gt;</u> owner account.'),
     'remove_owner': HTML('Command <b>remove_owner</b> will remove an old account <u>&lt;address&gt;</u> from the '
                          'current loaded safe.'),
+    'enable_module': HTML('Command <b>enable_module</b> will enable a check-summed <u>&lt;address&gt;</u> module.'),
+    'disable_module': HTML('Command <b>disable_module</b> will disable a check-summed <u>&lt;address&gt;</u> module.'),
     'get_threshold': HTML('Command <b>get_threshold</b> will return the threshold <u>&lt;value&gt;</u> for'
                           ' the current loaded safe.'),
     'get_nonce': HTML('Command <b>get_nonce</b> will return the nonce <u>&lt;value&gt;</u> for '

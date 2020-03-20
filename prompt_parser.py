@@ -50,6 +50,12 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     def get_owners(args):
         safe_operator.get_owners()
 
+    def enable_module(args):
+        safe_operator.enable_module(args.address)
+
+    def disable_module(args):
+        safe_operator.disable_module(args.address)
+
     def get_info(args):
         safe_operator.print_info()
 
@@ -108,6 +114,14 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_get_nonce.set_defaults(func=get_nonce)
     parser_get_owners = subparsers.add_parser('get_owners')
     parser_get_owners.set_defaults(func=get_owners)
+
+    # Enable and disable modules
+    parser_enable_module = subparsers.add_parser('enable_module')
+    parser_enable_module.add_argument('address', type=check_ethereum_address)
+    parser_enable_module.set_defaults(func=enable_module)
+    parser_disable_module = subparsers.add_parser('disable_module')
+    parser_disable_module.add_argument('address', type=check_ethereum_address)
+    parser_disable_module.set_defaults(func=disable_module)
 
     # Info and refresh
     parser_info = subparsers.add_parser('info')

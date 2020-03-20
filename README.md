@@ -44,8 +44,10 @@ Operations currently supported:
 - `add_owner <address>`: Adds a new owner `address` to the Safe.
 - `remove_owner <address>`: Removes an owner `address` from the Safe.
 - `change_threshold <integer>`: Changes the `threshold` of the Safe.
-- `change_master_copy <address>`: Updates the master copy to be `address`. It's used to update the Safe.
-**WARNING: DON'T CALL THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
+- `enable_module <address>`: Enable module `address`
+- `disable_module <address>`: Disable module `address`
+- `change_master_copy <address>`: Updates the master copy to be `address`. It's used to update the Safe.  **WARNING: DON'T USE 
+THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 
 If the information in the information bar is outdated or there's any problem you can force the `safe-cli` to update
 the information about the Safe using:
