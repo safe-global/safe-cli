@@ -282,6 +282,7 @@ class SafeOperator:
                                       f'<ansiblue>{url}</ansiblue>'))
 
     def get_safe_cli_info(self) -> SafeCliInfo:
+        print_formatted_text(HTML(f'<b><ansigreen>Loading Safe information...</ansigreen></b>'))
         safe = self.safe
         balance_ether = Web3.fromWei(self.ethereum_client.get_balance(self.address), 'ether')
         safe_info = safe.retrieve_all_info()
