@@ -62,6 +62,9 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     def get_refresh(args):
         safe_operator.refresh_safe_cli_info()
 
+    def get_history(args):
+        safe_operator.get_transaction_history()
+
     # Cli owners
     parser_show_cli_owners = subparsers.add_parser('show_cli_owners')
     parser_show_cli_owners.set_defaults(func=show_cli_owners)
@@ -128,5 +131,9 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_info.set_defaults(func=get_info)
     parser_refresh = subparsers.add_parser('refresh')
     parser_refresh.set_defaults(func=get_refresh)
+
+    # Tx-History
+    parser_info = subparsers.add_parser('history')
+    parser_info.set_defaults(func=get_history)
 
     return prompt_parser
