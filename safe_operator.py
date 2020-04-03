@@ -12,7 +12,7 @@ from web3 import Web3
 from gnosis.eth import EthereumClient
 from gnosis.eth.constants import SENTINEL_ADDRESS
 from gnosis.eth.contracts import get_erc20_contract
-from gnosis.safe import Safe, SafeTx
+from gnosis.safe import InvalidInternalTx, Safe, SafeTx
 
 ETHERSCAN_BY_NETWORK = {
     1: 'https://etherscan.io',
@@ -315,19 +315,23 @@ class SafeOperator:
         safe_tx = self.safe.build_multisig_tx(to, value, data)
         if not self.sign_transaction(safe_tx):
             return False
-        call_result = safe_tx.call(self.default_sender.address)
-        print_formatted_text(HTML(f'Result: <ansigreen>{call_result}'
-                                  f'</ansigreen>'))
-        tx_hash, _ = safe_tx.execute(self.default_sender.key)
-        self.executed_transactions.append(tx_hash.hex())
-        print_formatted_text(HTML(f'<ansigreen>Executed tx with tx-hash={tx_hash.hex()}, waiting for receipt'
-                                  f'</ansigreen>'))
-        if self.ethereum_client.get_transaction_receipt(tx_hash, timeout=120):
-            self.safe_cli_info.nonce += 1
-            return True
-        else:
-            print_formatted_text(HTML(f'<ansired>Tx with tx-hash={tx_hash.hex()} still not mined</ansired>'))
-        return False
+
+        try:
+            call_result = safe_tx.call(self.default_sender.address)
+            print_formatted_text(HTML(f'Result: <ansigreen>{call_result}</ansigreen>'))
+            tx_hash, _ = safe_tx.execute(self.default_sender.key)
+            self.executed_transactions.append(tx_hash.hex())
+            print_formatted_text(HTML(f'<ansigreen>Executed tx with tx-hash={tx_hash.hex()} '
+                                      f'and safe-nonce={safe_tx.safe_nonce}, waiting for receipt</ansigreen>'))
+            if self.ethereum_client.get_transaction_receipt(tx_hash, timeout=120):
+                self.safe_cli_info.nonce += 1
+                return True
+            else:
+                print_formatted_text(HTML(f'<ansired>Tx with tx-hash={tx_hash.hex()} still not mined</ansired>'))
+            return False
+        except InvalidInternalTx as invalid_internal_tx:
+            print_formatted_text(HTML(f'Result: <ansired>InvalidTx - {invalid_internal_tx}</ansired>'))
+            return False
 
     # TODO Set sender so we can save gas in that signature
     def sign_transaction(self, safe_tx: SafeTx) -> bool:

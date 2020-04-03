@@ -65,4 +65,4 @@ if __name__ == '__main__':
         except KeyboardInterrupt:
             continue
         except (argparse.ArgumentError, argparse.ArgumentTypeError, SystemExit):  # FIXME
-            process_command(command, safe_operator)
+            process_command(command, safe_operator)  # TODO Remove this, not needed anymore
