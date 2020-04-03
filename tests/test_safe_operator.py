@@ -2,7 +2,8 @@ import os
 import unittest
 
 from eth_account import Account
-from safe_operator import SafeOperator
+
+from safe_cli.safe_operator import SafeOperator
 
 ETHEREUM_NODE_URL = os.environ.get('ETHEREUM_NODE_URL', 'http://localhost:8545')
 

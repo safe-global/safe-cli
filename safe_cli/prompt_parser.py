@@ -1,7 +1,8 @@
 import argparse
 
-from safe_operator import SafeOperator
 from web3 import Web3
+
+from .safe_operator import SafeOperator
 
 
 def check_ethereum_address(address: str) -> bool:

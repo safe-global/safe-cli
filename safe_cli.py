@@ -1,14 +1,15 @@
 import argparse
 
 import pyfiglet
-from prompt_parser import get_prompt_parser
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.lexers import PygmentsLexer
-from safe_completer import SafeCompleter
-from safe_completer_constants import safe_commands
-from safe_lexer import SafeLexer
-from safe_operator import SafeOperator
+
+from safe_cli.prompt_parser import get_prompt_parser
+from safe_cli.safe_completer import SafeCompleter
+from safe_cli.safe_completer_constants import safe_commands
+from safe_cli.safe_lexer import SafeLexer
+from safe_cli.safe_operator import SafeOperator
 
 parser = argparse.ArgumentParser()
 parser.add_argument('safe_address', help='Address of Safe to use')

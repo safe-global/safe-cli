@@ -5,9 +5,10 @@ from prompt_toolkit import HTML
 # Import Completer Module for the prompt
 from prompt_toolkit.completion import CompleteEvent, Completer, Completion
 from prompt_toolkit.document import Document
+
 # Import Completer Constants defining the information of the commands withing the prompt
-from safe_completer_constants import (meta, safe_color_arguments,
-                                      safe_commands, safe_commands_arguments)
+from .safe_completer_constants import (meta, safe_color_arguments,
+                                       safe_commands, safe_commands_arguments)
 
 
 class SafeCompleter(Completer):

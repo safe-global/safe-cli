@@ -1,6 +1,7 @@
 import unittest
 
-from ..ethereum_hd_wallet import get_account_from_words
+from safe_cli.ethereum_hd_wallet import (get_account_from_words,
+                                         get_address_from_words)
 
 
 class TestEthereumHdWallet(unittest.TestCase):
@@ -22,7 +23,7 @@ class TestEthereumHdWallet(unittest.TestCase):
         ]
 
         for index in range(len(expected)):
-            account = get_account_from_words(words, index=index).key
+            account = get_account_from_words(words, index=index)
             self.assertEqual(account.address, expected[index][0])
             self.assertEqual(account.key, expected[index][1])
 
@@ -38,7 +39,7 @@ class TestEthereumHdWallet(unittest.TestCase):
         ]
 
         for index in range(len(expected)):
-            self.assertEqual(get_account_from_words(words, index=index), expected[index])
+            self.assertEqual(get_address_from_words(words, index=index), expected[index])
 
 
 if __name__ == '__main__':
