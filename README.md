@@ -1,3 +1,7 @@
+[![Build Status](https://travis-ci.org/gnosis/safe-cli.svg?branch=master)](https://travis-ci.org/gnosis/safe-cli)
+[![Coverage Status](https://coveralls.io/repos/github/gnosis/safe-cli/badge.svg?branch=master)](https://coveralls.io/github/gnosis/safe-cli?branch=master)
+![Python 3.8](https://img.shields.io/badge/Python-3.8-blue.svg)
+
 # Safe-CLI
 Command line utility for **Gnosis Safe** contracts. Use it to manage your **Gnosis Safe** easily from the command line
 
