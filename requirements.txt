@@ -1,6 +1,7 @@
 bip_utils==0.2.0
 colorama==0.4.3
-gnosis-py==2.4.1
+gnosis-py==2.4.3
+packaging
 prompt_toolkit==3.0.5
 pyfiglet==0.8.post1
 pygments==2.6.1

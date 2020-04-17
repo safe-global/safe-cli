@@ -6,6 +6,7 @@ SAFE_EMPTY_ARGUMENT_COLOR = 'ansimagenta'
 
 safe_commands_arguments = {
     'add_owner': '<address>',
+    'change_fallback_handler': '<address>',
     'change_master_copy': '<address>',
     'change_threshold': '<address>',
     'disable_module': '<address>',
@@ -16,6 +17,7 @@ safe_commands_arguments = {
     'history': '(read-only)',
     'info': '(read-only)',
     'load_cli_owners': '<account-private-key>',
+    'update': '',
     'refresh': '',
     'remove_owner': '<address>',
     'send_erc20': '<address> <token_address> <value>',
@@ -43,7 +45,7 @@ meta = {
     'show_cli_owners': HTML('Command <b>show_cli_owners</b> will return a list of loaded <u>&lt;address&gt;</u> '
                             'account owners.'),
     'get_owners': HTML('Command <b>get_owners</b> will return a list of check-summed <u>&lt;address&gt;</u> '
-                            'account owners.'),
+                       'account owners.'),
     'change_owner': HTML('Command <b>change_owner</b> will change an old account <u>&lt;address&gt;</u> for the new '
                          'check-summed <u>&lt;address&gt;</u> account.'),
     'add_owner': HTML('Command <b>add_owner</b> will add a check-summed <u>&lt;address&gt;</u> owner account.'),
@@ -63,11 +65,15 @@ meta = {
                        '<u>&lt;token-address&gt;</u>, to a check-summed account <u>&lt;address&gt;</u> if enough funds'
                        ' are found, withing the current loaded safe.'),
     'unload_cli_owners': HTML('Command <b>unload_cli_owners</b> will unload a check-summed <u>&lt;address&gt;</u> '
-                             'from the current loaded account owners.'),
+                              'from the current loaded account owners.'),
     'load_cli_owners': HTML('Command <b>load_cli_owners</b> will try to load a new owner via '
-                           '<u>&lt;account-private-key&gt;</u>.'),
+                            '<u>&lt;account-private-key&gt;</u>.'),
     'refresh': HTML('Command <b>refresh</b> will refresh the information for the current loaded safe.'),
-    'change_master_copy': HTML('Command <b>change_master_copy</b> will try to update the current version of the loaded '
-                               'safe <b>[DO NOT CALL THIS FUNCTION, UNLESS YOU KNOW WHAT YOU ARE DOING. '
+    'change_master_copy': HTML('Command <b>change_master_copy</b> will change the current MasterCopy of the '
+                               'Safe Contract <b>[DO NOT CALL THIS FUNCTION, UNLESS YOU KNOW WHAT YOU ARE DOING. '
                                'ALL YOUR FUNDS COULD BE LOST]</b>.'),
+    'change_fallback_handler': HTML('Command <b>change_fallback_handler</b> will change the current '
+                                    'fallbackHandler for the Safe <b>[DO NOT CALL THIS FUNCTION, '
+                                    'UNLESS YOU KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST]</b>.'),
+    'update': HTML('Command <b>update</b> will upgrade the Safe master copy to the latest version'),
 }

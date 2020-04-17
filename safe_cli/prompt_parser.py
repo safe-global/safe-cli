@@ -30,6 +30,9 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     def remove_owner(args):
         safe_operator.remove_owner(args.address)
 
+    def change_fallback_handler(args):
+        safe_operator.change_fallback_handler(args.address)
+
     def change_master_copy(args):
         safe_operator.change_master_copy(args.address)
 
@@ -56,6 +59,9 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
 
     def disable_module(args):
         safe_operator.disable_module(args.address)
+
+    def update_safe(args):
+        safe_operator.update_safe()
 
     def get_info(args):
         safe_operator.print_info()
@@ -93,10 +99,19 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_remove_owner.add_argument('address', type=check_ethereum_address)
     parser_remove_owner.set_defaults(func=remove_owner)
 
+    # Change FallbackHandler
+    parser_change_master_copy = subparsers.add_parser('change_fallback_handler')
+    parser_change_master_copy.add_argument('address', type=check_ethereum_address)
+    parser_change_master_copy.set_defaults(func=change_fallback_handler)
+
     # Change MasterCopy
     parser_change_master_copy = subparsers.add_parser('change_master_copy')
     parser_change_master_copy.add_argument('address', type=check_ethereum_address)
     parser_change_master_copy.set_defaults(func=change_master_copy)
+
+    # Update Safe to last version
+    parser_change_master_copy = subparsers.add_parser('update')
+    parser_change_master_copy.set_defaults(func=update_safe)
 
     # Send ether
     parser_send_ether = subparsers.add_parser('send_ether')
