@@ -60,8 +60,8 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     def disable_module(args):
         safe_operator.disable_module(args.address)
 
-    def update_safe(args):
-        safe_operator.update_safe()
+    def update_version(args):
+        safe_operator.update_version()
 
     def get_info(args):
         safe_operator.print_info()
@@ -111,7 +111,7 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
 
     # Update Safe to last version
     parser_change_master_copy = subparsers.add_parser('update')
-    parser_change_master_copy.set_defaults(func=update_safe)
+    parser_change_master_copy.set_defaults(func=update_version)
 
     # Send ether
     parser_send_ether = subparsers.add_parser('send_ether')

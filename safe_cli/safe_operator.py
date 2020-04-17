@@ -1,23 +1,25 @@
 import dataclasses
-
-from gnosis.safe.multi_send import MultiSend, MultiSendTx, MultiSendOperation
-from packaging import version as semantic_version
 import os
 from typing import Any, Dict, List, Optional, Set
 
 import requests
 from colorama import Fore, Style
 from eth_account import Account
+from packaging import version as semantic_version
 from prompt_toolkit import HTML, print_formatted_text
 from tabulate import tabulate
 from web3 import Web3
+from web3.exceptions import BadFunctionCallOutput
 
 from gnosis.eth import EthereumClient
 from gnosis.eth.constants import SENTINEL_ADDRESS
 from gnosis.eth.contracts import get_erc20_contract, get_safe_contract
-from gnosis.safe import InvalidInternalTx, Safe, SafeTx, SafeOperation
+from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
+from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
-from safe_cli.safe_addresses import LAST_SAFE_CONTRACT, LAST_MULTISEND_CONTRACT, LAST_DEFAULT_CALLBACK_HANDLER
+from safe_cli.safe_addresses import (LAST_DEFAULT_CALLBACK_HANDLER,
+                                     LAST_MULTISEND_CONTRACT,
+                                     LAST_SAFE_CONTRACT)
 
 ETHERSCAN_BY_NETWORK = {
     1: 'https://etherscan.io',
@@ -84,7 +86,7 @@ class SafeOperator:
             self._safe_cli_info = self.refresh_safe_cli_info()
         return self._safe_cli_info
 
-    def check_version(self) -> bool:
+    def is_version_updated(self) -> bool:
         """
         :return: True if Safe Master Copy is updated, False otherwise
         """
@@ -93,7 +95,10 @@ class SafeOperator:
             return True
         else:  # Check versions, maybe safe-cli addresses were not updated
             safe_contract = get_safe_contract(self.ethereum_client.w3, LAST_SAFE_CONTRACT)
-            safe_contract_version = safe_contract.functions.VERSION().call()
+            try:
+                safe_contract_version = safe_contract.functions.VERSION().call()
+            except BadFunctionCallOutput:  # Safe master copy is not deployed or errored, maybe custom network
+                return True  # We cannot say you are not updated ¯\_(ツ)_/¯
             return semantic_version.parse(self.safe_cli_info.version) >= semantic_version.parse(safe_contract_version)
 
     def refresh_safe_cli_info(self) -> SafeCliInfo:
@@ -230,6 +235,23 @@ class SafeOperator:
         ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
         return self.execute_safe_transaction(token_address, 0, transaction['data'])
 
+    def change_fallback_handler(self, new_fallback_handler: str):
+        # TODO Check that fallback handler is valid
+        if not Web3.isChecksumAddress(new_fallback_handler):
+            raise ValueError(new_fallback_handler)
+        elif new_fallback_handler == self.safe_cli_info.fallback_handler:
+            print_formatted_text(HTML(f'<ansired>Fallback handler {new_fallback_handler} is the current one</ansired>'))
+        elif semantic_version.parse(self.safe_cli_info.version) < semantic_version.parse('1.1.0'):
+            print_formatted_text(HTML(f'<ansired>Fallback handler is not supported for your Safe, '
+                                      f'you need to <b>update</b> first</ansired>'))
+        else:
+            transaction = self.safe_contract.functions.setFallbackHandler(
+                new_fallback_handler
+            ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
+            if self.execute_safe_internal_transaction(transaction['data']):
+                self.safe_cli_info.fallback_handler = new_fallback_handler
+                self.safe_cli_info.version = self.safe.retrieve_version()
+
     def change_master_copy(self, new_master_copy: str):
         # TODO Check that master copy is valid
         if not Web3.isChecksumAddress(new_master_copy):
@@ -243,6 +265,31 @@ class SafeOperator:
             if self.execute_safe_internal_transaction(transaction['data']):
                 self.safe_cli_info.master_copy = new_master_copy
                 self.safe_cli_info.version = self.safe.retrieve_version()
+
+    def update_version(self) -> Optional[bool]:
+        """
+        Update Safe Master Copy and Fallback handler to the last version
+        :return:
+        """
+        if self.is_version_updated():
+            print_formatted_text(HTML(f'<ansired>Safe is already updated</ansired>'))
+            return
+
+        multisend = MultiSend(LAST_MULTISEND_CONTRACT, self.ethereum_client)
+        tx_params = {'from': self.address, 'gas': 0, 'gasPrice': 0}
+        multisend_txs = [MultiSendTx(MultiSendOperation.CALL, self.address, 0, data) for data in
+                         (self.safe_contract.functions.changeMasterCopy(LAST_SAFE_CONTRACT
+                                                                        ).buildTransaction(tx_params)['data'],
+                          self.safe_contract.functions.setFallbackHandler(LAST_DEFAULT_CALLBACK_HANDLER
+                                                                          ).buildTransaction(tx_params)['data'])
+                         ]
+
+        multisend_data = multisend.build_tx_data(multisend_txs)
+
+        if self.execute_safe_transaction(multisend.address, 0, multisend_data, operation=SafeOperation.DELEGATE_CALL):
+            self.safe_cli_info.master_copy = LAST_SAFE_CONTRACT
+            self.safe_cli_info.fallback_handler = LAST_DEFAULT_CALLBACK_HANDLER
+            self.safe_cli_info.version = self.safe.retrieve_version()
 
     def change_threshold(self, threshold: int):
         if not self.require_default_sender():
@@ -308,9 +355,9 @@ class SafeOperator:
             print_formatted_text(HTML(f'<b><ansigreen>Etherscan</ansigreen></b>='
                                       f'<ansiblue>{url}</ansiblue>'))
 
-        if not self.check_version():
-            print_formatted_text(HTML(f'<b><ansired>Safe is not updated! You can use `update` command to update '
-                                      f'the Safe to a newest version</ansired></b>'))
+        if not self.is_version_updated():
+            print_formatted_text(HTML(f'<ansired>Safe is not updated! You can use <b>update</b> command to update '
+                                      f'the Safe to a newest version</ansired>'))
 
     def get_safe_cli_info(self) -> SafeCliInfo:
         print_formatted_text(HTML(f'<b><ansigreen>Loading Safe information...</ansigreen></b>'))
@@ -361,23 +408,6 @@ class SafeOperator:
         except InvalidInternalTx as invalid_internal_tx:
             print_formatted_text(HTML(f'Result: <ansired>InvalidTx - {invalid_internal_tx}</ansired>'))
             return False
-
-    def update_safe(self):
-        multisend = MultiSend(LAST_MULTISEND_CONTRACT, self.ethereum_client)
-
-        tx_params = {'from': self.address, 'gas': 0, 'gasPrice': 0}
-        multisend_txs = [MultiSendTx(MultiSendOperation.CALL, self.address, 0, data) for data in
-                         (self.safe_contract.functions.changeMasterCopy(LAST_SAFE_CONTRACT
-                                                                        ).buildTransaction(tx_params)['data'],
-                          self.safe_contract.functions.setFallbackHandler(LAST_DEFAULT_CALLBACK_HANDLER
-                                                                          ).buildTransaction(tx_params)['data'])
-                         ]
-
-        multisend_data = multisend.build_tx_data(multisend_txs)
-
-        if self.execute_safe_transaction(multisend.address, 0, multisend_data, operation=SafeOperation.DELEGATE_CALL):
-            self.safe_cli_info.master_copy = LAST_SAFE_CONTRACT
-            self.safe_cli_info.fallback_handler = LAST_DEFAULT_CALLBACK_HANDLER
 
     # TODO Set sender so we can save gas in that signature
     def sign_transaction(self, safe_tx: SafeTx) -> bool:

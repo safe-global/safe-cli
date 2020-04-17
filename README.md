@@ -46,8 +46,11 @@ Operations currently supported:
 - `change_threshold <integer>`: Changes the `threshold` of the Safe.
 - `enable_module <address>`: Enable module `address`
 - `disable_module <address>`: Disable module `address`
+- `change_fallback_handler <address>`: Updates the fallback handler to be `address`. Supported by Safes with `version >= v1.1.0`
 - `change_master_copy <address>`: Updates the master copy to be `address`. It's used to update the Safe.  **WARNING: DON'T USE 
 THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
+- `update`: Updates the Safe to the latest version (if you are on a known network like `Rinkeby` or `Mainnet`).
+**WARNING: DON'T USE THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 
 If the information in the information bar is outdated or there's any problem you can force the `safe-cli` to update
 the information about the Safe using:

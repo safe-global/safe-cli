@@ -73,7 +73,8 @@ meta = {
                                'Safe Contract <b>[DO NOT CALL THIS FUNCTION, UNLESS YOU KNOW WHAT YOU ARE DOING. '
                                'ALL YOUR FUNDS COULD BE LOST]</b>.'),
     'change_fallback_handler': HTML('Command <b>change_fallback_handler</b> will change the current '
-                                    'fallbackHandler for the Safe <b>[DO NOT CALL THIS FUNCTION, '
-                                    'UNLESS YOU KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST]</b>.'),
+                                    'fallbackHandler for Safes with version >= 1.1.0 '
+                                    '<b>[DO NOT CALL THIS FUNCTION, UNLESS YOU KNOW WHAT YOU ARE DOING. '
+                                    'ALL YOUR FUNDS COULD BE LOST]</b>.'),
     'update': HTML('Command <b>update</b> will upgrade the Safe master copy to the latest version'),
 }
