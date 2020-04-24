@@ -69,6 +69,9 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     def get_refresh(args):
         safe_operator.refresh_safe_cli_info()
 
+    def get_balances(args):
+        safe_operator.get_balances()
+
     def get_history(args):
         safe_operator.get_transaction_history()
 
@@ -149,6 +152,9 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_refresh.set_defaults(func=get_refresh)
 
     # Tx-History
+    # TODO Use subcommands
+    parser_info = subparsers.add_parser('balances')
+    parser_info.set_defaults(func=get_balances)
     parser_info = subparsers.add_parser('history')
     parser_info.set_defaults(func=get_history)
 

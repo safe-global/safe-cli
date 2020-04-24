@@ -56,6 +56,10 @@ THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 - `update`: Updates the Safe to the latest version (if you are on a known network like `Rinkeby` or `Mainnet`).
 **WARNING: DON'T USE THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 
+Operations currently supported with transaction service (mainnet, rinkeby):
+- `balances`: Returns a list of balances for ERC20 tokens and ether.
+- `history`: History of multisig transactions (including pending).
+
 If the information in the information bar is outdated or there's any problem you can force the `safe-cli` to update
 the information about the Safe using:
 ```

@@ -6,6 +6,7 @@ SAFE_EMPTY_ARGUMENT_COLOR = 'ansimagenta'
 
 safe_commands_arguments = {
     'add_owner': '<address>',
+    'balances': '(read-only)',
     'change_fallback_handler': '<address>',
     'change_master_copy': '<address>',
     'change_threshold': '<address>',
@@ -38,8 +39,10 @@ safe_color_arguments = {
 }
 
 meta = {
+    'balances': HTML('<b>balances</b> will return the balance of Ether and ERC20 tokens of the Safe '
+                    '(if tx service available for the network)'),
     'history': HTML('<b>history</b> will return information of last transactions for the Safe '
-                    '(if tx service available for the network'),
+                    '(if tx service available for the network)'),
     'info': HTML('<b>info</b> will return all the information available for a Safe, with Gnosis Tx Service and '
                  'Etherscan links if the network is supported'),
     'show_cli_owners': HTML('Command <b>show_cli_owners</b> will return a list of loaded <u>&lt;address&gt;</u> '

@@ -108,6 +108,35 @@ class SafeOperator:
     def bottom_toolbar(self):
         return HTML(f'<b><style fg="ansiyellow">network={self.network_name} {self.safe_cli_info}</style></b>')
 
+    def get_balances(self):
+        if not self.safe_tx_service_url:  # TODO Maybe use Etherscan
+            print_formatted_text(HTML(f'<ansired>No tx service available for '
+                                      f'network={self.network_name}</ansired>'))
+        else:
+            url = f'{self.safe_tx_service_url}/api/v1/safes/{self.address}/balances/'
+            response = requests.get(url)
+            if not response.ok:
+                print_formatted_text(f'Cannot get balances from {url}')
+            else:
+                balances = response.json()
+                headers = ['name', 'balance', 'symbol', 'decimals', 'tokenAddress']
+                rows = []
+                for balance in balances:
+                    if balance['tokenAddress']:  # Token
+                        row = [balance['token']['name'],
+                               f"{int(balance['balance']) / 10**int(balance['token']['decimals']):.5f}",
+                               balance['token']['symbol'],
+                               balance['token']['decimals'],
+                               balance['tokenAddress']]
+                    else:  # Ether
+                        row = ['ETHER',
+                               f"{int(balance['balance']) / 10 ** 18:.5f}",
+                               'Ξ',
+                               18,
+                               '']
+                    rows.append(row)
+                print(tabulate(rows, headers=headers))
+
     def get_transaction_history(self):
         if not self.safe_tx_service_url:
             print_formatted_text(HTML(f'<ansired>No tx service available for '
@@ -120,7 +149,9 @@ class SafeOperator:
             url = f'{self.safe_tx_service_url}/api/v1/safes/{self.address}/transactions/'
             print_formatted_text(url)
             response = requests.get(url)
-            if response.ok:
+            if not response.ok:
+                print_formatted_text(f'Cannot get transactions from {url}')
+            else:
                 transactions = response.json().get('results', [])
                 headers = ['nonce', 'to', 'value', 'transactionHash', 'safeTxHash']
                 rows = []
@@ -146,8 +177,6 @@ class SafeOperator:
                 headers.append('dataDecoded')
                 headers[0] = Style.BRIGHT + headers[0]
                 print(tabulate(rows, headers=headers))
-            else:
-                print_formatted_text(f'Cannot get transactions from {url}')
 
     def load_cli_owners(self, keys: List[str]):
         for key in keys:
