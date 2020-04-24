@@ -7,4 +7,4 @@ pyfiglet==0.8.post1
 pygments==2.6.1
 requests==2.23.0
 tabulate==0.8.7
-web3==5.7.0
+web3==5.8.0

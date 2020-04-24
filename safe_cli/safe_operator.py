@@ -13,7 +13,8 @@ from web3.exceptions import BadFunctionCallOutput
 
 from gnosis.eth import EthereumClient
 from gnosis.eth.constants import SENTINEL_ADDRESS
-from gnosis.eth.contracts import get_erc20_contract, get_safe_contract
+from gnosis.eth.contracts import (get_erc20_contract, get_erc721_contract,
+                                  get_safe_contract)
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
@@ -264,6 +265,12 @@ class SafeOperator:
         ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
         return self.execute_safe_transaction(token_address, 0, transaction['data'])
 
+    def send_erc721(self, address: str, token_address: str, token_id: int) -> bool:
+        transaction = get_erc721_contract(self.ethereum_client.w3, token_address).functions.transferFrom(
+            self.address, address, token_id
+        ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
+        return self.execute_safe_transaction(token_address, 0, transaction['data'])
+
     def change_fallback_handler(self, new_fallback_handler: str):
         # TODO Check that fallback handler is valid
         if not Web3.isChecksumAddress(new_fallback_handler):
@@ -417,6 +424,7 @@ class SafeOperator:
 
     def execute_safe_transaction(self, to: str, value: int, data: bytes,
                                  operation: SafeOperation = SafeOperation.CALL) -> bool:
+        # TODO Test tx is successful
         safe_tx = self.safe.build_multisig_tx(to, value, data, operation=operation.value)
         if not self.sign_transaction(safe_tx):
             return False

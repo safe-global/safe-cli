@@ -22,6 +22,7 @@ safe_commands_arguments = {
     'refresh': '',
     'remove_owner': '<address>',
     'send_erc20': '<address> <token_address> <value>',
+    'send_erc721': '<address> <token_address> <token_id>',
     'send_ether': '<address> <value-wei>',
     'show_cli_owners': '(read-only)',
     'unload_cli_owners': '<address>',
@@ -40,7 +41,7 @@ safe_color_arguments = {
 
 meta = {
     'balances': HTML('<b>balances</b> will return the balance of Ether and ERC20 tokens of the Safe '
-                    '(if tx service available for the network)'),
+                     '(if tx service available for the network)'),
     'history': HTML('<b>history</b> will return information of last transactions for the Safe '
                     '(if tx service available for the network)'),
     'info': HTML('<b>info</b> will return all the information available for a Safe, with Gnosis Tx Service and '
@@ -67,6 +68,9 @@ meta = {
     'send_erc20': HTML('Command <b>send_erc20</b> will try to send a Token <u>&lt;value&gt;</u> from a check-summed '
                        '<u>&lt;token-address&gt;</u>, to a check-summed account <u>&lt;address&gt;</u> if enough funds'
                        ' are found, withing the current loaded safe.'),
+    'send_erc721': HTML('Command <b>send_erc721</b> will try to send a ERC 721 Token <u>&lt;value&gt;</u>'
+                        'from a check-summed <u>&lt;token-address&gt;</u>, to a check-summed account '
+                        '<u>&lt;address&gt;</u>.'),
     'unload_cli_owners': HTML('Command <b>unload_cli_owners</b> will unload a check-summed <u>&lt;address&gt;</u> '
                               'from the current loaded account owners.'),
     'load_cli_owners': HTML('Command <b>load_cli_owners</b> will try to load a new owner via '

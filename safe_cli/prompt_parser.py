@@ -45,6 +45,9 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     def send_erc20(args):
         safe_operator.send_erc20(args.address, args.token_address, args.value)
 
+    def send_erc721(args):
+        safe_operator.send_erc721(args.address, args.token_address, args.token_id)
+
     def get_threshold(args):
         safe_operator.get_threshold()
 
@@ -128,6 +131,13 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_send_erc20.add_argument('token_address', type=check_ethereum_address)
     parser_send_erc20.add_argument('value', type=int)
     parser_send_erc20.set_defaults(func=send_erc20)
+
+    # Send erc721
+    parser_send_erc20 = subparsers.add_parser('send_erc721')
+    parser_send_erc20.add_argument('address', type=check_ethereum_address)
+    parser_send_erc20.add_argument('token_address', type=check_ethereum_address)
+    parser_send_erc20.add_argument('token_id', type=int)
+    parser_send_erc20.set_defaults(func=send_erc721)
 
     # Retrieve threshold, nonce or owners
     parser_get_threshold = subparsers.add_parser('get_threshold')
