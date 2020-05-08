@@ -1,10 +1,10 @@
 bip_utils==0.2.0
 colorama==0.4.3
-gnosis-py==2.4.4
-packaging>=20
+gnosis-py==2.4.5
+packaging>=20.3
 prompt_toolkit==3.0.5
 pyfiglet==0.8.post1
 pygments==2.6.1
 requests==2.23.0
 tabulate==0.8.7
-web3==5.8.0
+web3==5.9.0
