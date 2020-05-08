@@ -1,6 +1,6 @@
 import dataclasses
 import os
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, NoReturn, Optional, Set
 
 import requests
 from colorama import Fore, Style
@@ -18,33 +18,13 @@ from gnosis.eth.contracts import (get_erc20_contract, get_erc721_contract,
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
+from safe_cli.api.etherscan import Etherscan
+from safe_cli.api.gnosis_relay import RelayService
+from safe_cli.api.gnosis_transaction import TransactionService
 from safe_cli.safe_addresses import (LAST_DEFAULT_CALLBACK_HANDLER,
                                      LAST_MULTISEND_CONTRACT,
                                      LAST_SAFE_CONTRACT)
 
-ETHERSCAN_BY_NETWORK = {
-    1: 'https://etherscan.io',
-    3: 'https://ropsten.etherscan.io',
-    4: 'https://rinkeby.etherscan.io',
-    5: 'https://goerli.etherscan.io',
-    42: 'https://kovan.etherscan.io',
-}
-
-SAFE_TX_SERVICE_BY_NETWORK = {
-    1: 'https://safe-transaction.mainnet.gnosis.io',
-    # 3:
-    4: 'https://safe-transaction.rinkeby.gnosis.io',
-    # 5:
-    # 42
-}
-
-SAFE_RELAY_SERVICE_BY_NETWORK = {
-    1: 'https://safe-relay.gnosis.io',
-    # 3:
-    4: 'https://safe-relay.rinkeby.gnosis.io',
-    # 5:
-    # 42
-}
 
 @dataclasses.dataclass
 class SafeCliInfo:
@@ -64,16 +44,69 @@ class SafeCliInfo:
                f'modules={self.modules} balance-ether={self.balance_ether:.4f}'
 
 
+class SafeOperatorException(Exception):
+    pass
+
+
+class ExistingOwnerException(SafeOperatorException):
+    pass
+
+
+class NonExistingOwnerException(SafeOperatorException):
+    pass
+
+
+class ThresholdLimitException(SafeOperatorException):
+    pass
+
+
+class SameFallbackHandlerException(SafeOperatorException):
+    pass
+
+
+class FallbackHandlerNotSupportedException(SafeOperatorException):
+    pass
+
+
+class SameMasterCopyException(SafeOperatorException):
+    pass
+
+
+class SafeAlreadyUpdatedException(SafeOperatorException):
+    pass
+
+
+class SenderRequiredException(SafeOperatorException):
+    pass
+
+
+class NotEnoughSignatures(SafeOperatorException):
+    pass
+
+
+class InvalidMasterCopyException(SafeOperatorException):
+    pass
+
+
+class NotEnoughEtherToSend(SafeOperatorException):
+    pass
+
+
+class NotEnoughTokenToSend(SafeOperatorException):
+    pass
+
+
 class SafeOperator:
     def __init__(self, address: str, node_url: str):
         self.address = address
         self.node_url = node_url
         self.ethereum_client = EthereumClient(self.node_url)
         self.network = self.ethereum_client.get_network()
-        self.network_name = self.network.name
-        self.etherscan_address: Optional[str] = ETHERSCAN_BY_NETWORK.get(self.network.value)
-        self.safe_tx_service_url: Optional[str] = SAFE_TX_SERVICE_BY_NETWORK.get(self.network.value)
-        self.safe_relay_service_url: Optional[str] = SAFE_RELAY_SERVICE_BY_NETWORK.get(self.network.value)
+        self.network_name: str = self.network.name
+        self.network_number: int = self.network.value
+        self.etherscan = Etherscan.from_network_number(self.network_number)
+        self.safe_tx_service_url = TransactionService.from_network_number(self.network_number)
+        self.safe_relay_service_url = RelayService.from_network_number(self.network_number)
         self.safe = Safe(address, self.ethereum_client)
         self.safe_contract = self.safe.get_contract()
         self.accounts: Set[Account] = set()
@@ -86,6 +119,13 @@ class SafeOperator:
         if not self._safe_cli_info:
             self._safe_cli_info = self.refresh_safe_cli_info()
         return self._safe_cli_info
+
+    def _require_default_sender(self) -> NoReturn:
+        """
+        Throws SenderRequiredException if not default sender configured
+        """
+        if not self.default_sender:
+            raise SenderRequiredException()
 
     def is_version_updated(self) -> bool:
         """
@@ -106,78 +146,63 @@ class SafeOperator:
         self._safe_cli_info = self.get_safe_cli_info()
         return self._safe_cli_info
 
-    def bottom_toolbar(self):
-        return HTML(f'<b><style fg="ansiyellow">network={self.network_name} {self.safe_cli_info}</style></b>')
-
     def get_balances(self):
         if not self.safe_tx_service_url:  # TODO Maybe use Etherscan
             print_formatted_text(HTML(f'<ansired>No tx service available for '
                                       f'network={self.network_name}</ansired>'))
         else:
-            url = f'{self.safe_tx_service_url}/api/v1/safes/{self.address}/balances/'
-            response = requests.get(url)
-            if not response.ok:
-                print_formatted_text(f'Cannot get balances from {url}')
-            else:
-                balances = response.json()
-                headers = ['name', 'balance', 'symbol', 'decimals', 'tokenAddress']
-                rows = []
-                for balance in balances:
-                    if balance['tokenAddress']:  # Token
-                        row = [balance['token']['name'],
-                               f"{int(balance['balance']) / 10**int(balance['token']['decimals']):.5f}",
-                               balance['token']['symbol'],
-                               balance['token']['decimals'],
-                               balance['tokenAddress']]
-                    else:  # Ether
-                        row = ['ETHER',
-                               f"{int(balance['balance']) / 10 ** 18:.5f}",
-                               'Ξ',
-                               18,
-                               '']
-                    rows.append(row)
-                print(tabulate(rows, headers=headers))
+            balances = self.safe_tx_service_url.get_balances(self.address)
+            headers = ['name', 'balance', 'symbol', 'decimals', 'tokenAddress']
+            rows = []
+            for balance in balances:
+                if balance['tokenAddress']:  # Token
+                    row = [balance['token']['name'],
+                           f"{int(balance['balance']) / 10**int(balance['token']['decimals']):.5f}",
+                           balance['token']['symbol'],
+                           balance['token']['decimals'],
+                           balance['tokenAddress']]
+                else:  # Ether
+                    row = ['ETHER',
+                           f"{int(balance['balance']) / 10 ** 18:.5f}",
+                           'Ξ',
+                           18,
+                           '']
+                rows.append(row)
+            print(tabulate(rows, headers=headers))
 
     def get_transaction_history(self):
         if not self.safe_tx_service_url:
             print_formatted_text(HTML(f'<ansired>No tx service available for '
                                       f'network={self.network_name}</ansired>'))
-            if self.etherscan_address:
-                url = f'{self.etherscan_address}/address/{self.address}'
+            if self.etherscan.url:
+                url = f'{self.etherscan.url}/address/{self.address}'
                 print_formatted_text(HTML(f'<b>Try Etherscan instead</b> {url}'))
         else:
-            # FIXME Split this in a module with proper tests
-            url = f'{self.safe_tx_service_url}/api/v1/safes/{self.address}/transactions/'
-            print_formatted_text(url)
-            response = requests.get(url)
-            if not response.ok:
-                print_formatted_text(f'Cannot get transactions from {url}')
-            else:
-                transactions = response.json().get('results', [])
-                headers = ['nonce', 'to', 'value', 'transactionHash', 'safeTxHash']
-                rows = []
-                last_executed_tx = False
-                for transaction in transactions:
-                    row = [transaction[header] for header in headers]
-                    data_decoded: Dict[str, Any] = transaction.get('dataDecoded')
-                    if data_decoded:
-                        row.append(str(list(data_decoded.keys())))
-                    if transaction['transactionHash'] and transaction['isSuccessful']:
-                        row[0] = Fore.GREEN + str(row[0])  # For executed transactions we use green
-                        if not last_executed_tx:
-                            row[0] = Style.BRIGHT + row[0]
-                            last_executed_tx = True
-                    elif transaction['transactionHash']:
-                        row[0] = Fore.RED + str(row[0])  # For transactions failed
-                    else:
-                        row[0] = Fore.YELLOW + str(row[0])  # For non executed transactions we use yellow
+            transactions = self.safe_tx_service_url.get_transactions(self.address)
+            headers = ['nonce', 'to', 'value', 'transactionHash', 'safeTxHash']
+            rows = []
+            last_executed_tx = False
+            for transaction in transactions:
+                row = [transaction[header] for header in headers]
+                data_decoded: Dict[str, Any] = transaction.get('dataDecoded')
+                if data_decoded:
+                    row.append(str(list(data_decoded.keys())))
+                if transaction['transactionHash'] and transaction['isSuccessful']:
+                    row[0] = Fore.GREEN + str(row[0])  # For executed transactions we use green
+                    if not last_executed_tx:
+                        row[0] = Style.BRIGHT + row[0]
+                        last_executed_tx = True
+                elif transaction['transactionHash']:
+                    row[0] = Fore.RED + str(row[0])  # For transactions failed
+                else:
+                    row[0] = Fore.YELLOW + str(row[0])  # For non executed transactions we use yellow
 
-                    row[0] = Style.RESET_ALL + row[0]  # Reset all just in case
-                    rows.append(row)
+                row[0] = Style.RESET_ALL + row[0]  # Reset all just in case
+                rows.append(row)
 
-                headers.append('dataDecoded')
-                headers[0] = Style.BRIGHT + headers[0]
-                print(tabulate(rows, headers=headers))
+            headers.append('dataDecoded')
+            headers[0] = Style.BRIGHT + headers[0]
+            print(tabulate(rows, headers=headers))
 
     def load_cli_owners(self, keys: List[str]):
         for key in keys:
@@ -220,12 +245,9 @@ class SafeOperator:
             else:
                 print_formatted_text(HTML(f'<ansigreen>Not default sender set </ansigreen>'))
 
-    def add_owner(self, new_owner: str):
-        if not Web3.isChecksumAddress(new_owner):
-            raise ValueError(new_owner)
-        elif new_owner in self.safe_cli_info.owners:
-            print_formatted_text(HTML(f'<ansired>Owner {new_owner} is already an owner of the Safe'
-                                      f'</ansired>'))
+    def add_owner(self, new_owner: str) -> bool:
+        if new_owner in self.safe_cli_info.owners:
+            raise ExistingOwnerException(new_owner)
         else:
             # TODO Allow to set threshold
             threshold = self.safe_cli_info.threshold
@@ -235,16 +257,14 @@ class SafeOperator:
             if self.execute_safe_internal_transaction(transaction['data']):
                 self.safe_cli_info.owners = self.safe.retrieve_owners()
                 self.safe_cli_info.threshold = threshold
+                return True
+            return False
 
     def remove_owner(self, owner_to_remove: str):
-        if not Web3.isChecksumAddress(owner_to_remove):
-            raise ValueError(owner_to_remove)
-        elif owner_to_remove not in self.safe_cli_info.owners:
-            print_formatted_text(HTML(f'<ansired>Owner {owner_to_remove} is not an owner of the Safe'
-                                      f'</ansired>'))
+        if owner_to_remove not in self.safe_cli_info.owners:
+            raise NonExistingOwnerException(owner_to_remove)
         elif len(self.safe_cli_info.owners) == self.safe_cli_info.threshold:
-            print_formatted_text(HTML(f'<ansired>Having less owners than threshold is not allowed'
-                                      f'</ansired>'))
+            raise ThresholdLimitException()
         else:
             index_owner = self.safe_cli_info.owners.index(owner_to_remove)
             prev_owner = self.safe_cli_info.owners[index_owner - 1] if index_owner else SENTINEL_ADDRESS
@@ -255,8 +275,13 @@ class SafeOperator:
             if self.execute_safe_internal_transaction(transaction['data']):
                 self.safe_cli_info.owners = self.safe.retrieve_owners()
                 self.safe_cli_info.threshold = threshold
+                return True
+            return False
 
     def send_ether(self, address: str, value: int) -> bool:
+        safe_balance = self.ethereum_client.get_balance(self.address)
+        if safe_balance < value:
+            raise NotEnoughEtherToSend(safe_balance)
         return self.execute_safe_transaction(address, value, b'')
 
     def send_erc20(self, address: str, token_address: str, value: int) -> bool:
@@ -271,36 +296,38 @@ class SafeOperator:
         ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
         return self.execute_safe_transaction(token_address, 0, transaction['data'])
 
-    def change_fallback_handler(self, new_fallback_handler: str):
-        # TODO Check that fallback handler is valid
-        if not Web3.isChecksumAddress(new_fallback_handler):
-            raise ValueError(new_fallback_handler)
-        elif new_fallback_handler == self.safe_cli_info.fallback_handler:
-            print_formatted_text(HTML(f'<ansired>Fallback handler {new_fallback_handler} is the current one</ansired>'))
+    def change_fallback_handler(self, new_fallback_handler: str) -> bool:
+        if new_fallback_handler == self.safe_cli_info.fallback_handler:
+            raise SameFallbackHandlerException(new_fallback_handler)
         elif semantic_version.parse(self.safe_cli_info.version) < semantic_version.parse('1.1.0'):
-            print_formatted_text(HTML(f'<ansired>Fallback handler is not supported for your Safe, '
-                                      f'you need to <b>update</b> first</ansired>'))
+            raise FallbackHandlerNotSupportedException()
         else:
+            # TODO Check that fallback handler is valid
             transaction = self.safe_contract.functions.setFallbackHandler(
                 new_fallback_handler
             ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
             if self.execute_safe_internal_transaction(transaction['data']):
                 self.safe_cli_info.fallback_handler = new_fallback_handler
                 self.safe_cli_info.version = self.safe.retrieve_version()
+                return True
 
-    def change_master_copy(self, new_master_copy: str):
+    def change_master_copy(self, new_master_copy: str) -> bool:
         # TODO Check that master copy is valid
-        if not Web3.isChecksumAddress(new_master_copy):
-            raise ValueError(new_master_copy)
-        elif new_master_copy == self.safe_cli_info.master_copy:
-            print_formatted_text(HTML(f'<ansired>Master copy {new_master_copy} is the current one</ansired>'))
+        if new_master_copy == self.safe_cli_info.master_copy:
+            raise SameMasterCopyException(new_master_copy)
         else:
+            try:
+                Safe(new_master_copy, self.ethereum_client).retrieve_version()
+            except BadFunctionCallOutput:
+                raise InvalidMasterCopyException(new_master_copy)
+
             transaction = self.safe_contract.functions.changeMasterCopy(
                 new_master_copy
             ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
             if self.execute_safe_internal_transaction(transaction['data']):
                 self.safe_cli_info.master_copy = new_master_copy
                 self.safe_cli_info.version = self.safe.retrieve_version()
+                return True
 
     def update_version(self) -> Optional[bool]:
         """
@@ -308,8 +335,7 @@ class SafeOperator:
         :return:
         """
         if self.is_version_updated():
-            print_formatted_text(HTML(f'<ansired>Safe is already updated</ansired>'))
-            return
+            raise SafeAlreadyUpdatedException()
 
         multisend = MultiSend(LAST_MULTISEND_CONTRACT, self.ethereum_client)
         tx_params = {'from': self.address, 'gas': 0, 'gasPrice': 0}
@@ -328,8 +354,6 @@ class SafeOperator:
             self.safe_cli_info.version = self.safe.retrieve_version()
 
     def change_threshold(self, threshold: int):
-        if not self.require_default_sender():
-            return False
         if threshold == self.safe_cli_info.threshold:
             print_formatted_text(HTML(f'<ansired>Threshold is already {threshold}</ansired>'))
         elif threshold > len(self.safe_cli_info.owners):
@@ -344,8 +368,6 @@ class SafeOperator:
                 self.safe_cli_info.threshold = threshold
 
     def enable_module(self, module_address: str):
-        if not self.require_default_sender():
-            return False
         if module_address in self.safe_cli_info.modules:
             print_formatted_text(HTML(f'<ansired>Module {module_address} is already enabled</ansired>'))
         else:
@@ -356,8 +378,6 @@ class SafeOperator:
                 self.safe_cli_info.modules = self.safe.retrieve_modules()
 
     def disable_module(self, module_address: str):
-        if not self.require_default_sender():
-            return False
         if module_address not in self.safe_cli_info.modules:
             print_formatted_text(HTML(f'<ansired>Module {module_address} is not enabled</ansired>'))
         else:
@@ -377,17 +397,17 @@ class SafeOperator:
             print_formatted_text(HTML(f'<b><ansigreen>{key.capitalize()}</ansigreen></b>='
                                       f'<ansiblue>{value}</ansiblue>'))
         if self.safe_tx_service_url:
-            url = f'{self.safe_tx_service_url}/api/v1/safes/{self.address}/transactions/'
+            url = f'{self.safe_tx_service_url.url}/api/v1/safes/{self.address}/transactions/'
             print_formatted_text(HTML(f'<b><ansigreen>Safe Tx Service</ansigreen></b>='
                                       f'<ansiblue>{url}</ansiblue>'))
 
         if self.safe_relay_service_url:
-            url = f'{self.safe_relay_service_url}/api/v1/safes/{self.address}/transactions/'
+            url = f'{self.safe_relay_service_url.url}/api/v1/safes/{self.address}/transactions/'
             print_formatted_text(HTML(f'<b><ansigreen>Safe Relay Service</ansigreen></b>='
                                       f'<ansiblue>{url}</ansiblue>'))
 
-        if self.etherscan_address:
-            url = f'{self.etherscan_address}/address/{self.address}'
+        if self.etherscan.url:
+            url = f'{self.etherscan.url}/address/{self.address}'
             print_formatted_text(HTML(f'<b><ansigreen>Etherscan</ansigreen></b>='
                                       f'<ansiblue>{url}</ansiblue>'))
 
@@ -396,7 +416,6 @@ class SafeOperator:
                                       f'the Safe to a newest version</ansired>'))
 
     def get_safe_cli_info(self) -> SafeCliInfo:
-        print_formatted_text(HTML(f'<b><ansigreen>Loading Safe information...</ansigreen></b>'))
         safe = self.safe
         balance_ether = Web3.fromWei(self.ethereum_client.get_balance(self.address), 'ether')
         safe_info = safe.retrieve_all_info()
@@ -413,17 +432,12 @@ class SafeOperator:
     def get_owners(self):
         print_formatted_text(self.safe.retrieve_owners())
 
-    def require_default_sender(self) -> bool:
-        if not self.default_sender:
-            print_formatted_text(HTML(f'<ansired>Please load a default sender</ansired>'))
-            return False
-        return True
-
     def execute_safe_internal_transaction(self, data: bytes) -> bool:
         return self.execute_safe_transaction(self.address, 0, data)
 
     def execute_safe_transaction(self, to: str, value: int, data: bytes,
                                  operation: SafeOperation = SafeOperation.CALL) -> bool:
+        self._require_default_sender()  # Throws Exception if default sender not found
         # TODO Test tx is successful
         safe_tx = self.safe.build_multisig_tx(to, value, data, operation=operation.value)
         if not self.sign_transaction(safe_tx):
@@ -459,8 +473,7 @@ class SafeOperator:
                     break
 
         if threshold > 0:
-            print_formatted_text(HTML(f'<ansired>Cannot find enough owners to sign. {threshold} missing</ansired>'))
-            return False
+            raise NotEnoughSignatures(threshold)
 
         for selected_account in selected_accounts:
             safe_tx.sign(selected_account.key)

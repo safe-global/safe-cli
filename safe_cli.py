@@ -43,17 +43,24 @@ def process_command(command: str, safe_operator: SafeOperator):
 
 if __name__ == '__main__':
     safe_operator = SafeOperator(safe_address, node_url)
-    print_formatted_text(pyfiglet.figlet_format('Gnosis Safe CLI'))
+    print_formatted_text(pyfiglet.figlet_format('Gnosis Safe CLI'))  # Print fancy text
+    print_formatted_text(HTML(f'<b><ansigreen>Loading Safe information...</ansigreen></b>'))
     safe_operator.print_info()
-
-    # Test parsers
     prompt_parser = get_prompt_parser(safe_operator)
+
+
+    def get_prompt():
+        return HTML(f'<bold><ansiblue>{safe_address}</ansiblue><ansired> > </ansired></bold>')
+
+    def bottom_toolbar():
+        return HTML(f'<b><style fg="ansiyellow">network={safe_operator.network_name} '
+                    f'{safe_operator.safe_cli_info}</style></b>')
 
     while True:
         try:
-            command = session.prompt(HTML(f'<bold><ansiblue>{safe_address}</ansiblue><ansired> > </ansired></bold>'),
+            command = session.prompt(get_prompt(),
                                      auto_suggest=AutoSuggestFromHistory(),
-                                     bottom_toolbar=safe_operator.bottom_toolbar,
+                                     bottom_toolbar=bottom_toolbar,
                                      lexer=PygmentsLexer(SafeLexer),
                                      completer=SafeCompleter())
             if not command.strip():
