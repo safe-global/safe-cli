@@ -23,6 +23,7 @@ safe_commands_arguments = {
     'remove_owner': '<address>',
     'send_erc20': '<address> <token_address> <value>',
     'send_erc721': '<address> <token_address> <token_id>',
+    'send_custom': '<address> <value-wei> <data> [--delegate]',
     'send_ether': '<address> <value-wei>',
     'show_cli_owners': '(read-only)',
     'unload_cli_owners': '<address>',
@@ -34,6 +35,7 @@ safe_color_arguments = {
     '(read-only)': SAFE_ARGUMENT_COLOR,
     '<address>': SAFE_ARGUMENT_COLOR,
     '<integer>': SAFE_ARGUMENT_COLOR,
+    '<hex-str>': SAFE_ARGUMENT_COLOR,
     '<address> <value-wei>': SAFE_ARGUMENT_COLOR,
     '<account-private-key>': SAFE_ARGUMENT_COLOR,
     '<address> <token_address> <value>': SAFE_ARGUMENT_COLOR,
@@ -63,6 +65,8 @@ meta = {
                       'the current loaded safe.'),
     'change_threshold': HTML('Command <b>change_threshold</b> will change the current threshold <u>&lt;integer&gt;</u> '
                              'value for the loaded safe.'),
+    'send_custom': HTML("Command <b>send_custom</b> will try to send a custom tx to a check-summed account. Set value "
+                        "to 0 if you don't want to send ether. <b>--delegate</b> can be added to send a DELEGATECALL"),
     'send_ether': HTML('Command <b>send_ether</b> will try to send Wei <u>&lt;value&gt;</u> to a check-summed account'
                        ' <u>&lt;address&gt;</u> if enough funds are found, withing the current loaded safe.'),
     'send_erc20': HTML('Command <b>send_erc20</b> will try to send a Token <u>&lt;value&gt;</u> from a check-summed '

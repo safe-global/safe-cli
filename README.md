@@ -43,6 +43,8 @@ To unload an owner:
 ```
 
 Operations currently supported:
+- `send_custom <address> <value-wei> <data-hex-str> [--delegate]`: Sends a custom transaction from the Gnosis Safe 
+to a contract. If `--delegate` is set a `delegatecall` will be triggered.
 - `send_ether <address> <value-wei>`: Sends ether from the Gnosis Safe to another account
 - `send_erc20 <address> <token_address> <value>`: Send ERC20 token from the Gnosis Safe to another account
 - `add_owner <address>`: Adds a new owner `address` to the Safe.

@@ -278,11 +278,16 @@ class SafeOperator:
                 return True
             return False
 
+    def send_custom(self, address: str, value: int, data: bytes, delegate: bool = False) -> bool:
+        if value > 0:
+            safe_balance = self.ethereum_client.get_balance(self.address)
+            if safe_balance < value:
+                raise NotEnoughEtherToSend(safe_balance)
+        operation = SafeOperation.DELEGATE_CALL if delegate else SafeOperation.CALL
+        return self.execute_safe_transaction(address, value, data, operation)
+
     def send_ether(self, address: str, value: int) -> bool:
-        safe_balance = self.ethereum_client.get_balance(self.address)
-        if safe_balance < value:
-            raise NotEnoughEtherToSend(safe_balance)
-        return self.execute_safe_transaction(address, value, b'')
+        return self.send_custom(address, value, b'')
 
     def send_erc20(self, address: str, token_address: str, value: int) -> bool:
         transaction = get_erc20_contract(self.ethereum_client.w3, token_address).functions.transfer(
@@ -440,8 +445,7 @@ class SafeOperator:
         self._require_default_sender()  # Throws Exception if default sender not found
         # TODO Test tx is successful
         safe_tx = self.safe.build_multisig_tx(to, value, data, operation=operation.value)
-        if not self.sign_transaction(safe_tx):
-            return False
+        self.sign_transaction(safe_tx)  # Raises exception if it cannot be signed
 
         try:
             call_result = safe_tx.call(self.default_sender.address)
@@ -461,10 +465,10 @@ class SafeOperator:
             return False
 
     # TODO Set sender so we can save gas in that signature
-    def sign_transaction(self, safe_tx: SafeTx) -> bool:
+    def sign_transaction(self, safe_tx: SafeTx) -> NoReturn:
         owners = self.safe_cli_info.owners
         threshold = self.safe_cli_info.threshold
-        selected_accounts: List[Account] = []  # Need to be sorted
+        selected_accounts: List[Account] = []  # Some accounts that are not an owner can be loaded
         for account in self.accounts:
             if account.address in owners:
                 selected_accounts.append(account)
@@ -485,8 +489,6 @@ class SafeOperator:
             signatures += selected_account.signHash(safe_tx_hash)
         return signatures
         """
-
-        return True
 
     def process_command(self, first_command: str, rest_command: List[str]) -> bool:
         if first_command == 'help':

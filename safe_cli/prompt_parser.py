@@ -1,6 +1,7 @@
 import argparse
 import functools
 
+from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
 from web3 import Web3
 
@@ -16,7 +17,7 @@ from .safe_operator import (ExistingOwnerException,
                             ThresholdLimitException)
 
 
-def check_ethereum_address(address: str) -> bool:
+def check_ethereum_address(address: str) -> str:
     """
     Ethereum address validator for ArgParse
     :param address:
@@ -25,6 +26,18 @@ def check_ethereum_address(address: str) -> bool:
     if not Web3.isChecksumAddress(address):
         raise argparse.ArgumentTypeError(f'{address} is not a valid checksummed ethereum address')
     return address
+
+
+def check_hex_str(hex_str: str) -> HexBytes:
+    """
+    Hexadecimal
+    :param hex_str:
+    :return:
+    """
+    try:
+        return HexBytes(hex_str)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f'{hex_str} is not a valid hexadecimal string')
 
 
 def safe_exception(function):
@@ -105,6 +118,10 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     @safe_exception
     def change_threshold(args):
         safe_operator.change_threshold(args.threshold)
+
+    @safe_exception
+    def send_custom(args):
+        safe_operator.send_custom(args.address, args.value, args.data, delegate=args.delegate)
 
     @safe_exception
     def send_ether(args):
@@ -198,6 +215,14 @@ def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     # Update Safe to last version
     parser_change_master_copy = subparsers.add_parser('update')
     parser_change_master_copy.set_defaults(func=update_version)
+
+    # Send custom
+    parser_send_custom = subparsers.add_parser('send_custom')
+    parser_send_custom.add_argument('address', type=check_ethereum_address)
+    parser_send_custom.add_argument('value', type=int)
+    parser_send_custom.add_argument('data', type=check_hex_str)
+    parser_send_custom.add_argument('--delegate', action='store_true')
+    parser_send_custom.set_defaults(func=send_custom)
 
     # Send ether
     parser_send_ether = subparsers.add_parser('send_ether')
