@@ -14,7 +14,7 @@ def get_account_from_words(words: str, index: int = 0, hd_path: str = ETHEREUM_P
     """
     seed = Bip39SeedGenerator(words).Generate()
     bip32_ctx = Bip32.FromSeedAndPath(seed, hd_path)
-    return Account.from_key(bip32_ctx.ChildKey(index).PrivateKeyBytes())
+    return Account.from_key(bip32_ctx.ChildKey(index).PrivateKey().Raw().ToBytes())
 
 
 def get_address_from_words(words: str, index: int = 0, hd_path: str = ETHEREUM_PATH) -> str:
