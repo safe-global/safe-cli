@@ -78,7 +78,17 @@ def safe_exception(function):
     return wrapper
 
 
-def get_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
+class PromptParser:
+    def __init__(self, safe_operator: SafeOperator):
+        self.safe_operator = safe_operator
+        self.prompt_parser = build_prompt_parser(safe_operator)
+
+    def process_command(self, command: str):
+        args = self.prompt_parser.parse_args(command.split())
+        return args.func(args)
+
+
+def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     """
     Returns an ArgParse capable of decoding and executing the Safe commands
     :param safe_operator:

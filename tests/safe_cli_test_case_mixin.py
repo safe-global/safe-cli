@@ -79,3 +79,6 @@ class SafeCliTestCaseMixin:
             safe_operator.add_owner(account.address)
             safe_operator.load_cli_owners([account.key.hex()])
         return safe_operator
+
+    def send_ether(self, to: str, value: int) -> bytes:
+        return self.w3.eth.sendTransaction({'to': to, 'value': value, 'from': self.ethereum_test_account.address})

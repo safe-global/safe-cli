@@ -5,9 +5,8 @@ from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.lexers import PygmentsLexer
 
-from safe_cli.prompt_parser import get_prompt_parser
+from safe_cli.prompt_parser import PromptParser
 from safe_cli.safe_completer import SafeCompleter
-from safe_cli.safe_completer_constants import safe_commands
 from safe_cli.safe_lexer import SafeLexer
 from safe_cli.safe_operator import SafeOperator
 
@@ -22,34 +21,14 @@ node_url = args.node_url
 
 session = PromptSession()
 
-
-def process_command(command: str, safe_operator: SafeOperator):
-    if not command:
-        return
-
-    commands = command.strip().split()
-    first_command = commands[0].lower()
-    rest_command = commands[1:]
-
-    if first_command not in safe_commands:
-        print_formatted_text(HTML(f'<b><ansired>Use a command in the list:</ansired></b> '
-                                  f'<ansigreen>{safe_commands}</ansigreen>'))
-    else:
-        if first_command == 'help':
-            print_formatted_text('I still cannot help you')
-        else:
-            return safe_operator.process_command(first_command, rest_command)
-
-
 if __name__ == '__main__':
     safe_operator = SafeOperator(safe_address, node_url)
     print_formatted_text(pyfiglet.figlet_format('Gnosis Safe CLI'))  # Print fancy text
     print_formatted_text(HTML(f'<b><ansigreen>Loading Safe information...</ansigreen></b>'))
     safe_operator.print_info()
-    prompt_parser = get_prompt_parser(safe_operator)
+    prompt_parser = PromptParser(safe_operator)
 
-
-    def get_prompt():
+    def get_prompt_text():
         return HTML(f'<bold><ansiblue>{safe_address}</ansiblue><ansired> > </ansired></bold>')
 
     def bottom_toolbar():
@@ -58,7 +37,7 @@ if __name__ == '__main__':
 
     while True:
         try:
-            command = session.prompt(get_prompt(),
+            command = session.prompt(get_prompt_text(),
                                      auto_suggest=AutoSuggestFromHistory(),
                                      bottom_toolbar=bottom_toolbar,
                                      lexer=PygmentsLexer(SafeLexer),
@@ -66,11 +45,10 @@ if __name__ == '__main__':
             if not command.strip():
                 continue
 
-            args = prompt_parser.parse_args(command.split())
-            args.func(args)
+            prompt_parser.process_command(command)
         except EOFError:
             break
         except KeyboardInterrupt:
             continue
-        except (argparse.ArgumentError, argparse.ArgumentTypeError, SystemExit):  # FIXME
-            process_command(command, safe_operator)  # TODO Remove this, not needed anymore
+        except (argparse.ArgumentError, argparse.ArgumentTypeError, SystemExit):
+            pass  # FIXME
