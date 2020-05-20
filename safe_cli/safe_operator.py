@@ -1,9 +1,10 @@
 import dataclasses
 import os
+from functools import cached_property
 from typing import Any, Dict, List, NoReturn, Optional, Set
 
-import requests
 from colorama import Fore, Style
+from ens import ENS
 from eth_account import Account
 from packaging import version as semantic_version
 from prompt_toolkit import HTML, print_formatted_text
@@ -15,6 +16,7 @@ from gnosis.eth import EthereumClient
 from gnosis.eth.constants import SENTINEL_ADDRESS
 from gnosis.eth.contracts import (get_erc20_contract, get_erc721_contract,
                                   get_safe_contract)
+from gnosis.eth.ethereum_client import EthereumNetwork
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
@@ -101,7 +103,8 @@ class SafeOperator:
         self.address = address
         self.node_url = node_url
         self.ethereum_client = EthereumClient(self.node_url)
-        self.network = self.ethereum_client.get_network()
+        self.ens = ENS.fromWeb3(self.ethereum_client.w3)
+        self.network: EthereumNetwork = self.ethereum_client.get_network()
         self.network_name: str = self.network.name
         self.network_number: int = self.network.value
         self.etherscan = Etherscan.from_network_number(self.network_number)
@@ -113,6 +116,12 @@ class SafeOperator:
         self.default_sender: Optional[Account] = None
         self.executed_transactions: List[str] = []
         self._safe_cli_info: Optional[SafeCliInfo] = None  # Cache for SafeCliInfo
+
+    @cached_property
+    def ens_domain(self) -> Optional[str]:
+        # FIXME After web3.py fixes the middleware copy
+        if self.network == EthereumNetwork.MAINNET:
+            return self.ens.name(self.address)
 
     @property
     def safe_cli_info(self) -> SafeCliInfo:
@@ -401,6 +410,9 @@ class SafeOperator:
         for key, value in dataclasses.asdict(self.safe_cli_info).items():
             print_formatted_text(HTML(f'<b><ansigreen>{key.capitalize()}</ansigreen></b>='
                                       f'<ansiblue>{value}</ansiblue>'))
+        if self.ens_domain:
+            print_formatted_text(HTML(f'<b><ansigreen>Ens domain</ansigreen></b>='
+                                      f'<ansiblue>{self.ens_domain}</ansiblue>'))
         if self.safe_tx_service_url:
             url = f'{self.safe_tx_service_url.url}/api/v1/safes/{self.address}/transactions/'
             print_formatted_text(HTML(f'<b><ansigreen>Safe Tx Service</ansigreen></b>='
