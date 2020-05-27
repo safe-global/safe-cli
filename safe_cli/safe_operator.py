@@ -1,8 +1,8 @@
 import dataclasses
 import os
-from functools import cached_property
 from typing import Any, Dict, List, NoReturn, Optional, Set
 
+from cached_property import cached_property
 from colorama import Fore, Style
 from ens import ENS
 from eth_account import Account
