@@ -1,4 +1,4 @@
 -r requirements.txt
-coverage==5.0.4
-pytest-sugar==0.9.2
-pytest==5.3.5
+coverage==5.1
+pytest-sugar==0.9.3
+pytest==5.4.3
