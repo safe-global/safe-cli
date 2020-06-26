@@ -78,5 +78,5 @@ python safe_creator.py https://rinkeby.infura.io/v3/token $PRIVATE_KEY --owners 
 
 Contributors
 ------------
-- Pedro Arias Ruiz
-- Uxío Fuentefría (uxio@gnosis.pm)
+- [Pedro Arias Ruiz](https://github.com/AsiganTheSunk)
+- [Uxío Fuentefría](https://github.com/uxio0) (uxio@gnosis.pm)
