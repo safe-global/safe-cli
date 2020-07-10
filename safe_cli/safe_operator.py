@@ -195,7 +195,9 @@ class SafeOperator:
                 row = [transaction[header] for header in headers]
                 data_decoded: Dict[str, Any] = transaction.get('dataDecoded')
                 if data_decoded:
-                    row.append(str(list(data_decoded.keys())))
+                    row.append(data_decoded['method'] + ': '
+                               + ','.join([str(parameter['value'])
+                                           for parameter in data_decoded.get('parameters', [])]))
                 if transaction['transactionHash'] and transaction['isSuccessful']:
                     row[0] = Fore.GREEN + str(row[0])  # For executed transactions we use green
                     if not last_executed_tx:

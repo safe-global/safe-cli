@@ -76,6 +76,15 @@ Example:
 python safe_creator.py https://rinkeby.infura.io/v3/token $PRIVATE_KEY --owners 0x848EF06Bb9d1bc79Bb3B04b7Ea0e251C6E788d7c --threshold 1
 ```
 
+## Demo
+For this demo, `PRIVATE_KEY` environment variable was set to a _EOA_ private key (owner of a a previously created and outdated Safe)
+and `ETHEREUM_NODE_URL` to a http rinkeby node.
+At first, Safe is updated to the last version and then `123 Wei` are sent to the owner of the Safe (it could be any other address).
+
+**Don't use `update` command in mainnet, as it can leave your Gnosis Safe funds stuck. Safe CLI is still a beta**
+
+[![asciicast](https://asciinema.org/a/c7ekQpCl2WJIYEmYYYgdfcfjv.png)](https://asciinema.org/a/c7ekQpCl2WJIYEmYYYgdfcfjv)
+
 Contributors
 ------------
 - [Pedro Arias Ruiz](https://github.com/AsiganTheSunk)
