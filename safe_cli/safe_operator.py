@@ -108,8 +108,8 @@ class SafeOperator:
         self.network_name: str = self.network.name
         self.network_number: int = self.network.value
         self.etherscan = Etherscan.from_network_number(self.network_number)
-        self.safe_tx_service_url = TransactionService.from_network_number(self.network_number)
-        self.safe_relay_service_url = RelayService.from_network_number(self.network_number)
+        self.safe_tx_service = TransactionService.from_network_number(self.network_number)
+        self.safe_relay_service = RelayService.from_network_number(self.network_number)
         self.safe = Safe(address, self.ethereum_client)
         self.safe_contract = self.safe.get_contract()
         self.accounts: Set[Account] = set()
@@ -156,11 +156,11 @@ class SafeOperator:
         return self._safe_cli_info
 
     def get_balances(self):
-        if not self.safe_tx_service_url:  # TODO Maybe use Etherscan
+        if not self.safe_tx_service:  # TODO Maybe use Etherscan
             print_formatted_text(HTML(f'<ansired>No tx service available for '
                                       f'network={self.network_name}</ansired>'))
         else:
-            balances = self.safe_tx_service_url.get_balances(self.address)
+            balances = self.safe_tx_service.get_balances(self.address)
             headers = ['name', 'balance', 'symbol', 'decimals', 'tokenAddress']
             rows = []
             for balance in balances:
@@ -180,14 +180,14 @@ class SafeOperator:
             print(tabulate(rows, headers=headers))
 
     def get_transaction_history(self):
-        if not self.safe_tx_service_url:
+        if not self.safe_tx_service:
             print_formatted_text(HTML(f'<ansired>No tx service available for '
                                       f'network={self.network_name}</ansired>'))
             if self.etherscan.url:
                 url = f'{self.etherscan.url}/address/{self.address}'
                 print_formatted_text(HTML(f'<b>Try Etherscan instead</b> {url}'))
         else:
-            transactions = self.safe_tx_service_url.get_transactions(self.address)
+            transactions = self.safe_tx_service.get_transactions(self.address)
             headers = ['nonce', 'to', 'value', 'transactionHash', 'safeTxHash']
             rows = []
             last_executed_tx = False
@@ -195,9 +195,7 @@ class SafeOperator:
                 row = [transaction[header] for header in headers]
                 data_decoded: Dict[str, Any] = transaction.get('dataDecoded')
                 if data_decoded:
-                    row.append(data_decoded['method'] + ': '
-                               + ','.join([str(parameter['value'])
-                                           for parameter in data_decoded.get('parameters', [])]))
+                    row.append(self.safe_tx_service.data_decoded_to_text(data_decoded))
                 if transaction['transactionHash'] and transaction['isSuccessful']:
                     row[0] = Fore.GREEN + str(row[0])  # For executed transactions we use green
                     if not last_executed_tx:
@@ -415,13 +413,13 @@ class SafeOperator:
         if self.ens_domain:
             print_formatted_text(HTML(f'<b><ansigreen>Ens domain</ansigreen></b>='
                                       f'<ansiblue>{self.ens_domain}</ansiblue>'))
-        if self.safe_tx_service_url:
-            url = f'{self.safe_tx_service_url.url}/api/v1/safes/{self.address}/transactions/'
+        if self.safe_tx_service:
+            url = f'{self.safe_tx_service.url}/api/v1/safes/{self.address}/transactions/'
             print_formatted_text(HTML(f'<b><ansigreen>Safe Tx Service</ansigreen></b>='
                                       f'<ansiblue>{url}</ansiblue>'))
 
-        if self.safe_relay_service_url:
-            url = f'{self.safe_relay_service_url.url}/api/v1/safes/{self.address}/transactions/'
+        if self.safe_relay_service:
+            url = f'{self.safe_relay_service.url}/api/v1/safes/{self.address}/transactions/'
             print_formatted_text(HTML(f'<b><ansigreen>Safe Relay Service</ansigreen></b>='
                                       f'<ansiblue>{url}</ansiblue>'))
 
