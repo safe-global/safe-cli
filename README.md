@@ -32,6 +32,17 @@ Loaded account 0xab...cd with balance=123 ether
 Set account 0xab..cd as default sender of txs
 ```
 
+You can also load owners from an environment variable. Before running the `safe-cli`:
+```bash
+export MY_PRIVATE_KEY=YOUR_EOA_PRIVATE_KEY
+```
+Then:
+```
+> load_cli_owners MY_PRIVATE_KEY
+Loaded account 0xab...cd with balance=123 ether
+Set account 0xab..cd as default sender of txs
+```
+
 To check the loaded owners:
 ```
 > show_cli_owners
