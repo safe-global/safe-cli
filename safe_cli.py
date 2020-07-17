@@ -37,7 +37,7 @@ if __name__ == '__main__':
 
     while True:
         try:
-            command = session.prompt(get_prompt_text(),
+            command = session.prompt(get_prompt_text,
                                      auto_suggest=AutoSuggestFromHistory(),
                                      bottom_toolbar=bottom_toolbar,
                                      lexer=PygmentsLexer(SafeLexer),
