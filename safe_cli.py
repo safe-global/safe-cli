@@ -19,36 +19,45 @@ safe_address = args.safe_address
 node_url = args.node_url
 
 
-session = PromptSession()
+class SafeCli:
+    def __init__(self):
+        self.session = PromptSession()
+        self.safe_operator = SafeOperator(safe_address, node_url)
+        self.prompt_parser = PromptParser(self.safe_operator)
 
-if __name__ == '__main__':
-    safe_operator = SafeOperator(safe_address, node_url)
-    print_formatted_text(pyfiglet.figlet_format('Gnosis Safe CLI'))  # Print fancy text
-    print_formatted_text(HTML(f'<b><ansigreen>Loading Safe information...</ansigreen></b>'))
-    safe_operator.print_info()
-    prompt_parser = PromptParser(safe_operator)
+    def print_startup_info(self):
+        print_formatted_text(pyfiglet.figlet_format('Gnosis Safe CLI'))  # Print fancy text
+        print_formatted_text(HTML(f'<b><ansigreen>Loading Safe information...</ansigreen></b>'))
+        self.safe_operator.print_info()
 
-    def get_prompt_text():
+    def get_prompt_text(self):
         return HTML(f'<bold><ansiblue>{safe_address}</ansiblue><ansired> > </ansired></bold>')
 
-    def bottom_toolbar():
-        return HTML(f'<b><style fg="ansiyellow">network={safe_operator.network_name} '
-                    f'{safe_operator.safe_cli_info}</style></b>')
+    def get_bottom_toolbar(self):
+        return HTML(f'<b><style fg="ansiyellow">network={self.safe_operator.network_name} '
+                    f'{self.safe_operator.safe_cli_info}</style></b>')
 
-    while True:
-        try:
-            command = session.prompt(get_prompt_text,
-                                     auto_suggest=AutoSuggestFromHistory(),
-                                     bottom_toolbar=bottom_toolbar,
-                                     lexer=PygmentsLexer(SafeLexer),
-                                     completer=SafeCompleter())
-            if not command.strip():
+    def loop(self):
+        while True:
+            try:
+                command = self.session.prompt(self.get_prompt_text,
+                                              auto_suggest=AutoSuggestFromHistory(),
+                                              bottom_toolbar=self.get_bottom_toolbar,
+                                              lexer=PygmentsLexer(SafeLexer),
+                                              completer=SafeCompleter())
+                if not command.strip():
+                    continue
+
+                self.prompt_parser.process_command(command)
+            except EOFError:
+                break
+            except KeyboardInterrupt:
                 continue
+            except (argparse.ArgumentError, argparse.ArgumentTypeError, SystemExit):
+                pass
 
-            prompt_parser.process_command(command)
-        except EOFError:
-            break
-        except KeyboardInterrupt:
-            continue
-        except (argparse.ArgumentError, argparse.ArgumentTypeError, SystemExit):
-            pass  # FIXME
+
+if __name__ == '__main__':
+    safe_cli = SafeCli()
+    safe_cli.print_startup_info()
+    safe_cli.loop()

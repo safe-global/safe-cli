@@ -1,3 +1,4 @@
+import os
 from typing import List, Optional
 
 from eth_account import Account
@@ -14,8 +15,8 @@ from safe_cli.safe_operator import SafeOperator
 
 
 class SafeCliTestCaseMixin:
-    ETHEREUM_NODE_URL: str
-    ETHEREUM_ACCOUNT_KEY: str
+    ETHEREUM_NODE_URL: str = os.environ.get('ETHEREUM_NODE_URL', 'http://localhost:8545')
+    ETHEREUM_ACCOUNT_KEY: str = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'  # Ganache #0
 
     @classmethod
     def setUpClass(cls) -> None:

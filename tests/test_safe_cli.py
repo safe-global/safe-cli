@@ -1,4 +1,3 @@
-import os
 import unittest
 
 from eth_account import Account
@@ -12,9 +11,6 @@ from .safe_cli_test_case_mixin import SafeCliTestCaseMixin
 
 
 class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
-    ETHEREUM_NODE_URL = os.environ.get('ETHEREUM_NODE_URL', 'http://localhost:8545')
-    ETHEREUM_ACCOUNT_KEY = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'  # Ganache #0
-
     def test_safe_cli_happy_path(self):
         accounts = [self.ethereum_test_account, Account.create()]
         account_addresses = [account.address for account in accounts]
