@@ -9,6 +9,9 @@ env:
   - PIP_USE_MIRRORS=true
 install:
   - npm install -g ganache-cli@6.9.1 && ganache-cli -d -p 8545 --defaultBalanceEther 10000 --gasLimit 10000000 -a 30 --noVMErrorsOnRPCResponse > /dev/null &
-  - pip install -r requirements.txt
+  - travis_retry pip install -r requirements.txt
+  - travis_retry pip install coveralls
 script:
-  - pytest
+  - coverage run --source=$SOURCE_FOLDER -m py.test -rxXs
+after_success:
+  - coveralls
