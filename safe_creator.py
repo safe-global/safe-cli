@@ -7,12 +7,16 @@ from typing import List
 import pyfiglet
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
+from eth_typing import URI
 from prompt_toolkit import print_formatted_text
 
 from gnosis.eth import EthereumClient
 from gnosis.safe import ProxyFactory, Safe
 
 from safe_cli.prompt_parser import check_ethereum_address
+from safe_cli.safe_addresses import (LAST_DEFAULT_CALLBACK_HANDLER,
+                                     LAST_PROXY_FACTORY_CONTRACT,
+                                     LAST_SAFE_CONTRACT)
 
 
 def positive_integer(number: str) -> int:
@@ -44,18 +48,18 @@ parser.add_argument('--threshold', help='Number of owners required to execute tr
 parser.add_argument('--owners', help='Owners. By default it will be just the deployer', nargs='+',
                     type=check_ethereum_address)
 parser.add_argument('--safe-contract', help='Use a custom Safe master copy',
-                    default='0x34CfAC646f301356fAa8B21e94227e3583Fe3F5F', type=check_ethereum_address)
+                    default=LAST_SAFE_CONTRACT, type=check_ethereum_address)
 parser.add_argument('--proxy-factory', help='Use a custom proxy factory',
-                    default='0x76E2cFc1F5Fa8F6a5b3fC4c8F4788F0116861F9B', type=check_ethereum_address)
+                    default=LAST_PROXY_FACTORY_CONTRACT, type=check_ethereum_address)
 parser.add_argument('--callback-handler',
                     help='Use a custom fallback handler. It is not required for Safe Master Copies '
                          'with version < 1.1.0',
-                    default='0xd5D82B6aDDc9027B22dCA772Aa68D5d74cdBdF44', type=check_ethereum_address)
+                    default=LAST_DEFAULT_CALLBACK_HANDLER, type=check_ethereum_address)
 
 if __name__ == '__main__':
     print_formatted_text(pyfiglet.figlet_format('Gnosis Safe Creator'))  # Print fancy text
     args = parser.parse_args()
-    node_url: str = args.node_url
+    node_url: URI = args.node_url
     account: LocalAccount = Account.from_key(args.private_key)
     owners: List[str] = list(set(args.owners)) if args.owners else [account.address]
     threshold: int = args.threshold

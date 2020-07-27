@@ -54,7 +54,7 @@ To unload an owner:
 ```
 
 Operations currently supported:
-- `send_custom <address> <value-wei> <data-hex-str> [--delegate]`: Sends a custom transaction from the Gnosis Safe 
+- `send_custom <address> <value-wei> <data-hex-str> [--delegate]`: Sends a custom transaction from the Gnosis Safe
 to a contract. If `--delegate` is set a `delegatecall` will be triggered.
 - `send_ether <address> <value-wei>`: Sends ether from the Gnosis Safe to another account
 - `send_erc20 <address> <token_address> <value>`: Send ERC20 token from the Gnosis Safe to another account
@@ -64,7 +64,7 @@ to a contract. If `--delegate` is set a `delegatecall` will be triggered.
 - `enable_module <address>`: Enable module `address`
 - `disable_module <address>`: Disable module `address`
 - `change_fallback_handler <address>`: Updates the fallback handler to be `address`. Supported by Safes with `version >= v1.1.0`
-- `change_master_copy <address>`: Updates the master copy to be `address`. It's used to update the Safe.  **WARNING: DON'T USE 
+- `change_master_copy <address>`: Updates the master copy to be `address`. It's used to update the Safe.  **WARNING: DON'T USE
 THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 - `update`: Updates the Safe to the latest version (if you are on a known network like `Rinkeby` or `Mainnet`).
 **WARNING: DON'T USE THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
@@ -95,6 +95,13 @@ At first, Safe is updated to the last version and then `123 Wei` are sent to the
 **Don't use `update` command in mainnet, as it can leave your Gnosis Safe funds stuck. Safe CLI is still a beta**
 
 [![asciicast](https://asciinema.org/a/c7ekQpCl2WJIYEmYYYgdfcfjv.png)](https://asciinema.org/a/c7ekQpCl2WJIYEmYYYgdfcfjv)
+
+## Use custom contracts
+**Safe-cli** comes with the official Gnosis Safe contract addresses deployed on Mainnet, Rinkeby, Kovan and Goerli
+configured by default. If you want to use your own you can edit the file `safe_cli/safe_addresses.py`
+
+Be careful when modifying these addresses, the funds in a Safe can get stuck if an invalid address it's used when updating
+to an invalid Safe Master Copy.
 
 Contributors
 ------------
