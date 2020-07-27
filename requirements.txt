@@ -1,4 +1,4 @@
-bip_utils==1.0.5
+bip_utils==1.1.0
 cached-property==1.5.1
 colorama==0.4.3
 gnosis-py==2.5.2
@@ -8,4 +8,4 @@ pyfiglet==0.8.post1
 pygments==2.6.1
 requests==2.24.0
 tabulate==0.8.7
-web3==5.11.1
+web3==5.12.0
