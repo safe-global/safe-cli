@@ -10,12 +10,15 @@ Command line utility for **Gnosis Safe** contracts. Use it to manage your **Gnos
 **Python >= 3.7** is required. **Python 3.8** is recommended.
 
 ```bash
+git clone https://github.com/gnosis/safe-cli.git
+cd safe-cli
 stat venv 2>/dev/null || python -m venv venv
 source venv/bin/activate && pip install -r requirements.txt
 ```
 
 ## Using
 ```bash
+cd safe-cli
 source venv/bin/activate
 python safe_cli.py <checksummed_safe_address> <ethereum_node_url>
 ```
