@@ -94,7 +94,7 @@ At first, Safe is updated to the last version and then `123 Wei` are sent to the
 
 **Don't use `update` command in mainnet, as it can leave your Gnosis Safe funds stuck. Safe CLI is still a beta**
 
-[![asciicast](https://asciinema.org/a/c7ekQpCl2WJIYEmYYYgdfcfjv.png)](https://asciinema.org/a/c7ekQpCl2WJIYEmYYYgdfcfjv)
+[![asciicast](https://asciinema.org/a/346692.svg)](https://asciinema.org/a/346692)
 
 ## Use custom contracts
 **Safe-cli** comes with the official Gnosis Safe contract addresses deployed on Mainnet, Rinkeby, Kovan and Goerli
