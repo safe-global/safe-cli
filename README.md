@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.com/gnosis/safe-cli.svg?branch=master)](https://travis-ci.com/gnosis/safe-cli)
 [![Coverage Status](https://coveralls.io/repos/github/gnosis/safe-cli/badge.svg?branch=master)](https://coveralls.io/github/gnosis/safe-cli?branch=master)
+![Python 3.8](https://img.shields.io/badge/Python-3.7-blue.svg)
 ![Python 3.8](https://img.shields.io/badge/Python-3.8-blue.svg)
 
 # Safe-CLI
