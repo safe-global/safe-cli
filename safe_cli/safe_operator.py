@@ -6,6 +6,7 @@ from cached_property import cached_property
 from colorama import Fore, Style
 from ens import ENS
 from eth_account import Account
+from hexbytes import HexBytes
 from packaging import version as semantic_version
 from prompt_toolkit import HTML, print_formatted_text
 from tabulate import tabulate
@@ -95,6 +96,10 @@ class NotEnoughEtherToSend(SafeOperatorException):
 
 
 class NotEnoughTokenToSend(SafeOperatorException):
+    pass
+
+
+class ServiceNotAvailable(SafeOperatorException):
     pass
 
 
@@ -287,22 +292,27 @@ class SafeOperator:
                 return True
             return False
 
-    def send_custom(self, address: str, value: int, data: bytes, delegate: bool = False) -> bool:
+    def send_custom(self, to: str, value: int, data: bytes, safe_nonce: Optional[int] = None,
+                    delegate_call: bool = False, api: bool = False) -> bool:
         if value > 0:
             safe_balance = self.ethereum_client.get_balance(self.address)
             if safe_balance < value:
                 raise NotEnoughEtherToSend(safe_balance)
-        operation = SafeOperation.DELEGATE_CALL if delegate else SafeOperation.CALL
-        return self.execute_safe_transaction(address, value, data, operation)
+        operation = SafeOperation.DELEGATE_CALL if delegate_call else SafeOperation.CALL
+        if api:
+            return self.post_transaction_to_service(to, value, data, operation, safe_nonce=safe_nonce)
+        else:
+            return self.execute_safe_transaction(to, value, data, operation, safe_nonce=safe_nonce)
 
-    def send_ether(self, address: str, value: int) -> bool:
-        return self.send_custom(address, value, b'')
+    def send_ether(self, to: str, value: int, safe_nonce: Optional[int] = None, api: bool = False) -> bool:
+        return self.send_custom(to, value, b'', safe_nonce=safe_nonce, api=api)
 
-    def send_erc20(self, address: str, token_address: str, value: int) -> bool:
+    def send_erc20(self, to: str, token_address: str, value: int, safe_nonce: Optional[int] = None,
+                   api: bool = False) -> bool:
         transaction = get_erc20_contract(self.ethereum_client.w3, token_address).functions.transfer(
-            address, value
+            to, value
         ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
-        return self.execute_safe_transaction(token_address, 0, transaction['data'])
+        return self.send_custom(token_address, 0, HexBytes(transaction['data']), safe_nonce=safe_nonce, api=api)
 
     def send_erc721(self, address: str, token_address: str, token_id: int) -> bool:
         transaction = get_erc721_contract(self.ethereum_client.w3, token_address).functions.transferFrom(
@@ -453,10 +463,11 @@ class SafeOperator:
         return self.execute_safe_transaction(self.address, 0, data)
 
     def execute_safe_transaction(self, to: str, value: int, data: bytes,
-                                 operation: SafeOperation = SafeOperation.CALL) -> bool:
+                                 operation: SafeOperation = SafeOperation.CALL,
+                                 safe_nonce: Optional[int] = None) -> bool:
         self._require_default_sender()  # Throws Exception if default sender not found
         # TODO Test tx is successful
-        safe_tx = self.safe.build_multisig_tx(to, value, data, operation=operation.value)
+        safe_tx = self.safe.build_multisig_tx(to, value, data, operation=operation.value, safe_nonce=safe_nonce)
         self.sign_transaction(safe_tx)  # Raises exception if it cannot be signed
 
         try:
@@ -475,6 +486,12 @@ class SafeOperator:
         except InvalidInternalTx as invalid_internal_tx:
             print_formatted_text(HTML(f'Result: <ansired>InvalidTx - {invalid_internal_tx}</ansired>'))
             return False
+
+    def post_transaction_to_service(self, to: str, value: int, data: bytes,
+                                    operation: SafeOperation = SafeOperation.CALL,
+                                    safe_nonce: Optional[int] = None):
+        if not self.safe_tx_service:
+            raise ServiceNotAvailable(self.network_name)
 
     # TODO Set sender so we can save gas in that signature
     def sign_transaction(self, safe_tx: SafeTx) -> NoReturn:

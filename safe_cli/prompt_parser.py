@@ -14,7 +14,7 @@ from .safe_operator import (ExistingOwnerException,
                             SafeAlreadyUpdatedException, SafeOperator,
                             SameFallbackHandlerException,
                             SameMasterCopyException, SenderRequiredException,
-                            ThresholdLimitException)
+                            ServiceNotAvailable, ThresholdLimitException)
 
 
 def check_ethereum_address(address: str) -> str:
@@ -75,6 +75,8 @@ def safe_exception(function):
         except (NotEnoughEtherToSend, NotEnoughTokenToSend) as e:
             print_formatted_text(HTML(f'<ansired>Cannot find enough to send. Current balance is {e.args[0]}'
                                       f'</ansired>'))
+        except ServiceNotAvailable as e:
+            print_formatted_text(HTML(f'<ansired>Service not available for network {e.args[0]}</ansired>'))
     return wrapper
 
 
@@ -131,7 +133,7 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
 
     @safe_exception
     def send_custom(args):
-        safe_operator.send_custom(args.address, args.value, args.data, delegate=args.delegate)
+        safe_operator.send_custom(args.address, args.value, args.data, delegate_call=args.delegate)
 
     @safe_exception
     def send_ether(args):
@@ -231,7 +233,7 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_send_custom.add_argument('address', type=check_ethereum_address)
     parser_send_custom.add_argument('value', type=int)
     parser_send_custom.add_argument('data', type=check_hex_str)
-    parser_send_custom.add_argument('--delegate', action='store_true')
+    parser_send_custom.add_argument('--delegate', action='store_true', help='Use DELEGATE_CALL. By default use CALL')
     parser_send_custom.set_defaults(func=send_custom)
 
     # Send ether
