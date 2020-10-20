@@ -1,8 +1,11 @@
 import argparse
+import os
+import sys
 
 import pyfiglet
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.history import FileHistory
 from prompt_toolkit.lexers import PygmentsLexer
 
 from safe_cli.prompt_parser import PromptParser
@@ -13,15 +16,21 @@ from safe_cli.safe_operator import SafeOperator
 parser = argparse.ArgumentParser()
 parser.add_argument('safe_address', help='Address of Safe to use')
 parser.add_argument('node_url', help='Ethereum node url')
+parser.add_argument('--history', action='store_true',
+                    help="Enable history. By default it's disabled due to security reasons")
 args = parser.parse_args()
 
 safe_address = args.safe_address
 node_url = args.node_url
+history = args.history
 
 
 class SafeCli:
     def __init__(self):
-        self.session = PromptSession()
+        if history:
+            self.session = PromptSession(history=FileHistory(os.path.join(sys.path[0], '.history')))
+        else:
+            self.session = PromptSession()
         self.safe_operator = SafeOperator(safe_address, node_url)
         self.prompt_parser = PromptParser(self.safe_operator)
 
