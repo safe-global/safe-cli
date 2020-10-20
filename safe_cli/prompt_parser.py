@@ -14,7 +14,8 @@ from .safe_operator import (ExistingOwnerException,
                             SafeAlreadyUpdatedException, SafeOperator,
                             SameFallbackHandlerException,
                             SameMasterCopyException, SenderRequiredException,
-                            ServiceNotAvailable, ThresholdLimitException)
+                            ServiceNotAvailable, ThresholdLimitException,
+                            TransactionDestination)
 
 
 def check_ethereum_address(address: str) -> str:
@@ -90,6 +91,15 @@ class PromptParser:
         return args.func(args)
 
 
+def _parser_to_transaction_destination(args: argparse.Namespace) -> TransactionDestination:
+    if args.tx_service:
+        return TransactionDestination.TRANSACTION_SERVICE
+    # elif args.relay_service:  # TODO
+    #    return TransactionDestination.RELAY_SERVICE
+    else:
+        return TransactionDestination.BLOCKCHAIN
+
+
 def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     """
     Returns an ArgParse capable of decoding and executing the Safe commands
@@ -133,19 +143,26 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
 
     @safe_exception
     def send_custom(args):
-        safe_operator.send_custom(args.address, args.value, args.data, delegate_call=args.delegate)
+        destination = _parser_to_transaction_destination(args)
+        safe_operator.send_custom(args.address, args.value, args.data,
+                                  safe_nonce=args.safe_nonce, delegate_call=args.delegate, destination=destination)
 
     @safe_exception
     def send_ether(args):
-        safe_operator.send_ether(args.address, args.value)
+        destination = _parser_to_transaction_destination(args)
+        safe_operator.send_ether(args.address, args.value, safe_nonce=args.safe_nonce, destination=destination)
 
     @safe_exception
     def send_erc20(args):
-        safe_operator.send_erc20(args.address, args.token_address, args.value)
+        destination = _parser_to_transaction_destination(args)
+        safe_operator.send_erc20(args.address, args.token_address, args.amount, safe_nonce=args.safe_nonce,
+                                 destination=destination)
 
     @safe_exception
     def send_erc721(args):
-        safe_operator.send_erc721(args.address, args.token_address, args.token_id)
+        destination = _parser_to_transaction_destination(args)
+        safe_operator.send_erc721(args.address, args.token_address, args.token_id, safe_nonce=args.safe_nonce,
+                                  destination=destination)
 
     @safe_exception
     def get_threshold(args):
@@ -234,33 +251,54 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_send_custom.add_argument('value', type=int)
     parser_send_custom.add_argument('data', type=check_hex_str)
     parser_send_custom.add_argument('--delegate', action='store_true', help='Use DELEGATE_CALL. By default use CALL')
+    parser_send_custom.add_argument('--safe-nonce', type=int, help='Use custom safe nonce instead of '
+                                                                   'the one for last executed SafeTx + 1')
+    parser_send_custom.add_argument('--tx-service', action='store_true',
+                                    help='Send transaction to Gnosis Transaction Service instead of Blockchain'
+                                         '(It will appear on the webui/mobile clients if at least one '
+                                         'signer is provided)')
+    # parser_send_custom.add_argument('--relay-service', action='store_true', help='')
     parser_send_custom.set_defaults(func=send_custom)
 
     # Send ether
     parser_send_ether = subparsers.add_parser('send_ether')
     parser_send_ether.add_argument('address', type=check_ethereum_address)
     parser_send_ether.add_argument('value', type=int)
+    parser_send_ether.add_argument('--safe-nonce', type=int, help='Use custom safe nonce instead of '
+                                                                  'the one for last executed SafeTx + 1')
+    parser_send_ether.add_argument('--tx-service', action='store_true',
+                                   help='Send transaction to Gnosis Transaction Service instead of Blockchain'
+                                        '(It will appear on the webui/mobile clients if at least one '
+                                        'signer is provided)')
     parser_send_ether.set_defaults(func=send_ether)
 
     # Send erc20
     parser_send_erc20 = subparsers.add_parser('send_erc20')
     parser_send_erc20.add_argument('address', type=check_ethereum_address)
     parser_send_erc20.add_argument('token_address', type=check_ethereum_address)
-    parser_send_erc20.add_argument('value', type=int)
+    parser_send_erc20.add_argument('amount', type=int)
+    parser_send_erc20.add_argument('--safe-nonce', type=int, help='Use custom safe nonce instead of '
+                                                                  'the one for last executed SafeTx + 1')
+    parser_send_erc20.add_argument('--tx-service', action='store_true',
+                                   help='Send transaction to Gnosis Transaction Service instead of Blockchain'
+                                        '(It will appear on the webui/mobile clients if at least one '
+                                        'signer is provided)')
     parser_send_erc20.set_defaults(func=send_erc20)
 
     # Send erc721
-    parser_send_erc20 = subparsers.add_parser('send_erc721')
-    parser_send_erc20.add_argument('address', type=check_ethereum_address)
-    parser_send_erc20.add_argument('token_address', type=check_ethereum_address)
-    parser_send_erc20.add_argument('token_id', type=int)
-    parser_send_erc20.set_defaults(func=send_erc721)
+    parser_send_erc721 = subparsers.add_parser('send_erc721')
+    parser_send_erc721.add_argument('address', type=check_ethereum_address)
+    parser_send_erc721.add_argument('token_address', type=check_ethereum_address)
+    parser_send_erc721.add_argument('token_id', type=int)
+    parser_send_erc721.set_defaults(func=send_erc721)
 
     # Retrieve threshold, nonce or owners
     parser_get_threshold = subparsers.add_parser('get_threshold')
     parser_get_threshold.set_defaults(func=get_threshold)
+
     parser_get_nonce = subparsers.add_parser('get_nonce')
     parser_get_nonce.set_defaults(func=get_nonce)
+
     parser_get_owners = subparsers.add_parser('get_owners')
     parser_get_owners.set_defaults(func=get_owners)
 
@@ -268,6 +306,7 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_enable_module = subparsers.add_parser('enable_module')
     parser_enable_module.add_argument('address', type=check_ethereum_address)
     parser_enable_module.set_defaults(func=enable_module)
+
     parser_disable_module = subparsers.add_parser('disable_module')
     parser_disable_module.add_argument('address', type=check_ethereum_address)
     parser_disable_module.set_defaults(func=disable_module)
@@ -275,6 +314,7 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     # Info and refresh
     parser_info = subparsers.add_parser('info')
     parser_info.set_defaults(func=get_info)
+
     parser_refresh = subparsers.add_parser('refresh')
     parser_refresh.set_defaults(func=get_refresh)
 
