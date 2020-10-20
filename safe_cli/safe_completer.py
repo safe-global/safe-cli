@@ -19,13 +19,13 @@ class SafeCompleter(Completer):
         """
         word = document.get_word_before_cursor()
         if document.find_previous_word_ending() is None:
-            for _command in safe_commands:
+            for command in safe_commands:
                 # note: force lower() to function as ignore_case.
-                if _command.startswith(word.lower()):
-                    if _command in safe_commands_arguments:
-                        safe_command = safe_commands_arguments[_command]
+                if command.startswith(word.lower()):
+                    if command in safe_commands_arguments:
+                        safe_command = safe_commands_arguments[command]
                         safe_argument_color = safe_color_arguments.get(safe_command, 'default')
                         display = HTML('<b><ansired> &gt; </ansired>%s</b> <' + safe_argument_color + '>%s</'
-                                       + safe_argument_color + '>') % (_command, safe_command)
-                        yield Completion(_command, start_position=-len(word), display=display,
-                                         display_meta=meta.get(_command))
+                                       + safe_argument_color + '>') % (command, safe_command)
+                        yield Completion(command, start_position=-len(word), display=display,
+                                         display_meta=meta.get(command))
