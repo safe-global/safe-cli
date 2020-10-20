@@ -17,16 +17,16 @@ safe_commands_arguments = {
     'get_threshold': '(read-only)',
     'history': '(read-only)',
     'info': '(read-only)',
-    'load_cli_owners': '<account-private-key>',
+    'load_cli_owners': '<account-private-key> [<account-private-key>...]',
     'update': '',
     'refresh': '',
     'remove_owner': '<address>',
-    'send_erc20': '<address> <token_address> <value> [--safe-nonce <int>] [--tx-service]',
-    'send_erc721': '<address> <token_address> <token_id> [--safe-nonce <int>] [--tx-service]',
+    'send_erc20': '<address> <token-address> <value-wei> [--safe-nonce <int>] [--tx-service]',
+    'send_erc721': '<address> <token-address> <token-id> [--safe-nonce <int>] [--tx-service]',
     'send_custom': '<address> <value-wei> <data> [--delegate] [--safe-nonce <int>] [--tx-service]',
     'send_ether': '<address> <value-wei> [--safe-nonce <int>] [--tx-service]',
     'show_cli_owners': '(read-only)',
-    'unload_cli_owners': '<address>',
+    'unload_cli_owners': '<address> [<address>...]',
 }
 
 safe_commands = list(safe_commands_arguments.keys())
@@ -34,11 +34,12 @@ safe_commands = list(safe_commands_arguments.keys())
 safe_color_arguments = {
     '(read-only)': SAFE_ARGUMENT_COLOR,
     '<address>': SAFE_ARGUMENT_COLOR,
+    '<token-address>': SAFE_ARGUMENT_COLOR,
+    '<value-wei>': SAFE_ARGUMENT_COLOR,
+    '<token-id>': SAFE_ARGUMENT_COLOR,
     '<integer>': SAFE_ARGUMENT_COLOR,
     '<hex-str>': SAFE_ARGUMENT_COLOR,
-    '<address> <value-wei>': SAFE_ARGUMENT_COLOR,
     '<account-private-key>': SAFE_ARGUMENT_COLOR,
-    '<address> <token_address> <value>': SAFE_ARGUMENT_COLOR,
 }
 
 meta = {

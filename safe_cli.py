@@ -43,7 +43,7 @@ class SafeCli:
         return HTML(f'<bold><ansiblue>{safe_address}</ansiblue><ansired> > </ansired></bold>')
 
     def get_bottom_toolbar(self):
-        return HTML(f'<b><style fg="ansiyellow">network={self.safe_operator.network_name} '
+        return HTML(f'<b><style fg="ansiyellow">network={self.safe_operator.network.name} '
                     f'{self.safe_operator.safe_cli_info}</style></b>')
 
     def loop(self):

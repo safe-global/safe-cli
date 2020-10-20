@@ -118,15 +118,13 @@ class SafeOperator:
         self.ethereum_client = EthereumClient(self.node_url)
         self.ens = ENS.fromWeb3(self.ethereum_client.w3)
         self.network: EthereumNetwork = self.ethereum_client.get_network()
-        self.network_name: str = self.network.name
-        self.network_number: int = self.network.value
-        self.etherscan = Etherscan.from_network_number(self.network_number)
-        self.safe_tx_service = TransactionService.from_network_number(self.network_number)
-        self.safe_relay_service = RelayService.from_network_number(self.network_number)
+        self.etherscan = Etherscan.from_network_number(self.network.value)
+        self.safe_tx_service = TransactionService.from_network_number(self.network.value)
+        self.safe_relay_service = RelayService.from_network_number(self.network.value)
         self.safe = Safe(address, self.ethereum_client)
         self.safe_contract = self.safe.get_contract()
         self.accounts: Set[LocalAccount] = set()
-        self.default_sender: Optional[Account] = None
+        self.default_sender: Optional[LocalAccount] = None
         self.executed_transactions: List[str] = []
         self._safe_cli_info: Optional[SafeCliInfo] = None  # Cache for SafeCliInfo
 
@@ -171,7 +169,7 @@ class SafeOperator:
     def get_balances(self):
         if not self.safe_tx_service:  # TODO Maybe use Etherscan
             print_formatted_text(HTML(f'<ansired>No tx service available for '
-                                      f'network={self.network_name}</ansired>'))
+                                      f'network={self.nework.name}</ansired>'))
         else:
             balances = self.safe_tx_service.get_balances(self.address)
             headers = ['name', 'balance', 'symbol', 'decimals', 'tokenAddress']
@@ -195,7 +193,7 @@ class SafeOperator:
     def get_transaction_history(self):
         if not self.safe_tx_service:
             print_formatted_text(HTML(f'<ansired>No tx service available for '
-                                      f'network={self.network_name}</ansired>'))
+                                      f'network={self.nework.name}</ansired>'))
             if self.etherscan.base_url:
                 url = f'{self.etherscan.base_url}/address/{self.address}'
                 print_formatted_text(HTML(f'<b>Try Etherscan instead</b> {url}'))
@@ -502,7 +500,7 @@ class SafeOperator:
                                        operation: SafeOperation = SafeOperation.CALL,
                                        safe_nonce: Optional[int] = None):
         if not self.safe_tx_service:
-            raise ServiceNotAvailable(self.network_name)
+            raise ServiceNotAvailable(self.nework.name)
 
         safe_tx = self.safe.build_multisig_tx(to, value, data, operation=operation.value, safe_nonce=safe_nonce)
         for account in self.accounts:
