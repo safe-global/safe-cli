@@ -1,4 +1,3 @@
-bip_utils==1.5.0
 cached-property==1.5.2
 colorama==0.4.3
 gnosis-py==2.6.6

@@ -1,30 +1,29 @@
-from bip_utils import Bip32, Bip39SeedGenerator
 from eth_account import Account
-from ethereum.utils import checksum_encode, encode_int32, sha3
+from eth_account.signers.local import LocalAccount
+from eth_typing import ChecksumAddress
 
-ETHEREUM_PATH = "m/44'/60'/0'/0"
+ETHEREUM_DEFAULT_PATH = "m/44'/60'/0'/0/0"
+ETHEREUM_BASE_PATH = "m/44'/60'/0'/0"
 
 
-def get_account_from_words(words: str, index: int = 0, hd_path: str = ETHEREUM_PATH) -> Account:
+def get_account_from_words(words: str, index: int = 0, hd_path: str = ETHEREUM_DEFAULT_PATH) -> LocalAccount:
     """
-    :param words: Mnemonic words generated using Bip39
+    :param words: Mnemonic words(BIP39) for a Hierarchical Deterministic Wallet(BIP32)
     :param index: Index of account
-    :param hd_path: Bip44 Path. By default Ethereum is used
-    :return: List of ethereum public addresses
+    :param hd_path: BIP44 Path. By default Ethereum with 0 index is used
+    :return: Ethereum Account
     """
-    seed = Bip39SeedGenerator(words).Generate()
-    bip32_ctx = Bip32.FromSeedAndPath(seed, hd_path)
-    return Account.from_key(bip32_ctx.ChildKey(index).PrivateKey().Raw().ToBytes())
+    Account.enable_unaudited_hdwallet_features()
+    if index:
+        hd_path = f'{ETHEREUM_BASE_PATH}/{index}'
+    return Account.from_mnemonic(words, account_path=hd_path)
 
 
-def get_address_from_words(words: str, index: int = 0, hd_path: str = ETHEREUM_PATH) -> str:
+def get_address_from_words(words: str, index: int = 0, hd_path: str = ETHEREUM_DEFAULT_PATH) -> ChecksumAddress:
     """
-    :param words: Mnemonic words generated using Bip39
+    :param words: Mnemonic words(BIP39) for a Hierarchical Deterministic Wallet(BIP32)
     :param index: Index of account
-    :param hd_path: Bip44 Path. By default Ethereum is used
-    :return: List of ethereum public addresses
+    :param hd_path: BIP44 Path. By default Ethereum with 0 index is used
+    :return: Ethereum checksummed public address
     """
-    seed = Bip39SeedGenerator(words).Generate()
-    bip32_ctx = Bip32.FromSeedAndPath(seed, hd_path)
-    pub_key = bip32_ctx.ChildKey(index).m_ver_key.pubkey
-    return checksum_encode(sha3(encode_int32(pub_key.point.x()) + encode_int32(pub_key.point.y()))[12:])
+    return get_account_from_words(words, index, hd_path).address
