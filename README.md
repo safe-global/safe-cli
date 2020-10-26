@@ -58,10 +58,13 @@ To unload an owner:
 ```
 
 Operations currently supported:
-- `send_custom <address> <value-wei> <data-hex-str> [--delegate]`: Sends a custom transaction from the Gnosis Safe
-to a contract. If `--delegate` is set a `delegatecall` will be triggered.
-- `send_ether <address> <value-wei>`: Sends ether from the Gnosis Safe to another account
-- `send_erc20 <address> <token_address> <value>`: Send ERC20 token from the Gnosis Safe to another account
+- `send_custom <address> <value-wei> <data-hex-str> [--delegate] [--safe-nonce <int>] [--tx-service] [--relay-service]`:
+Sends a custom transaction from the Gnosis Safe to a contract. If `--delegate` is set a `delegatecall`
+will be triggered.
+- `send_ether <address> <value-wei> [--safe-nonce <int>] [--tx-service] [--relay-service]`:
+Sends ether from the Gnosis Safe to another account
+- `send_erc20 <address> <token_address> <value> [--safe-nonce <int>] [--tx-service] [--relay-service]`:
+Send ERC20 token from the Gnosis Safe to another account
 - `add_owner <address>`: Adds a new owner `address` to the Safe.
 - `remove_owner <address>`: Removes an owner `address` from the Safe.
 - `change_threshold <integer>`: Changes the `threshold` of the Safe.
