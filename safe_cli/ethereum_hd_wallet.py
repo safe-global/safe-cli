@@ -12,6 +12,7 @@ def get_account_from_words(words: str, index: int = 0, hd_path: str = ETHEREUM_D
     :param index: Index of account
     :param hd_path: BIP44 Path. By default Ethereum with 0 index is used
     :return: Ethereum Account
+    :raises: eth_utils.ValidationError
     """
     Account.enable_unaudited_hdwallet_features()
     if index:
@@ -25,5 +26,6 @@ def get_address_from_words(words: str, index: int = 0, hd_path: str = ETHEREUM_D
     :param index: Index of account
     :param hd_path: BIP44 Path. By default Ethereum with 0 index is used
     :return: Ethereum checksummed public address
+    :raises: eth_utils.ValidationError
     """
     return get_account_from_words(words, index, hd_path).address

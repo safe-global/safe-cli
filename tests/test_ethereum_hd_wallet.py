@@ -1,5 +1,7 @@
 import unittest
 
+from eth_utils import ValidationError
+
 from safe_cli.ethereum_hd_wallet import (get_account_from_words,
                                          get_address_from_words)
 
@@ -26,6 +28,14 @@ class TestEthereumHdWallet(unittest.TestCase):
             account = get_account_from_words(words, index=index)
             self.assertEqual(account.address, expected[index][0])
             self.assertEqual(account.key, expected[index][1])
+
+    def test_get_account_from_words_exception(self):
+        words = 'loan satoshi action taste party limit cat elder powder decline'  # Not valid
+        with self.assertRaises(ValidationError):
+            get_account_from_words(words)
+
+        with self.assertRaises(ValidationError):
+            get_account_from_words("")
 
     def test_get_address_from_words(self):
         words = 'loan satoshi action taste party limit cat elder powder dress link decline'

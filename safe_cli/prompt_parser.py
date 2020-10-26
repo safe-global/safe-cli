@@ -114,6 +114,10 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
         safe_operator.show_cli_owners()
 
     @safe_exception
+    def load_cli_owners_from_words(args):
+        safe_operator.load_cli_owners_from_words(args.words)
+
+    @safe_exception
     def load_cli_owners(args):
         safe_operator.load_cli_owners(args.keys)
 
@@ -207,6 +211,10 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     # Cli owners
     parser_show_cli_owners = subparsers.add_parser('show_cli_owners')
     parser_show_cli_owners.set_defaults(func=show_cli_owners)
+
+    parser_load_cli_owners_from_words = subparsers.add_parser('load_cli_owners_from_words')
+    parser_load_cli_owners_from_words.add_argument('words', type=str, nargs='+')
+    parser_load_cli_owners_from_words.set_defaults(func=load_cli_owners_from_words)
 
     parser_load_cli_owners = subparsers.add_parser('load_cli_owners')
     parser_load_cli_owners.add_argument('keys', type=str, nargs='+')

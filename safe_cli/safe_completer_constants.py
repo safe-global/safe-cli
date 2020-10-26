@@ -78,6 +78,8 @@ meta = {
                         '<u>&lt;address&gt;</u>.'),
     'unload_cli_owners': HTML('Command <b>unload_cli_owners</b> will unload a check-summed <u>&lt;address&gt;</u> '
                               'from the current loaded account owners.'),
+    'load_cli_owners_from_words': HTML('Command <b>load_cli_owners_from_words</b> will try to load owners via'
+                                       '<u>seed_words</u>. Only relevant accounts(owners) will be loaded'),
     'load_cli_owners': HTML('Command <b>load_cli_owners</b> will try to load a new owner via '
                             '<u>&lt;account-private-key&gt;</u>.'),
     'refresh': HTML('Command <b>refresh</b> will refresh the information for the current loaded safe.'),

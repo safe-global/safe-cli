@@ -8,6 +8,7 @@ from colorama import Fore, Style
 from ens import ENS
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
+from eth_utils import ValidationError
 from hexbytes import HexBytes
 from packaging import version as semantic_version
 from prompt_toolkit import HTML, print_formatted_text
@@ -26,6 +27,7 @@ from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 from safe_cli.api.etherscan import Etherscan
 from safe_cli.api.gnosis_relay import RelayService
 from safe_cli.api.gnosis_transaction import TransactionService
+from safe_cli.ethereum_hd_wallet import get_account_from_words
 from safe_cli.safe_addresses import (LAST_DEFAULT_CALLBACK_HANDLER,
                                      LAST_MULTISEND_CONTRACT,
                                      LAST_SAFE_CONTRACT)
@@ -223,6 +225,20 @@ class SafeOperator:
             headers.append('dataDecoded')
             headers[0] = Style.BRIGHT + headers[0]
             print(tabulate(rows, headers=headers))
+
+    def load_cli_owners_from_words(self, words: List[str]):
+        if len(words) == 1:  # Reading seed from Environment Variable
+            words = os.environ.get(words[0], default="").strip().split(" ")
+        parsed_words = ' '.join(words)
+        try:
+            for index in range(100):  # Try first accounts of seed phrase
+                account = get_account_from_words(parsed_words, index=index)
+                if account.address in self.safe_cli_info.owners:
+                    self.load_cli_owners(account.key)
+            if not index:
+                print_formatted_text(HTML(f'<ansired>Cannot generate any valid owner for this Safe</ansired>'))
+        except ValidationError:
+            print_formatted_text(HTML(f'<ansired>Cannot load owners from words</ansired>'))
 
     def load_cli_owners(self, keys: List[str]):
         for key in keys:
