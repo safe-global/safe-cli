@@ -311,8 +311,7 @@ class SafeOperator:
         elif destination == TransactionDestination.TRANSACTION_SERVICE:
             return self.post_transaction_to_tx_service(to, value, data, operation, safe_nonce=safe_nonce)
         elif destination == TransactionDestination.RELAY_SERVICE:
-            pass
-            # return self.post_transaction_to_relay_service(to, value, data, operation, safe_nonce=safe_nonce)
+            return self.post_transaction_to_relay_service(to, value, data, operation)
 
     def send_ether(self, to: str, value: int, **kwargs) -> bool:
         return self.send_custom(to, value, b'', **kwargs)
@@ -506,6 +505,25 @@ class SafeOperator:
         for account in self.accounts:
             safe_tx.sign(account.key)  # Raises exception if it cannot be signed
         self.safe_tx_service.post_transaction(self.address, safe_tx)
+
+    def post_transaction_to_relay_service(self, to: str, value: int, data: bytes,
+                                          operation: SafeOperation = SafeOperation.CALL,
+                                          gas_token: Optional[str] = None):
+        if not self.safe_relay_service:
+            raise ServiceNotAvailable(self.nework.name)
+
+        safe_tx = self.safe.build_multisig_tx(to, value, data, operation=operation.value, gas_token=gas_token)
+        estimation = self.safe_relay_service.get_estimation(self.address, safe_tx)
+        safe_tx.base_gas = estimation['baseGas']
+        safe_tx.safe_tx_gas = estimation['safeTxGas']
+        safe_tx.gas_price = estimation['gasPrice']
+        safe_tx.safe_nonce = estimation['lastUsedNonce'] + 1
+        safe_tx.refund_receiver = estimation['refundReceiver']
+        self.sign_transaction(safe_tx)
+        transaction_data = self.safe_relay_service.send_transaction(self.address, safe_tx)
+        tx_hash = transaction_data['txHash']
+        print_formatted_text(HTML(f'<ansigreen>Gnosis Safe Relay has queued transaction with '
+                                  f'transaction-hash <b>{tx_hash}</b></ansigreen>'))
 
     # TODO Set sender so we can save gas in that signature
     def sign_transaction(self, safe_tx: SafeTx) -> NoReturn:

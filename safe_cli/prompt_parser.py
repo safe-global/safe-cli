@@ -94,8 +94,8 @@ class PromptParser:
 def _parser_to_transaction_destination(args: argparse.Namespace) -> TransactionDestination:
     if args.tx_service:
         return TransactionDestination.TRANSACTION_SERVICE
-    # elif args.relay_service:  # TODO
-    #    return TransactionDestination.RELAY_SERVICE
+    elif args.relay_service:
+        return TransactionDestination.RELAY_SERVICE
     else:
         return TransactionDestination.BLOCKCHAIN
 
@@ -263,7 +263,9 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
                             help='Send transaction to Gnosis Transaction Service instead of Blockchain'
                                  '(It will appear on the webui/mobile clients if at least one '
                                  'signer is provided)')
-        # parser.add_argument('--relay-service', action='store_true', help='')
+        parser.add_argument('--relay-service', action='store_true',
+                            help='Send transaction to Blockchain using Gnosis Relay Service, allowing to pay for fees'
+                                 'using funds on the Safe (including tokens) instead of the sender')
 
     # To/value is common for send custom and send ether
     for parser in (parser_send_custom, parser_send_ether):

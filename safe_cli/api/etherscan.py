@@ -1,11 +1,13 @@
+from gnosis.eth.ethereum_client import EthereumNetwork
+
 from .base_api import BaseAPI
 
 
 class Etherscan(BaseAPI):
     URL_BY_NETWORK = {
-        1: 'https://etherscan.io',
-        3: 'https://ropsten.etherscan.io',
-        4: 'https://rinkeby.etherscan.io',
-        5: 'https://goerli.etherscan.io',
-        42: 'https://kovan.etherscan.io',
+        EthereumNetwork.MAINNET: 'https://etherscan.io',
+        EthereumNetwork.ROPSTEN: 'https://ropsten.etherscan.io',
+        EthereumNetwork.RINKEBY: 'https://rinkeby.etherscan.io',
+        EthereumNetwork.GOERLI: 'https://goerli.etherscan.io',
+        EthereumNetwork.KOVAN: 'https://kovan.etherscan.io',
     }

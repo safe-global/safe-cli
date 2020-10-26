@@ -2,6 +2,7 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin
 
 import requests
+from gnosis.eth.ethereum_client import EthereumNetwork
 
 from gnosis.safe import SafeTx
 
@@ -10,11 +11,13 @@ from .base_api import BaseAPI
 
 class TransactionService(BaseAPI):
     URL_BY_NETWORK = {
-        1: 'https://safe-transaction.mainnet.gnosis.io',
-        # 3:
-        4: 'https://safe-transaction.rinkeby.gnosis.io',
-        # 5:
-        # 42
+        EthereumNetwork.MAINNET: 'https://safe-transaction.mainnet.gnosis.io',
+        EthereumNetwork.RINKEBY: 'https://safe-transaction.rinkeby.gnosis.io',
+        EthereumNetwork.GOERLI: 'https://safe-transaction.goerli.gnosis.io/',
+        EthereumNetwork.XDAI: 'https://safe-transaction.xdai.gnosis.io/',
+        EthereumNetwork.VOLTA: 'https://safe-transaction.volta.gnosis.io/',
+        EthereumNetwork.ENERGY_WEB_CHAIN: 'https://safe-transaction.ewc.gnosis.io/',
+
     }
 
     def data_decoded_to_text(self, data_decoded: Dict[str, Any]) -> Optional[str]:
@@ -56,7 +59,7 @@ class TransactionService(BaseAPI):
         else:
             return response.json().get('results', [])
 
-    def post_transaction(self, safe_address: str, safe_tx: SafeTx) -> List[Dict[str, Any]]:
+    def post_transaction(self, safe_address: str, safe_tx: SafeTx):
         url = urljoin(self.base_url, f'/api/v1/safes/{safe_address}/multisig-transactions/')
         random_account = '0x1b95E981F808192Dc5cdCF92ef589f9CBe6891C4'
         sender = safe_tx.sorted_signers[0] if safe_tx.sorted_signers else random_account
