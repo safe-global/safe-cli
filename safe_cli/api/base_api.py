@@ -3,6 +3,7 @@ from typing import Dict, Optional
 from urllib.parse import urljoin
 
 import requests
+
 from gnosis.eth.ethereum_client import EthereumNetwork
 
 

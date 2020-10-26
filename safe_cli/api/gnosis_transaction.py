@@ -2,8 +2,8 @@ from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin
 
 import requests
-from gnosis.eth.ethereum_client import EthereumNetwork
 
+from gnosis.eth.ethereum_client import EthereumNetwork
 from gnosis.safe import SafeTx
 
 from .base_api import BaseAPI

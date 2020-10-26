@@ -1,13 +1,29 @@
-from typing import Dict, Any
+from typing import Any, Dict
 from urllib.parse import urljoin
 
 import requests
-from gnosis.safe import SafeTx
+from eth_typing import ChecksumAddress, HexStr
+from typing_extensions import TypedDict
 
 from gnosis.eth.ethereum_client import EthereumNetwork
+from gnosis.safe import SafeTx
 from gnosis.safe.signatures import signature_split
 
 from .base_api import BaseAPI
+
+
+class RelayEstimation(TypedDict):
+    safeTxGas: int
+    baseGas: int
+    gasPrice: int
+    lastUsedNonce: int
+    gasToken: ChecksumAddress
+    refundReceiver: ChecksumAddress
+
+
+class RelaySentTransaction(TypedDict):
+    safeTxHash: HexStr
+    txHash: HexStr
 
 
 class RelayService(BaseAPI):
@@ -17,7 +33,7 @@ class RelayService(BaseAPI):
         EthereumNetwork.GOERLI: 'https://safe-relay.goerli.gnosis.io/',
     }
 
-    def send_transaction(self, safe_address: str, safe_tx: SafeTx):
+    def send_transaction(self, safe_address: str, safe_tx: SafeTx) -> RelaySentTransaction:
         url = urljoin(self.base_url, f'/api/v1/safes/{safe_address}/transactions/')
         signatures = []
         for i in range(len(safe_tx.signatures) // 65):
@@ -47,21 +63,13 @@ class RelayService(BaseAPI):
         if not response.ok:
             raise BaseAPI(f'Error posting transaction: {response.content}')
         else:
-            return response.json()
+            return RelaySentTransaction(response.json())
 
-    def get_estimation(self, safe_address: str, safe_tx: SafeTx) -> Dict[str, Any]:
+    def get_estimation(self, safe_address: str, safe_tx: SafeTx) -> RelayEstimation:
         """
         :param safe_address:
         :param safe_tx:
-        :return:
-        {
-            safeTxGas	    string
-            baseGas	        string
-            gasPrice        string
-            lastUsedNonce   integer
-            gasToken        string
-            refundReceiver  string
-        }
+        :return: RelayEstimation
         """
         url = urljoin(self.base_url, f'/api/v2/safes/{safe_address}/transactions/estimate/')
         data = {
@@ -79,4 +87,4 @@ class RelayService(BaseAPI):
             # Convert values to int
             for key in ('safeTxGas', 'baseGas', 'gasPrice'):
                 response_json[key] = int(response_json[key])
-            return response_json
+            return RelayEstimation(response_json)
