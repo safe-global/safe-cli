@@ -171,7 +171,7 @@ class SafeOperator:
     def get_balances(self):
         if not self.safe_tx_service:  # TODO Maybe use Etherscan
             print_formatted_text(HTML(f'<ansired>No tx service available for '
-                                      f'network={self.nework.name}</ansired>'))
+                                      f'network={self.network.name}</ansired>'))
         else:
             balances = self.safe_tx_service.get_balances(self.address)
             headers = ['name', 'balance', 'symbol', 'decimals', 'tokenAddress']
@@ -195,7 +195,7 @@ class SafeOperator:
     def get_transaction_history(self):
         if not self.safe_tx_service:
             print_formatted_text(HTML(f'<ansired>No tx service available for '
-                                      f'network={self.nework.name}</ansired>'))
+                                      f'network={self.network.name}</ansired>'))
             if self.etherscan.base_url:
                 url = f'{self.etherscan.base_url}/address/{self.address}'
                 print_formatted_text(HTML(f'<b>Try Etherscan instead</b> {url}'))
@@ -515,7 +515,7 @@ class SafeOperator:
                                        operation: SafeOperation = SafeOperation.CALL,
                                        safe_nonce: Optional[int] = None):
         if not self.safe_tx_service:
-            raise ServiceNotAvailable(self.nework.name)
+            raise ServiceNotAvailable(self.network.name)
 
         safe_tx = self.safe.build_multisig_tx(to, value, data, operation=operation.value, safe_nonce=safe_nonce)
         for account in self.accounts:
@@ -526,7 +526,7 @@ class SafeOperator:
                                           operation: SafeOperation = SafeOperation.CALL,
                                           gas_token: Optional[str] = None):
         if not self.safe_relay_service:
-            raise ServiceNotAvailable(self.nework.name)
+            raise ServiceNotAvailable(self.network.name)
 
         safe_tx = self.safe.build_multisig_tx(to, value, data, operation=operation.value, gas_token=gas_token)
         estimation = self.safe_relay_service.get_estimation(self.address, safe_tx)
