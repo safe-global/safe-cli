@@ -115,7 +115,7 @@ class ServiceNotAvailable(SafeOperatorException):
 
 class SafeOperator:
     def __init__(self, address: str, node_url: str):
-        self.address = address
+        self.address = Web3.toChecksumAddress(address)
         self.node_url = node_url
         self.ethereum_client = EthereumClient(self.node_url)
         self.ens = ENS.fromWeb3(self.ethereum_client.w3)
@@ -123,7 +123,7 @@ class SafeOperator:
         self.etherscan = Etherscan.from_network_number(self.network.value)
         self.safe_tx_service = TransactionService.from_network_number(self.network.value)
         self.safe_relay_service = RelayService.from_network_number(self.network.value)
-        self.safe = Safe(address, self.ethereum_client)
+        self.safe = Safe(self.address, self.ethereum_client)
         self.safe_contract = self.safe.get_contract()
         self.accounts: Set[LocalAccount] = set()
         self.default_sender: Optional[LocalAccount] = None
