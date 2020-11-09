@@ -8,13 +8,14 @@ from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.lexers import PygmentsLexer
 
-from safe_cli.prompt_parser import PromptParser
+from safe_cli.prompt_parser import (PromptParser,
+                                    to_checksummed_ethereum_address)
 from safe_cli.safe_completer import SafeCompleter
 from safe_cli.safe_lexer import SafeLexer
 from safe_cli.safe_operator import SafeOperator
 
 parser = argparse.ArgumentParser()
-parser.add_argument('safe_address', help='Address of Safe to use')
+parser.add_argument('safe_address', help='Address of Safe to use', type=to_checksummed_ethereum_address)
 parser.add_argument('node_url', help='Ethereum node url')
 parser.add_argument('--history', action='store_true',
                     help="Enable history. By default it's disabled due to security reasons")

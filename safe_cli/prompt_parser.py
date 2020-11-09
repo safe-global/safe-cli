@@ -41,6 +41,13 @@ def check_hex_str(hex_str: str) -> HexBytes:
         raise argparse.ArgumentTypeError(f'{hex_str} is not a valid hexadecimal string')
 
 
+def to_checksummed_ethereum_address(address: str) -> str:
+    try:
+        return Web3.toChecksumAddress(address)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f'{address} is not a valid ethereum address')
+
+
 def safe_exception(function):
     @functools.wraps(function)
     def wrapper(*args, **kwargs):
