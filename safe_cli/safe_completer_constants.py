@@ -18,6 +18,7 @@ safe_commands_arguments = {
     'history': '(read-only)',
     'info': '(read-only)',
     'load_cli_owners': '<account-private-key> [<account-private-key>...]',
+    'load_cli_owners_from_words': '<word_1> <word_2> ... <word_12>',
     'update': '',
     'refresh': '',
     'remove_owner': '<address>',
@@ -78,10 +79,10 @@ meta = {
                         '<u>&lt;address&gt;</u>.'),
     'unload_cli_owners': HTML('Command <b>unload_cli_owners</b> will unload a check-summed <u>&lt;address&gt;</u> '
                               'from the current loaded account owners.'),
-    'load_cli_owners_from_words': HTML('Command <b>load_cli_owners_from_words</b> will try to load owners via'
-                                       '<u>seed_words</u>. Only relevant accounts(owners) will be loaded'),
     'load_cli_owners': HTML('Command <b>load_cli_owners</b> will try to load a new owner via '
                             '<u>&lt;account-private-key&gt;</u>.'),
+    'load_cli_owners_from_words': HTML('Command <b>load_cli_owners_from_words</b> will try to load owners via'
+                                       '<u>seed_words</u>. Only relevant accounts(owners) will be loaded'),
     'refresh': HTML('Command <b>refresh</b> will refresh the information for the current loaded safe.'),
     'change_master_copy': HTML('Command <b>change_master_copy</b> will change the current MasterCopy of the '
                                'Safe Contract <b>[DO NOT CALL THIS FUNCTION, UNLESS YOU KNOW WHAT YOU ARE DOING. '

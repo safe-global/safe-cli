@@ -234,7 +234,7 @@ class SafeOperator:
             for index in range(100):  # Try first accounts of seed phrase
                 account = get_account_from_words(parsed_words, index=index)
                 if account.address in self.safe_cli_info.owners:
-                    self.load_cli_owners(account.key)
+                    self.load_cli_owners([account.key.hex()])
             if not index:
                 print_formatted_text(HTML(f'<ansired>Cannot generate any valid owner for this Safe</ansired>'))
         except ValidationError:
