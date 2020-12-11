@@ -1,6 +1,7 @@
 import unittest
 
 from eth_account import Account
+from web3 import Web3
 
 from gnosis.safe import Safe
 
@@ -40,6 +41,12 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         prompt_parser.process_command('change_threshold 1')
         self.assertEqual(safe_operator.safe_cli_info.threshold, 1)
         self.assertEqual(safe.retrieve_threshold(), 1)
+
+        # Approve Hash
+        safe_tx_hash = Web3.keccak(text='hola')
+        self.assertFalse(safe_operator.safe.retrieve_is_hash_approved(accounts[0].address, safe_tx_hash))
+        prompt_parser.process_command(f'approve_hash {safe_tx_hash.hex()} {accounts[0].address}')
+        self.assertTrue(safe_operator.safe.retrieve_is_hash_approved(accounts[0].address, safe_tx_hash))
 
         # Remove owner
         self.assertEqual(len(safe_operator.safe_cli_info.owners), 2)
