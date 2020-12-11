@@ -1,4 +1,3 @@
-from typing import Any, Dict
 from urllib.parse import urljoin
 
 import requests
@@ -73,11 +72,11 @@ class RelayService(BaseAPI):
         """
         url = urljoin(self.base_url, f'/api/v2/safes/{safe_address}/transactions/estimate/')
         data = {
-                'to': safe_tx.to,
-                'value': safe_tx.value,
-                'data': safe_tx.data.hex() if safe_tx.data else None,
-                'operation': safe_tx.operation,
-                'gasToken': safe_tx.gas_token,
+            'to': safe_tx.to,
+            'value': safe_tx.value,
+            'data': safe_tx.data.hex() if safe_tx.data else None,
+            'operation': safe_tx.operation,
+            'gasToken': safe_tx.gas_token,
         }
         response = requests.post(url, json=data)
         if not response.ok:

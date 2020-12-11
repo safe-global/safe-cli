@@ -244,9 +244,9 @@ class SafeOperator:
                 if account.address in self.safe_cli_info.owners:
                     self.load_cli_owners([account.key.hex()])
             if not index:
-                print_formatted_text(HTML(f'<ansired>Cannot generate any valid owner for this Safe</ansired>'))
+                print_formatted_text(HTML('<ansired>Cannot generate any valid owner for this Safe</ansired>'))
         except ValidationError:
-            print_formatted_text(HTML(f'<ansired>Cannot load owners from words</ansired>'))
+            print_formatted_text(HTML('<ansired>Cannot load owners from words</ansired>'))
 
     def load_cli_owners(self, keys: List[str]):
         for key in keys:
@@ -273,13 +273,13 @@ class SafeOperator:
                     break
         self.accounts = self.accounts.difference(accounts_to_remove)
         if accounts_to_remove:
-            print_formatted_text(HTML(f'<ansigreen>Accounts have been deleted</ansigreen>'))
+            print_formatted_text(HTML('<ansigreen>Accounts have been deleted</ansigreen>'))
         else:
-            print_formatted_text(HTML(f'<ansired>No account was deleted</ansired>'))
+            print_formatted_text(HTML('<ansired>No account was deleted</ansired>'))
 
     def show_cli_owners(self):
         if not self.accounts:
-            print_formatted_text(HTML(f'<ansired>No accounts loaded</ansired>'))
+            print_formatted_text(HTML('<ansired>No accounts loaded</ansired>'))
         else:
             for account in self.accounts:
                 print_formatted_text(HTML(f'<ansigreen><b>Account</b> {account.address} loaded</ansigreen>'))
@@ -287,7 +287,7 @@ class SafeOperator:
                 print_formatted_text(HTML(f'<ansigreen><b>Default sender:</b> {self.default_sender.address}'
                                           f'</ansigreen>'))
             else:
-                print_formatted_text(HTML(f'<ansigreen>Not default sender set </ansigreen>'))
+                print_formatted_text(HTML('<ansigreen>Not default sender set </ansigreen>'))
 
     def approve_hash(self, hash_to_approve: HexBytes, sender: str) -> bool:
         sender_account = [account for account in self.accounts if account.address == sender]
@@ -501,8 +501,8 @@ class SafeOperator:
                                       f'<ansiblue>{url}</ansiblue>'))
 
         if not self.is_version_updated():
-            print_formatted_text(HTML(f'<ansired>Safe is not updated! You can use <b>update</b> command to update '
-                                      f'the Safe to a newest version</ansired>'))
+            print_formatted_text(HTML('<ansired>Safe is not updated! You can use <b>update</b> command to update '
+                                      'the Safe to a newest version</ansired>'))
 
     def get_safe_cli_info(self) -> SafeCliInfo:
         safe = self.safe

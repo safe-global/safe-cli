@@ -64,20 +64,20 @@ class TransactionService(BaseAPI):
         random_account = '0x1b95E981F808192Dc5cdCF92ef589f9CBe6891C4'
         sender = safe_tx.sorted_signers[0] if safe_tx.sorted_signers else random_account
         data = {
-                'to': safe_tx.to,
-                'value': safe_tx.value,
-                'data': safe_tx.data.hex() if safe_tx.data else None,
-                'operation': safe_tx.operation,
-                'gasToken': safe_tx.gas_token,
-                'safeTxGas': safe_tx.safe_tx_gas,
-                'baseGas': safe_tx.base_gas,
-                'gasPrice': safe_tx.gas_price,
-                'refundReceiver': safe_tx.refund_receiver,
-                'nonce': safe_tx.safe_nonce,
-                'contractTransactionHash': safe_tx.safe_tx_hash.hex(),
-                'sender': sender,
-                'signature': safe_tx.signatures.hex() if safe_tx.signatures else None,
-                'origin': 'Safe-CLI'
+            'to': safe_tx.to,
+            'value': safe_tx.value,
+            'data': safe_tx.data.hex() if safe_tx.data else None,
+            'operation': safe_tx.operation,
+            'gasToken': safe_tx.gas_token,
+            'safeTxGas': safe_tx.safe_tx_gas,
+            'baseGas': safe_tx.base_gas,
+            'gasPrice': safe_tx.gas_price,
+            'refundReceiver': safe_tx.refund_receiver,
+            'nonce': safe_tx.safe_nonce,
+            'contractTransactionHash': safe_tx.safe_tx_hash.hex(),
+            'sender': sender,
+            'signature': safe_tx.signatures.hex() if safe_tx.signatures else None,
+            'origin': 'Safe-CLI'
         }
         response = requests.post(url, json=data)
         if not response.ok:

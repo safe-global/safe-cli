@@ -4,9 +4,7 @@ from typing import List, Optional
 from eth_account import Account
 
 from gnosis.eth import EthereumClient
-from gnosis.eth.contracts import (get_multi_send_contract,
-                                  get_proxy_factory_contract,
-                                  get_safe_contract, get_safe_V1_0_0_contract)
+from gnosis.eth.contracts import get_safe_contract
 from gnosis.safe import ProxyFactory, Safe
 from gnosis.safe.safe_create2_tx import SafeCreate2Tx
 from gnosis.safe.tests.utils import generate_salt_nonce

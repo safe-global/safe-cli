@@ -73,7 +73,7 @@ def safe_exception(function):
         except NotEnoughSignatures as e:
             print_formatted_text(HTML(f'<ansired>Cannot find enough owners to sign. {e.args[0]} missing</ansired>'))
         except SenderRequiredException:
-            print_formatted_text(HTML(f'<ansired>Please load a default sender</ansired>'))
+            print_formatted_text(HTML('<ansired>Please load a default sender</ansired>'))
         except ExistingOwnerException as e:
             print_formatted_text(HTML(f'<ansired>Owner {e.args[0]} is already an owner of the Safe'
                                       f'</ansired>'))
@@ -85,19 +85,19 @@ def safe_exception(function):
                 f'<ansired>Transaction with safe-tx-hash {e.args[0].hex()} has already been approved by '
                 f'owner {e.args[1]}</ansired>'))
         except ThresholdLimitException:
-            print_formatted_text(HTML(f'<ansired>Having less owners than threshold is not allowed'
-                                      f'</ansired>'))
+            print_formatted_text(HTML('<ansired>Having less owners than threshold is not allowed'
+                                      '</ansired>'))
         except SameFallbackHandlerException as e:
             print_formatted_text(HTML(f'<ansired>Fallback handler {e.args[0]} is the current one</ansired>'))
         except FallbackHandlerNotSupportedException:
-            print_formatted_text(HTML(f'<ansired>Fallback handler is not supported for your Safe, '
-                                      f'you need to <b>update</b> first</ansired>'))
+            print_formatted_text(HTML('<ansired>Fallback handler is not supported for your Safe, '
+                                      'you need to <b>update</b> first</ansired>'))
         except SameMasterCopyException as e:
             print_formatted_text(HTML(f'<ansired>Master Copy {e.args[0]} is the current one</ansired>'))
         except InvalidMasterCopyException as e:
             print_formatted_text(HTML(f'<ansired>Master Copy {e.args[0]} is not valid</ansired>'))
         except SafeAlreadyUpdatedException:
-            print_formatted_text(HTML(f'<ansired>Safe is already updated</ansired>'))
+            print_formatted_text(HTML('<ansired>Safe is already updated</ansired>'))
         except (NotEnoughEtherToSend, NotEnoughTokenToSend) as e:
             print_formatted_text(HTML(f'<ansired>Cannot find enough to send. Current balance is {e.args[0]}'
                                       f'</ansired>'))
