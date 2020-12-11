@@ -69,6 +69,10 @@ class NonExistingOwnerException(SafeOperatorException):
     pass
 
 
+class HashAlreadyApproved(SafeOperatorException):
+    pass
+
+
 class ThresholdLimitException(SafeOperatorException):
     pass
 
@@ -90,6 +94,10 @@ class SafeAlreadyUpdatedException(SafeOperatorException):
 
 
 class SenderRequiredException(SafeOperatorException):
+    pass
+
+
+class AccountNotLoadedException(SafeOperatorException):
     pass
 
 
@@ -280,6 +288,36 @@ class SafeOperator:
                                           f'</ansigreen>'))
             else:
                 print_formatted_text(HTML(f'<ansigreen>Not default sender set </ansigreen>'))
+
+    def approve_hash(self, hash_to_approve: HexBytes, sender: str) -> bool:
+        sender_account = [account for account in self.accounts if account.address == sender]
+        if not sender_account:
+            raise AccountNotLoadedException(sender)
+        elif sender not in self.safe_cli_info.owners:
+            raise NonExistingOwnerException(sender)
+        elif self.safe.retrieve_is_hash_approved(self.default_sender.address, hash_to_approve):
+            raise HashAlreadyApproved(hash_to_approve, self.default_sender.address)
+        else:
+            sender_account = sender_account[0]
+            transaction_to_send = self.safe_contract.functions.approveHash(
+                hash_to_approve
+            ).buildTransaction({
+                'from': sender_account.address,
+                'nonce': self.ethereum_client.get_nonce_for_account(sender_account.address),
+            })
+            call_result = self.ethereum_client.w3.eth.call(transaction_to_send)
+            if call_result:  # There's revert message
+                return False
+            else:
+                signed_transaction = sender_account.sign_transaction(transaction_to_send)
+                tx_hash = self.ethereum_client.send_raw_transaction(signed_transaction['rawTransaction'])
+                print_formatted_text(HTML(f'<ansigreen>Sent tx with tx-hash {tx_hash.hex()} from owner '
+                                          f'{self.default_sender.address}, waiting for receipt</ansigreen>'))
+                if self.ethereum_client.get_transaction_receipt(tx_hash, timeout=120):
+                    return True
+                else:
+                    print_formatted_text(HTML(f'<ansired>Tx with tx-hash {tx_hash.hex()} still not mined</ansired>'))
+                    return False
 
     def add_owner(self, new_owner: str) -> bool:
         if new_owner in self.safe_cli_info.owners:
@@ -499,14 +537,14 @@ class SafeOperator:
             print_formatted_text(HTML(f'Result: <ansigreen>{call_result}</ansigreen>'))
             tx_hash, _ = safe_tx.execute(self.default_sender.key)
             self.executed_transactions.append(tx_hash.hex())
-            print_formatted_text(HTML(f'<ansigreen>Executed tx with tx-hash={tx_hash.hex()} '
-                                      f'and safe-nonce={safe_tx.safe_nonce}, waiting for receipt</ansigreen>'))
+            print_formatted_text(HTML(f'<ansigreen>Sent tx with tx-hash {tx_hash.hex()} '
+                                      f'and safe-nonce {safe_tx.safe_nonce}, waiting for receipt</ansigreen>'))
             if self.ethereum_client.get_transaction_receipt(tx_hash, timeout=120):
                 self.safe_cli_info.nonce += 1
                 return True
             else:
-                print_formatted_text(HTML(f'<ansired>Tx with tx-hash={tx_hash.hex()} still not mined</ansired>'))
-            return False
+                print_formatted_text(HTML(f'<ansired>Tx with tx-hash {tx_hash.hex()} still not mined</ansired>'))
+                return False
         except InvalidInternalTx as invalid_internal_tx:
             print_formatted_text(HTML(f'Result: <ansired>InvalidTx - {invalid_internal_tx}</ansired>'))
             return False

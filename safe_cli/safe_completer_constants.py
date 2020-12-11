@@ -6,6 +6,7 @@ SAFE_EMPTY_ARGUMENT_COLOR = 'ansimagenta'
 
 safe_commands_arguments = {
     'add_owner': '<address>',
+    'approve_hash': '<keccak-hexstr-hash> <address>',
     'balances': '(read-only)',
     'change_fallback_handler': '<address>',
     'change_master_copy': '<address>',
@@ -44,6 +45,8 @@ safe_color_arguments = {
 }
 
 meta = {
+    'approve_hash': HTML('<b>approve_hash</b> will approve a safe-tx-hash for the provided sender address. '
+                         'Sender private key must be loaded first'),
     'balances': HTML('<b>balances</b> will return the balance of Ether and ERC20 tokens of the Safe '
                      '(if tx service available for the network)'),
     'history': HTML('<b>history</b> will return information of last transactions for the Safe '

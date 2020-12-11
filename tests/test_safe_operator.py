@@ -2,11 +2,14 @@ import os
 import unittest
 
 from eth_account import Account
+from web3 import Web3
 
 from gnosis.safe import Safe
 
-from safe_cli.safe_operator import (ExistingOwnerException,
+from safe_cli.safe_operator import (AccountNotLoadedException,
+                                    ExistingOwnerException,
                                     FallbackHandlerNotSupportedException,
+                                    HashAlreadyApproved,
                                     InvalidMasterCopyException,
                                     NonExistingOwnerException,
                                     NotEnoughEtherToSend, NotEnoughSignatures,
@@ -50,6 +53,24 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         safe_operator.unload_cli_owners(['aloha', random_accounts[0].address, 'bye'])
         self.assertEqual(len(safe_operator.accounts), number_of_accounts - 1)
         self.assertFalse(safe_operator.default_sender)
+
+    def test_approve_hash(self):
+        safe_address = self.deploy_test_safe(owners=[self.ethereum_test_account.address]).safe_address
+        safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
+        safe_tx_hash = Web3.keccak(text='random-test')
+        random_account = Account.create()
+        with self.assertRaises(AccountNotLoadedException):
+            safe_operator.approve_hash(safe_tx_hash, random_account.address)
+
+        with self.assertRaises(NonExistingOwnerException):
+            safe_operator.accounts.add(random_account)
+            safe_operator.approve_hash(safe_tx_hash, random_account.address)
+
+        safe_operator.accounts.add(self.ethereum_test_account)
+        safe_operator.default_sender = self.ethereum_test_account
+        self.assertTrue(safe_operator.approve_hash(safe_tx_hash, self.ethereum_test_account.address))
+        with self.assertRaises(HashAlreadyApproved):
+            safe_operator.approve_hash(safe_tx_hash, self.ethereum_test_account.address)
 
     def test_add_owner(self):
         safe_address = self.deploy_test_safe(owners=[self.ethereum_test_account.address]).safe_address

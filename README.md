@@ -65,6 +65,8 @@ will be triggered.
 Sends ether from the Gnosis Safe to another account
 - `send_erc20 <address> <token_address> <value> [--safe-nonce <int>] [--tx-service] [--relay-service]`:
 Send ERC20 token from the Gnosis Safe to another account
+- `approve_hash <keccak-hexstr-hash> <sender-address>`: Approves a `safe-tx-hash` for the provided sender address.
+  Sender private key must be loaded first.
 - `add_owner <address>`: Adds a new owner `address` to the Safe.
 - `remove_owner <address>`: Removes an owner `address` from the Safe.
 - `change_threshold <integer>`: Changes the `threshold` of the Safe.

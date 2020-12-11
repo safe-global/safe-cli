@@ -6,9 +6,9 @@ from prompt_toolkit import HTML, print_formatted_text
 from web3 import Web3
 
 from .api.base_api import BaseAPIException
-from .safe_operator import (ExistingOwnerException,
+from .safe_operator import (AccountNotLoadedException, ExistingOwnerException,
                             FallbackHandlerNotSupportedException,
-                            InvalidMasterCopyException,
+                            HashAlreadyApproved, InvalidMasterCopyException,
                             NonExistingOwnerException, NotEnoughEtherToSend,
                             NotEnoughSignatures, NotEnoughTokenToSend,
                             SafeAlreadyUpdatedException, SafeOperator,
@@ -41,6 +41,18 @@ def check_hex_str(hex_str: str) -> HexBytes:
         raise argparse.ArgumentTypeError(f'{hex_str} is not a valid hexadecimal string')
 
 
+def check_keccak256_hash(hex_str: str) -> HexBytes:
+    """
+    Hexadecimal
+    :param hex_str:
+    :return:
+    """
+    hex_str_bytes = check_hex_str(hex_str)
+    if len(hex_str_bytes) != 32:
+        raise argparse.ArgumentTypeError(f'{hex_str} is not a valid keccak256 hash hexadecimal string')
+    return hex_str_bytes
+
+
 def to_checksummed_ethereum_address(address: str) -> str:
     try:
         return Web3.toChecksumAddress(address)
@@ -56,6 +68,8 @@ def safe_exception(function):
         except BaseAPIException as e:
             if e.args:
                 print_formatted_text(HTML(f'<b><ansired>{e.args[0]}</ansired></b>'))
+        except AccountNotLoadedException as e:
+            print_formatted_text(HTML(f'<ansired>Account {e.args[0]} is not loaded</ansired>'))
         except NotEnoughSignatures as e:
             print_formatted_text(HTML(f'<ansired>Cannot find enough owners to sign. {e.args[0]} missing</ansired>'))
         except SenderRequiredException:
@@ -66,6 +80,10 @@ def safe_exception(function):
         except NonExistingOwnerException as e:
             print_formatted_text(HTML(f'<ansired>Owner {e.args[0]} is not an owner of the Safe'
                                       f'</ansired>'))
+        except HashAlreadyApproved as e:
+            print_formatted_text(HTML(
+                f'<ansired>Transaction with safe-tx-hash {e.args[0].hex()} has already been approved by '
+                f'owner {e.args[1]}</ansired>'))
         except ThresholdLimitException:
             print_formatted_text(HTML(f'<ansired>Having less owners than threshold is not allowed'
                                       f'</ansired>'))
@@ -131,6 +149,10 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     @safe_exception
     def unload_cli_owners(args):
         safe_operator.unload_cli_owners(args.addresses)
+
+    @safe_exception
+    def approve_hash(args):
+        safe_operator.approve_hash(args.hash_to_approve, args.sender)
 
     @safe_exception
     def add_owner(args):
@@ -235,6 +257,12 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_change_threshold = subparsers.add_parser('change_threshold')
     parser_change_threshold.add_argument('threshold', type=int)
     parser_change_threshold.set_defaults(func=change_threshold)
+
+    # Approve hash
+    parser_approve_hash = subparsers.add_parser('approve_hash')
+    parser_approve_hash.add_argument('hash_to_approve', type=check_keccak256_hash)
+    parser_approve_hash.add_argument('sender', type=check_ethereum_address)
+    parser_approve_hash.set_defaults(func=approve_hash)
 
     # Add owner
     parser_add_owner = subparsers.add_parser('add_owner')

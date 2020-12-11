@@ -11,7 +11,7 @@ class SafeLexer(BashLexer):
     ADDRESS = r'^0x[aA-zZ,0-9]{40}$|^0x[aA-zZ,0-9]{62}$'
     EXTRA_KEYWORDS = {'refresh', 'get_nonce', 'get_owners', 'get_threshold', 'show_cli_owners',
                       'load_cli_owners_from_words', 'load_cli_owners', 'unload_cli_owners',
-                      'add_owner', 'change_threshold', 'remove_owner', 'change_master_copy',
+                      'approve_hash', 'add_owner', 'change_threshold', 'remove_owner', 'change_master_copy',
                       'send_ether', 'send_erc20', 'send_erc721'}
 
     def get_tokens_unprocessed(self, text: str) -> (int, Token, str):
