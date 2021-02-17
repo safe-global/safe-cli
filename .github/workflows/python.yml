@@ -33,7 +33,7 @@ jobs:
         PIP_USE_MIRRORS: true
     - name: Run tests and coverage
       run: |
-        flake8
+        pipenv run flake8
         pipenv run pytest -rxXs
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Required for coveralls
