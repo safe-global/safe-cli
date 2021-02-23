@@ -16,25 +16,31 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    - name: Install pipenv
+    - name: Create virtualenv
       run: |
-        python -m pip install --upgrade pipenv wheel
+        python -m venv venv
     - uses: actions/cache@v2
       id: cache-pip
       with:
-        path: ~/.local/share/virtualenvs
+        path: ./venv
         key: ${{ matrix.python-version }}-${{ hashFiles('requirements-test.txt') }}-${{ hashFiles('requirements.txt') }}
     - name: Install dependencies
       if: steps.cache-pip.outputs.cache-hit != 'true'
       run: |
-        pipenv install -r requirements-test.txt
-        pipenv install coveralls
+        source venv/bin/activate
+        pip install -r requirements-test.txt coveralls
       env:
         PIP_USE_MIRRORS: true
     - name: Run tests and coverage
       run: |
-        pipenv run flake8
-        pipenv run pytest -rxXs
+        source venv/bin/activate
+        flake8
+        pytest -rxXs
+    - name: Send results to coveralls
+      if: ${{ env.COVERALLS_REPO_TOKEN }}
+      run: |
+        source venv/bin/activate
+        coveralls
       env:
+        COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_REPO_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Required for coveralls
-        PIPENV_DONT_LOAD_ENV: 1  # By default pipenv loads .env file
