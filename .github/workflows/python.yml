@@ -28,7 +28,7 @@ jobs:
       if: steps.cache-pip.outputs.cache-hit != 'true'
       run: |
         source venv/bin/activate
-        pip install -r requirements-test.txt coveralls
+        pip install -r requirements-test.txt coveralls wheel
       env:
         PIP_USE_MIRRORS: true
     - name: Run tests and coverage
@@ -36,6 +36,9 @@ jobs:
         source venv/bin/activate
         flake8
         pytest -rxXs
+        coverage run --source=$SOURCE_FOLDER -m py.test -rxXs
+      env:
+        SOURCE_FOLDER: safe_cli
     - name: Send results to coveralls
       if: ${{ env.COVERALLS_REPO_TOKEN }}
       run: |
