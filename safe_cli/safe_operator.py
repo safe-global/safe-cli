@@ -3,7 +3,6 @@ import os
 from enum import Enum
 from typing import Any, Dict, List, NoReturn, Optional, Set
 
-from cached_property import cached_property
 from colorama import Fore, Style
 from ens import ENS
 from eth_account import Account
@@ -31,6 +30,11 @@ from safe_cli.ethereum_hd_wallet import get_account_from_words
 from safe_cli.safe_addresses import (LAST_DEFAULT_CALLBACK_HANDLER,
                                      LAST_MULTISEND_CONTRACT,
                                      LAST_SAFE_CONTRACT)
+
+try:
+    from functools import cached_property
+except ImportError:
+    from cached_property import cached_property
 
 
 class TransactionDestination(Enum):

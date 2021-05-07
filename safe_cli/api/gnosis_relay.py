@@ -2,13 +2,17 @@ from urllib.parse import urljoin
 
 import requests
 from eth_typing import ChecksumAddress, HexStr
-from typing_extensions import TypedDict
 
 from gnosis.eth.ethereum_client import EthereumNetwork
 from gnosis.safe import SafeTx
 from gnosis.safe.signatures import signature_split
 
 from .base_api import BaseAPI
+
+try:
+    from typing import TypedDict
+except ImportError:
+    from typing_extensions import TypedDict
 
 
 class RelayEstimation(TypedDict):
