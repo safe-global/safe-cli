@@ -8,6 +8,9 @@ import pyfiglet
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
 from eth_typing import URI
+from gnosis.eth.constants import NULL_ADDRESS
+from gnosis.eth.contracts import get_safe_V1_3_0_contract
+from hexbytes import HexBytes
 from prompt_toolkit import print_formatted_text
 
 from gnosis.eth import EthereumClient
@@ -55,6 +58,10 @@ parser.add_argument('--callback-handler',
                     help='Use a custom fallback handler. It is not required for Safe Master Copies '
                          'with version < 1.1.0',
                     default=LAST_DEFAULT_CALLBACK_HANDLER, type=check_ethereum_address)
+parser.add_argument('--salt-nonce',
+                    help='Use a custom nonce. By default nonce=4815 is used, so every Safe proxy with same '
+                         'configuration (owners, threshold...) will be deployed to the same address in every network',
+                    default=4815, type=int)
 
 if __name__ == '__main__':
     print_formatted_text(pyfiglet.figlet_format('Gnosis Safe Creator'))  # Print fancy text
@@ -63,6 +70,7 @@ if __name__ == '__main__':
     account: LocalAccount = Account.from_key(args.private_key)
     owners: List[str] = list(set(args.owners)) if args.owners else [account.address]
     threshold: int = args.threshold
+    salt_nonce: int = args.salt_nonce
     if len(owners) < threshold:
         print_formatted_text('Threshold cannot be bigger than the number of unique owners')
         sys.exit(1)
@@ -88,14 +96,17 @@ if __name__ == '__main__':
     salt_nonce = secrets.SystemRandom().randint(0, 2**256 - 1)  # TODO Add support for CPK
     print_formatted_text(f'Creating new Safe with owners={owners} threshold={threshold} and sat-nonce={salt_nonce}')
     gas_price = 0
-    safe_creation_tx = Safe.build_safe_create2_tx(ethereum_client, safe_contract_address,
-                                                  proxy_factory_address, salt_nonce, owners, threshold, gas_price,
-                                                  fallback_handler=callback_handler_address,
-                                                  payment_token=None)
+    safe_master_copy_contract = get_safe_V1_3_0_contract(ethereum_client.w3, safe_contract_address)
+    safe_creation_tx_data = HexBytes(
+        safe_master_copy_contract.functions.setup(owners, threshold, NULL_ADDRESS, b'',
+                                                  callback_handler_address,
+                                                  NULL_ADDRESS, 0, NULL_ADDRESS
+                                                  ).buildTransaction({'gas': 1, 'gasPrice': 1})['data']
+    )
     proxy_factory = ProxyFactory(proxy_factory_address, ethereum_client)
     ethereum_tx_sent = proxy_factory.deploy_proxy_contract_with_nonce(account,
                                                                       safe_contract_address,
-                                                                      safe_creation_tx.safe_setup_data,
-                                                                      safe_creation_tx.salt_nonce)
+                                                                      safe_creation_tx_data,
+                                                                      salt_nonce)
     print_formatted_text(f'Tx with tx-hash={ethereum_tx_sent.tx_hash.hex()} '
                          f'will create safe={ethereum_tx_sent.contract_address}')

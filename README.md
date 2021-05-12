@@ -93,7 +93,7 @@ Use `safe_creator.py <node_url> <private_key> --owners <checksummed_address_1> <
 
 Example:
 ```
-python safe_creator.py https://rinkeby.infura.io/v3/token $PRIVATE_KEY --owners 0x848EF06Bb9d1bc79Bb3B04b7Ea0e251C6E788d7c --threshold 1
+python safe_creator.py "https://rinkeby.infura.io/v3/$INFURA_TOKEN" $PRIVATE_KEY --owners 0x848EF06Bb9d1bc79Bb3B04b7Ea0e251C6E788d7c --threshold 1
 ```
 
 ## Demo
