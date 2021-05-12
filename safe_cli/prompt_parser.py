@@ -156,11 +156,11 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
 
     @safe_exception
     def add_owner(args):
-        safe_operator.add_owner(args.address)
+        safe_operator.add_owner(args.address, threshold=args.threshold)
 
     @safe_exception
     def remove_owner(args):
-        safe_operator.remove_owner(args.address)
+        safe_operator.remove_owner(args.address, threshold=args.threshold)
 
     @safe_exception
     def change_fallback_handler(args):
@@ -267,11 +267,13 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     # Add owner
     parser_add_owner = subparsers.add_parser('add_owner')
     parser_add_owner.add_argument('address', type=check_ethereum_address)
+    parser_add_owner.add_argument('--threshold', type=int, default=None)
     parser_add_owner.set_defaults(func=add_owner)
 
     # Remove owner
     parser_remove_owner = subparsers.add_parser('remove_owner')
     parser_remove_owner.add_argument('address', type=check_ethereum_address)
+    parser_remove_owner.add_argument('--threshold', type=int, default=None)
     parser_remove_owner.set_defaults(func=remove_owner)
 
     # Change FallbackHandler

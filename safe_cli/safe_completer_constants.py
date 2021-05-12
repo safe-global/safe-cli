@@ -5,7 +5,7 @@ SAFE_EMPTY_ARGUMENT_COLOR = 'ansimagenta'
 
 
 safe_commands_arguments = {
-    'add_owner': '<address>',
+    'add_owner': '<address> [--threshold <int>]',
     'approve_hash': '<keccak-hexstr-hash> <address>',
     'balances': '(read-only)',
     'change_fallback_handler': '<address>',
@@ -22,7 +22,7 @@ safe_commands_arguments = {
     'load_cli_owners_from_words': '<word_1> <word_2> ... <word_12>',
     'update': '',
     'refresh': '',
-    'remove_owner': '<address>',
+    'remove_owner': '<address> [--threshold <int>]',
     'send_erc20': '<address> <token-address> <value-wei> [--safe-nonce <int>] [--tx-service] [--relay-service]',
     'send_erc721': '<address> <token-address> <token-id> [--safe-nonce <int>] [--tx-service] [--relay-service]',
     'send_custom': '<address> <value-wei> <data> [--delegate] [--safe-nonce <int>] [--tx-service] [--relay-service]',

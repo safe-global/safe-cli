@@ -323,12 +323,12 @@ class SafeOperator:
                     print_formatted_text(HTML(f'<ansired>Tx with tx-hash {tx_hash.hex()} still not mined</ansired>'))
                     return False
 
-    def add_owner(self, new_owner: str) -> bool:
+    def add_owner(self, new_owner: str, threshold: Optional[int] = None) -> bool:
+        threshold = threshold if threshold is not None else self.safe_cli_info.threshold
         if new_owner in self.safe_cli_info.owners:
             raise ExistingOwnerException(new_owner)
         else:
             # TODO Allow to set threshold
-            threshold = self.safe_cli_info.threshold
             transaction = self.safe_contract.functions.addOwnerWithThreshold(
                 new_owner, threshold
             ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
@@ -338,15 +338,15 @@ class SafeOperator:
                 return True
             return False
 
-    def remove_owner(self, owner_to_remove: str):
+    def remove_owner(self, owner_to_remove: str, threshold: Optional[int] = None):
+        threshold = threshold if threshold is not None else self.safe_cli_info.threshold
         if owner_to_remove not in self.safe_cli_info.owners:
             raise NonExistingOwnerException(owner_to_remove)
-        elif len(self.safe_cli_info.owners) == self.safe_cli_info.threshold:
+        elif len(self.safe_cli_info.owners) == threshold:
             raise ThresholdLimitException()
         else:
             index_owner = self.safe_cli_info.owners.index(owner_to_remove)
             prev_owner = self.safe_cli_info.owners[index_owner - 1] if index_owner else SENTINEL_ADDRESS
-            threshold = self.safe_cli_info.threshold
             transaction = self.safe_contract.functions.removeOwner(
                 prev_owner, owner_to_remove, threshold
             ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
