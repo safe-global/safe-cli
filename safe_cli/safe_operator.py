@@ -577,6 +577,7 @@ class SafeOperator:
         safe_tx.gas_price = estimation['gasPrice']
         safe_tx.safe_nonce = estimation['lastUsedNonce'] + 1
         safe_tx.refund_receiver = estimation['refundReceiver']
+        safe_tx.gas_token = gas_token
         self.sign_transaction(safe_tx)
         transaction_data = self.safe_relay_service.send_transaction(self.address, safe_tx)
         tx_hash = transaction_data['txHash']
