@@ -97,6 +97,10 @@ class SafeAlreadyUpdatedException(SafeOperatorException):
     pass
 
 
+class UpdateAddressesNotValid(SafeOperatorException):
+    pass
+
+
 class SenderRequiredException(SafeOperatorException):
     pass
 
@@ -426,6 +430,11 @@ class SafeOperator:
         """
         if self.is_version_updated():
             raise SafeAlreadyUpdatedException()
+
+        addresses = (LAST_SAFE_CONTRACT, LAST_DEFAULT_CALLBACK_HANDLER)
+        if not all(self.ethereum_client.is_contract(contract)
+                   for contract in addresses):
+            raise UpdateAddressesNotValid('Not valid addresses to update Safe', *addresses)
 
         multisend = MultiSend(LAST_MULTISEND_CONTRACT, self.ethereum_client)
         tx_params = {'from': self.address, 'gas': 0, 'gasPrice': 0}
