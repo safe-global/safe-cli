@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: sunday
+    reviewers:
+      - "uxio0"
+
+  - package-ecosystem: docker
+    directory: "/docker/web"
+    schedule:
+      interval: weekly
+      day: sunday
+    reviewers:
+      - "uxio0"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: sunday
+    reviewers:
+      - "uxio0"
