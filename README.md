@@ -88,8 +88,8 @@ the information about the Safe using:
 > refresh
 ```
 
-## Creating a new Safe (WIP)
-Use `safe_creator.py <node_url> <private_key> --owners <checksummed_address_1> <checksummed_address_2> --threshold <positive-int>`.
+## Creating a new Safe
+Use `safe_creator.py <node_url> <private_key> --owners <checksummed_address_1> <checksummed_address_2> --threshold <uint> --salt-nonce <uint256>`.
 
 Example:
 ```
@@ -112,7 +112,10 @@ configured by default. If you want to use your own you can edit the file `safe_c
 Be careful when modifying these addresses, the funds in a Safe can get stuck if an invalid address it's used when updating
 to an invalid Safe Master Copy.
 
-Contributors
-------------
+## Safe contracts
+- [Safe contracts](https://github.com/gnosis/safe-contracts)
+- [Safe contracts deployment info and addreses](https://github.com/gnosis/safe-deployments/tree/main/src/assets)
+
+## Contributors
 - [Pedro Arias Ruiz](https://github.com/AsiganTheSunk)
 - [Uxío Fuentefría](https://github.com/uxio0) (uxio@gnosis.pm)
