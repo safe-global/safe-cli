@@ -212,7 +212,7 @@ class SafeOperator:
         if not self.safe_tx_service:
             print_formatted_text(HTML(f'<ansired>No tx service available for '
                                       f'network={self.network.name}</ansired>'))
-            if self.etherscan.base_url:
+            if self.etherscan:
                 url = f'{self.etherscan.base_url}/address/{self.address}'
                 print_formatted_text(HTML(f'<b>Try Etherscan instead</b> {url}'))
         else:
@@ -508,7 +508,7 @@ class SafeOperator:
             print_formatted_text(HTML(f'<b><ansigreen>Safe Relay Service</ansigreen></b>='
                                       f'<ansiblue>{url}</ansiblue>'))
 
-        if self.etherscan.base_url:
+        if self.etherscan:
             url = f'{self.etherscan.base_url}/address/{self.address}'
             print_formatted_text(HTML(f'<b><ansigreen>Etherscan</ansigreen></b>='
                                       f'<ansiblue>{url}</ansiblue>'))
