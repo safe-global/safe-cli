@@ -10,7 +10,7 @@ jobs:
     steps:
     - name: Setup and run ganache
       run: |
-        docker run --detach --publish 8545:8545 --network-alias ganache -e DOCKER=true trufflesuite/ganache-cli:latest --defaultBalanceEther 10000 --gasLimit 10000000 -a 30 --noVMErrorsOnRPCResponse -d
+        docker run --detach --publish 8545:8545 --network-alias ganache -e DOCKER=true trufflesuite/ganache-cli:latest --defaultBalanceEther 10000 --gasLimit 10000000 -a 30 --noVMErrorsOnRPCResponse --chainId 1337 --networkId 1337 -d
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
