@@ -1,15 +1,18 @@
 import os
 import unittest
+from unittest import mock
 
 from eth_account import Account
 from web3 import Web3
 
+from gnosis.eth import EthereumClient
 from gnosis.safe import Safe
 
 from safe_cli.safe_operator import (AccountNotLoadedException,
                                     ExistingOwnerException,
                                     FallbackHandlerNotSupportedException,
                                     HashAlreadyApproved,
+                                    InvalidFallbackHandlerException,
                                     InvalidMasterCopyException,
                                     NonExistingOwnerException,
                                     NotEnoughEtherToSend, NotEnoughSignatures,
@@ -117,7 +120,11 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             safe_operator.change_fallback_handler(current_fallback_handler)
 
         new_fallback_handler = Account.create().address
-        self.assertTrue(safe_operator.change_fallback_handler(new_fallback_handler))
+        with self.assertRaises(InvalidFallbackHandlerException):  # Contract does not exist
+            self.assertTrue(safe_operator.change_fallback_handler(new_fallback_handler))
+
+        with mock.patch.object(EthereumClient, 'is_contract', autospec=True, return_value=True):
+            self.assertTrue(safe_operator.change_fallback_handler(new_fallback_handler))
         self.assertEqual(safe_operator.safe_cli_info.fallback_handler, new_fallback_handler)
         self.assertEqual(safe.retrieve_fallback_handler(), new_fallback_handler)
 
