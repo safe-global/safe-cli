@@ -18,7 +18,7 @@ from web3.exceptions import BadFunctionCallOutput
 from gnosis.eth import EthereumClient
 from gnosis.eth.constants import NULL_ADDRESS, SENTINEL_ADDRESS
 from gnosis.eth.contracts import (get_erc20_contract, get_erc721_contract,
-                                  get_safe_contract)
+                                  get_safe_contract, get_safe_V1_3_0_contract)
 from gnosis.eth.ethereum_client import EthereumNetwork
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
@@ -52,6 +52,7 @@ class SafeCliInfo:
     master_copy: str
     modules: List[str]
     fallback_handler: str
+    guard: str
     balance_ether: int
     version: str
 
@@ -90,6 +91,18 @@ class InvalidFallbackHandlerException(SafeOperatorException):
 
 
 class FallbackHandlerNotSupportedException(SafeOperatorException):
+    pass
+
+
+class SameGuardException(SafeOperatorException):
+    pass
+
+
+class InvalidGuardException(SafeOperatorException):
+    pass
+
+
+class GuardNotSupportedException(SafeOperatorException):
     pass
 
 
@@ -144,7 +157,8 @@ class SafeOperator:
         self.safe_tx_service = TransactionService.from_network_number(self.network.value)
         self.safe_relay_service = RelayService.from_network_number(self.network.value)
         self.safe = Safe(address, self.ethereum_client)
-        self.safe_contract = get_safe_contract(self.ethereum_client.w3, address=self.address)
+        self.safe_contract = get_safe_V1_3_0_contract(self.ethereum_client.w3, address=self.address)
+        self.safe_contract_1_1_0 = get_safe_contract(self.ethereum_client.w3, address=self.address)
         self.accounts: Set[LocalAccount] = set()
         self.default_sender: Optional[LocalAccount] = None
         self.executed_transactions: List[str] = []
@@ -402,12 +416,27 @@ class SafeOperator:
         elif new_fallback_handler != NULL_ADDRESS and not self.ethereum_client.is_contract(new_fallback_handler):
             raise InvalidFallbackHandlerException(f'{new_fallback_handler} address is not a contract')
         else:
-            # TODO Check that fallback handler is valid
             transaction = self.safe_contract.functions.setFallbackHandler(
                 new_fallback_handler
             ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
             if self.execute_safe_internal_transaction(transaction['data']):
                 self.safe_cli_info.fallback_handler = new_fallback_handler
+                self.safe_cli_info.version = self.safe.retrieve_version()
+                return True
+
+    def change_guard(self, guard: str) -> bool:
+        if guard == self.safe_cli_info.guard:
+            raise SameGuardException(guard)
+        elif semantic_version.parse(self.safe_cli_info.version) < semantic_version.parse('1.3.0'):
+            raise GuardNotSupportedException()
+        elif guard != NULL_ADDRESS and not self.ethereum_client.is_contract(guard):
+            raise InvalidGuardException(f'{guard} address is not a contract')
+        else:
+            transaction = self.safe_contract.functions.setGuard(
+                guard
+            ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
+            if self.execute_safe_internal_transaction(transaction['data']):
+                self.safe_cli_info.guard = guard
                 self.safe_cli_info.version = self.safe.retrieve_version()
                 return True
 
@@ -421,7 +450,7 @@ class SafeOperator:
             except BadFunctionCallOutput:
                 raise InvalidMasterCopyException(new_master_copy)
 
-            transaction = self.safe_contract.functions.changeMasterCopy(
+            transaction = self.safe_contract_1_1_0.functions.changeMasterCopy(
                 new_master_copy
             ).buildTransaction({'from': self.address, 'gas': 0, 'gasPrice': 0})
             if self.execute_safe_internal_transaction(transaction['data']):
@@ -529,7 +558,7 @@ class SafeOperator:
         safe_info = safe.retrieve_all_info()
         return SafeCliInfo(self.address, safe_info.nonce, safe_info.threshold,
                            safe_info.owners, safe_info.master_copy, safe_info.modules, safe_info.fallback_handler,
-                           balance_ether, safe_info.version)
+                           safe_info.guard, balance_ether, safe_info.version)
 
     def get_threshold(self):
         print_formatted_text(self.safe.retrieve_threshold())

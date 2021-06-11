@@ -72,8 +72,11 @@ Send ERC20 token from the Gnosis Safe to another account
 - `change_threshold <integer>`: Changes the `threshold` of the Safe.
 - `enable_module <address>`: Enable module `address`
 - `disable_module <address>`: Disable module `address`
-- `change_fallback_handler <address>`: Updates the fallback handler to be `address`. Supported by Safes with `version >= v1.1.0`
-- `change_master_copy <address>`: Updates the master copy to be `address`. It's used to update the Safe.  **WARNING: DON'T USE
+- `change_fallback_handler <address>`: Updates the fallback handler to be `address`. Supported by Safes with `version >= v1.1.0`. **WARNING: DON'T USE
+THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
+- `change_guard <address>`: Updates the guard to be `address`. Supported by Safes with `version >= v1.3.0`. **WARNING: DON'T USE
+THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
+- `change_master_copy <address>`: Updates the master copy to be `address`. It's used to update the Safe. **WARNING: DON'T USE
 THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 - `update`: Updates the Safe to the latest version (if you are on a known network like `Rinkeby` or `Mainnet`).
 **WARNING: DON'T USE THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**

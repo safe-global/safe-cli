@@ -9,6 +9,7 @@ safe_commands_arguments = {
     'approve_hash': '<keccak-hexstr-hash> <address>',
     'balances': '(read-only)',
     'change_fallback_handler': '<address>',
+    'change_guard': '<address>',
     'change_master_copy': '<address>',
     'change_threshold': '<address>',
     'disable_module': '<address>',
@@ -94,5 +95,9 @@ meta = {
                                     'fallbackHandler for Safes with version >= 1.1.0 '
                                     '<b>[DO NOT CALL THIS FUNCTION, UNLESS YOU KNOW WHAT YOU ARE DOING. '
                                     'ALL YOUR FUNDS COULD BE LOST]</b>.'),
+    'change_guard': HTML('Command <b>change_guard</b> will change the current '
+                         'guard for Safes with version >= 1.3.0 '
+                         '<b>[DO NOT CALL THIS FUNCTION, UNLESS YOU KNOW WHAT YOU ARE DOING. '
+                         'ALL YOUR FUNDS COULD BE LOST]</b>.'),
     'update': HTML('Command <b>update</b> will upgrade the Safe master copy to the latest version'),
 }

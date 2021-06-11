@@ -167,6 +167,10 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
         safe_operator.change_fallback_handler(args.address)
 
     @safe_exception
+    def change_guard(args):
+        safe_operator.change_guard(args.address)
+
+    @safe_exception
     def change_master_copy(args):
         safe_operator.change_master_copy(args.address)
 
@@ -280,6 +284,11 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_change_master_copy = subparsers.add_parser('change_fallback_handler')
     parser_change_master_copy.add_argument('address', type=check_ethereum_address)
     parser_change_master_copy.set_defaults(func=change_fallback_handler)
+
+    # Change FallbackHandler
+    parser_change_master_copy = subparsers.add_parser('change_guard')
+    parser_change_master_copy.add_argument('address', type=check_ethereum_address)
+    parser_change_master_copy.set_defaults(func=change_guard)
 
     # Change MasterCopy
     parser_change_master_copy = subparsers.add_parser('change_master_copy')

@@ -11,12 +11,15 @@ from gnosis.safe import Safe
 from safe_cli.safe_operator import (AccountNotLoadedException,
                                     ExistingOwnerException,
                                     FallbackHandlerNotSupportedException,
+                                    GuardNotSupportedException,
                                     HashAlreadyApproved,
                                     InvalidFallbackHandlerException,
+                                    InvalidGuardException,
                                     InvalidMasterCopyException,
                                     NonExistingOwnerException,
                                     NotEnoughEtherToSend, NotEnoughSignatures,
                                     SafeOperator, SameFallbackHandlerException,
+                                    SameGuardException,
                                     SameMasterCopyException,
                                     SenderRequiredException)
 
@@ -131,6 +134,26 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         safe_operator.change_master_copy(self.safe_old_contract_address)
         with self.assertRaises(FallbackHandlerNotSupportedException):
             safe_operator.change_fallback_handler(Account.create().address)
+
+    def test_change_guard(self):
+        safe_operator = self.setup_operator(version='1.1.1')
+        with self.assertRaises(GuardNotSupportedException):
+            safe_operator.change_guard(Account.create().address)
+
+        safe_operator = self.setup_operator(version='1.3.0')
+        safe = Safe(safe_operator.address, self.ethereum_client)
+        current_guard = safe.retrieve_guard()
+        with self.assertRaises(SameGuardException):
+            safe_operator.change_guard(current_guard)
+
+        new_guard = Account.create().address
+        with self.assertRaises(InvalidGuardException):  # Contract does not exist
+            self.assertTrue(safe_operator.change_guard(new_guard))
+
+        with mock.patch.object(EthereumClient, 'is_contract', autospec=True, return_value=True):
+            self.assertTrue(safe_operator.change_guard(new_guard))
+        self.assertEqual(safe_operator.safe_cli_info.guard, new_guard)
+        self.assertEqual(safe.retrieve_guard(), new_guard)
 
     def test_change_master_copy(self):
         safe_operator = self.setup_operator()
