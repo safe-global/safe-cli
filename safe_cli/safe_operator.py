@@ -154,8 +154,8 @@ class SafeOperator:
         self.ens = ENS.fromWeb3(self.ethereum_client.w3)
         self.network: EthereumNetwork = self.ethereum_client.get_network()
         self.etherscan = Etherscan.from_network_number(self.network.value)
-        self.safe_tx_service = TransactionService.from_network_number(self.network.value)
         self.safe_relay_service = RelayService.from_network_number(self.network.value)
+        self.safe_tx_service = TransactionService.from_network_number(self.network.value)
         self.safe = Safe(address, self.ethereum_client)
         self.safe_contract = get_safe_V1_3_0_contract(self.ethereum_client.w3, address=self.address)
         self.safe_contract_1_1_0 = get_safe_contract(self.ethereum_client.w3, address=self.address)
@@ -379,19 +379,13 @@ class SafeOperator:
             return False
 
     def send_custom(self, to: str, value: int, data: bytes, safe_nonce: Optional[int] = None,
-                    delegate_call: bool = False,
-                    destination: TransactionDestination = TransactionDestination.BLOCKCHAIN) -> bool:
+                    delegate_call: bool = False) -> bool:
         if value > 0:
             safe_balance = self.ethereum_client.get_balance(self.address)
             if safe_balance < value:
                 raise NotEnoughEtherToSend(safe_balance)
         operation = SafeOperation.DELEGATE_CALL if delegate_call else SafeOperation.CALL
-        if destination == TransactionDestination.BLOCKCHAIN:
-            return self.execute_safe_transaction(to, value, data, operation, safe_nonce=safe_nonce)
-        elif destination == TransactionDestination.TRANSACTION_SERVICE:
-            return self.post_transaction_to_tx_service(to, value, data, operation, safe_nonce=safe_nonce)
-        elif destination == TransactionDestination.RELAY_SERVICE:
-            return self.post_transaction_to_relay_service(to, value, data, operation)
+        return self.execute_safe_transaction(to, value, data, operation, safe_nonce=safe_nonce)
 
     def send_ether(self, to: str, value: int, **kwargs) -> bool:
         return self.send_custom(to, value, b'', **kwargs)
@@ -596,37 +590,6 @@ class SafeOperator:
         except InvalidInternalTx as invalid_internal_tx:
             print_formatted_text(HTML(f'Result: <ansired>InvalidTx - {invalid_internal_tx}</ansired>'))
             return False
-
-    def post_transaction_to_tx_service(self, to: str, value: int, data: bytes,
-                                       operation: SafeOperation = SafeOperation.CALL,
-                                       safe_nonce: Optional[int] = None):
-        if not self.safe_tx_service:
-            raise ServiceNotAvailable(self.network.name)
-
-        safe_tx = self.safe.build_multisig_tx(to, value, data, operation=operation.value, safe_nonce=safe_nonce)
-        for account in self.accounts:
-            safe_tx.sign(account.key)  # Raises exception if it cannot be signed
-        self.safe_tx_service.post_transaction(self.address, safe_tx)
-
-    def post_transaction_to_relay_service(self, to: str, value: int, data: bytes,
-                                          operation: SafeOperation = SafeOperation.CALL,
-                                          gas_token: Optional[str] = None):
-        if not self.safe_relay_service:
-            raise ServiceNotAvailable(self.network.name)
-
-        safe_tx = self.safe.build_multisig_tx(to, value, data, operation=operation.value, gas_token=gas_token)
-        estimation = self.safe_relay_service.get_estimation(self.address, safe_tx)
-        safe_tx.base_gas = estimation['baseGas']
-        safe_tx.safe_tx_gas = estimation['safeTxGas']
-        safe_tx.gas_price = estimation['gasPrice']
-        safe_tx.safe_nonce = estimation['lastUsedNonce'] + 1
-        safe_tx.refund_receiver = estimation['refundReceiver']
-        safe_tx.gas_token = gas_token
-        self.sign_transaction(safe_tx)
-        transaction_data = self.safe_relay_service.send_transaction(self.address, safe_tx)
-        tx_hash = transaction_data['txHash']
-        print_formatted_text(HTML(f'<ansigreen>Gnosis Safe Relay has queued transaction with '
-                                  f'transaction-hash <b>{tx_hash}</b></ansigreen>'))
 
     # TODO Set sender so we can save gas in that signature
     def sign_transaction(self, safe_tx: SafeTx) -> NoReturn:
