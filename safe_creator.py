@@ -20,18 +20,7 @@ from safe_cli.prompt_parser import check_ethereum_address
 from safe_cli.safe_addresses import (LAST_DEFAULT_CALLBACK_HANDLER,
                                      LAST_PROXY_FACTORY_CONTRACT,
                                      LAST_SAFE_CONTRACT)
-
-
-def yes_or_no_question(question: str, default_no: bool = True) -> bool:
-    choices = ' [y/N]: ' if default_no else ' [Y/n]: '
-    default_answer = 'n' if default_no else 'y'
-    reply = str(input(question + choices)).lower().strip() or default_answer
-    if reply[0] == 'y':
-        return True
-    if reply[0] == 'n':
-        return False
-    else:
-        return False if default_no else True
+from safe_cli.utils import yes_or_no_question
 
 
 def positive_integer(number: str) -> int:

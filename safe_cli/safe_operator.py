@@ -1,6 +1,5 @@
 import dataclasses
 import os
-from enum import Enum
 from typing import Any, Dict, List, NoReturn, Optional, Set
 
 from colorama import Fore, Style
@@ -30,17 +29,12 @@ from safe_cli.ethereum_hd_wallet import get_account_from_words
 from safe_cli.safe_addresses import (LAST_DEFAULT_CALLBACK_HANDLER,
                                      LAST_MULTISEND_CONTRACT,
                                      LAST_SAFE_CONTRACT)
+from safe_cli.utils import yes_or_no_question
 
 try:
     from functools import cached_property
 except ImportError:
     from cached_property import cached_property
-
-
-class TransactionDestination(Enum):
-    BLOCKCHAIN = 1
-    TRANSACTION_SERVICE = 2
-    RELAY_SERVICE = 3
 
 
 @dataclasses.dataclass
@@ -163,6 +157,7 @@ class SafeOperator:
         self.default_sender: Optional[LocalAccount] = None
         self.executed_transactions: List[str] = []
         self._safe_cli_info: Optional[SafeCliInfo] = None  # Cache for SafeCliInfo
+        self.require_all_signatures = True  # Require all signatures to be present to send a tx
 
     @cached_property
     def ens_domain(self) -> Optional[str]:
@@ -566,27 +561,32 @@ class SafeOperator:
     def execute_safe_internal_transaction(self, data: bytes) -> bool:
         return self.execute_safe_transaction(self.address, 0, data)
 
+    def prepare_safe_transaction(self, to: str, value: int, data: bytes,
+                                 operation: SafeOperation = SafeOperation.CALL,
+                                 safe_nonce: Optional[int] = None) -> SafeTx:
+        self._require_default_sender()  # Throws Exception if default sender not found
+        safe_tx = self.safe.build_multisig_tx(to, value, data, operation=operation.value, safe_nonce=safe_nonce)
+        self.sign_transaction(safe_tx)  # Raises exception if it cannot be signed
+        return safe_tx
+
     def execute_safe_transaction(self, to: str, value: int, data: bytes,
                                  operation: SafeOperation = SafeOperation.CALL,
                                  safe_nonce: Optional[int] = None) -> bool:
-        self._require_default_sender()  # Throws Exception if default sender not found
-        # TODO Test tx is successful
-        safe_tx = self.safe.build_multisig_tx(to, value, data, operation=operation.value, safe_nonce=safe_nonce)
-        self.sign_transaction(safe_tx)  # Raises exception if it cannot be signed
-
+        safe_tx = self.prepare_safe_transaction(to, value, data, operation, safe_nonce=safe_nonce)
         try:
             call_result = safe_tx.call(self.default_sender.address)
             print_formatted_text(HTML(f'Result: <ansigreen>{call_result}</ansigreen>'))
-            tx_hash, _ = safe_tx.execute(self.default_sender.key)
-            self.executed_transactions.append(tx_hash.hex())
-            print_formatted_text(HTML(f'<ansigreen>Sent tx with tx-hash {tx_hash.hex()} '
-                                      f'and safe-nonce {safe_tx.safe_nonce}, waiting for receipt</ansigreen>'))
-            if self.ethereum_client.get_transaction_receipt(tx_hash, timeout=120):
-                self.safe_cli_info.nonce += 1
-                return True
-            else:
-                print_formatted_text(HTML(f'<ansired>Tx with tx-hash {tx_hash.hex()} still not mined</ansired>'))
-                return False
+            if yes_or_no_question('Do you want to execute tx ' + str(safe_tx)):
+                tx_hash, _ = safe_tx.execute(self.default_sender.key)
+                self.executed_transactions.append(tx_hash.hex())
+                print_formatted_text(HTML(f'<ansigreen>Sent tx with tx-hash {tx_hash.hex()} '
+                                          f'and safe-nonce {safe_tx.safe_nonce}, waiting for receipt</ansigreen>'))
+                if self.ethereum_client.get_transaction_receipt(tx_hash, timeout=120):
+                    self.safe_cli_info.nonce += 1
+                    return True
+                else:
+                    print_formatted_text(HTML(f'<ansired>Tx with tx-hash {tx_hash.hex()} still not mined</ansired>'))
+                    return False
         except InvalidInternalTx as invalid_internal_tx:
             print_formatted_text(HTML(f'Result: <ansired>InvalidTx - {invalid_internal_tx}</ansired>'))
             return False
@@ -603,7 +603,7 @@ class SafeOperator:
                 if threshold == 0:
                     break
 
-        if threshold > 0:
+        if self.require_all_signatures and threshold > 0:
             raise NotEnoughSignatures(threshold)
 
         for selected_account in selected_accounts:

@@ -30,6 +30,9 @@ safe_commands_arguments = {
     'send_ether': '<address> <value-wei> [--safe-nonce <int>] [--tx-service] [--relay-service]',
     'show_cli_owners': '(read-only)',
     'unload_cli_owners': '<address> [<address>...]',
+    'blockchain': '',
+    'relay-service': '[<token-address>]',
+    'tx-service': '',
 }
 
 safe_commands = list(safe_commands_arguments.keys())
@@ -100,4 +103,11 @@ meta = {
                          '<b>[DO NOT CALL THIS FUNCTION, UNLESS YOU KNOW WHAT YOU ARE DOING. '
                          'ALL YOUR FUNDS COULD BE LOST]</b>.'),
     'update': HTML('Command <b>update</b> will upgrade the Safe master copy to the latest version'),
+    'blockchain': HTML('<b>blockchain</b> sets the default mode for tx service. Transactions will be '
+                       'sent to blockchain'),
+    'relay-service': HTML('<b>relay-service</b> enables relay-service integration. Transactions will be sent to the '
+                          'relay-service so fees will be deducted from the Safe instead of from the sender. '
+                          'A payment token can be provided to be used instead of Ether (stable coins, WETH and OWL'),
+    'tx-service': HTML('<b>tx-service</b> enables tx-service integration. Transactions will be sent to the tx-service '
+                       'instead of blockchain, so they will show up on the interface'),
 }

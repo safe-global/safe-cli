@@ -1,45 +1,49 @@
 from typing import Optional
 
+from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
 
-from gnosis.safe import SafeOperation
+from gnosis.safe import InvalidInternalTx, SafeOperation, SafeTx
 
-from safe_cli.api.gnosis_relay import RelayService
-
-from .safe_operator import (NotEnoughEtherToSend, SafeOperator,
-                            ServiceNotAvailable)
+from .safe_operator import SafeOperator, ServiceNotAvailable
+from .utils import yes_or_no_question
 
 
 class SafeRelayOperator(SafeOperator):
-    def __init__(self, address: str, node_url: str):
+    def __init__(self, address: str, node_url: str, gas_token: Optional[str] = None):
         super().__init__(address, node_url)
-        self.safe_relay_service = RelayService.from_network_number(self.network.value)
-
-    def send_custom(self, to: str, value: int, data: bytes, safe_nonce: Optional[int] = None,
-                    delegate_call: bool = False) -> bool:
-        if value > 0:
-            safe_balance = self.ethereum_client.get_balance(self.address)
-            if safe_balance < value:
-                raise NotEnoughEtherToSend(safe_balance)
-        operation = SafeOperation.DELEGATE_CALL if delegate_call else SafeOperation.CALL
-        return self.post_transaction_to_relay_service(to, value, data, operation)
-
-    def post_transaction_to_relay_service(self, to: str, value: int, data: bytes,
-                                          operation: SafeOperation = SafeOperation.CALL,
-                                          gas_token: Optional[str] = None):
+        self.gas_token = gas_token
         if not self.safe_relay_service:
-            raise ServiceNotAvailable(self.network.name)
+            raise ServiceNotAvailable(f'Cannot configure relay service for network {self.network.name}')
 
-        safe_tx = self.safe.build_multisig_tx(to, value, data, operation=operation.value, gas_token=gas_token)
+    def approve_hash(self, hash_to_approve: HexBytes, sender: str) -> bool:
+        raise NotImplementedError('Not supported when using relay')
+
+    def execute_safe_transaction(self, to: str, value: int, data: bytes,
+                                 operation: SafeOperation = SafeOperation.CALL,
+                                 safe_nonce: Optional[int] = None) -> bool:
+        safe_tx = self.prepare_safe_transaction(to, value, data, operation, safe_nonce=safe_nonce)
+        return self.post_transaction_to_relay_service(safe_tx)
+
+    def post_transaction_to_relay_service(self, safe_tx: SafeTx) -> bool:
+        safe_tx.gas_token = self.gas_token
         estimation = self.safe_relay_service.get_estimation(self.address, safe_tx)
         safe_tx.base_gas = estimation['baseGas']
         safe_tx.safe_tx_gas = estimation['safeTxGas']
         safe_tx.gas_price = estimation['gasPrice']
         safe_tx.safe_nonce = estimation['lastUsedNonce'] + 1
         safe_tx.refund_receiver = estimation['refundReceiver']
-        safe_tx.gas_token = gas_token
+        safe_tx.signatures = b''  # Sign transaction again
         self.sign_transaction(safe_tx)
-        transaction_data = self.safe_relay_service.send_transaction(self.address, safe_tx)
-        tx_hash = transaction_data['txHash']
-        print_formatted_text(HTML(f'<ansigreen>Gnosis Safe Relay has queued transaction with '
-                                  f'transaction-hash <b>{tx_hash}</b></ansigreen>'))
+        if yes_or_no_question('Do you want to execute tx ' + str(safe_tx)):
+            try:
+                call_result = safe_tx.call(self.default_sender.address)
+                print_formatted_text(HTML(f'Result: <ansigreen>{call_result}</ansigreen>'))
+                transaction_data = self.safe_relay_service.send_transaction(self.address, safe_tx)
+                tx_hash = transaction_data['txHash']
+                print_formatted_text(HTML(f'<ansigreen>Gnosis Safe Relay has queued transaction with '
+                                          f'transaction-hash <b>{tx_hash}</b></ansigreen>'))
+                return True
+            except InvalidInternalTx as invalid_internal_tx:
+                print_formatted_text(HTML(f'Result: <ansired>InvalidTx - {invalid_internal_tx}</ansired>'))
+        return False
