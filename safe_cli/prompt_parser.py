@@ -14,8 +14,7 @@ from .safe_operator import (AccountNotLoadedException, ExistingOwnerException,
                             SafeAlreadyUpdatedException, SafeOperator,
                             SameFallbackHandlerException,
                             SameMasterCopyException, SenderRequiredException,
-                            ServiceNotAvailable, ThresholdLimitException,
-                            TransactionDestination)
+                            ServiceNotAvailable, ThresholdLimitException)
 
 
 def check_ethereum_address(address: str) -> str:
@@ -108,21 +107,13 @@ def safe_exception(function):
 
 class PromptParser:
     def __init__(self, safe_operator: SafeOperator):
+        self.mode_parser = argparse.ArgumentParser(prog='')
         self.safe_operator = safe_operator
         self.prompt_parser = build_prompt_parser(safe_operator)
 
     def process_command(self, command: str):
         args = self.prompt_parser.parse_args(command.split())
         return args.func(args)
-
-
-def _parser_to_transaction_destination(args: argparse.Namespace) -> TransactionDestination:
-    if args.tx_service:
-        return TransactionDestination.TRANSACTION_SERVICE
-    elif args.relay_service:
-        return TransactionDestination.RELAY_SERVICE
-    else:
-        return TransactionDestination.BLOCKCHAIN
 
 
 def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
@@ -180,26 +171,20 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
 
     @safe_exception
     def send_custom(args):
-        destination = _parser_to_transaction_destination(args)
         safe_operator.send_custom(args.to, args.value, args.data,
-                                  safe_nonce=args.safe_nonce, delegate_call=args.delegate, destination=destination)
+                                  safe_nonce=args.safe_nonce, delegate_call=args.delegate)
 
     @safe_exception
     def send_ether(args):
-        destination = _parser_to_transaction_destination(args)
-        safe_operator.send_ether(args.to, args.value, safe_nonce=args.safe_nonce, destination=destination)
+        safe_operator.send_ether(args.to, args.value, safe_nonce=args.safe_nonce)
 
     @safe_exception
     def send_erc20(args):
-        destination = _parser_to_transaction_destination(args)
-        safe_operator.send_erc20(args.to, args.token_address, args.amount, safe_nonce=args.safe_nonce,
-                                 destination=destination)
+        safe_operator.send_erc20(args.to, args.token_address, args.amount, safe_nonce=args.safe_nonce)
 
     @safe_exception
     def send_erc721(args):
-        destination = _parser_to_transaction_destination(args)
-        safe_operator.send_erc721(args.to, args.token_address, args.token_id, safe_nonce=args.safe_nonce,
-                                  destination=destination)
+        safe_operator.send_erc721(args.to, args.token_address, args.token_id, safe_nonce=args.safe_nonce)
 
     @safe_exception
     def get_threshold(args):

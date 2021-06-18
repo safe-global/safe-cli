@@ -1,18 +1,22 @@
 import argparse
 import os
 import sys
+from typing import Optional
 
 import pyfiglet
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.lexers import PygmentsLexer
+from web3 import Web3
 
 from safe_cli.prompt_parser import (PromptParser,
                                     to_checksummed_ethereum_address)
 from safe_cli.safe_completer import SafeCompleter
 from safe_cli.safe_lexer import SafeLexer
-from safe_cli.safe_operator import SafeOperator
+from safe_cli.safe_operator import SafeOperator, ServiceNotAvailable
+from safe_cli.safe_relay_operator import SafeRelayOperator
+from safe_cli.safe_tx_service_operator import SafeTxServiceOperator
 
 parser = argparse.ArgumentParser()
 parser.add_argument('safe_address', help='Address of Safe to use', type=to_checksummed_ethereum_address)
@@ -41,11 +45,42 @@ class SafeCli:
         self.safe_operator.print_info()
 
     def get_prompt_text(self):
-        return HTML(f'<bold><ansiblue>{safe_address}</ansiblue><ansired> > </ansired></bold>')
+        if isinstance(self.prompt_parser.safe_operator, SafeRelayOperator):
+            return HTML(f'<bold><ansiblue>relay-service > {safe_address}</ansiblue><ansired> > </ansired></bold>')
+        elif isinstance(self.prompt_parser.safe_operator, SafeTxServiceOperator):
+            return HTML(f'<bold><ansiblue>tx-service > {safe_address}</ansiblue><ansired> > </ansired></bold>')
+        elif isinstance(self.prompt_parser.safe_operator, SafeOperator):
+            return HTML(f'<bold><ansiblue>blockchain > {safe_address}</ansiblue><ansired> > </ansired></bold>')
 
     def get_bottom_toolbar(self):
         return HTML(f'<b><style fg="ansiyellow">network={self.safe_operator.network.name} '
                     f'{self.safe_operator.safe_cli_info}</style></b>')
+
+    def parse_operator_mode(self, command: str) -> Optional[SafeOperator]:
+        """
+        Parse operator mode to switch between blockchain (default), relay-service, and tx-service
+        :param command:
+        :return: SafeOperator if detected
+        """
+        split_command = command.split()
+        try:
+            if (split_command[0]) == 'tx-service':
+                print_formatted_text(HTML('<b><ansigreen>Sending txs to tx service</ansigreen></b>'))
+                return SafeTxServiceOperator(safe_address, node_url)
+            elif split_command[0] == 'relay-service':
+                if len(split_command) == 2 and Web3.isChecksumAddress(split_command[1]):
+                    gas_token = split_command[1]
+                else:
+                    gas_token = None
+                print_formatted_text(HTML(
+                    f'<b><ansigreen>Sending txs trough relay service gas-token={gas_token}</ansigreen></b>'
+                ))
+                return SafeRelayOperator(safe_address, node_url, gas_token=gas_token)
+            elif split_command[0] == 'blockchain':
+                print_formatted_text(HTML('<b><ansigreen>Sending txs to blockchain</ansigreen></b>'))
+                return self.safe_operator
+        except ServiceNotAvailable:
+            print_formatted_text(HTML('<b><ansired>Mode not supported on this network</ansired></b>'))
 
     def loop(self):
         while True:
@@ -58,7 +93,10 @@ class SafeCli:
                 if not command.strip():
                     continue
 
-                self.prompt_parser.process_command(command)
+                if new_operator := self.parse_operator_mode(command):
+                    self.prompt_parser = PromptParser(new_operator)
+                else:
+                    self.prompt_parser.process_command(command)
             except EOFError:
                 break
             except KeyboardInterrupt:
