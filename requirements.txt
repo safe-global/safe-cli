@@ -5,7 +5,7 @@ packaging>=20.9
 prompt_toolkit==3.0.19
 pyfiglet==0.8.post1
 pygments==2.9.0
-requests==2.25.1
+requests==2.26.0
 tabulate==0.8.9
 typing_extensions==3.10.0.0 ; python_version < "3.8"
 web3==5.19.0
