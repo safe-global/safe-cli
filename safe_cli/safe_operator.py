@@ -463,10 +463,10 @@ class SafeOperator:
         multisend = MultiSend(LAST_MULTISEND_CONTRACT, self.ethereum_client)
         tx_params = {'from': self.address, 'gas': 0, 'gasPrice': 0}
         multisend_txs = [MultiSendTx(MultiSendOperation.CALL, self.address, 0, data) for data in
-                         (self.safe_contract.functions.changeMasterCopy(LAST_SAFE_CONTRACT
-                                                                        ).buildTransaction(tx_params)['data'],
-                          self.safe_contract.functions.setFallbackHandler(LAST_DEFAULT_CALLBACK_HANDLER
-                                                                          ).buildTransaction(tx_params)['data'])
+                         (self.safe_contract_1_1_0.functions.changeMasterCopy(LAST_SAFE_CONTRACT
+                                                                              ).buildTransaction(tx_params)['data'],
+                          self.safe_contract_1_1_0.functions.setFallbackHandler(LAST_DEFAULT_CALLBACK_HANDLER
+                                                                                ).buildTransaction(tx_params)['data'])
                          ]
 
         multisend_data = multisend.build_tx_data(multisend_txs)
