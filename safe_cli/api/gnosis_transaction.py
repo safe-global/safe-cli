@@ -1,11 +1,11 @@
+import time
 from typing import Any, Dict, List, Optional
 from urllib.parse import urljoin
+
+import requests
+from eth_account.signers.local import LocalAccount
 from web3 import Web3
 
-import time
-import requests
-
-from eth_account.signers.local import LocalAccount
 from gnosis.eth.ethereum_client import EthereumNetwork
 from gnosis.safe import SafeTx
 
@@ -64,7 +64,7 @@ class TransactionService(BaseAPI):
             return response.json()
 
     def get_transactions(self, safe_address: str) -> List[Dict[str, Any]]:
-        response = TransactionService._get_request(f'/api/v1/safes/{safe_address}/multisig-transactions/')
+        response = self._get_request(f'/api/v1/safes/{safe_address}/multisig-transactions/')
         if not response.ok:
             raise BaseAPI(f'Cannot get transactions: {response.content}')
         else:
@@ -78,7 +78,7 @@ class TransactionService(BaseAPI):
             return response.json().get('results', [])
 
     def add_delegate(self, safe_address: str, delegate_address: str, label: str, signer_account: LocalAccount):
-        hash_to_sign = TransactionService.create_delegate_message_hash(delegate_address)
+        hash_to_sign = self.create_delegate_message_hash(delegate_address)
         signature = signer_account.signHash(hash_to_sign)
         add_payload = {
             'safe': safe_address,
@@ -91,7 +91,7 @@ class TransactionService(BaseAPI):
             raise BaseAPI(f'Cannot add delegate: {response.content}')
 
     def remove_delegate(self, safe_address: str, delegate_address: str, signer_account: LocalAccount):
-        hash_to_sign = TransactionService.create_delegate_message_hash(delegate_address)
+        hash_to_sign = self.create_delegate_message_hash(delegate_address)
         signature = signer_account.signHash(hash_to_sign)
         remove_payload = {
             'signature': signature.signature.hex()

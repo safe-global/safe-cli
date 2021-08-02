@@ -255,43 +255,6 @@ class SafeOperator:
             headers[0] = Style.BRIGHT + headers[0]
             print(tabulate(rows, headers=headers))
 
-    def get_delegates(self):
-        delegates = self.safe_tx_service.get_delegates(self.address)
-        headers = ['delegate', 'delegator', 'label']
-        rows = []
-        for delegate in delegates:
-            row = [delegate['delegate'], delegate['delegator'], delegate['label']]
-            rows.append(row)
-        print(tabulate(rows, headers=headers))
-
-    def add_delegate(self, delegate_address: str, label: str, signer_address: str):
-        signer_account = [account for account in self.accounts if account.address == signer_address]
-        if not signer_account:
-            raise AccountNotLoadedException(signer_address)
-        elif signer_address not in self.safe_cli_info.owners:
-            raise NonExistingOwnerException(signer_address)
-        else:
-            signer_account = signer_account[0]
-            try:
-                self.safe_tx_service.add_delegate(self.address, delegate_address, label, signer_account)
-                return True
-            except:
-                return False
-
-    def remove_delegate(self, delegate_address: str, signer_address: str):
-        signer_account = [account for account in self.accounts if account.address == signer_address]
-        if not signer_account:
-            raise AccountNotLoadedException(signer_address)
-        elif signer_address not in self.safe_cli_info.owners:
-            raise NonExistingOwnerException(signer_address)
-        else:
-            signer_account = signer_account[0]
-            try:
-                self.safe_tx_service.remove_delegate(self.address, delegate_address, signer_account)
-                return True
-            except:
-                return False
-
     def load_cli_owners_from_words(self, words: List[str]):
         if len(words) == 1:  # Reading seed from Environment Variable
             words = os.environ.get(words[0], default="").strip().split(" ")
