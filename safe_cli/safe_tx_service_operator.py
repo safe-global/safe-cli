@@ -6,6 +6,7 @@ from tabulate import tabulate
 
 from gnosis.safe import SafeOperation, SafeTx
 
+from .api.base_api import BaseAPIException
 from .safe_operator import (AccountNotLoadedException,
                             NonExistingOwnerException, SafeOperator,
                             ServiceNotAvailable)
@@ -42,7 +43,7 @@ class SafeTxServiceOperator(SafeOperator):
             try:
                 self.safe_tx_service.add_delegate(self.address, delegate_address, label, signer_account)
                 return True
-            except IOError:
+            except BaseAPIException:
                 return False
 
     def remove_delegate(self, delegate_address: str, signer_address: str):
@@ -56,7 +57,7 @@ class SafeTxServiceOperator(SafeOperator):
             try:
                 self.safe_tx_service.remove_delegate(self.address, delegate_address, signer_account)
                 return True
-            except IOError:
+            except BaseAPIException:
                 return False
 
     def execute_safe_transaction(self, to: str, value: int, data: bytes,

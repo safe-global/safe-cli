@@ -9,7 +9,7 @@ from web3 import Web3
 from gnosis.eth.ethereum_client import EthereumNetwork
 from gnosis.safe import SafeTx
 
-from .base_api import BaseAPI
+from .base_api import BaseAPI, BaseAPIException
 
 
 class TransactionService(BaseAPI):
@@ -59,21 +59,21 @@ class TransactionService(BaseAPI):
     def get_balances(self, safe_address: str) -> List[Dict[str, Any]]:
         response = self._get_request(f'/api/v1/safes/{safe_address}/balances/')
         if not response.ok:
-            raise BaseAPI(f'Cannot get balances: {response.content}')
+            raise BaseAPIException(f'Cannot get balances: {response.content}')
         else:
             return response.json()
 
     def get_transactions(self, safe_address: str) -> List[Dict[str, Any]]:
         response = self._get_request(f'/api/v1/safes/{safe_address}/multisig-transactions/')
         if not response.ok:
-            raise BaseAPI(f'Cannot get transactions: {response.content}')
+            raise BaseAPIException(f'Cannot get transactions: {response.content}')
         else:
             return response.json().get('results', [])
 
     def get_delegates(self, safe_address: str) -> List[Dict[str, Any]]:
         response = self._get_request(f'/api/v1/safes/{safe_address}/delegates/')
         if not response.ok:
-            raise BaseAPI(f'Cannot get delegates: {response.content}')
+            raise BaseAPIException(f'Cannot get delegates: {response.content}')
         else:
             return response.json().get('results', [])
 
@@ -88,7 +88,7 @@ class TransactionService(BaseAPI):
         }
         response = self._post_request(f'/api/v1/safes/{safe_address}/delegates/', add_payload)
         if not response.ok:
-            raise BaseAPI(f'Cannot add delegate: {response.content}')
+            raise BaseAPIException(f'Cannot add delegate: {response.content}')
 
     def remove_delegate(self, safe_address: str, delegate_address: str, signer_account: LocalAccount):
         hash_to_sign = self.create_delegate_message_hash(delegate_address)
@@ -98,7 +98,7 @@ class TransactionService(BaseAPI):
         }
         response = self._delete_request(f'/api/v1/safes/{safe_address}/delegates/{delegate_address}/', remove_payload)
         if not response.ok:
-            raise BaseAPI(f'Cannot remove delegate: {response.content}')
+            raise BaseAPIException(f'Cannot remove delegate: {response.content}')
 
     def post_transaction(self, safe_address: str, safe_tx: SafeTx):
         url = urljoin(self.base_url, f'/api/v1/safes/{safe_address}/multisig-transactions/')
@@ -122,4 +122,4 @@ class TransactionService(BaseAPI):
         }
         response = requests.post(url, json=data)
         if not response.ok:
-            raise BaseAPI(f'Error posting transaction: {response.content}')
+            raise BaseAPIException(f'Error posting transaction: {response.content}')

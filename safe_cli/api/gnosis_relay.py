@@ -7,7 +7,7 @@ from gnosis.eth.ethereum_client import EthereumNetwork
 from gnosis.safe import SafeTx
 from gnosis.safe.signatures import signature_split
 
-from .base_api import BaseAPI
+from .base_api import BaseAPI, BaseAPIException
 
 try:
     from typing import TypedDict
@@ -64,7 +64,7 @@ class RelayService(BaseAPI):
         }
         response = requests.post(url, json=data)
         if not response.ok:
-            raise BaseAPI(f'Error posting transaction: {response.content}')
+            raise BaseAPIException(f'Error posting transaction: {response.content}')
         else:
             return RelaySentTransaction(response.json())
 
@@ -84,7 +84,7 @@ class RelayService(BaseAPI):
         }
         response = requests.post(url, json=data)
         if not response.ok:
-            raise BaseAPI(f'Error posting transaction: {response.content}')
+            raise BaseAPIException(f'Error posting transaction: {response.content}')
         else:
             response_json = response.json()
             # Convert values to int
