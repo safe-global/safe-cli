@@ -26,7 +26,12 @@ class BaseAPI(ABC):
 
     def _get_request(self, url: str) -> requests.Response:
         full_url = urljoin(self.base_url, url)
-        response = requests.get(full_url)
-        if not response.ok:
-            raise BaseAPI(f'Cannot get balances from {url}')
-        return response
+        return requests.get(full_url)
+
+    def _post_request(self, url: str, payload: Dict) -> requests.Response:
+        full_url = urljoin(self.base_url, url)
+        return requests.post(full_url, json=payload, headers={'Content-type': 'application/json'})
+
+    def _delete_request(self, url: str, payload: Dict) -> requests.Response:
+        full_url = urljoin(self.base_url, url)
+        return requests.delete(full_url, json=payload, headers={'Content-type': 'application/json'})

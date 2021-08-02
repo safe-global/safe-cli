@@ -5,6 +5,7 @@ SAFE_EMPTY_ARGUMENT_COLOR = 'ansimagenta'
 
 
 safe_commands_arguments = {
+    'add_delegate': '<address> <label> <signer-address>',
     'add_owner': '<address> [--threshold <int>]',
     'approve_hash': '<keccak-hexstr-hash> <address>',
     'balances': '(read-only)',
@@ -17,12 +18,14 @@ safe_commands_arguments = {
     'get_nonce': '(read-only)',
     'get_owners': '(read-only)',
     'get_threshold': '(read-only)',
+    'get_delegates': '(read-only)',
     'history': '(read-only)',
     'info': '(read-only)',
     'load_cli_owners': '<account-private-key> [<account-private-key>...]',
     'load_cli_owners_from_words': '<word_1> <word_2> ... <word_12>',
     'update': '',
     'refresh': '',
+    'remove_delegate': '<address> <signer-address>',
     'remove_owner': '<address> [--threshold <int>]',
     'send_erc20': '<address> <token-address> <value-wei> [--safe-nonce <int>] [--tx-service] [--relay-service]',
     'send_erc721': '<address> <token-address> <token-id> [--safe-nonce <int>] [--tx-service] [--relay-service]',
@@ -61,11 +64,15 @@ meta = {
                             'account owners.'),
     'get_owners': HTML('Command <b>get_owners</b> will return a list of check-summed <u>&lt;address&gt;</u> '
                        'account owners.'),
+    'get_delegates': HTML('Command <b>get_delegates</b> will return information about the current delegates.'),
     'change_owner': HTML('Command <b>change_owner</b> will change an old account <u>&lt;address&gt;</u> for the new '
                          'check-summed <u>&lt;address&gt;</u> account.'),
     'add_owner': HTML('Command <b>add_owner</b> will add a check-summed <u>&lt;address&gt;</u> owner account.'),
     'remove_owner': HTML('Command <b>remove_owner</b> will remove an old account <u>&lt;address&gt;</u> from the '
                          'current loaded safe.'),
+    'add_delegate': HTML('Command <b>add_delegate</b> will add a check-summed <u>&lt;address&gt;</u> delegate account.'),
+    'remove_delegate': HTML('Command <b>remove_delegate</b> will remove a delegate <u>&lt;address&gt;</u> from the '
+                            'current loaded safe.'),
     'enable_module': HTML('Command <b>enable_module</b> will enable a check-summed <u>&lt;address&gt;</u> module.'),
     'disable_module': HTML('Command <b>disable_module</b> will disable a check-summed <u>&lt;address&gt;</u> module.'),
     'get_threshold': HTML('Command <b>get_threshold</b> will return the threshold <u>&lt;value&gt;</u> for'

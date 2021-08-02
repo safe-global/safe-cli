@@ -89,6 +89,9 @@ THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 Operations currently supported with transaction service (mainnet, rinkeby):
 - `balances`: Returns a list of balances for ERC20 tokens and ether.
 - `history`: History of multisig transactions (including pending).
+- `get_delegates`: Returns a list of delegates for the Safe.
+- `add_delegate <address> <label> <signer-address>`: Adds a new delegate `address` to the Safe.
+- `remove_delegate <address> <signer-address>`: Removes a delegate `address` from the Safe.
 
 If the information in the information bar is outdated or there's any problem you can force the `safe-cli` to update
 the information about the Safe using:
