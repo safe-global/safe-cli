@@ -2,12 +2,13 @@
 [![Coverage Status](https://coveralls.io/repos/github/gnosis/safe-cli/badge.svg?branch=master)](https://coveralls.io/github/gnosis/safe-cli?branch=master)
 ![Python 3.7](https://img.shields.io/badge/Python-3.7-blue.svg)
 ![Python 3.8](https://img.shields.io/badge/Python-3.8-blue.svg)
+![Python 3.9](https://img.shields.io/badge/Python-3.8-blue.svg)
 
 # Safe-CLI
 Command line utility for **Gnosis Safe** contracts. Use it to manage your **Gnosis Safe** easily from the command line
 
 ## Installing
-**Python >= 3.7** is required. **Python 3.8** is recommended.
+**Python >= 3.7** is required. **Python 3.9** is recommended.
 
 ```bash
 git clone https://github.com/gnosis/safe-cli.git
