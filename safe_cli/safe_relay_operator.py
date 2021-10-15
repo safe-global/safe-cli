@@ -3,6 +3,7 @@ from typing import Optional
 from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
 
+from gnosis.eth.constants import NULL_ADDRESS
 from gnosis.safe import InvalidInternalTx, SafeOperation, SafeTx
 
 from .safe_operator import SafeOperator, ServiceNotAvailable
@@ -12,7 +13,7 @@ from .utils import yes_or_no_question
 class SafeRelayOperator(SafeOperator):
     def __init__(self, address: str, node_url: str, gas_token: Optional[str] = None):
         super().__init__(address, node_url)
-        self.gas_token = gas_token
+        self.gas_token = gas_token or NULL_ADDRESS
         if not self.safe_relay_service:
             raise ServiceNotAvailable(f'Cannot configure relay service for network {self.network.name}')
 
@@ -31,8 +32,9 @@ class SafeRelayOperator(SafeOperator):
         safe_tx.base_gas = estimation['baseGas']
         safe_tx.safe_tx_gas = estimation['safeTxGas']
         safe_tx.gas_price = estimation['gasPrice']
-        safe_tx.safe_nonce = estimation['lastUsedNonce'] + 1
-        safe_tx.refund_receiver = estimation['refundReceiver']
+        last_used_nonce: Optional[int] = estimation['lastUsedNonce']
+        safe_tx.safe_nonce = 0 if last_used_nonce is None else last_used_nonce + 1
+        safe_tx.refund_receiver = estimation['refundReceiver'] or NULL_ADDRESS
         safe_tx.signatures = b''  # Sign transaction again
         self.sign_transaction(safe_tx)
         if yes_or_no_question('Do you want to execute tx ' + str(safe_tx)):
