@@ -17,7 +17,7 @@ from web3.exceptions import BadFunctionCallOutput
 from gnosis.eth import EthereumClient
 from gnosis.eth.constants import NULL_ADDRESS, SENTINEL_ADDRESS
 from gnosis.eth.contracts import (get_erc20_contract, get_erc721_contract,
-                                  get_safe_contract, get_safe_V1_3_0_contract)
+                                  get_safe_contract, get_safe_V1_1_1_contract)
 from gnosis.eth.ethereum_client import EthereumNetwork
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
@@ -151,8 +151,8 @@ class SafeOperator:
         self.safe_relay_service = RelayService.from_network_number(self.network.value)
         self.safe_tx_service = TransactionService.from_network_number(self.network.value)
         self.safe = Safe(address, self.ethereum_client)
-        self.safe_contract = get_safe_V1_3_0_contract(self.ethereum_client.w3, address=self.address)
-        self.safe_contract_1_1_0 = get_safe_contract(self.ethereum_client.w3, address=self.address)
+        self.safe_contract = self.safe.get_contract()
+        self.safe_contract_1_1_0 = get_safe_V1_1_1_contract(self.ethereum_client.w3, address=self.address)
         self.accounts: Set[LocalAccount] = set()
         self.default_sender: Optional[LocalAccount] = None
         self.executed_transactions: List[str] = []

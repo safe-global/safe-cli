@@ -1,6 +1,7 @@
 import os
 import unittest
 from unittest import mock
+from unittest.mock import MagicMock
 
 from eth_account import Account
 from web3 import Web3
@@ -37,7 +38,8 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             safe = Safe(safe_operator.address, self.ethereum_client)
             self.assertEqual(len(safe.retrieve_owners()), number_owners)
 
-    def test_load_cli_owner(self):
+    @mock.patch.object(Safe, 'get_contract', return_value=None)
+    def test_load_cli_owner(self, get_contract_mock: MagicMock):
         random_address = Account.create().address
         safe_operator = SafeOperator(random_address, self.ethereum_node_url)
         random_accounts = [Account.create() for _ in range(3)]

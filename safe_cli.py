@@ -95,6 +95,7 @@ class SafeCli:
 
                 if new_operator := self.parse_operator_mode(command):
                     self.prompt_parser = PromptParser(new_operator)
+                    new_operator.refresh_safe_cli_info()  # ClI info needs to be initialized
                 else:
                     self.prompt_parser.process_command(command)
             except EOFError:

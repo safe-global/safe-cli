@@ -1,11 +1,11 @@
 cached-property==1.5.2 ; python_version < "3.8"
 colorama==0.4.4
-gnosis-py==3.4.4
+gnosis-py==3.5.2
 packaging>=21.0
 prompt_toolkit==3.0.20
 pyfiglet==0.8.post1
 pygments==2.10.0
 requests==2.26.0
 tabulate==0.8.9
-typing_extensions==3.10.0.0 ; python_version < "3.8"
+typing_extensions==3.10.0.2 ; python_version < "3.8"
 web3==5.24.0

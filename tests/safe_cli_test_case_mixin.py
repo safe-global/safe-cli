@@ -29,13 +29,19 @@ class SafeCliTestCaseMixin:
             cls.ethereum_client,
             cls.ethereum_test_account
         ).contract_address
-        cls.safe_contract_address = Safe.deploy_master_contract(cls.ethereum_client,
-                                                                cls.ethereum_test_account).contract_address
-        cls.safe_old_contract_address = Safe.deploy_master_contract_v1_0_0(cls.ethereum_client,
-                                                                           cls.ethereum_test_account).contract_address
+        cls.safe_contract_address = Safe.deploy_master_contract_v1_1_1(
+            cls.ethereum_client,
+            cls.ethereum_test_account
+        ).contract_address
+        cls.safe_old_contract_address = Safe.deploy_master_contract_v1_0_0(
+            cls.ethereum_client,
+            cls.ethereum_test_account
+        ).contract_address
         cls.proxy_factory = ProxyFactory(
-            ProxyFactory.deploy_proxy_factory_contract(cls.ethereum_client,
-                                                       cls.ethereum_test_account).contract_address,
+            ProxyFactory.deploy_proxy_factory_contract(
+                cls.ethereum_client,
+                cls.ethereum_test_account
+            ).contract_address,
             cls.ethereum_client)
 
     def build_test_safe(self, number_owners: int = 3, threshold: Optional[int] = None,
