@@ -593,11 +593,11 @@ class SafeOperator:
 
     # TODO Set sender so we can save gas in that signature
     def sign_transaction(self, safe_tx: SafeTx) -> NoReturn:
-        owners = self.safe_cli_info.owners
+        permitted_signers = self.get_permitted_signers()
         threshold = self.safe_cli_info.threshold
         selected_accounts: List[Account] = []  # Some accounts that are not an owner can be loaded
         for account in self.accounts:
-            if account.address in owners:
+            if account.address in permitted_signers:
                 selected_accounts.append(account)
                 threshold -= 1
                 if threshold == 0:
@@ -616,6 +616,9 @@ class SafeOperator:
             signatures += selected_account.signHash(safe_tx_hash)
         return signatures
         """
+
+    def get_permitted_signers(self) -> Set[str]:
+        return set(self.safe_cli_info.owners)
 
     def process_command(self, first_command: str, rest_command: List[str]) -> bool:
         if first_command == 'help':
