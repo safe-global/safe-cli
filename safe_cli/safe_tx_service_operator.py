@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Set
 
 from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
@@ -73,3 +73,10 @@ class SafeTxServiceOperator(SafeOperator):
                                       f'to Gnosis Safe Transaction service</ansigreen>'))
             return True
         return False
+
+    def get_permitted_signers(self) -> Set[str]:
+        owners = super().get_permitted_signers()
+        owners.update(
+            [row['delegate'] for row in self.safe_tx_service.get_delegates(self.address)]
+        )
+        return owners
