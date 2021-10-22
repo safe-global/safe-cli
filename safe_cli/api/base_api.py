@@ -19,7 +19,7 @@ class BaseAPI(ABC):
         self.base_url = self.URL_BY_NETWORK[network]
 
     @classmethod
-    def from_network_number(cls, network: int) -> Optional['BaseAPI']:
+    def from_network_number(cls, network: int) -> Optional["BaseAPI"]:
         ethereum_network = EthereumNetwork(network)
         if ethereum_network in cls.URL_BY_NETWORK:
             return cls(ethereum_network)
@@ -30,8 +30,12 @@ class BaseAPI(ABC):
 
     def _post_request(self, url: str, payload: Dict) -> requests.Response:
         full_url = urljoin(self.base_url, url)
-        return requests.post(full_url, json=payload, headers={'Content-type': 'application/json'})
+        return requests.post(
+            full_url, json=payload, headers={"Content-type": "application/json"}
+        )
 
     def _delete_request(self, url: str, payload: Dict) -> requests.Response:
         full_url = urljoin(self.base_url, url)
-        return requests.delete(full_url, json=payload, headers={'Content-type': 'application/json'})
+        return requests.delete(
+            full_url, json=payload, headers={"Content-type": "application/json"}
+        )
