@@ -64,12 +64,12 @@ To unload an owner:
 ```
 
 Operations currently supported:
-- `send_custom <address> <value-wei> <data-hex-str> [--delegate] [--safe-nonce <int>] [--tx-service] [--relay-service]`:
+- `send_custom <address> <value-wei> <data-hex-str> [--delegate] [--safe-nonce <int>]`:
 Sends a custom transaction from the Gnosis Safe to a contract. If `--delegate` is set a `delegatecall`
 will be triggered.
-- `send_ether <address> <value-wei> [--safe-nonce <int>] [--tx-service] [--relay-service]`:
+- `send_ether <address> <value-wei> [--safe-nonce <int>]`:
 Sends ether from the Gnosis Safe to another account
-- `send_erc20 <address> <token_address> <value> [--safe-nonce <int>] [--tx-service] [--relay-service]`:
+- `send_erc20 <address> <token_address> <value> [--safe-nonce <int>]`:
 Send ERC20 token from the Gnosis Safe to another account
 - `approve_hash <keccak-hexstr-hash> <sender-address>`: Approves a `safe-tx-hash` for the provided sender address.
   Sender private key must be loaded first.
