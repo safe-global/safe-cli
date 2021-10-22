@@ -6,7 +6,9 @@ ETHEREUM_DEFAULT_PATH = "m/44'/60'/0'/0/0"
 ETHEREUM_BASE_PATH = "m/44'/60'/0'/0"
 
 
-def get_account_from_words(words: str, index: int = 0, hd_path: str = ETHEREUM_DEFAULT_PATH) -> LocalAccount:
+def get_account_from_words(
+    words: str, index: int = 0, hd_path: str = ETHEREUM_DEFAULT_PATH
+) -> LocalAccount:
     """
     :param words: Mnemonic words(BIP39) for a Hierarchical Deterministic Wallet(BIP32)
     :param index: Index of account
@@ -16,11 +18,13 @@ def get_account_from_words(words: str, index: int = 0, hd_path: str = ETHEREUM_D
     """
     Account.enable_unaudited_hdwallet_features()
     if index:
-        hd_path = f'{ETHEREUM_BASE_PATH}/{index}'
+        hd_path = f"{ETHEREUM_BASE_PATH}/{index}"
     return Account.from_mnemonic(words, account_path=hd_path)
 
 
-def get_address_from_words(words: str, index: int = 0, hd_path: str = ETHEREUM_DEFAULT_PATH) -> ChecksumAddress:
+def get_address_from_words(
+    words: str, index: int = 0, hd_path: str = ETHEREUM_DEFAULT_PATH
+) -> ChecksumAddress:
     """
     :param words: Mnemonic words(BIP39) for a Hierarchical Deterministic Wallet(BIP32)
     :param index: Index of account

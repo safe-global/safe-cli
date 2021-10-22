@@ -6,15 +6,24 @@ from prompt_toolkit import HTML, print_formatted_text
 from web3 import Web3
 
 from .api.base_api import BaseAPIException
-from .safe_operator import (AccountNotLoadedException, ExistingOwnerException,
-                            FallbackHandlerNotSupportedException,
-                            HashAlreadyApproved, InvalidMasterCopyException,
-                            NonExistingOwnerException, NotEnoughEtherToSend,
-                            NotEnoughSignatures, NotEnoughTokenToSend,
-                            SafeAlreadyUpdatedException, SafeOperator,
-                            SameFallbackHandlerException,
-                            SameMasterCopyException, SenderRequiredException,
-                            ServiceNotAvailable, ThresholdLimitException)
+from .safe_operator import (
+    AccountNotLoadedException,
+    ExistingOwnerException,
+    FallbackHandlerNotSupportedException,
+    HashAlreadyApproved,
+    InvalidMasterCopyException,
+    NonExistingOwnerException,
+    NotEnoughEtherToSend,
+    NotEnoughSignatures,
+    NotEnoughTokenToSend,
+    SafeAlreadyUpdatedException,
+    SafeOperator,
+    SameFallbackHandlerException,
+    SameMasterCopyException,
+    SenderRequiredException,
+    ServiceNotAvailable,
+    ThresholdLimitException,
+)
 
 
 def check_ethereum_address(address: str) -> str:
@@ -24,7 +33,9 @@ def check_ethereum_address(address: str) -> str:
     :return:
     """
     if not Web3.isChecksumAddress(address):
-        raise argparse.ArgumentTypeError(f'{address} is not a valid checksummed ethereum address')
+        raise argparse.ArgumentTypeError(
+            f"{address} is not a valid checksummed ethereum address"
+        )
     return address
 
 
@@ -37,7 +48,7 @@ def check_hex_str(hex_str: str) -> HexBytes:
     try:
         return HexBytes(hex_str)
     except ValueError:
-        raise argparse.ArgumentTypeError(f'{hex_str} is not a valid hexadecimal string')
+        raise argparse.ArgumentTypeError(f"{hex_str} is not a valid hexadecimal string")
 
 
 def check_keccak256_hash(hex_str: str) -> HexBytes:
@@ -48,7 +59,9 @@ def check_keccak256_hash(hex_str: str) -> HexBytes:
     """
     hex_str_bytes = check_hex_str(hex_str)
     if len(hex_str_bytes) != 32:
-        raise argparse.ArgumentTypeError(f'{hex_str} is not a valid keccak256 hash hexadecimal string')
+        raise argparse.ArgumentTypeError(
+            f"{hex_str} is not a valid keccak256 hash hexadecimal string"
+        )
     return hex_str_bytes
 
 
@@ -56,7 +69,7 @@ def to_checksummed_ethereum_address(address: str) -> str:
     try:
         return Web3.toChecksumAddress(address)
     except ValueError:
-        raise argparse.ArgumentTypeError(f'{address} is not a valid ethereum address')
+        raise argparse.ArgumentTypeError(f"{address} is not a valid ethereum address")
 
 
 def safe_exception(function):
@@ -66,48 +79,92 @@ def safe_exception(function):
             return function(*args, **kwargs)
         except BaseAPIException as e:
             if e.args:
-                print_formatted_text(HTML(f'<b><ansired>{e.args[0]}</ansired></b>'))
+                print_formatted_text(HTML(f"<b><ansired>{e.args[0]}</ansired></b>"))
         except AccountNotLoadedException as e:
-            print_formatted_text(HTML(f'<ansired>Account {e.args[0]} is not loaded</ansired>'))
+            print_formatted_text(
+                HTML(f"<ansired>Account {e.args[0]} is not loaded</ansired>")
+            )
         except NotEnoughSignatures as e:
-            print_formatted_text(HTML(f'<ansired>Cannot find enough owners to sign. {e.args[0]} missing</ansired>'))
+            print_formatted_text(
+                HTML(
+                    f"<ansired>Cannot find enough owners to sign. {e.args[0]} missing</ansired>"
+                )
+            )
         except SenderRequiredException:
-            print_formatted_text(HTML('<ansired>Please load a default sender</ansired>'))
+            print_formatted_text(
+                HTML("<ansired>Please load a default sender</ansired>")
+            )
         except ExistingOwnerException as e:
-            print_formatted_text(HTML(f'<ansired>Owner {e.args[0]} is already an owner of the Safe'
-                                      f'</ansired>'))
+            print_formatted_text(
+                HTML(
+                    f"<ansired>Owner {e.args[0]} is already an owner of the Safe"
+                    f"</ansired>"
+                )
+            )
         except NonExistingOwnerException as e:
-            print_formatted_text(HTML(f'<ansired>Owner {e.args[0]} is not an owner of the Safe'
-                                      f'</ansired>'))
+            print_formatted_text(
+                HTML(
+                    f"<ansired>Owner {e.args[0]} is not an owner of the Safe"
+                    f"</ansired>"
+                )
+            )
         except HashAlreadyApproved as e:
-            print_formatted_text(HTML(
-                f'<ansired>Transaction with safe-tx-hash {e.args[0].hex()} has already been approved by '
-                f'owner {e.args[1]}</ansired>'))
+            print_formatted_text(
+                HTML(
+                    f"<ansired>Transaction with safe-tx-hash {e.args[0].hex()} has already been approved by "
+                    f"owner {e.args[1]}</ansired>"
+                )
+            )
         except ThresholdLimitException:
-            print_formatted_text(HTML('<ansired>Having less owners than threshold is not allowed'
-                                      '</ansired>'))
+            print_formatted_text(
+                HTML(
+                    "<ansired>Having less owners than threshold is not allowed"
+                    "</ansired>"
+                )
+            )
         except SameFallbackHandlerException as e:
-            print_formatted_text(HTML(f'<ansired>Fallback handler {e.args[0]} is the current one</ansired>'))
+            print_formatted_text(
+                HTML(
+                    f"<ansired>Fallback handler {e.args[0]} is the current one</ansired>"
+                )
+            )
         except FallbackHandlerNotSupportedException:
-            print_formatted_text(HTML('<ansired>Fallback handler is not supported for your Safe, '
-                                      'you need to <b>update</b> first</ansired>'))
+            print_formatted_text(
+                HTML(
+                    "<ansired>Fallback handler is not supported for your Safe, "
+                    "you need to <b>update</b> first</ansired>"
+                )
+            )
         except SameMasterCopyException as e:
-            print_formatted_text(HTML(f'<ansired>Master Copy {e.args[0]} is the current one</ansired>'))
+            print_formatted_text(
+                HTML(f"<ansired>Master Copy {e.args[0]} is the current one</ansired>")
+            )
         except InvalidMasterCopyException as e:
-            print_formatted_text(HTML(f'<ansired>Master Copy {e.args[0]} is not valid</ansired>'))
+            print_formatted_text(
+                HTML(f"<ansired>Master Copy {e.args[0]} is not valid</ansired>")
+            )
         except SafeAlreadyUpdatedException:
-            print_formatted_text(HTML('<ansired>Safe is already updated</ansired>'))
+            print_formatted_text(HTML("<ansired>Safe is already updated</ansired>"))
         except (NotEnoughEtherToSend, NotEnoughTokenToSend) as e:
-            print_formatted_text(HTML(f'<ansired>Cannot find enough to send. Current balance is {e.args[0]}'
-                                      f'</ansired>'))
+            print_formatted_text(
+                HTML(
+                    f"<ansired>Cannot find enough to send. Current balance is {e.args[0]}"
+                    f"</ansired>"
+                )
+            )
         except ServiceNotAvailable as e:
-            print_formatted_text(HTML(f'<ansired>Service not available for network {e.args[0]}</ansired>'))
+            print_formatted_text(
+                HTML(
+                    f"<ansired>Service not available for network {e.args[0]}</ansired>"
+                )
+            )
+
     return wrapper
 
 
 class PromptParser:
     def __init__(self, safe_operator: SafeOperator):
-        self.mode_parser = argparse.ArgumentParser(prog='')
+        self.mode_parser = argparse.ArgumentParser(prog="")
         self.safe_operator = safe_operator
         self.prompt_parser = build_prompt_parser(safe_operator)
 
@@ -122,7 +179,7 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     :param safe_operator:
     :return:
     """
-    prompt_parser = argparse.ArgumentParser(prog='')
+    prompt_parser = argparse.ArgumentParser(prog="")
     subparsers = prompt_parser.add_subparsers()
 
     @safe_exception
@@ -171,8 +228,13 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
 
     @safe_exception
     def send_custom(args):
-        safe_operator.send_custom(args.to, args.value, args.data,
-                                  safe_nonce=args.safe_nonce, delegate_call=args.delegate)
+        safe_operator.send_custom(
+            args.to,
+            args.value,
+            args.data,
+            safe_nonce=args.safe_nonce,
+            delegate_call=args.delegate,
+        )
 
     @safe_exception
     def send_ether(args):
@@ -180,11 +242,15 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
 
     @safe_exception
     def send_erc20(args):
-        safe_operator.send_erc20(args.to, args.token_address, args.amount, safe_nonce=args.safe_nonce)
+        safe_operator.send_erc20(
+            args.to, args.token_address, args.amount, safe_nonce=args.safe_nonce
+        )
 
     @safe_exception
     def send_erc721(args):
-        safe_operator.send_erc721(args.to, args.token_address, args.token_id, safe_nonce=args.safe_nonce)
+        safe_operator.send_erc721(
+            args.to, args.token_address, args.token_id, safe_nonce=args.safe_nonce
+        )
 
     @safe_exception
     def get_threshold(args):
@@ -239,147 +305,168 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
         safe_operator.remove_delegate(args.address, args.signer)
 
     # Cli owners
-    parser_show_cli_owners = subparsers.add_parser('show_cli_owners')
+    parser_show_cli_owners = subparsers.add_parser("show_cli_owners")
     parser_show_cli_owners.set_defaults(func=show_cli_owners)
 
-    parser_load_cli_owners_from_words = subparsers.add_parser('load_cli_owners_from_words')
-    parser_load_cli_owners_from_words.add_argument('words', type=str, nargs='+')
+    parser_load_cli_owners_from_words = subparsers.add_parser(
+        "load_cli_owners_from_words"
+    )
+    parser_load_cli_owners_from_words.add_argument("words", type=str, nargs="+")
     parser_load_cli_owners_from_words.set_defaults(func=load_cli_owners_from_words)
 
-    parser_load_cli_owners = subparsers.add_parser('load_cli_owners')
-    parser_load_cli_owners.add_argument('keys', type=str, nargs='+')
+    parser_load_cli_owners = subparsers.add_parser("load_cli_owners")
+    parser_load_cli_owners.add_argument("keys", type=str, nargs="+")
     parser_load_cli_owners.set_defaults(func=load_cli_owners)
 
-    parser_unload_cli_owners = subparsers.add_parser('unload_cli_owners')
-    parser_unload_cli_owners.add_argument('addresses', type=check_ethereum_address, nargs='+')
+    parser_unload_cli_owners = subparsers.add_parser("unload_cli_owners")
+    parser_unload_cli_owners.add_argument(
+        "addresses", type=check_ethereum_address, nargs="+"
+    )
     parser_unload_cli_owners.set_defaults(func=unload_cli_owners)
 
     # Change threshold
-    parser_change_threshold = subparsers.add_parser('change_threshold')
-    parser_change_threshold.add_argument('threshold', type=int)
+    parser_change_threshold = subparsers.add_parser("change_threshold")
+    parser_change_threshold.add_argument("threshold", type=int)
     parser_change_threshold.set_defaults(func=change_threshold)
 
     # Approve hash
-    parser_approve_hash = subparsers.add_parser('approve_hash')
-    parser_approve_hash.add_argument('hash_to_approve', type=check_keccak256_hash)
-    parser_approve_hash.add_argument('sender', type=check_ethereum_address)
+    parser_approve_hash = subparsers.add_parser("approve_hash")
+    parser_approve_hash.add_argument("hash_to_approve", type=check_keccak256_hash)
+    parser_approve_hash.add_argument("sender", type=check_ethereum_address)
     parser_approve_hash.set_defaults(func=approve_hash)
 
     # Add owner
-    parser_add_owner = subparsers.add_parser('add_owner')
-    parser_add_owner.add_argument('address', type=check_ethereum_address)
-    parser_add_owner.add_argument('--threshold', type=int, default=None)
+    parser_add_owner = subparsers.add_parser("add_owner")
+    parser_add_owner.add_argument("address", type=check_ethereum_address)
+    parser_add_owner.add_argument("--threshold", type=int, default=None)
     parser_add_owner.set_defaults(func=add_owner)
 
     # Remove owner
-    parser_remove_owner = subparsers.add_parser('remove_owner')
-    parser_remove_owner.add_argument('address', type=check_ethereum_address)
-    parser_remove_owner.add_argument('--threshold', type=int, default=None)
+    parser_remove_owner = subparsers.add_parser("remove_owner")
+    parser_remove_owner.add_argument("address", type=check_ethereum_address)
+    parser_remove_owner.add_argument("--threshold", type=int, default=None)
     parser_remove_owner.set_defaults(func=remove_owner)
 
     # Change FallbackHandler
-    parser_change_master_copy = subparsers.add_parser('change_fallback_handler')
-    parser_change_master_copy.add_argument('address', type=check_ethereum_address)
+    parser_change_master_copy = subparsers.add_parser("change_fallback_handler")
+    parser_change_master_copy.add_argument("address", type=check_ethereum_address)
     parser_change_master_copy.set_defaults(func=change_fallback_handler)
 
     # Change FallbackHandler
-    parser_change_master_copy = subparsers.add_parser('change_guard')
-    parser_change_master_copy.add_argument('address', type=check_ethereum_address)
+    parser_change_master_copy = subparsers.add_parser("change_guard")
+    parser_change_master_copy.add_argument("address", type=check_ethereum_address)
     parser_change_master_copy.set_defaults(func=change_guard)
 
     # Change MasterCopy
-    parser_change_master_copy = subparsers.add_parser('change_master_copy')
-    parser_change_master_copy.add_argument('address', type=check_ethereum_address)
+    parser_change_master_copy = subparsers.add_parser("change_master_copy")
+    parser_change_master_copy.add_argument("address", type=check_ethereum_address)
     parser_change_master_copy.set_defaults(func=change_master_copy)
 
     # Update Safe to last version
-    parser_change_master_copy = subparsers.add_parser('update')
+    parser_change_master_copy = subparsers.add_parser("update")
     parser_change_master_copy.set_defaults(func=update_version)
 
     # Send custom/ether/erc20/erc721
-    parser_send_custom = subparsers.add_parser('send_custom')
-    parser_send_ether = subparsers.add_parser('send_ether')
-    parser_send_erc20 = subparsers.add_parser('send_erc20')
-    parser_send_erc721 = subparsers.add_parser('send_erc721')
+    parser_send_custom = subparsers.add_parser("send_custom")
+    parser_send_ether = subparsers.add_parser("send_ether")
+    parser_send_erc20 = subparsers.add_parser("send_erc20")
+    parser_send_erc721 = subparsers.add_parser("send_erc721")
     parser_send_custom.set_defaults(func=send_custom)
     parser_send_ether.set_defaults(func=send_ether)
     parser_send_erc20.set_defaults(func=send_erc20)
     parser_send_erc721.set_defaults(func=send_erc721)
 
     # They have some common arguments
-    for parser in (parser_send_custom, parser_send_ether, parser_send_erc20, parser_send_erc721):
-        parser.add_argument('--safe-nonce', type=int, help='Use custom safe nonce instead of '
-                                                           'the one for last executed SafeTx + 1')
-        parser.add_argument('--tx-service', action='store_true',
-                            help='Send transaction to Gnosis Transaction Service instead of Blockchain'
-                                 '(It will appear on the webui/mobile clients if at least one '
-                                 'signer is provided)')
-        parser.add_argument('--relay-service', action='store_true',
-                            help='Send transaction to Blockchain using Gnosis Relay Service, allowing to pay for fees'
-                                 'using funds on the Safe (including tokens) instead of the sender')
+    for parser in (
+        parser_send_custom,
+        parser_send_ether,
+        parser_send_erc20,
+        parser_send_erc721,
+    ):
+        parser.add_argument(
+            "--safe-nonce",
+            type=int,
+            help="Use custom safe nonce instead of "
+            "the one for last executed SafeTx + 1",
+        )
+        parser.add_argument(
+            "--tx-service",
+            action="store_true",
+            help="Send transaction to Gnosis Transaction Service instead of Blockchain"
+            "(It will appear on the webui/mobile clients if at least one "
+            "signer is provided)",
+        )
+        parser.add_argument(
+            "--relay-service",
+            action="store_true",
+            help="Send transaction to Blockchain using Gnosis Relay Service, allowing to pay for fees"
+            "using funds on the Safe (including tokens) instead of the sender",
+        )
 
     # To/value is common for send custom and send ether
     for parser in (parser_send_custom, parser_send_ether):
-        parser.add_argument('to', type=check_ethereum_address)
-        parser.add_argument('value', type=int)
+        parser.add_argument("to", type=check_ethereum_address)
+        parser.add_argument("value", type=int)
 
-    parser_send_custom.add_argument('data', type=check_hex_str)
-    parser_send_custom.add_argument('--delegate', action='store_true', help='Use DELEGATE_CALL. By default use CALL')
+    parser_send_custom.add_argument("data", type=check_hex_str)
+    parser_send_custom.add_argument(
+        "--delegate", action="store_true", help="Use DELEGATE_CALL. By default use CALL"
+    )
 
     # Send erc20/721 have common arguments
     for parser in (parser_send_erc20, parser_send_erc721):
-        parser.add_argument('to', type=check_ethereum_address)
-        parser.add_argument('token_address', type=check_ethereum_address)
-        parser.add_argument('amount', type=int)
+        parser.add_argument("to", type=check_ethereum_address)
+        parser.add_argument("token_address", type=check_ethereum_address)
+        parser.add_argument("amount", type=int)
 
     # Retrieve threshold, nonce or owners
-    parser_get_threshold = subparsers.add_parser('get_threshold')
+    parser_get_threshold = subparsers.add_parser("get_threshold")
     parser_get_threshold.set_defaults(func=get_threshold)
 
-    parser_get_nonce = subparsers.add_parser('get_nonce')
+    parser_get_nonce = subparsers.add_parser("get_nonce")
     parser_get_nonce.set_defaults(func=get_nonce)
 
-    parser_get_owners = subparsers.add_parser('get_owners')
+    parser_get_owners = subparsers.add_parser("get_owners")
     parser_get_owners.set_defaults(func=get_owners)
 
     # Enable and disable modules
-    parser_enable_module = subparsers.add_parser('enable_module')
-    parser_enable_module.add_argument('address', type=check_ethereum_address)
+    parser_enable_module = subparsers.add_parser("enable_module")
+    parser_enable_module.add_argument("address", type=check_ethereum_address)
     parser_enable_module.set_defaults(func=enable_module)
 
-    parser_disable_module = subparsers.add_parser('disable_module')
-    parser_disable_module.add_argument('address', type=check_ethereum_address)
+    parser_disable_module = subparsers.add_parser("disable_module")
+    parser_disable_module.add_argument("address", type=check_ethereum_address)
     parser_disable_module.set_defaults(func=disable_module)
 
     # Info and refresh
-    parser_info = subparsers.add_parser('info')
+    parser_info = subparsers.add_parser("info")
     parser_info.set_defaults(func=get_info)
 
-    parser_refresh = subparsers.add_parser('refresh')
+    parser_refresh = subparsers.add_parser("refresh")
     parser_refresh.set_defaults(func=get_refresh)
 
     # Tx-History
     # TODO Use subcommands
-    parser_info = subparsers.add_parser('balances')
+    parser_info = subparsers.add_parser("balances")
     parser_info.set_defaults(func=get_balances)
-    parser_info = subparsers.add_parser('history')
+    parser_info = subparsers.add_parser("history")
     parser_info.set_defaults(func=get_history)
 
     # List delegates
-    parser_delegates = subparsers.add_parser('get_delegates')
+    parser_delegates = subparsers.add_parser("get_delegates")
     parser_delegates.set_defaults(func=get_delegates)
 
     # Add delegate
-    parser_add_delegate = subparsers.add_parser('add_delegate')
+    parser_add_delegate = subparsers.add_parser("add_delegate")
     parser_add_delegate.set_defaults(func=add_delegate)
-    parser_add_delegate.add_argument('address', type=check_ethereum_address)
-    parser_add_delegate.add_argument('label', type=str)
-    parser_add_delegate.add_argument('signer', type=check_ethereum_address)
+    parser_add_delegate.add_argument("address", type=check_ethereum_address)
+    parser_add_delegate.add_argument("label", type=str)
+    parser_add_delegate.add_argument("signer", type=check_ethereum_address)
 
     # Remove delegate
-    parser_remove_delegate = subparsers.add_parser('remove_delegate')
+    parser_remove_delegate = subparsers.add_parser("remove_delegate")
     parser_remove_delegate.set_defaults(func=remove_delegate)
-    parser_remove_delegate.add_argument('address', type=check_ethereum_address)
-    parser_remove_delegate.add_argument('signer', type=check_ethereum_address)
+    parser_remove_delegate.add_argument("address", type=check_ethereum_address)
+    parser_remove_delegate.add_argument("signer", type=check_ethereum_address)
 
     return prompt_parser

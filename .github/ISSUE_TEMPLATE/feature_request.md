@@ -19,7 +19,7 @@ Paste here the related links for the issues on the clients/safe project if appli
 # Endpoint
 If applicable, description on the endpoint and the result you expect:
 
-## URL 
+## URL
 `GET /api/v1/safes/<address>/creation/`
 
 ## Response

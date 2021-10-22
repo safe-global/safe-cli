@@ -17,16 +17,20 @@ from gnosis.eth.contracts import get_safe_V1_3_0_contract
 from gnosis.safe import ProxyFactory
 
 from safe_cli.prompt_parser import check_ethereum_address
-from safe_cli.safe_addresses import (LAST_DEFAULT_CALLBACK_HANDLER,
-                                     LAST_PROXY_FACTORY_CONTRACT,
-                                     LAST_SAFE_CONTRACT)
+from safe_cli.safe_addresses import (
+    LAST_DEFAULT_CALLBACK_HANDLER,
+    LAST_PROXY_FACTORY_CONTRACT,
+    LAST_SAFE_CONTRACT,
+)
 from safe_cli.utils import yes_or_no_question
 
 
 def positive_integer(number: str) -> int:
     number = int(number)
     if number <= 0:
-        raise argparse.ArgumentTypeError(f'{number} is not a valid threshold. Must be > 0')
+        raise argparse.ArgumentTypeError(
+            f"{number} is not a valid threshold. Must be > 0"
+        )
     return number
 
 
@@ -39,34 +43,57 @@ def check_private_key(private_key: str) -> str:
     try:
         Account.from_key(private_key)
     except (ValueError, Error):  # TODO Report `Error` exception as a bug of eth_account
-        raise argparse.ArgumentTypeError(f'{private_key} is not a valid private key')
+        raise argparse.ArgumentTypeError(f"{private_key} is not a valid private key")
     return private_key
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('node_url', help='Ethereum node url')
-parser.add_argument('private_key', help='Deployer private_key', type=check_private_key)
-parser.add_argument('--threshold', help='Number of owners required to execute transactions on the created Safe. It must'
-                                        'be greater than 0 and less or equal than the number of owners',
-                    type=positive_integer, default=1)
-parser.add_argument('--owners', help='Owners. By default it will be just the deployer', nargs='+',
-                    type=check_ethereum_address)
-parser.add_argument('--safe-contract', help='Use a custom Safe master copy',
-                    default=LAST_SAFE_CONTRACT, type=check_ethereum_address)
-parser.add_argument('--proxy-factory', help='Use a custom proxy factory',
-                    default=LAST_PROXY_FACTORY_CONTRACT, type=check_ethereum_address)
-parser.add_argument('--callback-handler',
-                    help='Use a custom fallback handler. It is not required for Safe Master Copies '
-                         'with version < 1.1.0',
-                    default=LAST_DEFAULT_CALLBACK_HANDLER, type=check_ethereum_address)
-parser.add_argument('--salt-nonce',
-                    help='Use a custom nonce for the deployment. Same nonce with same deployment configuration will '
-                         'lead to the same Safe address ',
-                    default=secrets.SystemRandom().randint(0, 2**256 - 1),  # TODO Add support for CPK
-                    type=int)
+parser.add_argument("node_url", help="Ethereum node url")
+parser.add_argument("private_key", help="Deployer private_key", type=check_private_key)
+parser.add_argument(
+    "--threshold",
+    help="Number of owners required to execute transactions on the created Safe. It must"
+    "be greater than 0 and less or equal than the number of owners",
+    type=positive_integer,
+    default=1,
+)
+parser.add_argument(
+    "--owners",
+    help="Owners. By default it will be just the deployer",
+    nargs="+",
+    type=check_ethereum_address,
+)
+parser.add_argument(
+    "--safe-contract",
+    help="Use a custom Safe master copy",
+    default=LAST_SAFE_CONTRACT,
+    type=check_ethereum_address,
+)
+parser.add_argument(
+    "--proxy-factory",
+    help="Use a custom proxy factory",
+    default=LAST_PROXY_FACTORY_CONTRACT,
+    type=check_ethereum_address,
+)
+parser.add_argument(
+    "--callback-handler",
+    help="Use a custom fallback handler. It is not required for Safe Master Copies "
+    "with version < 1.1.0",
+    default=LAST_DEFAULT_CALLBACK_HANDLER,
+    type=check_ethereum_address,
+)
+parser.add_argument(
+    "--salt-nonce",
+    help="Use a custom nonce for the deployment. Same nonce with same deployment configuration will "
+    "lead to the same Safe address ",
+    default=secrets.SystemRandom().randint(0, 2 ** 256 - 1),  # TODO Add support for CPK
+    type=int,
+)
 
-if __name__ == '__main__':
-    print_formatted_text(pyfiglet.figlet_format('Gnosis Safe Creator'))  # Print fancy text
+if __name__ == "__main__":
+    print_formatted_text(
+        pyfiglet.figlet_format("Gnosis Safe Creator")
+    )  # Print fancy text
     args = parser.parse_args()
     node_url: URI = args.node_url
     account: LocalAccount = Account.from_key(args.private_key)
@@ -74,13 +101,15 @@ if __name__ == '__main__':
     threshold: int = args.threshold
     salt_nonce: int = args.salt_nonce
     to = NULL_ADDRESS
-    data = b''
+    data = b""
     payment_token = NULL_ADDRESS
     payment = 0
     payment_receiver = NULL_ADDRESS
 
     if len(owners) < threshold:
-        print_formatted_text('Threshold cannot be bigger than the number of unique owners')
+        print_formatted_text(
+            "Threshold cannot be bigger than the number of unique owners"
+        )
         sys.exit(1)
 
     safe_contract_address = args.safe_contract
@@ -90,33 +119,50 @@ if __name__ == '__main__':
 
     account_balance: int = ethereum_client.get_balance(account.address)
     if not account_balance:
-        print_formatted_text('Client does not have any funds')
+        print_formatted_text("Client does not have any funds")
         sys.exit(1)
     else:
-        ether_account_balance = round(ethereum_client.w3.fromWei(account_balance, 'ether'), 6)
-        print_formatted_text(f'Network {ethereum_client.get_network().name} - Sender {account.address} - '
-                             f'Balance: {ether_account_balance}Ξ')
+        ether_account_balance = round(
+            ethereum_client.w3.fromWei(account_balance, "ether"), 6
+        )
+        print_formatted_text(
+            f"Network {ethereum_client.get_network().name} - Sender {account.address} - "
+            f"Balance: {ether_account_balance}Ξ"
+        )
 
-    if not ethereum_client.w3.eth.getCode(safe_contract_address) \
-            or not ethereum_client.w3.eth.getCode(proxy_factory_address):
-        print_formatted_text('Network not supported')
+    if not ethereum_client.w3.eth.getCode(
+        safe_contract_address
+    ) or not ethereum_client.w3.eth.getCode(proxy_factory_address):
+        print_formatted_text("Network not supported")
         sys.exit(1)
 
-    print_formatted_text(f'Creating new Safe with owners={owners} threshold={threshold} '
-                         f'fallback-handler={fallback_handler} salt-nonce={salt_nonce}')
-    if yes_or_no_question('Do you want to continue?'):
-        safe_contract = get_safe_V1_3_0_contract(ethereum_client.w3, safe_contract_address)
+    print_formatted_text(
+        f"Creating new Safe with owners={owners} threshold={threshold} "
+        f"fallback-handler={fallback_handler} salt-nonce={salt_nonce}"
+    )
+    if yes_or_no_question("Do you want to continue?"):
+        safe_contract = get_safe_V1_3_0_contract(
+            ethereum_client.w3, safe_contract_address
+        )
         safe_creation_tx_data = HexBytes(
             safe_contract.functions.setup(
-                owners, threshold, to, data, fallback_handler, payment_token, payment, payment_receiver
-            ).buildTransaction({'gas': 1, 'gasPrice': 1})['data']
+                owners,
+                threshold,
+                to,
+                data,
+                fallback_handler,
+                payment_token,
+                payment,
+                payment_receiver,
+            ).buildTransaction({"gas": 1, "gasPrice": 1})["data"]
         )
 
         proxy_factory = ProxyFactory(proxy_factory_address, ethereum_client)
-        ethereum_tx_sent = proxy_factory.deploy_proxy_contract_with_nonce(account,
-                                                                          safe_contract_address,
-                                                                          safe_creation_tx_data,
-                                                                          salt_nonce)
-        print_formatted_text(f'Tx with tx-hash={ethereum_tx_sent.tx_hash.hex()} '
-                             f'will create safe={ethereum_tx_sent.contract_address}')
-        print_formatted_text(f'Tx paramters={ethereum_tx_sent.tx}')
+        ethereum_tx_sent = proxy_factory.deploy_proxy_contract_with_nonce(
+            account, safe_contract_address, safe_creation_tx_data, salt_nonce
+        )
+        print_formatted_text(
+            f"Tx with tx-hash={ethereum_tx_sent.tx_hash.hex()} "
+            f"will create safe={ethereum_tx_sent.contract_address}"
+        )
+        print_formatted_text(f"Tx paramters={ethereum_tx_sent.tx}")

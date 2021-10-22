@@ -10,8 +10,7 @@ from prompt_toolkit.history import FileHistory
 from prompt_toolkit.lexers import PygmentsLexer
 from web3 import Web3
 
-from safe_cli.prompt_parser import (PromptParser,
-                                    to_checksummed_ethereum_address)
+from safe_cli.prompt_parser import PromptParser, to_checksummed_ethereum_address
 from safe_cli.safe_completer import SafeCompleter
 from safe_cli.safe_lexer import SafeLexer
 from safe_cli.safe_operator import SafeOperator, ServiceNotAvailable
@@ -19,10 +18,15 @@ from safe_cli.safe_relay_operator import SafeRelayOperator
 from safe_cli.safe_tx_service_operator import SafeTxServiceOperator
 
 parser = argparse.ArgumentParser()
-parser.add_argument('safe_address', help='Address of Safe to use', type=to_checksummed_ethereum_address)
-parser.add_argument('node_url', help='Ethereum node url')
-parser.add_argument('--history', action='store_true',
-                    help="Enable history. By default it's disabled due to security reasons")
+parser.add_argument(
+    "safe_address", help="Address of Safe to use", type=to_checksummed_ethereum_address
+)
+parser.add_argument("node_url", help="Ethereum node url")
+parser.add_argument(
+    "--history",
+    action="store_true",
+    help="Enable history. By default it's disabled due to security reasons",
+)
 args = parser.parse_args()
 
 safe_address = args.safe_address
@@ -33,28 +37,42 @@ history = args.history
 class SafeCli:
     def __init__(self):
         if history:
-            self.session = PromptSession(history=FileHistory(os.path.join(sys.path[0], '.history')))
+            self.session = PromptSession(
+                history=FileHistory(os.path.join(sys.path[0], ".history"))
+            )
         else:
             self.session = PromptSession()
         self.safe_operator = SafeOperator(safe_address, node_url)
         self.prompt_parser = PromptParser(self.safe_operator)
 
     def print_startup_info(self):
-        print_formatted_text(pyfiglet.figlet_format('Gnosis Safe CLI'))  # Print fancy text
-        print_formatted_text(HTML('<b><ansigreen>Loading Safe information...</ansigreen></b>'))
+        print_formatted_text(
+            pyfiglet.figlet_format("Gnosis Safe CLI")
+        )  # Print fancy text
+        print_formatted_text(
+            HTML("<b><ansigreen>Loading Safe information...</ansigreen></b>")
+        )
         self.safe_operator.print_info()
 
     def get_prompt_text(self):
         if isinstance(self.prompt_parser.safe_operator, SafeRelayOperator):
-            return HTML(f'<bold><ansiblue>relay-service > {safe_address}</ansiblue><ansired> > </ansired></bold>')
+            return HTML(
+                f"<bold><ansiblue>relay-service > {safe_address}</ansiblue><ansired> > </ansired></bold>"
+            )
         elif isinstance(self.prompt_parser.safe_operator, SafeTxServiceOperator):
-            return HTML(f'<bold><ansiblue>tx-service > {safe_address}</ansiblue><ansired> > </ansired></bold>')
+            return HTML(
+                f"<bold><ansiblue>tx-service > {safe_address}</ansiblue><ansired> > </ansired></bold>"
+            )
         elif isinstance(self.prompt_parser.safe_operator, SafeOperator):
-            return HTML(f'<bold><ansiblue>blockchain > {safe_address}</ansiblue><ansired> > </ansired></bold>')
+            return HTML(
+                f"<bold><ansiblue>blockchain > {safe_address}</ansiblue><ansired> > </ansired></bold>"
+            )
 
     def get_bottom_toolbar(self):
-        return HTML(f'<b><style fg="ansiyellow">network={self.safe_operator.network.name} '
-                    f'{self.safe_operator.safe_cli_info}</style></b>')
+        return HTML(
+            f'<b><style fg="ansiyellow">network={self.safe_operator.network.name} '
+            f"{self.safe_operator.safe_cli_info}</style></b>"
+        )
 
     def parse_operator_mode(self, command: str) -> Optional[SafeOperator]:
         """
@@ -64,32 +82,42 @@ class SafeCli:
         """
         split_command = command.split()
         try:
-            if (split_command[0]) == 'tx-service':
-                print_formatted_text(HTML('<b><ansigreen>Sending txs to tx service</ansigreen></b>'))
+            if (split_command[0]) == "tx-service":
+                print_formatted_text(
+                    HTML("<b><ansigreen>Sending txs to tx service</ansigreen></b>")
+                )
                 return SafeTxServiceOperator(safe_address, node_url)
-            elif split_command[0] == 'relay-service':
+            elif split_command[0] == "relay-service":
                 if len(split_command) == 2 and Web3.isChecksumAddress(split_command[1]):
                     gas_token = split_command[1]
                 else:
                     gas_token = None
-                print_formatted_text(HTML(
-                    f'<b><ansigreen>Sending txs trough relay service gas-token={gas_token}</ansigreen></b>'
-                ))
+                print_formatted_text(
+                    HTML(
+                        f"<b><ansigreen>Sending txs trough relay service gas-token={gas_token}</ansigreen></b>"
+                    )
+                )
                 return SafeRelayOperator(safe_address, node_url, gas_token=gas_token)
-            elif split_command[0] == 'blockchain':
-                print_formatted_text(HTML('<b><ansigreen>Sending txs to blockchain</ansigreen></b>'))
+            elif split_command[0] == "blockchain":
+                print_formatted_text(
+                    HTML("<b><ansigreen>Sending txs to blockchain</ansigreen></b>")
+                )
                 return self.safe_operator
         except ServiceNotAvailable:
-            print_formatted_text(HTML('<b><ansired>Mode not supported on this network</ansired></b>'))
+            print_formatted_text(
+                HTML("<b><ansired>Mode not supported on this network</ansired></b>")
+            )
 
     def loop(self):
         while True:
             try:
-                command = self.session.prompt(self.get_prompt_text,
-                                              auto_suggest=AutoSuggestFromHistory(),
-                                              bottom_toolbar=self.get_bottom_toolbar,
-                                              lexer=PygmentsLexer(SafeLexer),
-                                              completer=SafeCompleter())
+                command = self.session.prompt(
+                    self.get_prompt_text,
+                    auto_suggest=AutoSuggestFromHistory(),
+                    bottom_toolbar=self.get_bottom_toolbar,
+                    lexer=PygmentsLexer(SafeLexer),
+                    completer=SafeCompleter(),
+                )
                 if not command.strip():
                     continue
 
@@ -106,7 +134,7 @@ class SafeCli:
                 pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     safe_cli = SafeCli()
     safe_cli.print_startup_info()
     safe_cli.loop()

@@ -9,27 +9,31 @@ from web3 import Web3
 from gnosis.eth import EthereumClient
 from gnosis.safe import Safe
 
-from safe_cli.safe_operator import (AccountNotLoadedException,
-                                    ExistingOwnerException,
-                                    FallbackHandlerNotSupportedException,
-                                    GuardNotSupportedException,
-                                    HashAlreadyApproved,
-                                    InvalidFallbackHandlerException,
-                                    InvalidGuardException,
-                                    InvalidMasterCopyException,
-                                    NonExistingOwnerException,
-                                    NotEnoughEtherToSend, NotEnoughSignatures,
-                                    SafeOperator, SameFallbackHandlerException,
-                                    SameGuardException,
-                                    SameMasterCopyException,
-                                    SenderRequiredException)
+from safe_cli.safe_operator import (
+    AccountNotLoadedException,
+    ExistingOwnerException,
+    FallbackHandlerNotSupportedException,
+    GuardNotSupportedException,
+    HashAlreadyApproved,
+    InvalidFallbackHandlerException,
+    InvalidGuardException,
+    InvalidMasterCopyException,
+    NonExistingOwnerException,
+    NotEnoughEtherToSend,
+    NotEnoughSignatures,
+    SafeOperator,
+    SameFallbackHandlerException,
+    SameGuardException,
+    SameMasterCopyException,
+    SenderRequiredException,
+)
 
 from .safe_cli_test_case_mixin import SafeCliTestCaseMixin
 
 
 class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
-    ETHEREUM_NODE_URL = os.environ.get('ETHEREUM_NODE_URL', 'http://localhost:8545')
-    ETHEREUM_ACCOUNT_KEY = '0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d'  # Ganache #0
+    ETHEREUM_NODE_URL = os.environ.get("ETHEREUM_NODE_URL", "http://localhost:8545")
+    ETHEREUM_ACCOUNT_KEY = "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"  # Ganache #0
 
     def test_setup_operator(self):
         for number_owners in range(1, 4):
@@ -38,7 +42,7 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             safe = Safe(safe_operator.address, self.ethereum_client)
             self.assertEqual(len(safe.retrieve_owners()), number_owners)
 
-    @mock.patch.object(Safe, 'get_contract', return_value=None)
+    @mock.patch.object(Safe, "get_contract", return_value=None)
     def test_load_cli_owner(self, get_contract_mock: MagicMock):
         random_address = Account.create().address
         safe_operator = SafeOperator(random_address, self.ethereum_node_url)
@@ -51,21 +55,23 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         safe_operator.load_cli_owners(random_accounts_keys)
         self.assertEqual(len(safe_operator.accounts), len(random_accounts_keys))
         # Test invalid accounts don't make the method break
-        safe_operator.load_cli_owners(['aloha', Account.create().key.hex(), 'bye'])
+        safe_operator.load_cli_owners(["aloha", Account.create().key.hex(), "bye"])
         self.assertEqual(len(safe_operator.accounts), len(random_accounts_keys) + 1)
         # TODO Test setting default sender, mock getBalance
 
         # Test unload cli owner
         safe_operator.default_sender = random_accounts[0]
         number_of_accounts = len(safe_operator.accounts)
-        safe_operator.unload_cli_owners(['aloha', random_accounts[0].address, 'bye'])
+        safe_operator.unload_cli_owners(["aloha", random_accounts[0].address, "bye"])
         self.assertEqual(len(safe_operator.accounts), number_of_accounts - 1)
         self.assertFalse(safe_operator.default_sender)
 
     def test_approve_hash(self):
-        safe_address = self.deploy_test_safe(owners=[self.ethereum_test_account.address]).safe_address
+        safe_address = self.deploy_test_safe(
+            owners=[self.ethereum_test_account.address]
+        ).safe_address
         safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
-        safe_tx_hash = Web3.keccak(text='random-test')
+        safe_tx_hash = Web3.keccak(text="random-test")
         random_account = Account.create()
         with self.assertRaises(AccountNotLoadedException):
             safe_operator.approve_hash(safe_tx_hash, random_account.address)
@@ -76,12 +82,16 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
 
         safe_operator.accounts.add(self.ethereum_test_account)
         safe_operator.default_sender = self.ethereum_test_account
-        self.assertTrue(safe_operator.approve_hash(safe_tx_hash, self.ethereum_test_account.address))
+        self.assertTrue(
+            safe_operator.approve_hash(safe_tx_hash, self.ethereum_test_account.address)
+        )
         with self.assertRaises(HashAlreadyApproved):
             safe_operator.approve_hash(safe_tx_hash, self.ethereum_test_account.address)
 
     def test_add_owner(self):
-        safe_address = self.deploy_test_safe(owners=[self.ethereum_test_account.address]).safe_address
+        safe_address = self.deploy_test_safe(
+            owners=[self.ethereum_test_account.address]
+        ).safe_address
         safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
         with self.assertRaises(ExistingOwnerException):
             safe_operator.add_owner(self.ethereum_test_account.address)
@@ -101,7 +111,9 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         self.assertIn(new_owner, safe.retrieve_owners())
 
     def test_remove_owner(self):
-        safe_address = self.deploy_test_safe(owners=[self.ethereum_test_account.address]).safe_address
+        safe_address = self.deploy_test_safe(
+            owners=[self.ethereum_test_account.address]
+        ).safe_address
         safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
         random_address = Account.create().address
         with self.assertRaises(NonExistingOwnerException):
@@ -125,12 +137,18 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             safe_operator.change_fallback_handler(current_fallback_handler)
 
         new_fallback_handler = Account.create().address
-        with self.assertRaises(InvalidFallbackHandlerException):  # Contract does not exist
+        with self.assertRaises(
+            InvalidFallbackHandlerException
+        ):  # Contract does not exist
             self.assertTrue(safe_operator.change_fallback_handler(new_fallback_handler))
 
-        with mock.patch.object(EthereumClient, 'is_contract', autospec=True, return_value=True):
+        with mock.patch.object(
+            EthereumClient, "is_contract", autospec=True, return_value=True
+        ):
             self.assertTrue(safe_operator.change_fallback_handler(new_fallback_handler))
-        self.assertEqual(safe_operator.safe_cli_info.fallback_handler, new_fallback_handler)
+        self.assertEqual(
+            safe_operator.safe_cli_info.fallback_handler, new_fallback_handler
+        )
         self.assertEqual(safe.retrieve_fallback_handler(), new_fallback_handler)
 
         safe_operator.change_master_copy(self.safe_old_contract_address)
@@ -138,11 +156,11 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             safe_operator.change_fallback_handler(Account.create().address)
 
     def test_change_guard(self):
-        safe_operator = self.setup_operator(version='1.1.1')
+        safe_operator = self.setup_operator(version="1.1.1")
         with self.assertRaises(GuardNotSupportedException):
             safe_operator.change_guard(Account.create().address)
 
-        safe_operator = self.setup_operator(version='1.3.0')
+        safe_operator = self.setup_operator(version="1.3.0")
         safe = Safe(safe_operator.address, self.ethereum_client)
         current_guard = safe.retrieve_guard()
         with self.assertRaises(SameGuardException):
@@ -152,7 +170,9 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         with self.assertRaises(InvalidGuardException):  # Contract does not exist
             self.assertTrue(safe_operator.change_guard(new_guard))
 
-        with mock.patch.object(EthereumClient, 'is_contract', autospec=True, return_value=True):
+        with mock.patch.object(
+            EthereumClient, "is_contract", autospec=True, return_value=True
+        ):
             self.assertTrue(safe_operator.change_guard(new_guard))
         self.assertEqual(safe_operator.safe_cli_info.guard, new_guard)
         self.assertEqual(safe.retrieve_guard(), new_guard)
@@ -168,9 +188,15 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         with self.assertRaises(InvalidMasterCopyException):
             safe_operator.change_master_copy(random_address)
 
-        self.assertTrue(safe_operator.change_master_copy(self.safe_old_contract_address))
-        self.assertEqual(safe_operator.safe_cli_info.master_copy, self.safe_old_contract_address)
-        self.assertEqual(safe.retrieve_master_copy_address(), self.safe_old_contract_address)
+        self.assertTrue(
+            safe_operator.change_master_copy(self.safe_old_contract_address)
+        )
+        self.assertEqual(
+            safe_operator.safe_cli_info.master_copy, self.safe_old_contract_address
+        )
+        self.assertEqual(
+            safe.retrieve_master_copy_address(), self.safe_old_contract_address
+        )
 
     def test_send_ether(self):
         safe_operator = self.setup_operator()
@@ -178,11 +204,16 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         value = 123
         with self.assertRaises(NotEnoughEtherToSend):
             safe_operator.send_ether(random_address, value)
-        self.ethereum_client.send_eth_to(self.ethereum_test_account.key, safe_operator.address, self.w3.eth.gasPrice,
-                                         value * 2, gas=23000)
+        self.ethereum_client.send_eth_to(
+            self.ethereum_test_account.key,
+            safe_operator.address,
+            self.w3.eth.gasPrice,
+            value * 2,
+            gas=23000,
+        )
         self.assertTrue(safe_operator.send_ether(random_address, value))
         self.assertEqual(self.ethereum_client.get_balance(random_address), value)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
