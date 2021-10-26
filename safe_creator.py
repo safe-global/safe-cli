@@ -97,7 +97,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     node_url: URI = args.node_url
     account: LocalAccount = Account.from_key(args.private_key)
-    owners: List[str] = list(set(args.owners)) if args.owners else [account.address]
+    owners: List[str] = args.owners if args.owners else [account.address]
     threshold: int = args.threshold
     salt_nonce: int = args.salt_nonce
     to = NULL_ADDRESS
