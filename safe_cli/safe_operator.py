@@ -14,7 +14,7 @@ from tabulate import tabulate
 from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput
 
-from gnosis.eth import EthereumClient
+from gnosis.eth import EthereumClient, EthereumNetwork, TxSpeed
 from gnosis.eth.constants import NULL_ADDRESS, SENTINEL_ADDRESS
 from gnosis.eth.contracts import (
     get_erc20_contract,
@@ -22,7 +22,6 @@ from gnosis.eth.contracts import (
     get_safe_contract,
     get_safe_V1_1_1_contract,
 )
-from gnosis.eth.ethereum_client import EthereumNetwork
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
@@ -396,6 +395,10 @@ class SafeOperator:
                     ),
                 }
             )
+            if self.ethereum_client.is_eip1559_supported():
+                transaction_to_send = self.ethereum_client.set_eip1559_fees(
+                    transaction_to_send
+                )
             call_result = self.ethereum_client.w3.eth.call(transaction_to_send)
             if call_result:  # There's revert message
                 return False
@@ -755,7 +758,9 @@ class SafeOperator:
             call_result = safe_tx.call(self.default_sender.address)
             print_formatted_text(HTML(f"Result: <ansigreen>{call_result}</ansigreen>"))
             if yes_or_no_question("Do you want to execute tx " + str(safe_tx)):
-                tx_hash, _ = safe_tx.execute(self.default_sender.key)
+                tx_hash, tx = safe_tx.execute(
+                    self.default_sender.key, eip1559_speed=TxSpeed.NORMAL
+                )
                 self.executed_transactions.append(tx_hash.hex())
                 print_formatted_text(
                     HTML(
@@ -763,7 +768,21 @@ class SafeOperator:
                         f"and safe-nonce {safe_tx.safe_nonce}, waiting for receipt</ansigreen>"
                     )
                 )
-                if self.ethereum_client.get_transaction_receipt(tx_hash, timeout=120):
+                tx_receipt = self.ethereum_client.get_transaction_receipt(
+                    tx_hash, timeout=120
+                )
+                if tx_receipt:
+                    fees = self.ethereum_client.w3.fromWei(
+                        tx_receipt["gasUsed"]
+                        * tx_receipt.get("effectiveGasPrice", tx["gasPrice"]),
+                        "ether",
+                    )
+                    print_formatted_text(
+                        HTML(
+                            f"<ansigreen>Tx was executed on block-number={tx_receipt['blockNumber']}, fees "
+                            f"deducted={fees}</ansigreen>"
+                        )
+                    )
                     self.safe_cli_info.nonce += 1
                     return True
                 else:
