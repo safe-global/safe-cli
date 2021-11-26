@@ -21,6 +21,7 @@ from safe_cli.safe_addresses import (
     LAST_DEFAULT_CALLBACK_HANDLER,
     LAST_PROXY_FACTORY_CONTRACT,
     LAST_SAFE_CONTRACT,
+    LAST_SAFE_L2_CONTRACT,
 )
 from safe_cli.utils import yes_or_no_question
 
@@ -66,7 +67,7 @@ parser.add_argument(
 parser.add_argument(
     "--safe-contract",
     help="Use a custom Safe master copy",
-    default=LAST_SAFE_CONTRACT,
+    default=None,
     type=check_ethereum_address,
 )
 parser.add_argument(
@@ -88,6 +89,13 @@ parser.add_argument(
     "lead to the same Safe address ",
     default=secrets.SystemRandom().randint(0, 2 ** 256 - 1),  # TODO Add support for CPK
     type=int,
+)
+
+parser.add_argument(
+    "--l2",
+    help="Use L2 deployment of the Safe instead of the regular one. Recommended for every network but mainnet",
+    default=False,
+    action="store_true",
 )
 
 if __name__ == "__main__":
@@ -112,10 +120,34 @@ if __name__ == "__main__":
         )
         sys.exit(1)
 
-    safe_contract_address = args.safe_contract
+    safe_contract_address = args.safe_contract or (
+        LAST_SAFE_L2_CONTRACT if args.l2 else LAST_SAFE_CONTRACT
+    )
     proxy_factory_address = args.proxy_factory
     fallback_handler = args.callback_handler
     ethereum_client = EthereumClient(node_url)
+    ethereum_network = ethereum_client.get_network()
+
+    if not ethereum_client.is_contract(safe_contract_address):
+        print_formatted_text(
+            f"Safe contract address {safe_contract_address} "
+            f"does not exist on network {ethereum_network.name}"
+        )
+        sys.exit(1)
+    elif not ethereum_client.is_contract(proxy_factory_address):
+        print_formatted_text(
+            f"Proxy contract address {proxy_factory_address} "
+            f"does not exist on network {ethereum_network.name}"
+        )
+        sys.exit(1)
+    elif fallback_handler != NULL_ADDRESS and not ethereum_client.is_contract(
+        fallback_handler
+    ):
+        print_formatted_text(
+            f"Fallback handler address {fallback_handler} "
+            f"does not exist on network {ethereum_network.name}"
+        )
+        sys.exit(1)
 
     account_balance: int = ethereum_client.get_balance(account.address)
     if not account_balance:
@@ -137,8 +169,11 @@ if __name__ == "__main__":
         sys.exit(1)
 
     print_formatted_text(
-        f"Creating new Safe with owners={owners} threshold={threshold} "
-        f"fallback-handler={fallback_handler} salt-nonce={salt_nonce}"
+        f"Creating new Safe with owners={owners} threshold={threshold} salt-nonce={salt_nonce}"
+    )
+    print_formatted_text(
+        f"Proxy factory={proxy_factory_address} safe-master-copy={safe_contract_address} and "
+        f"fallback-handler={fallback_handler}"
     )
     if yes_or_no_question("Do you want to continue?"):
         safe_contract = get_safe_V1_3_0_contract(
