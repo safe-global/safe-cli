@@ -58,7 +58,7 @@ class SafeCliTestCaseMixin:
         )
         threshold = threshold if threshold else len(owners) - 1
 
-        gas_price = self.ethereum_client.w3.eth.gasPrice
+        gas_price = self.ethereum_client.w3.eth.gas_price
         return Safe.build_safe_create2_tx(
             self.ethereum_client,
             self.safe_contract_address,
@@ -180,6 +180,6 @@ class SafeCliTestCaseMixin:
         return safe_operator
 
     def send_ether(self, to: str, value: int) -> bytes:
-        return self.w3.eth.sendTransaction(
+        return self.w3.eth.send_transaction(
             {"to": to, "value": value, "from": self.ethereum_test_account.address}
         )

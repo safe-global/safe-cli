@@ -207,7 +207,7 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         self.ethereum_client.send_eth_to(
             self.ethereum_test_account.key,
             safe_operator.address,
-            self.w3.eth.gasPrice,
+            self.w3.eth.gas_price,
             value * 2,
             gas=23000,
         )
