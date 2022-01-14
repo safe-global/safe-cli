@@ -1,6 +1,6 @@
 cached-property==1.5.2 ; python_version < "3.8"
 colorama==0.4.4
-gnosis-py==3.7.5
+gnosis-py==3.7.6
 packaging>=21.3
 prompt_toolkit==3.0.24
 pyfiglet==0.8.post1
