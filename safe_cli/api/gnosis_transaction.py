@@ -15,14 +15,17 @@ from .base_api import BaseAPI, BaseAPIException
 class TransactionService(BaseAPI):
     URL_BY_NETWORK = {
         EthereumNetwork.MAINNET: "https://safe-transaction.mainnet.gnosis.io",
-        EthereumNetwork.RINKEBY: "https://safe-transaction.rinkeby.gnosis.io",
-        EthereumNetwork.GOERLI: "https://safe-transaction.goerli.gnosis.io",
-        EthereumNetwork.XDAI: "https://safe-transaction.xdai.gnosis.io",
-        EthereumNetwork.VOLTA: "https://safe-transaction.volta.gnosis.io",
-        EthereumNetwork.ENERGY_WEB_CHAIN: "https://safe-transaction.ewc.gnosis.io",
-        EthereumNetwork.MATIC: "https://safe-transaction.polygon.gnosis.io",
         EthereumNetwork.ARBITRUM: "https://safe-transaction.arbitrum.gnosis.io",
+        EthereumNetwork.AURORA: "https://safe-transaction.aurora.gnosis.io/",
+        EthereumNetwork.AVALANCHE: "https://safe-transaction.avalanche.gnosis.io",
         EthereumNetwork.BINANCE: "https://safe-transaction.bsc.gnosis.io",
+        EthereumNetwork.ENERGY_WEB_CHAIN: "https://safe-transaction.ewc.gnosis.io",
+        EthereumNetwork.GOERLI: "https://safe-transaction.goerli.gnosis.io",
+        EthereumNetwork.MATIC: "https://safe-transaction.polygon.gnosis.io",
+        EthereumNetwork.OPTIMISTIC: "https://safe-transaction.optimism.gnosis.io/",
+        EthereumNetwork.RINKEBY: "https://safe-transaction.rinkeby.gnosis.io",
+        EthereumNetwork.VOLTA: "https://safe-transaction.volta.gnosis.io",
+        EthereumNetwork.XDAI: "https://safe-transaction.xdai.gnosis.io",
     }
 
     @classmethod
