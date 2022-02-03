@@ -774,7 +774,7 @@ class SafeOperator:
                 if tx_receipt:
                     fees = self.ethereum_client.w3.fromWei(
                         tx_receipt["gasUsed"]
-                        * tx_receipt.get("effectiveGasPrice", tx["gasPrice"]),
+                        * tx_receipt.get("effectiveGasPrice", tx.get("gasPrice", 0)),
                         "ether",
                     )
                     print_formatted_text(
