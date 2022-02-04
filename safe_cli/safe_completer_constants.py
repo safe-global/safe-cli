@@ -7,8 +7,9 @@ SAFE_EMPTY_ARGUMENT_COLOR = "ansimagenta"
 safe_commands_arguments = {
     "add_delegate": "<address> <label> <signer-address>",
     "add_owner": "<address> [--threshold <int>]",
-    "approve_hash": "<keccak-hexstr-hash> <address>",
+    "approve_hash": "<safe-tx-hash> <address>",
     "balances": "(read-only)",
+    "batch-txs": "<safe-nonce> <safe-tx-hash> [ <safe-tx-hash> ... ]",
     "change_fallback_handler": "<address>",
     "change_guard": "<address>",
     "change_master_copy": "<address>",
@@ -66,8 +67,12 @@ meta = {
         "<b>history</b> will return information of last transactions for the Safe "
         "(if tx service available for the network)"
     ),
+    "batch-txs <": HTML(
+        "<b>batch-txs</b> will take pending or executed transactions by safe tx hash and will create a new"
+        "transaction using the provided safe nonce"
+    ),
     "sign-tx": HTML(
-        "<b>sign-tx</b> will sign the provided safeTxHash using the owners loaded on the CLI "
+        "<b>sign-tx</b> will sign the provided safeTxHash using the owners loaded on the CLI"
     ),
     "info": HTML(
         "<b>info</b> will return all the information available for a Safe, with Gnosis Tx Service and "

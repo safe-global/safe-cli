@@ -1,9 +1,8 @@
 import dataclasses
 import os
 from functools import wraps
-from typing import Any, Dict, List, NoReturn, Optional, Set
+from typing import List, NoReturn, Optional, Sequence, Set
 
-from colorama import Fore, Style
 from ens import ENS
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
@@ -11,7 +10,6 @@ from eth_utils import ValidationError
 from hexbytes import HexBytes
 from packaging import version as semantic_version
 from prompt_toolkit import HTML, print_formatted_text
-from tabulate import tabulate
 from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput
 
@@ -236,63 +234,6 @@ class SafeOperator:
         self._safe_cli_info = self.get_safe_cli_info()
         return self._safe_cli_info
 
-    @require_tx_service
-    def get_balances(self):
-        balances = self.safe_tx_service.get_balances(self.address)
-        headers = ["name", "balance", "symbol", "decimals", "tokenAddress"]
-        rows = []
-        for balance in balances:
-            if balance["tokenAddress"]:  # Token
-                row = [
-                    balance["token"]["name"],
-                    f"{int(balance['balance']) / 10**int(balance['token']['decimals']):.5f}",
-                    balance["token"]["symbol"],
-                    balance["token"]["decimals"],
-                    balance["tokenAddress"],
-                ]
-            else:  # Ether
-                row = [
-                    "ETHER",
-                    f"{int(balance['balance']) / 10 ** 18:.5f}",
-                    "Ξ",
-                    18,
-                    "",
-                ]
-            rows.append(row)
-        print(tabulate(rows, headers=headers))
-
-    @require_tx_service
-    def get_transaction_history(self):
-        transactions = self.safe_tx_service.get_transactions(self.address)
-        headers = ["nonce", "to", "value", "transactionHash", "safeTxHash"]
-        rows = []
-        last_executed_tx = False
-        for transaction in transactions:
-            row = [transaction[header] for header in headers]
-            data_decoded: Dict[str, Any] = transaction.get("dataDecoded")
-            if data_decoded:
-                row.append(self.safe_tx_service.data_decoded_to_text(data_decoded))
-            if transaction["transactionHash"] and transaction["isSuccessful"]:
-                row[0] = Fore.GREEN + str(
-                    row[0]
-                )  # For executed transactions we use green
-                if not last_executed_tx:
-                    row[0] = Style.BRIGHT + row[0]
-                    last_executed_tx = True
-            elif transaction["transactionHash"]:
-                row[0] = Fore.RED + str(row[0])  # For transactions failed
-            else:
-                row[0] = Fore.YELLOW + str(
-                    row[0]
-                )  # For non executed transactions we use yellow
-
-            row[0] = Style.RESET_ALL + row[0]  # Reset all just in case
-            rows.append(row)
-
-        headers.append("dataDecoded")
-        headers[0] = Style.BRIGHT + headers[0]
-        print(tabulate(rows, headers=headers))
-
     def load_cli_owners_from_words(self, words: List[str]):
         if len(words) == 1:  # Reading seed from Environment Variable
             words = os.environ.get(words[0], default="").strip().split(" ")
@@ -335,7 +276,7 @@ class SafeOperator:
                     )
                     self.default_sender = account
             except ValueError:
-                print_formatted_text(HTML(f"<ansired>Cannot load key=f{key}</ansired>"))
+                print_formatted_text(HTML(f"<ansired>Cannot load key={key}</ansired>"))
 
     def unload_cli_owners(self, owners: List[str]):
         accounts_to_remove: Set[Account] = set()
@@ -796,47 +737,11 @@ class SafeOperator:
                             f"<ansired>Tx with tx-hash {tx_hash.hex()} still not mined</ansired>"
                         )
                     )
-                    return False
         except InvalidInternalTx as invalid_internal_tx:
             print_formatted_text(
                 HTML(f"Result: <ansired>InvalidTx - {invalid_internal_tx}</ansired>")
             )
-            return False
-
-    @require_tx_service
-    def submit_signatures(self, safe_tx_hash: bytes):
-        """
-        Submit signatures to the tx service
-
-        :return:
-        """
-
-        safe_tx, executed = self.safe_tx_service.get_safe_transaction(safe_tx_hash)
-        if executed:
-            print_formatted_text(
-                HTML(
-                    f"<ansired>Tx with safe-tx-hash {safe_tx_hash.hex()} has already been executed</ansired>"
-                )
-            )
-        else:
-            owners = self.get_permitted_signers()
-            for account in self.accounts:
-                if account.address in owners:
-                    safe_tx.sign(account.key)
-
-            if safe_tx.signers:
-                self.safe_tx_service.post_signatures(safe_tx_hash, safe_tx.signatures)
-                print_formatted_text(
-                    HTML(
-                        f"<ansigreen>{len(safe_tx.signers)} signatures were submitted to the tx service</ansigreen>"
-                    )
-                )
-            else:
-                print_formatted_text(
-                    HTML(
-                        "<ansired>Cannot generate signatures as there were no suitable signers</ansired>"
-                    )
-                )
+        return False
 
     # TODO Set sender so we can save gas in that signature
     def sign_transaction(self, safe_tx: SafeTx) -> SafeTx:
@@ -860,14 +765,41 @@ class SafeOperator:
 
         return safe_tx
 
+    @require_tx_service
+    def _require_tx_service_mode(self):
+        print_formatted_text(
+            HTML(
+                "<ansired>First enter tx-service mode using <b>tx-service</b> command</ansired>"
+            )
+        )
+
+    def get_delegates(self):
+        return self._require_tx_service_mode()
+
+    def add_delegate(self, delegate_address: str, label: str, signer_address: str):
+        return self._require_tx_service_mode()
+
+    def remove_delegate(self, delegate_address: str, signer_address: str):
+        return self._require_tx_service_mode()
+
+    def submit_signatures(self, safe_tx_hash: bytes) -> bool:
+        return self._require_tx_service_mode()
+
+    def get_balances(self):
+        return self._require_tx_service_mode()
+
+    def get_transaction_history(self):
+        return self._require_tx_service_mode()
+
+    def batch_txs(self, safe_nonce: int, safe_tx_hashes: Sequence[bytes]) -> bool:
+        return self._require_tx_service_mode()
+
     def get_permitted_signers(self) -> Set[str]:
         return set(self.safe_cli_info.owners)
 
     def process_command(self, first_command: str, rest_command: List[str]) -> bool:
         if first_command == "help":
             print_formatted_text("I still cannot help you")
-        elif first_command == "history":
-            self.get_transaction_history()
         elif first_command == "refresh":
             print_formatted_text("Reloading Safe information")
             self.refresh_safe_cli_info()

@@ -87,10 +87,16 @@ THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 - `update`: Updates the Safe to the latest version (if you are on a known network like `Rinkeby` or `Mainnet`).
 **WARNING: DON'T USE THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 
-Operations currently supported with transaction service (Mainnet, Rinkeby, Goerli, xDai...):
+Operations on `tx-service` mode, requires a Gnosis Safe Transaction Service working on the network
+(Mainnet, Gnosis Chain, Rinkeby, Polygon...):
 - `balances`: Returns a list of balances for ERC20 tokens and ether.
 - `history`: History of multisig transactions (including pending).
 - `sign-tx <safe-tx-hash>`: Sign a tx with the loaded owners for the provided `SafeTxHash`.
+- `batch-txs <safe-nonce> <safe-tx-hash> [ <safe-tx-hash> ... ]`: Batch transactions into one Multisig
+Transaction using the provided `safe-nonce`. **Any safe-tx can be used**: transactions from other Safes, transactions
+already executed, transactions pending for execution... Only limitation is that
+- **transactions from other networks cannot be used**. Batching order will follow the same order of the
+`safe-tx-hashes` provided.
 - `get_delegates`: Returns a list of delegates for the Safe.
 - `add_delegate <address> <label> <signer-address>`: Adds a new delegate `address` to the Safe.
 - `remove_delegate <address> <signer-address>`: Removes a delegate `address` from the Safe.
