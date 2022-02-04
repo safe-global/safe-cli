@@ -151,8 +151,9 @@ if __name__ == "__main__":
 
     account_balance: int = ethereum_client.get_balance(account.address)
     if not account_balance:
-        print_formatted_text("Client does not have any funds")
-        sys.exit(1)
+        print_formatted_text(
+            "Client does not have any funds. Let's try anyway in case it's a network without gas costs"
+        )
     else:
         ether_account_balance = round(
             ethereum_client.w3.fromWei(account_balance, "ether"), 6
