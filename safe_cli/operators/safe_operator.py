@@ -1,5 +1,6 @@
 import dataclasses
 import os
+from functools import wraps
 from typing import Any, Dict, List, NoReturn, Optional, Set
 
 from colorama import Fore, Style
@@ -147,6 +148,25 @@ class SafeServiceNotAvailable(SafeOperatorException):
     pass
 
 
+def require_tx_service(f):
+    @wraps(f)
+    def decorated(self, *args, **kwargs):
+        if not self.safe_tx_service:
+            print_formatted_text(
+                HTML(
+                    f"<ansired>No tx service available for "
+                    f"network={self.network.name}</ansired>"
+                )
+            )
+            if self.etherscan:
+                url = f"{self.etherscan.base_url}/address/{self.address}"
+                print_formatted_text(HTML(f"<b>Try Etherscan instead</b> {url}"))
+        else:
+            f(self, *args, **kwargs)
+
+    return decorated
+
+
 class SafeOperator:
     def __init__(self, address: str, node_url: str):
         self.address = address
@@ -154,10 +174,12 @@ class SafeOperator:
         self.ethereum_client = EthereumClient(self.node_url)
         self.ens = ENS.fromWeb3(self.ethereum_client.w3)
         self.network: EthereumNetwork = self.ethereum_client.get_network()
-        self.etherscan = Etherscan.from_network_number(self.network.value)
-        self.safe_relay_service = RelayService.from_network_number(self.network.value)
-        self.safe_tx_service = TransactionService.from_network_number(
-            self.network.value
+        self.etherscan = Etherscan.from_ethereum_client(self.ethereum_client)
+        self.safe_relay_service = RelayService.from_ethereum_client(
+            self.ethereum_client
+        )
+        self.safe_tx_service = TransactionService.from_ethereum_client(
+            self.ethereum_client
         )
         self.safe = Safe(address, self.ethereum_client)
         self.safe_contract = self.safe.get_contract()
@@ -214,79 +236,62 @@ class SafeOperator:
         self._safe_cli_info = self.get_safe_cli_info()
         return self._safe_cli_info
 
+    @require_tx_service
     def get_balances(self):
-        if not self.safe_tx_service:  # TODO Maybe use Etherscan
-            print_formatted_text(
-                HTML(
-                    f"<ansired>No tx service available for "
-                    f"network={self.network.name}</ansired>"
-                )
-            )
-        else:
-            balances = self.safe_tx_service.get_balances(self.address)
-            headers = ["name", "balance", "symbol", "decimals", "tokenAddress"]
-            rows = []
-            for balance in balances:
-                if balance["tokenAddress"]:  # Token
-                    row = [
-                        balance["token"]["name"],
-                        f"{int(balance['balance']) / 10**int(balance['token']['decimals']):.5f}",
-                        balance["token"]["symbol"],
-                        balance["token"]["decimals"],
-                        balance["tokenAddress"],
-                    ]
-                else:  # Ether
-                    row = [
-                        "ETHER",
-                        f"{int(balance['balance']) / 10 ** 18:.5f}",
-                        "Ξ",
-                        18,
-                        "",
-                    ]
-                rows.append(row)
-            print(tabulate(rows, headers=headers))
+        balances = self.safe_tx_service.get_balances(self.address)
+        headers = ["name", "balance", "symbol", "decimals", "tokenAddress"]
+        rows = []
+        for balance in balances:
+            if balance["tokenAddress"]:  # Token
+                row = [
+                    balance["token"]["name"],
+                    f"{int(balance['balance']) / 10**int(balance['token']['decimals']):.5f}",
+                    balance["token"]["symbol"],
+                    balance["token"]["decimals"],
+                    balance["tokenAddress"],
+                ]
+            else:  # Ether
+                row = [
+                    "ETHER",
+                    f"{int(balance['balance']) / 10 ** 18:.5f}",
+                    "Ξ",
+                    18,
+                    "",
+                ]
+            rows.append(row)
+        print(tabulate(rows, headers=headers))
 
+    @require_tx_service
     def get_transaction_history(self):
-        if not self.safe_tx_service:
-            print_formatted_text(
-                HTML(
-                    f"<ansired>No tx service available for "
-                    f"network={self.network.name}</ansired>"
-                )
-            )
-            if self.etherscan:
-                url = f"{self.etherscan.base_url}/address/{self.address}"
-                print_formatted_text(HTML(f"<b>Try Etherscan instead</b> {url}"))
-        else:
-            transactions = self.safe_tx_service.get_transactions(self.address)
-            headers = ["nonce", "to", "value", "transactionHash", "safeTxHash"]
-            rows = []
-            last_executed_tx = False
-            for transaction in transactions:
-                row = [transaction[header] for header in headers]
-                data_decoded: Dict[str, Any] = transaction.get("dataDecoded")
-                if data_decoded:
-                    row.append(self.safe_tx_service.data_decoded_to_text(data_decoded))
-                if transaction["transactionHash"] and transaction["isSuccessful"]:
-                    row[0] = Fore.GREEN + str(
-                        row[0]
-                    )  # For executed transactions we use green
-                    if not last_executed_tx:
-                        row[0] = Style.BRIGHT + row[0]
-                        last_executed_tx = True
-                elif transaction["transactionHash"]:
-                    row[0] = Fore.RED + str(row[0])  # For transactions failed
-                else:
-                    row[0] = Fore.YELLOW + str(
-                        row[0]
-                    )  # For non executed transactions we use yellow
+        transactions = self.safe_tx_service.get_transactions(self.address)
+        headers = ["nonce", "to", "value", "transactionHash", "safeTxHash"]
+        rows = []
+        last_executed_tx = False
+        for transaction in transactions:
+            row = [transaction[header] for header in headers]
+            data_decoded: Dict[str, Any] = transaction.get("dataDecoded")
+            if data_decoded:
+                row.append(self.safe_tx_service.data_decoded_to_text(data_decoded))
+            if transaction["transactionHash"] and transaction["isSuccessful"]:
+                row[0] = Fore.GREEN + str(
+                    row[0]
+                )  # For executed transactions we use green
+                if not last_executed_tx:
+                    row[0] = Style.BRIGHT + row[0]
+                    last_executed_tx = True
+            elif transaction["transactionHash"]:
+                row[0] = Fore.RED + str(row[0])  # For transactions failed
+            else:
+                row[0] = Fore.YELLOW + str(
+                    row[0]
+                )  # For non executed transactions we use yellow
 
-                row[0] = Style.RESET_ALL + row[0]  # Reset all just in case
-                rows.append(row)
+            row[0] = Style.RESET_ALL + row[0]  # Reset all just in case
+            rows.append(row)
 
-            headers.append("dataDecoded")
-            headers[0] = Style.BRIGHT + headers[0]
-            print(tabulate(rows, headers=headers))
+        headers.append("dataDecoded")
+        headers[0] = Style.BRIGHT + headers[0]
+        print(tabulate(rows, headers=headers))
 
     def load_cli_owners_from_words(self, words: List[str]):
         if len(words) == 1:  # Reading seed from Environment Variable
@@ -798,8 +803,43 @@ class SafeOperator:
             )
             return False
 
+    @require_tx_service
+    def submit_signatures(self, safe_tx_hash: bytes):
+        """
+        Submit signatures to the tx service
+
+        :return:
+        """
+
+        safe_tx, executed = self.safe_tx_service.get_safe_transaction(safe_tx_hash)
+        if executed:
+            print_formatted_text(
+                HTML(
+                    f"<ansired>Tx with safe-tx-hash {safe_tx_hash.hex()} has already been executed</ansired>"
+                )
+            )
+        else:
+            owners = self.get_permitted_signers()
+            for account in self.accounts:
+                if account.address in owners:
+                    safe_tx.sign(account.key)
+
+            if safe_tx.signers:
+                self.safe_tx_service.post_signatures(safe_tx_hash, safe_tx.signatures)
+                print_formatted_text(
+                    HTML(
+                        f"<ansigreen>{len(safe_tx.signers)} signatures were submitted to the tx service</ansigreen>"
+                    )
+                )
+            else:
+                print_formatted_text(
+                    HTML(
+                        "<ansired>Cannot generate signatures as there were no suitable signers</ansired>"
+                    )
+                )
+
     # TODO Set sender so we can save gas in that signature
-    def sign_transaction(self, safe_tx: SafeTx) -> NoReturn:
+    def sign_transaction(self, safe_tx: SafeTx) -> SafeTx:
         permitted_signers = self.get_permitted_signers()
         threshold = self.safe_cli_info.threshold
         selected_accounts: List[
@@ -818,13 +858,7 @@ class SafeOperator:
         for selected_account in selected_accounts:
             safe_tx.sign(selected_account.key)
 
-        """
-        selected_accounts.sort(key=lambda a: a.address.lower())
-        signatures: bytes = b''
-        for selected_account in selected_accounts:
-            signatures += selected_account.signHash(safe_tx_hash)
-        return signatures
-        """
+        return safe_tx
 
     def get_permitted_signers(self) -> Set[str]:
         return set(self.safe_cli_info.owners)

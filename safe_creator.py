@@ -87,7 +87,7 @@ parser.add_argument(
     "--salt-nonce",
     help="Use a custom nonce for the deployment. Same nonce with same deployment configuration will "
     "lead to the same Safe address ",
-    default=secrets.SystemRandom().randint(0, 2 ** 256 - 1),  # TODO Add support for CPK
+    default=secrets.SystemRandom().randint(0, 2**256 - 1),  # TODO Add support for CPK
     type=int,
 )
 

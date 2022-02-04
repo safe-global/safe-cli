@@ -31,6 +31,7 @@ safe_commands_arguments = {
     "send_erc721": "<address> <token-address> <token-id> [--safe-nonce <int>]",
     "send_custom": "<address> <value-wei> <data> [--delegate] [--safe-nonce <int>]",
     "send_ether": "<address> <value-wei> [--safe-nonce <int>]",
+    "sign-tx": "<safe-tx-hash>",
     "show_cli_owners": "(read-only)",
     "unload_cli_owners": "<address> [<address>...]",
     "blockchain": "",
@@ -42,13 +43,14 @@ safe_commands = list(safe_commands_arguments.keys())
 
 safe_color_arguments = {
     "(read-only)": SAFE_ARGUMENT_COLOR,
-    "<address>": SAFE_ARGUMENT_COLOR,
-    "<token-address>": SAFE_ARGUMENT_COLOR,
-    "<value-wei>": SAFE_ARGUMENT_COLOR,
-    "<token-id>": SAFE_ARGUMENT_COLOR,
-    "<integer>": SAFE_ARGUMENT_COLOR,
-    "<hex-str>": SAFE_ARGUMENT_COLOR,
     "<account-private-key>": SAFE_ARGUMENT_COLOR,
+    "<address>": SAFE_ARGUMENT_COLOR,
+    "<hex-str>": SAFE_ARGUMENT_COLOR,
+    "<integer>": SAFE_ARGUMENT_COLOR,
+    "<safe-tx-hash>": SAFE_ARGUMENT_COLOR,
+    "<token-address>": SAFE_ARGUMENT_COLOR,
+    "<token-id>": SAFE_ARGUMENT_COLOR,
+    "<value-wei>": SAFE_ARGUMENT_COLOR,
 }
 
 meta = {
@@ -63,6 +65,9 @@ meta = {
     "history": HTML(
         "<b>history</b> will return information of last transactions for the Safe "
         "(if tx service available for the network)"
+    ),
+    "sign-tx": HTML(
+        "<b>sign-tx</b> will sign the provided safeTxHash using the owners loaded on the CLI "
     ),
     "info": HTML(
         "<b>info</b> will return all the information available for a Safe, with Gnosis Tx Service and "

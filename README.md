@@ -90,6 +90,7 @@ THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 Operations currently supported with transaction service (Mainnet, Rinkeby, Goerli, xDai...):
 - `balances`: Returns a list of balances for ERC20 tokens and ether.
 - `history`: History of multisig transactions (including pending).
+- `sign-tx <safe-tx-hash>`: Sign a tx with the loaded owners for the provided `SafeTxHash`.
 - `get_delegates`: Returns a list of delegates for the Safe.
 - `add_delegate <address> <label> <signer-address>`: Adds a new delegate `address` to the Safe.
 - `remove_delegate <address> <signer-address>`: Removes a delegate `address` from the Safe.

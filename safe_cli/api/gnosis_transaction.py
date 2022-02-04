@@ -1,9 +1,10 @@
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urljoin
 
 import requests
 from eth_account.signers.local import LocalAccount
+from hexbytes import HexBytes
 from web3 import Web3
 
 from gnosis.eth.ethereum_client import EthereumNetwork
@@ -79,6 +80,35 @@ class TransactionService(BaseAPI):
         else:
             return response.json()
 
+    def get_safe_transaction(self, safe_tx_hash: bytes) -> Tuple[SafeTx, bool]:
+        """
+        :param safe_tx_hash:
+        :return: SafeTx and `True` if transaction was executed, `False` otherwise
+        """
+        safe_tx_hash = HexBytes(safe_tx_hash).hex()
+        response = self._get_request(f"/api/v1/multisig-transactions/{safe_tx_hash}/")
+        if not response.ok:
+            raise BaseAPIException(
+                f"Cannot get transaction with safe-tx-hash={safe_tx_hash}: {response.content}"
+            )
+        else:
+            result = response.json()
+            # TODO return tx-hash if executed
+            return SafeTx(
+                self.ethereum_client,
+                result["safe"],
+                result["to"],
+                int(result["value"]),
+                HexBytes(result["data"]) if result["data"] else b"",
+                int(result["operation"]),
+                int(result["safeTxGas"]),
+                int(result["baseGas"]),
+                int(result["gasPrice"]),
+                result["gasToken"],
+                result["refundReceiver"],
+                safe_nonce=int(result["nonce"]),
+            ), bool(result["transactionHash"])
+
     def get_transactions(self, safe_address: str) -> List[Dict[str, Any]]:
         response = self._get_request(
             f"/api/v1/safes/{safe_address}/multisig-transactions/"
@@ -94,6 +124,17 @@ class TransactionService(BaseAPI):
             raise BaseAPIException(f"Cannot get delegates: {response.content}")
         else:
             return response.json().get("results", [])
+
+    def post_signatures(self, safe_tx_hash: bytes, signatures: bytes) -> None:
+        safe_tx_hash = HexBytes(safe_tx_hash).hex()
+        response = self._post_request(
+            f"/api/v1/multisig-transactions/{safe_tx_hash}/confirmations/",
+            payload={"signature": HexBytes(signatures).hex()},
+        )
+        if not response.ok:
+            raise BaseAPIException(
+                f"Cannot post signatures for tx with safe-tx-hash={safe_tx_hash}: {response.content}"
+            )
 
     def add_delegate(
         self,

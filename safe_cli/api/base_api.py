@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 
 import requests
 
-from gnosis.eth.ethereum_client import EthereumNetwork
+from gnosis.eth.ethereum_client import EthereumClient, EthereumNetwork
 
 
 class BaseAPIException(Exception):
@@ -14,15 +14,18 @@ class BaseAPIException(Exception):
 class BaseAPI(ABC):
     URL_BY_NETWORK: Dict[EthereumNetwork, str] = {}
 
-    def __init__(self, network: EthereumNetwork):
+    def __init__(self, ethereum_client: EthereumClient, network: EthereumNetwork):
+        self.ethereum_client = ethereum_client
         self.network = network
         self.base_url = self.URL_BY_NETWORK[network]
 
     @classmethod
-    def from_network_number(cls, network: int) -> Optional["BaseAPI"]:
-        ethereum_network = EthereumNetwork(network)
+    def from_ethereum_client(
+        cls, ethereum_client: EthereumClient
+    ) -> Optional["BaseAPI"]:
+        ethereum_network = ethereum_client.get_network()
         if ethereum_network in cls.URL_BY_NETWORK:
-            return cls(ethereum_network)
+            return cls(ethereum_client, ethereum_network)
 
     def _get_request(self, url: str) -> requests.Response:
         full_url = urljoin(self.base_url, url)
