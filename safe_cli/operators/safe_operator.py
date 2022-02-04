@@ -143,7 +143,7 @@ class NotEnoughTokenToSend(SafeOperatorException):
     pass
 
 
-class ServiceNotAvailable(SafeOperatorException):
+class SafeServiceNotAvailable(SafeOperatorException):
     pass
 
 

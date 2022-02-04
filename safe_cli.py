@@ -10,12 +10,15 @@ from prompt_toolkit.history import FileHistory
 from prompt_toolkit.lexers import PygmentsLexer
 from web3 import Web3
 
+from safe_cli.operators import (
+    SafeOperator,
+    SafeRelayOperator,
+    SafeServiceNotAvailable,
+    SafeTxServiceOperator,
+)
 from safe_cli.prompt_parser import PromptParser, to_checksummed_ethereum_address
 from safe_cli.safe_completer import SafeCompleter
 from safe_cli.safe_lexer import SafeLexer
-from safe_cli.safe_operator import SafeOperator, ServiceNotAvailable
-from safe_cli.safe_relay_operator import SafeRelayOperator
-from safe_cli.safe_tx_service_operator import SafeTxServiceOperator
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -103,7 +106,7 @@ class SafeCli:
                     HTML("<b><ansigreen>Sending txs to blockchain</ansigreen></b>")
                 )
                 return self.safe_operator
-        except ServiceNotAvailable:
+        except SafeServiceNotAvailable:
             print_formatted_text(
                 HTML("<b><ansired>Mode not supported on this network</ansired></b>")
             )

@@ -6,7 +6,7 @@ from prompt_toolkit import HTML, print_formatted_text
 from web3 import Web3
 
 from .api.base_api import BaseAPIException
-from .safe_operator import (
+from .operators.safe_operator import (
     AccountNotLoadedException,
     ExistingOwnerException,
     FallbackHandlerNotSupportedException,
@@ -18,10 +18,10 @@ from .safe_operator import (
     NotEnoughTokenToSend,
     SafeAlreadyUpdatedException,
     SafeOperator,
+    SafeServiceNotAvailable,
     SameFallbackHandlerException,
     SameMasterCopyException,
     SenderRequiredException,
-    ServiceNotAvailable,
     ThresholdLimitException,
 )
 
@@ -152,7 +152,7 @@ def safe_exception(function):
                     f"</ansired>"
                 )
             )
-        except ServiceNotAvailable as e:
+        except SafeServiceNotAvailable as e:
             print_formatted_text(
                 HTML(
                     f"<ansired>Service not available for network {e.args[0]}</ansired>"
@@ -388,19 +388,6 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
             type=int,
             help="Use custom safe nonce instead of "
             "the one for last executed SafeTx + 1",
-        )
-        parser.add_argument(
-            "--tx-service",
-            action="store_true",
-            help="Send transaction to Gnosis Transaction Service instead of Blockchain"
-            "(It will appear on the webui/mobile clients if at least one "
-            "signer is provided)",
-        )
-        parser.add_argument(
-            "--relay-service",
-            action="store_true",
-            help="Send transaction to Blockchain using Gnosis Relay Service, allowing to pay for fees"
-            "using funds on the Safe (including tokens) instead of the sender",
         )
 
     # To/value is common for send custom and send ether

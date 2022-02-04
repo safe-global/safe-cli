@@ -5,8 +5,8 @@ from web3 import Web3
 
 from gnosis.safe import Safe
 
+from safe_cli.operators.safe_operator import SafeOperator
 from safe_cli.prompt_parser import PromptParser
-from safe_cli.safe_operator import SafeOperator
 
 from .safe_cli_test_case_mixin import SafeCliTestCaseMixin
 

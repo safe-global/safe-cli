@@ -6,8 +6,9 @@ from prompt_toolkit import HTML, print_formatted_text
 from gnosis.eth.constants import NULL_ADDRESS
 from gnosis.safe import InvalidInternalTx, SafeOperation, SafeTx
 
-from .safe_operator import SafeOperator, ServiceNotAvailable
-from .utils import yes_or_no_question
+from safe_cli.utils import yes_or_no_question
+
+from .safe_operator import SafeOperator, SafeServiceNotAvailable
 
 
 class SafeRelayOperator(SafeOperator):
@@ -15,7 +16,7 @@ class SafeRelayOperator(SafeOperator):
         super().__init__(address, node_url)
         self.gas_token = gas_token or NULL_ADDRESS
         if not self.safe_relay_service:
-            raise ServiceNotAvailable(
+            raise SafeServiceNotAvailable(
                 f"Cannot configure relay service for network {self.network.name}"
             )
 

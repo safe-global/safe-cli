@@ -9,7 +9,7 @@ from web3 import Web3
 from gnosis.eth import EthereumClient
 from gnosis.safe import Safe
 
-from safe_cli.safe_operator import (
+from safe_cli.operators.safe_operator import (
     AccountNotLoadedException,
     ExistingOwnerException,
     FallbackHandlerNotSupportedException,

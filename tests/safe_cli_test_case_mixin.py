@@ -12,7 +12,7 @@ from gnosis.safe import ProxyFactory, Safe
 from gnosis.safe.safe_create2_tx import SafeCreate2Tx
 from gnosis.safe.tests.utils import generate_salt_nonce
 
-from safe_cli.safe_operator import SafeOperator
+from safe_cli.operators.safe_operator import SafeOperator
 
 
 class SafeCliTestCaseMixin:

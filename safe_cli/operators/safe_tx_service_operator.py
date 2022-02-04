@@ -6,21 +6,22 @@ from tabulate import tabulate
 
 from gnosis.safe import SafeOperation, SafeTx
 
-from .api.base_api import BaseAPIException
+from safe_cli.api.base_api import BaseAPIException
+from safe_cli.utils import yes_or_no_question
+
 from .safe_operator import (
     AccountNotLoadedException,
     NonExistingOwnerException,
     SafeOperator,
-    ServiceNotAvailable,
+    SafeServiceNotAvailable,
 )
-from .utils import yes_or_no_question
 
 
 class SafeTxServiceOperator(SafeOperator):
     def __init__(self, address: str, node_url: str):
         super().__init__(address, node_url)
         if not self.safe_tx_service:
-            raise ServiceNotAvailable(
+            raise SafeServiceNotAvailable(
                 f"Cannot configure tx service for network {self.network.name}"
             )
         self.require_all_signatures = (
