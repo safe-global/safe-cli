@@ -91,6 +91,7 @@ Operations on `tx-service` mode, requires a Gnosis Safe Transaction Service work
 (Mainnet, Gnosis Chain, Rinkeby, Polygon...):
 - `balances`: Returns a list of balances for ERC20 tokens and ether.
 - `history`: History of multisig transactions (including pending).
+- `execute-tx <safe-tx-hash>`: Execute a pending tx with enough signatures.
 - `sign-tx <safe-tx-hash>`: Sign a tx with the loaded owners for the provided `SafeTxHash`.
 - `batch-txs <safe-nonce> <safe-tx-hash> [ <safe-tx-hash> ... ]`: Batch transactions into one Multisig
 Transaction using the provided `safe-nonce`. **Any safe-tx can be used**: transactions from other Safes, transactions

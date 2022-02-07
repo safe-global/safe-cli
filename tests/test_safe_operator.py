@@ -97,14 +97,16 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             safe_operator.add_owner(self.ethereum_test_account.address)
 
         new_owner = Account.create().address
-        with self.assertRaises(SenderRequiredException):
-            safe_operator.add_owner(new_owner)
-
-        safe_operator.default_sender = self.ethereum_test_account
         with self.assertRaises(NotEnoughSignatures):
             safe_operator.add_owner(new_owner)
 
         safe_operator.accounts.add(self.ethereum_test_account)
+
+        with self.assertRaises(SenderRequiredException):
+            safe_operator.add_owner(new_owner)
+
+        safe_operator.default_sender = self.ethereum_test_account
+
         safe = Safe(safe_address, self.ethereum_client)
         self.assertTrue(safe_operator.add_owner(new_owner))
         self.assertIn(self.ethereum_test_account, safe_operator.accounts)

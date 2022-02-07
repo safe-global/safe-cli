@@ -296,8 +296,13 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     def sign_tx(args):
         safe_operator.submit_signatures(args.safe_tx_hash)
 
+    @safe_exception
     def batch_txs(args):
         safe_operator.batch_txs(args.safe_nonce, args.safe_tx_hashes)
+
+    @safe_exception
+    def execute_tx(args):
+        safe_operator.execute_tx(args.safe_tx_hash)
 
     @safe_exception
     def get_delegates(args):
@@ -455,6 +460,10 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_tx_service.set_defaults(func=batch_txs)
     parser_tx_service.add_argument("safe_nonce", type=int)
     parser_tx_service.add_argument("safe_tx_hashes", type=check_hex_str, nargs="+")
+
+    parser_tx_service = subparsers.add_parser("execute-tx")
+    parser_tx_service.set_defaults(func=execute_tx)
+    parser_tx_service.add_argument("safe_tx_hash", type=check_hex_str)
 
     # List delegates
     parser_delegates = subparsers.add_parser("get_delegates")

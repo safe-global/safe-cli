@@ -86,11 +86,12 @@ class SafeTxServiceOperator(SafeOperator):
         :return:
         """
 
-        safe_tx, executed = self.safe_tx_service.get_safe_transaction(safe_tx_hash)
-        if executed:
+        safe_tx, tx_hash = self.safe_tx_service.get_safe_transaction(safe_tx_hash)
+        if tx_hash:
             print_formatted_text(
                 HTML(
-                    f"<ansired>Tx with safe-tx-hash {safe_tx_hash.hex()} has already been executed</ansired>"
+                    f"<ansired>Tx with safe-tx-hash {safe_tx_hash.hex()} "
+                    f"has already been executed on {tx_hash.hex()}</ansired>"
                 )
             )
         else:
@@ -178,6 +179,30 @@ class SafeTxServiceOperator(SafeOperator):
         else:
             return self.post_transaction_to_tx_service(safe_tx)
 
+    def execute_tx(self, safe_tx_hash: Sequence[bytes]) -> bool:
+        """
+        Submit transaction on the tx-service to blockchain
+
+        :return:
+        """
+        safe_tx, tx_hash = self.safe_tx_service.get_safe_transaction(safe_tx_hash)
+        if tx_hash:
+            print_formatted_text(
+                HTML(
+                    f"<ansired>Tx with safe-tx-hash {safe_tx_hash.hex()} "
+                    f"has already been executed on {tx_hash.hex()}</ansired>"
+                )
+            )
+        elif len(safe_tx.signers) < self.safe_cli_info.threshold:
+            print_formatted_text(
+                HTML(
+                    f"<ansired>Number of signatures {len(safe_tx.signers)} "
+                    f"must reach the threshold {self.safe_cli_info.threshold}</ansired>"
+                )
+            )
+        else:
+            return self.execute_safe_transaction(safe_tx)
+
     def get_balances(self):
         balances = self.safe_tx_service.get_balances(self.address)
         headers = ["name", "balance", "symbol", "decimals", "tokenAddress"]
@@ -233,7 +258,7 @@ class SafeTxServiceOperator(SafeOperator):
         headers[0] = Style.BRIGHT + headers[0]
         print(tabulate(rows, headers=headers))
 
-    def execute_safe_transaction(
+    def prepare_and_execute_safe_transaction(
         self,
         to: str,
         value: int,

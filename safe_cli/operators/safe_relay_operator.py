@@ -23,7 +23,7 @@ class SafeRelayOperator(SafeOperator):
     def approve_hash(self, hash_to_approve: HexBytes, sender: str) -> bool:
         raise NotImplementedError("Not supported when using relay")
 
-    def execute_safe_transaction(
+    def prepare_and_execute_safe_transaction(
         self,
         to: str,
         value: int,

@@ -3,7 +3,7 @@ from gnosis.eth.ethereum_client import EthereumNetwork
 from .base_api import BaseAPI
 
 
-class Etherscan(BaseAPI):
+class EtherscanApi(BaseAPI):
     URL_BY_NETWORK = {
         EthereumNetwork.MAINNET: "https://etherscan.io",
         EthereumNetwork.RINKEBY: "https://rinkeby.etherscan.io",

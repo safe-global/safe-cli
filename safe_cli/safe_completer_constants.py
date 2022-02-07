@@ -16,25 +16,26 @@ safe_commands_arguments = {
     "change_threshold": "<address>",
     "disable_module": "<address>",
     "enable_module": "<address>",
+    "execute-tx": "<safe-tx-hash>",
+    "get_delegates": "(read-only)",
     "get_nonce": "(read-only)",
     "get_owners": "(read-only)",
     "get_threshold": "(read-only)",
-    "get_delegates": "(read-only)",
     "history": "(read-only)",
     "info": "(read-only)",
     "load_cli_owners": "<account-private-key> [<account-private-key>...]",
     "load_cli_owners_from_words": "<word_1> <word_2> ... <word_12>",
-    "update": "",
     "refresh": "",
     "remove_delegate": "<address> <signer-address>",
     "remove_owner": "<address> [--threshold <int>]",
+    "send_custom": "<address> <value-wei> <data> [--delegate] [--safe-nonce <int>]",
     "send_erc20": "<address> <token-address> <value-wei> [--safe-nonce <int>]",
     "send_erc721": "<address> <token-address> <token-id> [--safe-nonce <int>]",
-    "send_custom": "<address> <value-wei> <data> [--delegate] [--safe-nonce <int>]",
     "send_ether": "<address> <value-wei> [--safe-nonce <int>]",
-    "sign-tx": "<safe-tx-hash>",
     "show_cli_owners": "(read-only)",
+    "sign-tx": "<safe-tx-hash>",
     "unload_cli_owners": "<address> [<address>...]",
+    "update": "",
     "blockchain": "",
     "relay-service": "[<token-address>]",
     "tx-service": "",
@@ -67,9 +68,12 @@ meta = {
         "<b>history</b> will return information of last transactions for the Safe "
         "(if tx service available for the network)"
     ),
-    "batch-txs <": HTML(
+    "batch-txs": HTML(
         "<b>batch-txs</b> will take pending or executed transactions by safe tx hash and will create a new"
         "transaction using the provided safe nonce"
+    ),
+    "execute-tx": HTML(
+        "Take a pending transaction from Gnosis Safe Tx Service and execute it using a loaded sender"
     ),
     "sign-tx": HTML(
         "<b>sign-tx</b> will sign the provided safeTxHash using the owners loaded on the CLI"

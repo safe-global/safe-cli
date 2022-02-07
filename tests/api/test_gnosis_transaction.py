@@ -3,7 +3,7 @@ from unittest import mock
 
 from gnosis.eth import EthereumClient, EthereumNetwork
 
-from safe_cli.api.gnosis_transaction import TransactionService
+from safe_cli.api.transaction_service_api import TransactionServiceApi
 
 
 class TestTransactionService(unittest.TestCase):
@@ -12,7 +12,7 @@ class TestTransactionService(unittest.TestCase):
         with mock.patch.object(
             EthereumClient, "get_network", return_value=EthereumNetwork.RINKEBY
         ):
-            self.transaction_service = TransactionService.from_ethereum_client(
+            self.transaction_service = TransactionServiceApi.from_ethereum_client(
                 self.ethereum_client
             )  # Rinkeby
         self.safe_address = "0x7552Ed65a45E27740a15B8D5415E90d8ca64C109"

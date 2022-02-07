@@ -1,7 +1,7 @@
 import dataclasses
 import os
 from functools import wraps
-from typing import List, NoReturn, Optional, Sequence, Set
+from typing import List, Optional, Sequence, Set
 
 from ens import ENS
 from eth_account import Account
@@ -24,9 +24,9 @@ from gnosis.eth.contracts import (
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
-from safe_cli.api.etherscan import Etherscan
-from safe_cli.api.gnosis_relay import RelayService
-from safe_cli.api.gnosis_transaction import TransactionService
+from safe_cli.api.etherscan_api import EtherscanApi
+from safe_cli.api.relay_service_api import RelayServiceApi
+from safe_cli.api.transaction_service_api import TransactionServiceApi
 from safe_cli.ethereum_hd_wallet import get_account_from_words
 from safe_cli.safe_addresses import (
     LAST_DEFAULT_CALLBACK_HANDLER,
@@ -160,7 +160,22 @@ def require_tx_service(f):
                 url = f"{self.etherscan.base_url}/address/{self.address}"
                 print_formatted_text(HTML(f"<b>Try Etherscan instead</b> {url}"))
         else:
-            f(self, *args, **kwargs)
+            return f(self, *args, **kwargs)
+
+    return decorated
+
+
+def require_default_sender(f):
+    """
+    Throws SenderRequiredException if not default sender configured
+    """
+
+    @wraps(f)
+    def decorated(self, *args, **kwargs):
+        if not self.default_sender:
+            raise SenderRequiredException()
+        else:
+            return f(self, *args, **kwargs)
 
     return decorated
 
@@ -172,11 +187,11 @@ class SafeOperator:
         self.ethereum_client = EthereumClient(self.node_url)
         self.ens = ENS.fromWeb3(self.ethereum_client.w3)
         self.network: EthereumNetwork = self.ethereum_client.get_network()
-        self.etherscan = Etherscan.from_ethereum_client(self.ethereum_client)
-        self.safe_relay_service = RelayService.from_ethereum_client(
+        self.etherscan = EtherscanApi.from_ethereum_client(self.ethereum_client)
+        self.safe_relay_service = RelayServiceApi.from_ethereum_client(
             self.ethereum_client
         )
-        self.safe_tx_service = TransactionService.from_ethereum_client(
+        self.safe_tx_service = TransactionServiceApi.from_ethereum_client(
             self.ethereum_client
         )
         self.safe = Safe(address, self.ethereum_client)
@@ -203,13 +218,6 @@ class SafeOperator:
         if not self._safe_cli_info:
             self._safe_cli_info = self.refresh_safe_cli_info()
         return self._safe_cli_info
-
-    def _require_default_sender(self) -> NoReturn:
-        """
-        Throws SenderRequiredException if not default sender configured
-        """
-        if not self.default_sender:
-            raise SenderRequiredException()
 
     def is_version_updated(self) -> bool:
         """
@@ -421,7 +429,7 @@ class SafeOperator:
             if safe_balance < value:
                 raise NotEnoughEtherToSend(safe_balance)
         operation = SafeOperation.DELEGATE_CALL if delegate_call else SafeOperation.CALL
-        return self.execute_safe_transaction(
+        return self.prepare_and_execute_safe_transaction(
             to, value, data, operation, safe_nonce=safe_nonce
         )
 
@@ -537,7 +545,7 @@ class SafeOperator:
 
         multisend_data = multisend.build_tx_data(multisend_txs)
 
-        if self.execute_safe_transaction(
+        if self.prepare_and_execute_safe_transaction(
             multisend.address, 0, multisend_data, operation=SafeOperation.DELEGATE_CALL
         ):
             self.safe_cli_info.master_copy = LAST_SAFE_CONTRACT
@@ -672,7 +680,7 @@ class SafeOperator:
         print_formatted_text(self.safe.retrieve_owners())
 
     def execute_safe_internal_transaction(self, data: bytes) -> bool:
-        return self.execute_safe_transaction(self.address, 0, data)
+        return self.prepare_and_execute_safe_transaction(self.address, 0, data)
 
     def prepare_safe_transaction(
         self,
@@ -682,14 +690,13 @@ class SafeOperator:
         operation: SafeOperation = SafeOperation.CALL,
         safe_nonce: Optional[int] = None,
     ) -> SafeTx:
-        self._require_default_sender()  # Throws Exception if default sender not found
         safe_tx = self.safe.build_multisig_tx(
             to, value, data, operation=operation.value, safe_nonce=safe_nonce
         )
         self.sign_transaction(safe_tx)  # Raises exception if it cannot be signed
         return safe_tx
 
-    def execute_safe_transaction(
+    def prepare_and_execute_safe_transaction(
         self,
         to: str,
         value: int,
@@ -700,6 +707,10 @@ class SafeOperator:
         safe_tx = self.prepare_safe_transaction(
             to, value, data, operation, safe_nonce=safe_nonce
         )
+        return self.execute_safe_transaction(safe_tx)
+
+    @require_default_sender  # Throws Exception if default sender not found
+    def execute_safe_transaction(self, safe_tx: SafeTx):
         try:
             call_result = safe_tx.call(self.default_sender.address)
             print_formatted_text(HTML(f"Result: <ansigreen>{call_result}</ansigreen>"))
@@ -792,6 +803,9 @@ class SafeOperator:
         return self._require_tx_service_mode()
 
     def batch_txs(self, safe_nonce: int, safe_tx_hashes: Sequence[bytes]) -> bool:
+        return self._require_tx_service_mode()
+
+    def execute_tx(self, safe_tx_hash: Sequence[bytes]) -> bool:
         return self._require_tx_service_mode()
 
     def get_permitted_signers(self) -> Set[str]:

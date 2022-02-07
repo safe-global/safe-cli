@@ -29,7 +29,7 @@ class RelaySentTransaction(TypedDict):
     txHash: HexStr
 
 
-class RelayService(BaseAPI):
+class RelayServiceApi(BaseAPI):
     URL_BY_NETWORK = {
         EthereumNetwork.MAINNET: "https://safe-relay.gnosis.io",
         EthereumNetwork.RINKEBY: "https://safe-relay.rinkeby.gnosis.io",

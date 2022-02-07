@@ -13,7 +13,7 @@ from gnosis.safe import SafeTx
 from .base_api import BaseAPI, BaseAPIException
 
 
-class TransactionService(BaseAPI):
+class TransactionServiceApi(BaseAPI):
     URL_BY_NETWORK = {
         EthereumNetwork.MAINNET: "https://safe-transaction.mainnet.gnosis.io",
         EthereumNetwork.ARBITRUM: "https://safe-transaction.arbitrum.gnosis.io",
@@ -80,10 +80,12 @@ class TransactionService(BaseAPI):
         else:
             return response.json()
 
-    def get_safe_transaction(self, safe_tx_hash: bytes) -> Tuple[SafeTx, bool]:
+    def get_safe_transaction(
+        self, safe_tx_hash: bytes
+    ) -> Tuple[SafeTx, Optional[HexBytes]]:
         """
         :param safe_tx_hash:
-        :return: SafeTx and `True` if transaction was executed, `False` otherwise
+        :return: SafeTx and `tx-hash` if transaction was executed
         """
         safe_tx_hash = HexBytes(safe_tx_hash).hex()
         response = self._get_request(f"/api/v1/multisig-transactions/{safe_tx_hash}/")
@@ -94,20 +96,43 @@ class TransactionService(BaseAPI):
         else:
             result = response.json()
             # TODO return tx-hash if executed
-            return SafeTx(
-                self.ethereum_client,
-                result["safe"],
-                result["to"],
-                int(result["value"]),
-                HexBytes(result["data"]) if result["data"] else b"",
-                int(result["operation"]),
-                int(result["safeTxGas"]),
-                int(result["baseGas"]),
-                int(result["gasPrice"]),
-                result["gasToken"],
-                result["refundReceiver"],
-                safe_nonce=int(result["nonce"]),
-            ), bool(result["transactionHash"])
+            signatures = self.parse_signatures(result)
+            return (
+                SafeTx(
+                    self.ethereum_client,
+                    result["safe"],
+                    result["to"],
+                    int(result["value"]),
+                    HexBytes(result["data"]) if result["data"] else b"",
+                    int(result["operation"]),
+                    int(result["safeTxGas"]),
+                    int(result["baseGas"]),
+                    int(result["gasPrice"]),
+                    result["gasToken"],
+                    result["refundReceiver"],
+                    signatures=signatures if signatures else b"",
+                    safe_nonce=int(result["nonce"]),
+                ),
+                HexBytes(result["transactionHash"])
+                if result["transactionHash"]
+                else None,
+            )
+
+    def parse_signatures(self, raw_tx: Dict[str, Any]) -> Optional[HexBytes]:
+        if raw_tx["signatures"]:
+            # Tx was executed and signatures field is populated
+            return raw_tx["signatures"]
+        elif raw_tx["confirmations"]:
+            # Parse offchain transactions
+            return b"".join(
+                [
+                    HexBytes(confirmation["signature"])
+                    for confirmation in sorted(
+                        raw_tx["confirmations"], key=lambda x: int(x["owner"], 16)
+                    )
+                    if confirmation["signatureType"] == "EOA"
+                ]
+            )
 
     def get_transactions(self, safe_address: str) -> List[Dict[str, Any]]:
         response = self._get_request(
