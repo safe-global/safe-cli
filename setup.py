@@ -3,6 +3,7 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+
 setuptools.setup(
     name="safe_cli",
     version="0.1.0",
@@ -15,7 +16,17 @@ setuptools.setup(
     download_url="https://github.com/gnosis/safe-cli/releases",
     license="MIT",
     test_suite="tests",
-    install_requires=["gnosis-py"],
+    install_requires=[
+        "cached-property==1.5.2; python_version < '3.8'",
+        "colorama>=0.4",
+        "gnosis-py>=3",
+        "prompt_toolkit>=3",
+        "pyfiglet>=0.8",
+        "pygments>=2",
+        "requests>=2",
+        "tabulate>=0.8",
+        "typing_extensions>=4; python_version < '3.8'",
+    ],
     packages=["safe_cli"],
     package_data={},
     classifiers=[
