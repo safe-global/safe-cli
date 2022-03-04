@@ -49,57 +49,65 @@ def check_private_key(private_key: str) -> str:
     return private_key
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("node_url", help="Ethereum node url")
-parser.add_argument("private_key", help="Deployer private_key", type=check_private_key)
-parser.add_argument(
-    "--threshold",
-    help="Number of owners required to execute transactions on the created Safe. It must"
-    "be greater than 0 and less or equal than the number of owners",
-    type=positive_integer,
-    default=1,
-)
-parser.add_argument(
-    "--owners",
-    help="Owners. By default it will be just the deployer",
-    nargs="+",
-    type=check_ethereum_address,
-)
-parser.add_argument(
-    "--safe-contract",
-    help="Use a custom Safe master copy",
-    default=None,
-    type=check_ethereum_address,
-)
-parser.add_argument(
-    "--proxy-factory",
-    help="Use a custom proxy factory",
-    default=LAST_PROXY_FACTORY_CONTRACT,
-    type=check_ethereum_address,
-)
-parser.add_argument(
-    "--callback-handler",
-    help="Use a custom fallback handler. It is not required for Safe Master Copies "
-    "with version < 1.1.0",
-    default=LAST_DEFAULT_CALLBACK_HANDLER,
-    type=check_ethereum_address,
-)
-parser.add_argument(
-    "--salt-nonce",
-    help="Use a custom nonce for the deployment. Same nonce with same deployment configuration will "
-    "lead to the same Safe address ",
-    default=secrets.SystemRandom().randint(0, 2**256 - 1),  # TODO Add support for CPK
-    type=int,
-)
+def setup_argument_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("node_url", help="Ethereum node url")
+    parser.add_argument(
+        "private_key", help="Deployer private_key", type=check_private_key
+    )
+    parser.add_argument(
+        "--threshold",
+        help="Number of owners required to execute transactions on the created Safe. It must"
+        "be greater than 0 and less or equal than the number of owners",
+        type=positive_integer,
+        default=1,
+    )
+    parser.add_argument(
+        "--owners",
+        help="Owners. By default it will be just the deployer",
+        nargs="+",
+        type=check_ethereum_address,
+    )
+    parser.add_argument(
+        "--safe-contract",
+        help="Use a custom Safe master copy",
+        default=None,
+        type=check_ethereum_address,
+    )
+    parser.add_argument(
+        "--proxy-factory",
+        help="Use a custom proxy factory",
+        default=LAST_PROXY_FACTORY_CONTRACT,
+        type=check_ethereum_address,
+    )
+    parser.add_argument(
+        "--callback-handler",
+        help="Use a custom fallback handler. It is not required for Safe Master Copies "
+        "with version < 1.1.0",
+        default=LAST_DEFAULT_CALLBACK_HANDLER,
+        type=check_ethereum_address,
+    )
+    parser.add_argument(
+        "--salt-nonce",
+        help="Use a custom nonce for the deployment. Same nonce with same deployment configuration will "
+        "lead to the same Safe address ",
+        default=secrets.SystemRandom().randint(
+            0, 2**256 - 1
+        ),  # TODO Add support for CPK
+        type=int,
+    )
 
-parser.add_argument(
-    "--l2",
-    help="Use L2 deployment of the Safe instead of the regular one. Recommended for every network but mainnet",
-    default=False,
-    action="store_true",
-)
+    parser.add_argument(
+        "--l2",
+        help="Use L2 deployment of the Safe instead of the regular one. Recommended for every network but mainnet",
+        default=False,
+        action="store_true",
+    )
+    return parser
 
-if __name__ == "__main__":
+
+def main(*args, **kwargs):
+    parser = setup_argument_parser()
     print_formatted_text(
         pyfiglet.figlet_format("Gnosis Safe Creator")
     )  # Print fancy text

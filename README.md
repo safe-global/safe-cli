@@ -10,17 +10,12 @@ Command line utility for **Gnosis Safe** contracts. Use it to manage your **Gnos
 **Python >= 3.7** is required. **Python 3.10** is recommended.
 
 ```bash
-git clone https://github.com/gnosis/safe-cli.git
-cd safe-cli
-stat venv 2>/dev/null || python -m venv venv
-source venv/bin/activate && pip install -r requirements.txt
+pip3 -U safe-cli
 ```
 
 ## Using
 ```bash
-cd safe-cli
-source venv/bin/activate
-python safe_cli.py <checksummed_safe_address> <ethereum_node_url>
+safe-cli <checksummed_safe_address> <ethereum_node_url>
 ```
 
 Then you should be on the prompt and see information about the Safe, like the owners, version, etc.
@@ -108,11 +103,11 @@ the information about the Safe using:
 ```
 
 ## Creating a new Safe
-Use `safe_creator.py <node_url> <private_key> --owners <checksummed_address_1> <checksummed_address_2> --threshold <uint> --salt-nonce <uint256>`.
+Use `safe-creator <node_url> <private_key> --owners <checksummed_address_1> <checksummed_address_2> --threshold <uint> --salt-nonce <uint256>`.
 
 Example:
 ```
-python safe_creator.py https://rinkeby.infura.io/v3/token $PRIVATE_KEY --owners 0x848EF06Bb9d1bc79Bb3B04b7Ea0e251C6E788d7c --threshold 1
+safe-creator https://rinkeby.infura.io/v3/token $PRIVATE_KEY --owners 0x848EF06Bb9d1bc79Bb3B04b7Ea0e251C6E788d7c --threshold 1
 ```
 
 ## Demo
@@ -135,6 +130,17 @@ to an invalid Safe Master Copy.
 - [Safe contracts](https://github.com/gnosis/safe-contracts)
 - [Safe contracts deployment info and addreses](https://github.com/gnosis/safe-deployments/tree/main/src/assets)
 
+## Setting up for developing
+If you miss something and want to send us a PR:
+
+```bash
+git clone https://github.com/gnosis/safe-cli.git
+cd safe-cli
+stat venv 2>/dev/null || python3 -m venv venv
+source venv/bin/activate && pip install -r requirements-dev.txt
+pre-commit install -f
+```
+
 ## Contributors
 - [Pedro Arias Ruiz](https://github.com/AsiganTheSunk)
-- [Uxío Fuentefría](https://github.com/uxio0) (uxio@gnosis.pm)
+- [Uxío Fuentefría](https://github.com/uxio0) (uxio@gnosis.io)

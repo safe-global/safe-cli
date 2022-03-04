@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="safe_cli",
-    version="0.2.0",
+    version="0.3.0",
     author="Uxío Fuentefría",
     author_email="uxio@gnosis.io",
     description="Command Line Interface for Gnosis Safe",
@@ -28,10 +28,12 @@ setuptools.setup(
         "typing_extensions>=4; python_version < '3.8'",
     ],
     packages=setuptools.find_packages(),
-    # scripts=[
-    #     'safe_cli.py',
-    #     'safe_creator.py',
-    # ],
+    entry_points={
+        "console_scripts": [
+            "safe-cli=safe_cli.main:main",
+            "safe-creator=safe_cli.safe_creator:main",
+        ],
+    },
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

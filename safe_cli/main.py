@@ -138,7 +138,10 @@ class SafeCli:
                 pass
 
 
-if __name__ == "__main__":
+def main(*args, **kwgars):
+    """
+    Entry point for the Safe-CLI
+    """
     safe_cli = SafeCli()
     safe_cli.print_startup_info()
     safe_cli.loop()
