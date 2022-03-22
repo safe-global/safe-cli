@@ -10,7 +10,7 @@ Command line utility for **Gnosis Safe** contracts. Use it to manage your **Gnos
 **Python >= 3.7** is required. **Python 3.10** is recommended.
 
 ```bash
-pip3 -U safe-cli
+pip3 install -U safe-cli
 ```
 
 ## Using
