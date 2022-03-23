@@ -211,7 +211,10 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             safe_operator.address,
             self.w3.eth.gas_price,
             value * 2,
-            gas=23000,
+            gas=50000,
+        )
+        self.assertEqual(
+            self.ethereum_client.get_balance(safe_operator.address), value * 2
         )
         self.assertTrue(safe_operator.send_ether(random_address, value))
         self.assertEqual(self.ethereum_client.get_balance(random_address), value)
