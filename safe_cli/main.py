@@ -145,3 +145,7 @@ def main(*args, **kwgars):
     safe_cli = SafeCli()
     safe_cli.print_startup_info()
     safe_cli.loop()
+
+
+if __name__ == "__main__":
+    main()
