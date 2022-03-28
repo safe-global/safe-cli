@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="safe_cli",
-    version="0.3.0",
+    version="0.3.1",
     author="Uxío Fuentefría",
     author_email="uxio@gnosis.io",
     description="Command Line Interface for Gnosis Safe",
