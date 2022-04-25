@@ -4,7 +4,7 @@ gnosis-py==3.9.2
 packaging>=21.3
 prompt_toolkit==3.0.29
 pyfiglet==0.8.post1
-pygments==2.11.2
+pygments==2.12.0
 requests==2.27.1
 tabulate==0.8.9
 typing_extensions==4.1.1 ; python_version < "3.8"
