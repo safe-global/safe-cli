@@ -39,6 +39,7 @@ safe_commands_arguments = {
     "blockchain": "",
     "relay-service": "[<token-address>]",
     "tx-service": "",
+    "drain": "<address>",
 }
 
 safe_commands = list(safe_commands_arguments.keys())
@@ -194,5 +195,8 @@ meta = {
     "tx-service": HTML(
         "<b>tx-service</b> enables tx-service integration. Transactions will be sent to the tx-service "
         "instead of blockchain, so they will show up on the interface"
+    ),
+    "drain": HTML(
+        "Command <b>drain</b> will try to send all assets ether and ERC20 to a check-summed account"
     ),
 }
