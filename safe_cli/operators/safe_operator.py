@@ -454,6 +454,10 @@ class SafeOperator:
         )
         return self.send_custom(token_address, 0, transaction["data"], **kwargs)
 
+    def drain(self, to: str, **kwargs) -> bool:
+        # TODO send all ERC20 and ehter to destiny address
+        return True
+
     def change_fallback_handler(self, new_fallback_handler: str) -> bool:
         if new_fallback_handler == self.safe_cli_info.fallback_handler:
             raise SameFallbackHandlerException(new_fallback_handler)
