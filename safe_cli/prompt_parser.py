@@ -254,7 +254,7 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
 
     @safe_exception
     def drain(args):
-        safe_operator.drain(args.to, safe_nonce=args.safe_nonce)
+        safe_operator.drain(args.to)
 
     @safe_exception
     def get_threshold(args):

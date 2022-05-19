@@ -5,6 +5,7 @@ from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
 from tabulate import tabulate
 
+from gnosis.eth.contracts import get_erc20_contract
 from gnosis.safe import SafeOperation, SafeTx
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
@@ -115,6 +116,68 @@ class SafeTxServiceOperator(SafeOperator):
                     )
                 )
         return False
+
+    def batch_safe_txs(self, safe_nonce: int, safe_txs: [SafeTx]) -> bool:
+        """
+        Submit signatures to the tx service. It's recommended to be on Safe v1.3.0 to prevent issues
+        with `safeTxGas` and gas estimation.
+
+        :return:
+        """
+
+        if not self.ethereum_client.is_contract(LAST_MULTISEND_CALL_ONLY_CONTRACT):
+            print_formatted_text(
+                HTML(
+                    f"<ansired>Multisend call only contract {LAST_MULTISEND_CALL_ONLY_CONTRACT} "
+                    f"is not deployed on this network and it's required for batching txs</ansired>"
+                )
+            )
+
+        multisend_txs = []
+        for safe_tx in safe_txs:
+            # Check if call is already a Multisend call
+            inner_txs = MultiSend.from_transaction_data(safe_tx.data)
+            if inner_txs:
+                multisend_txs.extend(inner_txs)
+            else:
+                multisend_txs.append(
+                    MultiSendTx(
+                        MultiSendOperation.CALL, safe_tx.to, safe_tx.value, safe_tx.data
+                    )
+                )
+
+        if len(multisend_txs) > 1:
+            multisend = MultiSend(
+                LAST_MULTISEND_CALL_ONLY_CONTRACT, self.ethereum_client
+            )
+            safe_tx = SafeTx(
+                self.ethereum_client,
+                self.address,
+                LAST_MULTISEND_CALL_ONLY_CONTRACT,
+                0,
+                multisend.build_tx_data(multisend_txs),
+                SafeOperation.DELEGATE_CALL.value,
+                0,
+                0,
+                0,
+                None,
+                None,
+                safe_nonce=safe_nonce,
+            )
+        else:
+            safe_tx.safe_tx_gas = 0
+            safe_tx.base_gas = 0
+            safe_tx.gas_price = 0
+            safe_tx.signatures = b""
+            safe_tx.safe_nonce = safe_nonce  # Resend single transaction
+        safe_tx = self.sign_transaction(safe_tx)
+        if not safe_tx.signatures:
+            print_formatted_text(
+                HTML("<ansired>At least one owner must be loaded</ansired>")
+            )
+            return False
+        else:
+            return self.post_transaction_to_tx_service(safe_tx)
 
     def batch_txs(self, safe_nonce: int, safe_tx_hashes: Sequence[bytes]) -> bool:
         """
@@ -294,3 +357,32 @@ class SafeTxServiceOperator(SafeOperator):
             ]
         )
         return owners
+
+    # Function that sends all assets to an account (to)
+    def drain(self, to: str):
+        balances = self.safe_tx_service.get_balances(self.address)
+        safe_txs = []
+        for balance in balances:
+            if balance["tokenAddress"] is None:
+                safe_tx = self.prepare_safe_transaction(
+                    to,
+                    int(balance["balance"]),
+                    b"",
+                    SafeOperation.CALL,
+                    safe_nonce=None,
+                )
+            else:
+                transaction = (
+                    get_erc20_contract(self.ethereum_client.w3, balance["tokenAddress"])
+                    .functions.transfer(to, int(int(balance["balance"])))
+                    .buildTransaction({"from": self.address, "gas": 0, "gasPrice": 0})
+                )
+                safe_tx = self.prepare_safe_transaction(
+                    balance["tokenAddress"],
+                    0,
+                    HexBytes(transaction["data"]),
+                    SafeOperation.CALL,
+                    safe_nonce=None,
+                )
+            safe_txs.append(safe_tx)
+        self.batch_safe_txs(safe_tx.safe_nonce, safe_txs)
