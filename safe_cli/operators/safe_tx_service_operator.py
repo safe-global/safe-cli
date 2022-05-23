@@ -362,19 +362,22 @@ class SafeTxServiceOperator(SafeOperator):
     def drain(self, to: str):
         balances = self.safe_tx_service.get_balances(self.address)
         safe_txs = []
+        safe_tx = None
         for balance in balances:
+            amount = int(balance["balance"])
             if balance["tokenAddress"] is None:
-                safe_tx = self.prepare_safe_transaction(
-                    to,
-                    int(balance["balance"]),
-                    b"",
-                    SafeOperation.CALL,
-                    safe_nonce=None,
-                )
+                if amount != 0:
+                    safe_tx = self.prepare_safe_transaction(
+                        to,
+                        amount,
+                        b"",
+                        SafeOperation.CALL,
+                        safe_nonce=None,
+                    )
             else:
                 transaction = (
                     get_erc20_contract(self.ethereum_client.w3, balance["tokenAddress"])
-                    .functions.transfer(to, int(int(balance["balance"])))
+                    .functions.transfer(to, amount)
                     .buildTransaction({"from": self.address, "gas": 0, "gasPrice": 0})
                 )
                 safe_tx = self.prepare_safe_transaction(
@@ -384,5 +387,16 @@ class SafeTxServiceOperator(SafeOperator):
                     SafeOperation.CALL,
                     safe_nonce=None,
                 )
-            safe_txs.append(safe_tx)
-        self.batch_safe_txs(safe_tx.safe_nonce, safe_txs)
+            if safe_tx:
+                safe_txs.append(safe_tx)
+        if len(safe_txs) > 0:
+            if self.batch_safe_txs(safe_tx.safe_nonce, safe_txs):
+                print_formatted_text(
+                    HTML(
+                        "<ansigreen>Transaction to drain account correctly created</ansigreen>"
+                    )
+                )
+        else:
+            print_formatted_text(
+                HTML("<ansigreen>Safe account is currently empty</ansigreen>")
+            )
