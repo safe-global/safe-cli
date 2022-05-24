@@ -27,6 +27,7 @@ from safe_cli.operators.safe_operator import (
     SameMasterCopyException,
     SenderRequiredException,
 )
+from tests.utils import deploy_multisend, fill_transactions_erc20
 
 from .safe_cli_test_case_mixin import SafeCliTestCaseMixin
 
@@ -218,6 +219,57 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         )
         self.assertTrue(safe_operator.send_ether(random_address, value))
         self.assertEqual(self.ethereum_client.get_balance(random_address), value)
+
+    def test_drain(self):
+        safe_operator = self.setup_operator()
+        account = Account.create()
+        value = self.w3.toWei(10.5, "ether")
+        with self.assertRaises(NotEnoughEtherToSend):
+            safe_operator.send_ether(account.address, value)
+        self.ethereum_client.send_eth_to(
+            self.ethereum_test_account.key,
+            safe_operator.address,
+            self.w3.eth.gas_price,
+            value,
+            gas=50000,
+        )
+        safe_operator.send_ether(account.address, value - 5)
+        # Deploying 3 contracts and sending 3 transactions of 1 ERC20 per contract
+        num_transactions = 3
+        num_contracts_erc20 = 3
+        fill_transactions_erc20(
+            self.w3, safe_operator, account, num_contracts_erc20, num_transactions
+        )
+        # Deploying multisend contract on ganache
+        tx_receipt = deploy_multisend(self.w3, account)
+        # Getting events filtered by Transfer
+        events = safe_operator.ethereum_client.erc20.get_total_transfer_history(
+            from_block=1, addresses=[safe_operator.address]
+        )
+        token_address = []
+        for event in events:
+            token_address.append(event["address"])
+        token_address = set(token_address)
+        self.assertEqual(len(token_address), num_contracts_erc20)
+        for token in token_address:
+            result = self.ethereum_client.erc20.get_balance(
+                safe_operator.address, token
+            )
+            self.assertEqual(result, num_transactions)
+        # Draining the account to a new account
+        with mock.patch(
+            "safe_cli.operators.safe_operator.LAST_MULTISEND_CALL_ONLY_CONTRACT",
+            tx_receipt.contractAddress,
+        ):
+            safe_operator.drain(account.address)
+        # Checking that the account is empty
+        for token in token_address:
+            self.assertEqual(
+                self.ethereum_client.erc20.get_balance(safe_operator.address, token), 0
+            )
+        self.assertEqual(
+            safe_operator.ethereum_client.get_balance(safe_operator.address), 0
+        )
 
 
 if __name__ == "__main__":
