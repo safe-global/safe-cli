@@ -399,7 +399,6 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
         parser_send_ether,
         parser_send_erc20,
         parser_send_erc721,
-        parser_drain,
     ):
         parser.add_argument(
             "--safe-nonce",

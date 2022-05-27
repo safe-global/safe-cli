@@ -8,6 +8,7 @@ from web3 import Web3
 
 from gnosis.eth import EthereumClient
 from gnosis.safe import Safe
+from gnosis.safe.multi_send import MultiSend
 
 from safe_cli.operators.safe_operator import (
     AccountNotLoadedException,
@@ -27,7 +28,7 @@ from safe_cli.operators.safe_operator import (
     SameMasterCopyException,
     SenderRequiredException,
 )
-from tests.utils import deploy_multisend, fill_transactions_erc20
+from tests.utils import generate_transfers_erc20
 
 from .safe_cli_test_case_mixin import SafeCliTestCaseMixin
 
@@ -237,11 +238,13 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         # Deploying 3 contracts and sending 3 transactions of 1 ERC20 per contract
         num_transactions = 3
         num_contracts_erc20 = 3
-        fill_transactions_erc20(
+        generate_transfers_erc20(
             self.w3, safe_operator, account, num_contracts_erc20, num_transactions
         )
         # Deploying multisend contract on ganache
-        tx_receipt = deploy_multisend(self.w3, account)
+        _, _, contract_address = MultiSend.deploy_contract(
+            self.ethereum_client, account
+        )
         # Getting events filtered by Transfer
         events = safe_operator.ethereum_client.erc20.get_total_transfer_history(
             from_block=1, addresses=[safe_operator.address]
@@ -259,7 +262,7 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         # Draining the account to a new account
         with mock.patch(
             "safe_cli.operators.safe_operator.LAST_MULTISEND_CALL_ONLY_CONTRACT",
-            tx_receipt.contractAddress,
+            contract_address,
         ):
             safe_operator.drain(account.address)
         # Checking that the account is empty

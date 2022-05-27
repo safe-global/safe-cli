@@ -303,7 +303,7 @@ class SafeTxServiceOperator(SafeOperator):
         safe_tx = None
         for balance in balances:
             amount = int(balance["balance"])
-            if balance["tokenAddress"] is None:
+            if balance["tokenAddress"] is None:  # Then is ether
                 if amount != 0:
                     safe_tx = self.prepare_safe_transaction(
                         to,
