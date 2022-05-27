@@ -756,7 +756,7 @@ class SafeOperator:
         return False
 
     # Batch_transactions multisend
-    def batch_safe_txs(self, safe_nonce: int, safe_txs: [SafeTx]) -> bool:
+    def batch_safe_txs(self, safe_nonce: int, safe_txs: [SafeTx]) -> SafeTx:
         """
         Submit signatures to the tx service. It's recommended to be on Safe v1.3.0 to prevent issues
         with `safeTxGas` and gas estimation.
@@ -813,9 +813,9 @@ class SafeOperator:
             print_formatted_text(
                 HTML("<ansired>At least one owner must be loaded</ansired>")
             )
-            return False
+            return None
         else:
-            return self.execute_safe_transaction(safe_tx)
+            return safe_tx
 
     # TODO Set sender so we can save gas in that signature
     def sign_transaction(self, safe_tx: SafeTx) -> SafeTx:
@@ -918,12 +918,14 @@ class SafeOperator:
             )
             safe_txs.append(safe_tx)
         if len(safe_txs) > 0:
-            if self.batch_safe_txs(self.get_nonce(), safe_txs):
-                print_formatted_text(
-                    HTML(
-                        "<ansigreen>Transaction to drain account correctly executed</ansigreen>"
+            multisend_tx = self.batch_safe_txs(self.get_nonce(), safe_txs)
+            if multisend_tx is not None:
+                if self.execute_safe_transaction(multisend_tx):
+                    print_formatted_text(
+                        HTML(
+                            "<ansigreen>Transaction to drain account correctly executed</ansigreen>"
+                        )
                     )
-                )
         else:
             print_formatted_text(
                 HTML("<ansigreen>Safe account is currently empty</ansigreen>")

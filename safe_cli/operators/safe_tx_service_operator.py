@@ -117,68 +117,6 @@ class SafeTxServiceOperator(SafeOperator):
                 )
         return False
 
-    def batch_safe_txs(self, safe_nonce: int, safe_txs: [SafeTx]) -> bool:
-        """
-        Submit signatures to the tx service. It's recommended to be on Safe v1.3.0 to prevent issues
-        with `safeTxGas` and gas estimation.
-
-        :return:
-        """
-
-        if not self.ethereum_client.is_contract(LAST_MULTISEND_CALL_ONLY_CONTRACT):
-            print_formatted_text(
-                HTML(
-                    f"<ansired>Multisend call only contract {LAST_MULTISEND_CALL_ONLY_CONTRACT} "
-                    f"is not deployed on this network and it's required for batching txs</ansired>"
-                )
-            )
-
-        multisend_txs = []
-        for safe_tx in safe_txs:
-            # Check if call is already a Multisend call
-            inner_txs = MultiSend.from_transaction_data(safe_tx.data)
-            if inner_txs:
-                multisend_txs.extend(inner_txs)
-            else:
-                multisend_txs.append(
-                    MultiSendTx(
-                        MultiSendOperation.CALL, safe_tx.to, safe_tx.value, safe_tx.data
-                    )
-                )
-
-        if len(multisend_txs) > 1:
-            multisend = MultiSend(
-                LAST_MULTISEND_CALL_ONLY_CONTRACT, self.ethereum_client
-            )
-            safe_tx = SafeTx(
-                self.ethereum_client,
-                self.address,
-                LAST_MULTISEND_CALL_ONLY_CONTRACT,
-                0,
-                multisend.build_tx_data(multisend_txs),
-                SafeOperation.DELEGATE_CALL.value,
-                0,
-                0,
-                0,
-                None,
-                None,
-                safe_nonce=safe_nonce,
-            )
-        else:
-            safe_tx.safe_tx_gas = 0
-            safe_tx.base_gas = 0
-            safe_tx.gas_price = 0
-            safe_tx.signatures = b""
-            safe_tx.safe_nonce = safe_nonce  # Resend single transaction
-        safe_tx = self.sign_transaction(safe_tx)
-        if not safe_tx.signatures:
-            print_formatted_text(
-                HTML("<ansired>At least one owner must be loaded</ansired>")
-            )
-            return False
-        else:
-            return self.post_transaction_to_tx_service(safe_tx)
-
     def batch_txs(self, safe_nonce: int, safe_tx_hashes: Sequence[bytes]) -> bool:
         """
         Submit signatures to the tx service. It's recommended to be on Safe v1.3.0 to prevent issues
@@ -390,7 +328,9 @@ class SafeTxServiceOperator(SafeOperator):
             if safe_tx:
                 safe_txs.append(safe_tx)
         if len(safe_txs) > 0:
-            if self.batch_safe_txs(safe_tx.safe_nonce, safe_txs):
+            multisend_tx = self.batch_safe_txs(safe_tx.safe_nonce, safe_txs)
+            if multisend_tx is not None:
+                self.post_transaction_to_tx_service(multisend_tx)
                 print_formatted_text(
                     HTML(
                         "<ansigreen>Transaction to drain account correctly created</ansigreen>"
