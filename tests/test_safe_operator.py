@@ -28,6 +28,7 @@ from safe_cli.operators.safe_operator import (
     SameMasterCopyException,
     SenderRequiredException,
 )
+from safe_cli.utils import get_erc_20_list
 from tests.utils import generate_transfers_erc20
 
 from .safe_cli_test_case_mixin import SafeCliTestCaseMixin
@@ -246,13 +247,10 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             self.ethereum_client, account
         )
         # Getting events filtered by Transfer
-        events = safe_operator.ethereum_client.erc20.get_total_transfer_history(
-            from_block=1, addresses=[safe_operator.address]
+        last = safe_operator.ethereum_client.get_block("latest")["number"]
+        token_address = get_erc_20_list(
+            safe_operator.ethereum_client, safe_operator.address, 1, last
         )
-        token_address = []
-        for event in events:
-            token_address.append(event["address"])
-        token_address = set(token_address)
         self.assertEqual(len(token_address), num_contracts_erc20)
         for token in token_address:
             result = self.ethereum_client.erc20.get_balance(

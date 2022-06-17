@@ -34,7 +34,7 @@ from safe_cli.safe_addresses import (
     LAST_MULTISEND_CONTRACT,
     LAST_SAFE_CONTRACT,
 )
-from safe_cli.utils import yes_or_no_question
+from safe_cli.utils import get_erc_20_list, yes_or_no_question
 
 try:
     from functools import cached_property
@@ -876,16 +876,8 @@ class SafeOperator:
 
     def drain(self, to: str):
         # Getting all events related with ERC20 transfers
-        events = self.ethereum_client.erc20.get_total_transfer_history(
-            from_block=1, addresses=[self.address]
-        )
-        token_addresses = []
-        for event in events:
-            # Ensure that is an ERC20
-            if "value" in event["args"]:
-                token_addresses.append(event["address"])
-        # Getting a list without repeated addresses
-        token_addresses = set(token_addresses)
+        last = self.ethereum_client.get_block("latest")["number"]
+        token_addresses = get_erc_20_list(self.ethereum_client, self.address, 1, last)
         safe_txs = []
         for token_address in token_addresses:
             balance = self.ethereum_client.erc20.get_balance(
