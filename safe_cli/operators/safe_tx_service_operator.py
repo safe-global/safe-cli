@@ -5,6 +5,7 @@ from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
 from tabulate import tabulate
 
+from gnosis.eth.contracts import get_erc20_contract
 from gnosis.safe import SafeOperation, SafeTx
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
@@ -294,3 +295,48 @@ class SafeTxServiceOperator(SafeOperator):
             ]
         )
         return owners
+
+    # Function that sends all assets to an account (to)
+    def drain(self, to: str):
+        balances = self.safe_tx_service.get_balances(self.address)
+        safe_txs = []
+        safe_tx = None
+        for balance in balances:
+            amount = int(balance["balance"])
+            if balance["tokenAddress"] is None:  # Then is ether
+                if amount != 0:
+                    safe_tx = self.prepare_safe_transaction(
+                        to,
+                        amount,
+                        b"",
+                        SafeOperation.CALL,
+                        safe_nonce=None,
+                    )
+            else:
+                transaction = (
+                    get_erc20_contract(self.ethereum_client.w3, balance["tokenAddress"])
+                    .functions.transfer(to, amount)
+                    .buildTransaction({"from": self.address, "gas": 0, "gasPrice": 0})
+                )
+                safe_tx = self.prepare_safe_transaction(
+                    balance["tokenAddress"],
+                    0,
+                    HexBytes(transaction["data"]),
+                    SafeOperation.CALL,
+                    safe_nonce=None,
+                )
+            if safe_tx:
+                safe_txs.append(safe_tx)
+        if len(safe_txs) > 0:
+            multisend_tx = self.batch_safe_txs(safe_tx.safe_nonce, safe_txs)
+            if multisend_tx is not None:
+                self.post_transaction_to_tx_service(multisend_tx)
+                print_formatted_text(
+                    HTML(
+                        "<ansigreen>Transaction to drain account correctly created</ansigreen>"
+                    )
+                )
+        else:
+            print_formatted_text(
+                HTML("<ansigreen>Safe account is currently empty</ansigreen>")
+            )

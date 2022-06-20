@@ -253,6 +253,10 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
         )
 
     @safe_exception
+    def drain(args):
+        safe_operator.drain(args.to)
+
+    @safe_exception
     def get_threshold(args):
         safe_operator.get_threshold()
 
@@ -383,11 +387,12 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_send_ether = subparsers.add_parser("send_ether")
     parser_send_erc20 = subparsers.add_parser("send_erc20")
     parser_send_erc721 = subparsers.add_parser("send_erc721")
+    parser_drain = subparsers.add_parser("drain")
     parser_send_custom.set_defaults(func=send_custom)
     parser_send_ether.set_defaults(func=send_ether)
     parser_send_erc20.set_defaults(func=send_erc20)
     parser_send_erc721.set_defaults(func=send_erc721)
-
+    parser_drain.set_defaults(func=drain)
     # They have some common arguments
     for parser in (
         parser_send_custom,
@@ -418,6 +423,8 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
         parser.add_argument("token_address", type=check_ethereum_address)
         parser.add_argument("amount", type=int)
 
+    # Drain only needs destiny account
+    parser_drain.add_argument("to", type=check_ethereum_address)
     # Retrieve threshold, nonce or owners
     parser_get_threshold = subparsers.add_parser("get_threshold")
     parser_get_threshold.set_defaults(func=get_threshold)
