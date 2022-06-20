@@ -96,6 +96,7 @@ already executed, transactions pending for execution... Only limitation is that
 - `get_delegates`: Returns a list of delegates for the Safe.
 - `add_delegate <address> <label> <signer-address>`: Adds a new delegate `address` to the Safe.
 - `remove_delegate <address> <signer-address>`: Removes a delegate `address` from the Safe.
+- `drain <address>`: Sends all ether and ERC20 funds to the provided account.
 
 If the information in the information bar is outdated or there's any problem you can force the `safe-cli` to update
 the information about the Safe using:
