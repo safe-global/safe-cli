@@ -1,5 +1,5 @@
 cached-property==1.5.2 ; python_version < "3.8"
-colorama==0.4.4
+colorama==0.4.5
 packaging>=21.3
 prompt_toolkit==3.0.29
 pyfiglet==0.8.post1
