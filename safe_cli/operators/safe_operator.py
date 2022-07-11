@@ -342,7 +342,7 @@ class SafeOperator:
             sender_account = sender_account[0]
             transaction_to_send = self.safe_contract.functions.approveHash(
                 hash_to_approve
-            ).buildTransaction(
+            ).build_transaction(
                 {
                     "from": sender_account.address,
                     "nonce": self.ethereum_client.get_nonce_for_account(
@@ -388,7 +388,7 @@ class SafeOperator:
             # TODO Allow to set threshold
             transaction = self.safe_contract.functions.addOwnerWithThreshold(
                 new_owner, threshold
-            ).buildTransaction({"from": self.address, "gas": 0, "gasPrice": 0})
+            ).build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
             if self.execute_safe_internal_transaction(transaction["data"]):
                 self.safe_cli_info.owners = self.safe.retrieve_owners()
                 self.safe_cli_info.threshold = threshold
@@ -410,7 +410,7 @@ class SafeOperator:
             )
             transaction = self.safe_contract.functions.removeOwner(
                 prev_owner, owner_to_remove, threshold
-            ).buildTransaction({"from": self.address, "gas": 0, "gasPrice": 0})
+            ).build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
             if self.execute_safe_internal_transaction(transaction["data"]):
                 self.safe_cli_info.owners = self.safe.retrieve_owners()
                 self.safe_cli_info.threshold = threshold
@@ -441,7 +441,7 @@ class SafeOperator:
         transaction = (
             get_erc20_contract(self.ethereum_client.w3, token_address)
             .functions.transfer(to, amount)
-            .buildTransaction({"from": self.address, "gas": 0, "gasPrice": 0})
+            .build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
         )
         return self.send_custom(
             token_address, 0, HexBytes(transaction["data"]), **kwargs
@@ -451,7 +451,7 @@ class SafeOperator:
         transaction = (
             get_erc721_contract(self.ethereum_client.w3, token_address)
             .functions.transferFrom(self.address, to, token_id)
-            .buildTransaction({"from": self.address, "gas": 0, "gasPrice": 0})
+            .build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
         )
         return self.send_custom(token_address, 0, transaction["data"], **kwargs)
 
@@ -472,7 +472,7 @@ class SafeOperator:
         else:
             transaction = self.safe_contract.functions.setFallbackHandler(
                 new_fallback_handler
-            ).buildTransaction({"from": self.address, "gas": 0, "gasPrice": 0})
+            ).build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
             if self.execute_safe_internal_transaction(transaction["data"]):
                 self.safe_cli_info.fallback_handler = new_fallback_handler
                 self.safe_cli_info.version = self.safe.retrieve_version()
@@ -488,9 +488,9 @@ class SafeOperator:
         elif guard != NULL_ADDRESS and not self.ethereum_client.is_contract(guard):
             raise InvalidGuardException(f"{guard} address is not a contract")
         else:
-            transaction = self.safe_contract.functions.setGuard(guard).buildTransaction(
-                {"from": self.address, "gas": 0, "gasPrice": 0}
-            )
+            transaction = self.safe_contract.functions.setGuard(
+                guard
+            ).build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
             if self.execute_safe_internal_transaction(transaction["data"]):
                 self.safe_cli_info.guard = guard
                 self.safe_cli_info.version = self.safe.retrieve_version()
@@ -508,7 +508,7 @@ class SafeOperator:
 
             transaction = self.safe_contract_1_1_0.functions.changeMasterCopy(
                 new_master_copy
-            ).buildTransaction({"from": self.address, "gas": 0, "gasPrice": 0})
+            ).build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
             if self.execute_safe_internal_transaction(transaction["data"]):
                 self.safe_cli_info.master_copy = new_master_copy
                 self.safe_cli_info.version = self.safe.retrieve_version()
@@ -537,10 +537,10 @@ class SafeOperator:
             for data in (
                 self.safe_contract_1_1_0.functions.changeMasterCopy(
                     LAST_SAFE_CONTRACT
-                ).buildTransaction(tx_params)["data"],
+                ).build_transaction(tx_params)["data"],
                 self.safe_contract_1_1_0.functions.setFallbackHandler(
                     LAST_DEFAULT_CALLBACK_HANDLER
-                ).buildTransaction(tx_params)["data"],
+                ).build_transaction(tx_params)["data"],
             )
         ]
 
@@ -568,7 +568,7 @@ class SafeOperator:
         else:
             transaction = self.safe_contract.functions.changeThreshold(
                 threshold
-            ).buildTransaction({"from": self.address, "gas": 0, "gasPrice": 0})
+            ).build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
 
             if self.execute_safe_internal_transaction(transaction["data"]):
                 self.safe_cli_info.threshold = threshold
@@ -581,7 +581,7 @@ class SafeOperator:
         else:
             transaction = self.safe_contract.functions.enableModule(
                 module_address
-            ).buildTransaction({"from": self.address, "gas": 0, "gasPrice": 0})
+            ).build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
             if self.execute_safe_internal_transaction(transaction["data"]):
                 self.safe_cli_info.modules = self.safe.retrieve_modules()
 
@@ -598,7 +598,7 @@ class SafeOperator:
                 previous_address = self.safe_cli_info.modules[pos - 1]
             transaction = self.safe_contract.functions.disableModule(
                 previous_address, module_address
-            ).buildTransaction({"from": self.address, "gas": 0, "gasPrice": 0})
+            ).build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
             if self.execute_safe_internal_transaction(transaction["data"]):
                 self.safe_cli_info.modules = self.safe.retrieve_modules()
 
@@ -887,7 +887,7 @@ class SafeOperator:
                 transaction = (
                     get_erc20_contract(self.ethereum_client.w3, token_address)
                     .functions.transfer(to, balance)
-                    .buildTransaction({"from": self.address, "gas": 0, "gasPrice": 0})
+                    .build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
                 )
 
                 safe_tx = self.prepare_safe_transaction(

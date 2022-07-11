@@ -316,7 +316,7 @@ class SafeTxServiceOperator(SafeOperator):
                 transaction = (
                     get_erc20_contract(self.ethereum_client.w3, balance["tokenAddress"])
                     .functions.transfer(to, amount)
-                    .buildTransaction({"from": self.address, "gas": 0, "gasPrice": 0})
+                    .build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
                 )
                 safe_tx = self.prepare_safe_transaction(
                     balance["tokenAddress"],

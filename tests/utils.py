@@ -28,7 +28,7 @@ def generate_transfers_erc20(
         # Create a transaction of 1 token ERC20
         transaction = erc20_contract.functions.transfer(
             safe_operator.address, 1
-        ).buildTransaction({"from": account.address})
+        ).build_transaction({"from": account.address})
         nonce = w3.eth.get_transaction_count(
             account.address, block_identifier="pending"
         )

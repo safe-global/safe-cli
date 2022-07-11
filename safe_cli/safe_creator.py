@@ -199,7 +199,7 @@ def main(*args, **kwargs):
                 payment_token,
                 payment,
                 payment_receiver,
-            ).buildTransaction({"gas": 1, "gasPrice": 1})["data"]
+            ).build_transaction({"gas": 1, "gasPrice": 1})["data"]
         )
 
         proxy_factory = ProxyFactory(proxy_factory_address, ethereum_client)

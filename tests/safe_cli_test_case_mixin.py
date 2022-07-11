@@ -143,7 +143,7 @@ class SafeCliTestCaseMixin:
                 payment,
                 payment_receiver,
             )
-            .buildTransaction(empty_parameters)["data"]
+            .build_transaction(empty_parameters)["data"]
         )
         ethereum_tx_sent = self.proxy_factory.deploy_proxy_contract(
             self.ethereum_test_account,
