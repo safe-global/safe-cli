@@ -125,7 +125,8 @@ class SafeCli:
                 if not command.strip():
                     continue
 
-                if new_operator := self.parse_operator_mode(command):
+                new_operator = self.parse_operator_mode(command)
+                if new_operator:
                     self.prompt_parser = PromptParser(new_operator)
                     new_operator.refresh_safe_cli_info()  # ClI info needs to be initialized
                 else:
