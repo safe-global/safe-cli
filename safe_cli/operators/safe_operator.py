@@ -28,12 +28,7 @@ from safe_cli.api.etherscan_api import EtherscanApi
 from safe_cli.api.relay_service_api import RelayServiceApi
 from safe_cli.api.transaction_service_api import TransactionServiceApi
 from safe_cli.ethereum_hd_wallet import get_account_from_words
-from safe_cli.safe_addresses import (
-    LAST_DEFAULT_CALLBACK_HANDLER,
-    LAST_MULTISEND_CALL_ONLY_CONTRACT,
-    LAST_MULTISEND_CONTRACT,
-    LAST_SAFE_CONTRACT,
-)
+from safe_cli.safe_addresses import LAST_DEFAULT_CALLBACK_HANDLER, LAST_SAFE_CONTRACT
 from safe_cli.utils import get_erc_20_list, yes_or_no_question
 
 try:
@@ -530,7 +525,7 @@ class SafeOperator:
                 "Not valid addresses to update Safe", *addresses
             )
 
-        multisend = MultiSend(LAST_MULTISEND_CONTRACT, self.ethereum_client)
+        multisend = MultiSend(ethereum_client=self.ethereum_client)
         tx_params = {"from": self.address, "gas": 0, "gasPrice": 0}
         multisend_txs = [
             MultiSendTx(MultiSendOperation.CALL, self.address, 0, data)
@@ -763,11 +758,14 @@ class SafeOperator:
 
         :return:
         """
-        if not self.ethereum_client.is_contract(LAST_MULTISEND_CALL_ONLY_CONTRACT):
+
+        try:
+            multisend = MultiSend(ethereum_client=self.ethereum_client)
+        except ValueError:
             print_formatted_text(
                 HTML(
-                    f"<ansired>Multisend call only contract {LAST_MULTISEND_CALL_ONLY_CONTRACT} "
-                    f"is not deployed on this network and it's required for batching txs</ansired>"
+                    "<ansired>Multisend contract is not deployed on this network and it's required for "
+                    "batching txs</ansired>"
                 )
             )
 
@@ -785,13 +783,10 @@ class SafeOperator:
                 )
 
         if len(multisend_txs) > 1:
-            multisend = MultiSend(
-                LAST_MULTISEND_CALL_ONLY_CONTRACT, self.ethereum_client
-            )
             safe_tx = SafeTx(
                 self.ethereum_client,
                 self.address,
-                LAST_MULTISEND_CALL_ONLY_CONTRACT,
+                multisend.address,
                 0,
                 multisend.build_tx_data(multisend_txs),
                 SafeOperation.DELEGATE_CALL.value,

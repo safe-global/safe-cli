@@ -12,7 +12,6 @@ from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 from safe_cli.api.base_api import BaseAPIException
 from safe_cli.utils import yes_or_no_question
 
-from ..safe_addresses import LAST_MULTISEND_CALL_ONLY_CONTRACT
 from .safe_operator import (
     AccountNotLoadedException,
     NonExistingOwnerException,
@@ -125,11 +124,13 @@ class SafeTxServiceOperator(SafeOperator):
         :return:
         """
 
-        if not self.ethereum_client.is_contract(LAST_MULTISEND_CALL_ONLY_CONTRACT):
+        try:
+            multisend = MultiSend(ethereum_client=self.ethereum_client)
+        except ValueError:
             print_formatted_text(
                 HTML(
-                    f"<ansired>Multisend call only contract {LAST_MULTISEND_CALL_ONLY_CONTRACT} "
-                    f"is not deployed on this network and it's required for batching txs</ansired>"
+                    "<ansired>Multisend contract is not deployed on this network and it's required for "
+                    "batching txs</ansired>"
                 )
             )
 
@@ -148,13 +149,10 @@ class SafeTxServiceOperator(SafeOperator):
                 )
 
         if len(multisend_txs) > 1:
-            multisend = MultiSend(
-                LAST_MULTISEND_CALL_ONLY_CONTRACT, self.ethereum_client
-            )
             safe_tx = SafeTx(
                 self.ethereum_client,
                 self.address,
-                LAST_MULTISEND_CALL_ONLY_CONTRACT,
+                multisend.address,
                 0,
                 multisend.build_tx_data(multisend_txs),
                 SafeOperation.DELEGATE_CALL.value,
