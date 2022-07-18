@@ -246,31 +246,31 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         _, _, contract_address = MultiSend.deploy_contract(
             self.ethereum_client, account
         )
-        # Getting events filtered by Transfer
-        last = safe_operator.ethereum_client.get_block("latest")["number"]
-        token_address = get_erc_20_list(
-            safe_operator.ethereum_client, safe_operator.address, 1, last
-        )
-        self.assertEqual(len(token_address), num_contracts_erc20)
-        for token in token_address:
-            result = self.ethereum_client.erc20.get_balance(
-                safe_operator.address, token
+        with mock.patch.object(MultiSend, "MULTISEND_ADDRESSES", [contract_address]):
+            # Getting events filtered by Transfer
+            last = safe_operator.ethereum_client.get_block("latest")["number"]
+            token_address = get_erc_20_list(
+                safe_operator.ethereum_client, safe_operator.address, 1, last
             )
-            self.assertEqual(result, num_transactions)
-        # Draining the account to a new account
-        with mock.patch(
-            "safe_cli.operators.safe_operator.LAST_MULTISEND_CALL_ONLY_CONTRACT",
-            contract_address,
-        ):
+            self.assertEqual(len(token_address), num_contracts_erc20)
+            for token in token_address:
+                result = self.ethereum_client.erc20.get_balance(
+                    safe_operator.address, token
+                )
+                self.assertEqual(result, num_transactions)
+            # Draining the account to a new account
             safe_operator.drain(account.address)
-        # Checking that the account is empty
-        for token in token_address:
+            # Checking that the account is empty
+            for token in token_address:
+                self.assertEqual(
+                    self.ethereum_client.erc20.get_balance(
+                        safe_operator.address, token
+                    ),
+                    0,
+                )
             self.assertEqual(
-                self.ethereum_client.erc20.get_balance(safe_operator.address, token), 0
+                safe_operator.ethereum_client.get_balance(safe_operator.address), 0
             )
-        self.assertEqual(
-            safe_operator.ethereum_client.get_balance(safe_operator.address), 0
-        )
 
 
 if __name__ == "__main__":
