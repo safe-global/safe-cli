@@ -25,7 +25,7 @@ setuptools.setup(
         "pygments>=2",
         "requests>=2",
         "tabulate>=0.8",
-        "typing_extensions>=4; python_version < '3.8'",
+        "typing_extensions>3<4; python_version < '3.8'",
     ],
     packages=setuptools.find_packages(),
     entry_points={

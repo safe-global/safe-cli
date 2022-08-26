@@ -45,7 +45,9 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             safe = Safe(safe_operator.address, self.ethereum_client)
             self.assertEqual(len(safe.retrieve_owners()), number_owners)
 
-    @mock.patch.object(Safe, "get_contract", return_value=None)
+    @mock.patch(
+        "gnosis.safe.Safe.contract", new_callable=mock.PropertyMock, return_value=None
+    )
     def test_load_cli_owner(self, get_contract_mock: MagicMock):
         random_address = Account.create().address
         safe_operator = SafeOperator(random_address, self.ethereum_node_url)
@@ -226,8 +228,10 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         safe_operator = self.setup_operator()
         account = Account.create()
         value = self.w3.toWei(10.5, "ether")
+
         with self.assertRaises(NotEnoughEtherToSend):
             safe_operator.send_ether(account.address, value)
+
         self.ethereum_client.send_eth_to(
             self.ethereum_test_account.key,
             safe_operator.address,
@@ -246,7 +250,9 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         _, _, contract_address = MultiSend.deploy_contract(
             self.ethereum_client, account
         )
-        with mock.patch.object(MultiSend, "MULTISEND_ADDRESSES", [contract_address]):
+        with mock.patch.object(
+            MultiSend, "MULTISEND_CALL_ONLY_ADDRESSES", [contract_address]
+        ):
             # Getting events filtered by Transfer
             last = safe_operator.ethereum_client.get_block("latest")["number"]
             token_address = get_erc_20_list(

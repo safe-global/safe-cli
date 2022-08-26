@@ -191,7 +191,7 @@ class SafeOperator:
             self.ethereum_client
         )
         self.safe = Safe(address, self.ethereum_client)
-        self.safe_contract = self.safe.get_contract()
+        self.safe_contract = self.safe.contract
         self.safe_contract_1_1_0 = get_safe_V1_1_1_contract(
             self.ethereum_client.w3, address=self.address
         )
@@ -751,7 +751,9 @@ class SafeOperator:
         return False
 
     # Batch_transactions multisend
-    def batch_safe_txs(self, safe_nonce: int, safe_txs: [SafeTx]) -> SafeTx:
+    def batch_safe_txs(
+        self, safe_nonce: int, safe_txs: Sequence[SafeTx]
+    ) -> Optional[SafeTx]:
         """
         Submit signatures to the tx service. It's recommended to be on Safe v1.3.0 to prevent issues
         with `safeTxGas` and gas estimation.
@@ -762,6 +764,7 @@ class SafeOperator:
         try:
             multisend = MultiSend(ethereum_client=self.ethereum_client)
         except ValueError:
+            multisend = None
             print_formatted_text(
                 HTML(
                     "<ansired>Multisend contract is not deployed on this network and it's required for "
@@ -782,7 +785,13 @@ class SafeOperator:
                     )
                 )
 
-        if len(multisend_txs) > 1:
+        if len(multisend_txs) == 1:
+            safe_tx.safe_tx_gas = 0
+            safe_tx.base_gas = 0
+            safe_tx.gas_price = 0
+            safe_tx.signatures = b""
+            safe_tx.safe_nonce = safe_nonce  # Resend single transaction
+        elif multisend:
             safe_tx = SafeTx(
                 self.ethereum_client,
                 self.address,
@@ -798,11 +807,9 @@ class SafeOperator:
                 safe_nonce=safe_nonce,
             )
         else:
-            safe_tx.safe_tx_gas = 0
-            safe_tx.base_gas = 0
-            safe_tx.gas_price = 0
-            safe_tx.signatures = b""
-            safe_tx.safe_nonce = safe_nonce  # Resend single transaction
+            # Multisend not defined
+            return None
+
         safe_tx = self.sign_transaction(safe_tx)
         if not safe_tx.signatures:
             print_formatted_text(
@@ -893,9 +900,10 @@ class SafeOperator:
                     safe_nonce=None,
                 )
                 safe_txs.append(safe_tx)
+
         # Getting ethereum balance
         balance_eth = self.ethereum_client.get_balance(self.address)
-        if balance_eth > 0:
+        if balance_eth:
             safe_tx = self.prepare_safe_transaction(
                 to,
                 balance_eth,
@@ -904,7 +912,8 @@ class SafeOperator:
                 safe_nonce=None,
             )
             safe_txs.append(safe_tx)
-        if len(safe_txs) > 0:
+
+        if safe_txs:
             multisend_tx = self.batch_safe_txs(self.get_nonce(), safe_txs)
             if multisend_tx is not None:
                 if self.execute_safe_transaction(multisend_tx):
