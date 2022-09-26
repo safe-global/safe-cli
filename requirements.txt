@@ -8,4 +8,4 @@ requests==2.28.1
 safe-eth-py==4.5.0
 tabulate==0.8.10
 typing_extensions>3<4 ; python_version < "3.8"
-web3==5.30.0
+web3==5.31.0
