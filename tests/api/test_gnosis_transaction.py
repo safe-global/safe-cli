@@ -10,12 +10,12 @@ class TestTransactionService(unittest.TestCase):
     def setUp(self) -> None:
         self.ethereum_client = EthereumClient("http://localhost:8545")
         with mock.patch.object(
-            EthereumClient, "get_network", return_value=EthereumNetwork.RINKEBY
+            EthereumClient, "get_network", return_value=EthereumNetwork.GOERLI
         ):
             self.transaction_service = TransactionServiceApi.from_ethereum_client(
                 self.ethereum_client
-            )  # Rinkeby
-        self.safe_address = "0x7552Ed65a45E27740a15B8D5415E90d8ca64C109"
+            )  # Goerli
+        self.safe_address = "0x24833C9c4644a70250BCCBcB5f8529b609eaE6EC"
 
     def test_data_decoded_to_text(self):
         test_data = {
