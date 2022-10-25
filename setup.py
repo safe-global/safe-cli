@@ -1,12 +1,14 @@
 import setuptools
 
+from safe_cli.version import version
+
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
 
 setuptools.setup(
     name="safe_cli",
-    version="0.5.1",
+    version=version,
     author="Uxío Fuentefría",
     author_email="uxio@gnosis.io",
     description="Command Line Interface for Gnosis Safe",
@@ -19,11 +21,11 @@ setuptools.setup(
     install_requires=[
         "cached-property==1.5.2; python_version < '3.8'",
         "colorama>=0.4",
-        "gnosis-py>=3",
         "prompt_toolkit>=3",
         "pyfiglet>=0.8",
         "pygments>=2",
         "requests>=2",
+        "safe-eth-py>=4.5.2",
         "tabulate>=0.8",
         "typing_extensions>3<4; python_version < '3.8'",
     ],

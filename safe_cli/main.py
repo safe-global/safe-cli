@@ -21,6 +21,8 @@ from safe_cli.prompt_parser import PromptParser, to_checksummed_ethereum_address
 from safe_cli.safe_completer import SafeCompleter
 from safe_cli.safe_lexer import SafeLexer
 
+from .version import version
+
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "safe_address", help="Address of Safe to use", type=to_checksummed_ethereum_address
@@ -31,6 +33,7 @@ parser.add_argument(
     action="store_true",
     help="Enable history. By default it's disabled due to security reasons",
 )
+
 args = parser.parse_args()
 
 safe_address = args.safe_address
@@ -53,6 +56,7 @@ class SafeCli:
         print_formatted_text(
             pyfiglet.figlet_format("Gnosis Safe CLI")
         )  # Print fancy text
+        print_formatted_text(HTML(f"<b><ansigreen>Version {version}</ansigreen></b>"))
         print_formatted_text(
             HTML("<b><ansigreen>Loading Safe information...</ansigreen></b>")
         )

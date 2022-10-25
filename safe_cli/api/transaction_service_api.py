@@ -15,18 +15,17 @@ from .base_api import BaseAPI, BaseAPIException
 
 class TransactionServiceApi(BaseAPI):
     URL_BY_NETWORK = {
-        EthereumNetwork.MAINNET: "https://safe-transaction.mainnet.gnosis.io",
-        EthereumNetwork.ARBITRUM: "https://safe-transaction.arbitrum.gnosis.io",
-        EthereumNetwork.AURORA: "https://safe-transaction.aurora.gnosis.io/",
-        EthereumNetwork.AVALANCHE: "https://safe-transaction.avalanche.gnosis.io",
-        EthereumNetwork.BINANCE: "https://safe-transaction.bsc.gnosis.io",
-        EthereumNetwork.ENERGY_WEB_CHAIN: "https://safe-transaction.ewc.gnosis.io",
-        EthereumNetwork.GOERLI: "https://safe-transaction.goerli.gnosis.io",
-        EthereumNetwork.MATIC: "https://safe-transaction.polygon.gnosis.io",
-        EthereumNetwork.OPTIMISTIC: "https://safe-transaction.optimism.gnosis.io/",
-        EthereumNetwork.RINKEBY: "https://safe-transaction.rinkeby.gnosis.io",
-        EthereumNetwork.VOLTA: "https://safe-transaction.volta.gnosis.io",
-        EthereumNetwork.XDAI: "https://safe-transaction.xdai.gnosis.io",
+        EthereumNetwork.MAINNET: "https://safe-transaction-mainnet.safe.global",
+        EthereumNetwork.ARBITRUM: "https://safe-transaction-arbitrum.safe.global",
+        EthereumNetwork.AURORA: "https://safe-transaction-aurora.safe.global",
+        EthereumNetwork.AVALANCHE: "https://safe-transaction-avalanche.safe.global",
+        EthereumNetwork.BINANCE: "https://safe-transaction-bsc.safe.global",
+        EthereumNetwork.ENERGY_WEB_CHAIN: "https://safe-transaction-ewc.safe.global",
+        EthereumNetwork.GOERLI: "https://safe-transaction-goerli.safe.global",
+        EthereumNetwork.MATIC: "https://safe-transaction-polygon.safe.global",
+        EthereumNetwork.OPTIMISTIC: "https://safe-transaction-optimism.safe.global",
+        EthereumNetwork.VOLTA: "https://safe-transaction-volta.safe.global",
+        EthereumNetwork.XDAI: "https://safe-transaction-gnosis-chain.safe.global",
     }
 
     @classmethod
