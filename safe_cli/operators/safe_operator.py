@@ -1,6 +1,6 @@
 import dataclasses
 import os
-from functools import wraps
+from functools import cached_property, wraps
 from typing import List, Optional, Sequence, Set
 
 from ens import ENS
@@ -30,11 +30,6 @@ from safe_cli.api.transaction_service_api import TransactionServiceApi
 from safe_cli.ethereum_hd_wallet import get_account_from_words
 from safe_cli.safe_addresses import LAST_DEFAULT_CALLBACK_HANDLER, LAST_SAFE_CONTRACT
 from safe_cli.utils import get_erc_20_list, yes_or_no_question
-
-try:
-    from functools import cached_property
-except ImportError:
-    from cached_property import cached_property
 
 
 @dataclasses.dataclass

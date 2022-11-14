@@ -1,3 +1,4 @@
+from typing import TypedDict
 from urllib.parse import urljoin
 
 import requests
@@ -8,11 +9,6 @@ from gnosis.safe import SafeTx
 from gnosis.safe.signatures import signature_split
 
 from .base_api import BaseAPI, BaseAPIException
-
-try:
-    from typing import TypedDict
-except ImportError:
-    from typing_extensions import TypedDict
 
 
 class RelayEstimation(TypedDict):
