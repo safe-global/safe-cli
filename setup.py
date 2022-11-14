@@ -10,7 +10,7 @@ setuptools.setup(
     name="safe_cli",
     version=version,
     author="Uxío Fuentefría",
-    author_email="uxio@gnosis.io",
+    author_email="uxio@safe.global",
     description="Command Line Interface for Gnosis Safe",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -19,7 +19,6 @@ setuptools.setup(
     license="MIT",
     test_suite="tests",
     install_requires=[
-        "cached-property==1.5.2; python_version < '3.8'",
         "colorama>=0.4",
         "prompt_toolkit>=3",
         "pyfiglet>=0.8",
@@ -27,7 +26,6 @@ setuptools.setup(
         "requests>=2",
         "safe-eth-py>=4.5.2",
         "tabulate>=0.8",
-        "typing_extensions>3<4; python_version < '3.8'",
     ],
     packages=setuptools.find_packages(),
     entry_points={
@@ -37,9 +35,12 @@ setuptools.setup(
         ],
     },
     classifiers=[
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.8",
 )
