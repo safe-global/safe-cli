@@ -19,10 +19,10 @@ jobs:
           PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           path-to-signatures: 'signatures/version1/cla.json'
-          path-to-document: 'https://gnosis-safe.io/cla/'
+          path-to-document: 'https://safe.global/cla/'
           # branch should not be protected
           branch: 'cla-signatures'
-          allowlist: jpalvarezl,fmrsabino,luarx,rmeissner,Uxio0,*bot # may need to update this expression if we add new bots
+          allowlist: hectorgomezv,moisses89,luarx,fmrsabino,luarx,rmeissner,Uxio0,*bot # may need to update this expression if we add new bots
 
           #below are the optional inputs - If the optional inputs are not given, then default values will be taken
           #remote-organization-name: enter the remote organization name where the signatures should be stored (Default is storing the signatures in the same repository)
