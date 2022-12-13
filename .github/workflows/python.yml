@@ -28,7 +28,7 @@ jobs:
     - name: Run tests and coverage
       run: |
         pytest -rxXs
-        coverage run --source=$SOURCE_FOLDER -m py.test -rxXs
+        coverage run --source=$SOURCE_FOLDER -m pytest -rxXs
       env:
         SOURCE_FOLDER: safe_cli
     - name: Send results to coveralls
