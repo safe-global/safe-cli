@@ -26,7 +26,7 @@ on the Safe and at least one of them should have funds for sending transactions.
 There're 3 operation modes:
 - **blockchain**: The default mode, transactions are sent to blockchain.
 - **tx-service**: Use `tx-service` command to enable it. Transactions are sent to the Gnosis Transaction Service (if available on the network), so you will be able to see it on the Gnosis Safe web interface/mobile apps. At least one signer is needed to send transactions to the service. Txs are **not executed**.
-- **relay-service**: Use `relay-service [optional-gas-token]` to enable it. Sends transactions trough the Gnosis Relay Service (if available on the network). If a optional gas token is set, it will be used to send transactions. For mainnet [you can check available gas tokens here.](https://safe-relay.rinkeby.gnosis.io/api/v1/tokens/?gas=true)
+- **relay-service**: Use `relay-service [optional-gas-token]` to enable it. Sends transactions trough the Gnosis Relay Service (if available on the network). If a optional gas token is set, it will be used to send transactions.
 
 Loading owners is not needed if you just want to do `read-only` operations.
 
@@ -79,11 +79,11 @@ THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 - `change_master_copy <address>`: Updates the master copy to be `address`. It's used to update the Safe. **WARNING: DON'T USE
 THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
-- `update`: Updates the Safe to the latest version (if you are on a known network like `Rinkeby` or `Mainnet`).
+- `update`: Updates the Safe to the latest version (if you are on a known network like `Goerli` or `Mainnet`).
 **WARNING: DON'T USE THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 
 Operations on `tx-service` mode, requires a Gnosis Safe Transaction Service working on the network
-(Mainnet, Gnosis Chain, Rinkeby, Polygon...):
+(Mainnet, Gnosis Chain, Goerli, Polygon...):
 - `balances`: Returns a list of balances for ERC20 tokens and ether.
 - `history`: History of multisig transactions (including pending).
 - `execute-tx <safe-tx-hash>`: Execute a pending tx with enough signatures.
@@ -109,12 +109,12 @@ Use `safe-creator <node_url> <private_key> --owners <checksummed_address_1> <che
 
 Example:
 ```
-safe-creator https://rinkeby.infura.io/v3/token $PRIVATE_KEY --owners 0x848EF06Bb9d1bc79Bb3B04b7Ea0e251C6E788d7c --threshold 1
+safe-creator https://goerli.infura.io/v3/token $PRIVATE_KEY --owners 0x848EF06Bb9d1bc79Bb3B04b7Ea0e251C6E788d7c --threshold 1
 ```
 
 ## Demo
 For this demo, `PRIVATE_KEY` environment variable was set to a _EOA_ private key (owner of a a previously created and outdated Safe)
-and `ETHEREUM_NODE_URL` to a http rinkeby node.
+and `ETHEREUM_NODE_URL` to a http goerli node.
 At first, Safe is updated to the last version and then `123 Wei` are sent to the owner of the Safe (it could be any other address).
 
 **Don't use `update` command in mainnet, as it can leave your Gnosis Safe funds stuck. Safe CLI is still a beta**
