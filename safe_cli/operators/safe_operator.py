@@ -14,6 +14,7 @@ from web3 import Web3
 from web3.exceptions import BadFunctionCallOutput
 
 from gnosis.eth import EthereumClient, EthereumNetwork, TxSpeed
+from gnosis.eth.clients import EtherscanClient, EtherscanClientConfigurationProblem
 from gnosis.eth.constants import NULL_ADDRESS, SENTINEL_ADDRESS
 from gnosis.eth.contracts import (
     get_erc20_contract,
@@ -24,7 +25,6 @@ from gnosis.eth.contracts import (
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
-from safe_cli.api.etherscan_api import EtherscanApi
 from safe_cli.api.relay_service_api import RelayServiceApi
 from safe_cli.api.transaction_service_api import TransactionServiceApi
 from safe_cli.ethereum_hd_wallet import get_account_from_words
@@ -178,7 +178,10 @@ class SafeOperator:
         self.ethereum_client = EthereumClient(self.node_url)
         self.ens = ENS.fromWeb3(self.ethereum_client.w3)
         self.network: EthereumNetwork = self.ethereum_client.get_network()
-        self.etherscan = EtherscanApi.from_ethereum_client(self.ethereum_client)
+        try:
+            self.etherscan = EtherscanClient(self.network)
+        except EtherscanClientConfigurationProblem:
+            self.etherscan = None
         self.safe_relay_service = RelayServiceApi.from_ethereum_client(
             self.ethereum_client
         )
