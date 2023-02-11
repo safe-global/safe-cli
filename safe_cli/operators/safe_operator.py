@@ -9,6 +9,9 @@ from eth_account.signers.local import LocalAccount
 from eth_typing import ChecksumAddress
 from eth_utils import ValidationError
 from hexbytes import HexBytes
+from ledgereth import get_account_by_path
+from ledgereth.comms import init_dongle
+from ledgereth.exceptions import LedgerNotFound
 from packaging import version as semantic_version
 from prompt_toolkit import HTML, print_formatted_text
 from web3 import Web3
@@ -39,6 +42,7 @@ from safe_cli.safe_addresses import (
     get_safe_contract_address,
     get_safe_l2_contract_address,
 )
+from safe_cli.operators.hw_accounts.ledger_account import LedgerAccount
 from safe_cli.utils import get_erc_20_list, yes_or_no_question
 
 
@@ -221,8 +225,8 @@ class SafeOperator:
         self.safe_contract_1_1_0 = get_safe_V1_1_1_contract(
             self.ethereum_client.w3, address=self.address
         )
-        self.accounts: Set[LocalAccount] = set()
-        self.default_sender: Optional[LocalAccount] = None
+        self.accounts: Set[LocalAccount | LedgerAccount] = set()
+        self.default_sender: Optional[LocalAccount] | LedgerAccount = None
         self.executed_transactions: List[str] = []
         self._safe_cli_info: Optional[SafeCliInfo] = None  # Cache for SafeCliInfo
         self.require_all_signatures = (
@@ -324,6 +328,33 @@ class SafeOperator:
                     self.default_sender = account
             except ValueError:
                 print_formatted_text(HTML(f"<ansired>Cannot load key={key}</ansired>"))
+
+    def load_ledger_cli_owners(self):
+        try:
+            dongle = init_dongle()
+        except LedgerNotFound:
+            print_formatted_text(HTML(f"<ansired>Unable to find Ledger device</ansired>"))
+            return
+        # Search between 10 first accounts
+        for index in range(10):
+            path = f"44'/60'/{index}'/0/0"
+            account = get_account_by_path(path, dongle=dongle)
+            if account.address in self.safe_cli_info.owners:
+                sender = LedgerAccount(account.path, account.address, dongle)
+                self.accounts.add(sender)
+                balance = self.ethereum_client.get_balance(account.address)
+                print_formatted_text(
+                    HTML(
+                        f"Loaded account <b>{account.address}</b> "
+                        f'with balance={Web3.fromWei(balance, "ether")} ether'
+                    )
+                )
+                if not self.default_sender and balance > 0:
+                    print_formatted_text(
+                        HTML(f"Set account <b>{account.address}</b> as default sender of txs")
+                    )
+                    self.default_sender = sender
+                break
 
     def unload_cli_owners(self, owners: List[str]):
         accounts_to_remove: Set[Account] = set()

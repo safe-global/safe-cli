@@ -153,6 +153,10 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
         safe_operator.load_cli_owners(args.keys)
 
     @safe_exception
+    def load_ledger_cli_owners(args):
+        safe_operator.load_ledger_cli_owners()
+
+    @safe_exception
     def unload_cli_owners(args):
         safe_operator.unload_cli_owners(args.addresses)
 
@@ -291,6 +295,9 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_load_cli_owners = subparsers.add_parser("load_cli_owners")
     parser_load_cli_owners.add_argument("keys", type=str, nargs="+")
     parser_load_cli_owners.set_defaults(func=load_cli_owners)
+
+    parser_load_ledger_cli_owners = subparsers.add_parser("load_ledger_cli_owners")
+    parser_load_ledger_cli_owners.set_defaults(func=load_ledger_cli_owners)
 
     parser_unload_cli_owners = subparsers.add_parser("unload_cli_owners")
     parser_unload_cli_owners.add_argument(

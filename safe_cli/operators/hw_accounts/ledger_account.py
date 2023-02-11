@@ -1,13 +1,13 @@
 import warnings
 
 from eth_account.signers.base import BaseAccount
-from gnosis.eth.eip712 import eip712_encode
+from ledgerblue import Dongle
 from ledgereth import sign_typed_data_draft, create_transaction
 from web3.types import TxParams
 
 
 class LedgerAccount(BaseAccount):
-    def __init__(self, path, address, dongle):
+    def __init__(self, path, address, dongle: Dongle):
         """
         Initialize a new ledger account (no private key)
 
