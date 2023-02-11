@@ -32,9 +32,11 @@ from gnosis.eth.contracts import (
     get_safe_contract,
     get_safe_V1_1_1_contract,
 )
+from gnosis.eth.eip712 import eip712_encode
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
 from gnosis.safe.api import TransactionServiceApi
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
+from gnosis.safe.signatures import signature_to_bytes
 
 from safe_cli.ethereum_hd_wallet import get_account_from_words
 from safe_cli.safe_addresses import (
@@ -333,7 +335,9 @@ class SafeOperator:
         try:
             dongle = init_dongle()
         except LedgerNotFound:
-            print_formatted_text(HTML(f"<ansired>Unable to find Ledger device</ansired>"))
+            print_formatted_text(
+                HTML("<ansired>Unable to find Ledger device</ansired>")
+            )
             return
         # Search between 10 first accounts
         for index in range(10):
@@ -347,13 +351,10 @@ class SafeOperator:
                     HTML(
                         f"Loaded account <b>{account.address}</b> "
                         f'with balance={Web3.fromWei(balance, "ether")} ether'
+                        f"Ledger account cannot be defined as sender"
                     )
                 )
-                if not self.default_sender and balance > 0:
-                    print_formatted_text(
-                        HTML(f"Set account <b>{account.address}</b> as default sender of txs")
-                    )
-                    self.default_sender = sender
+                # TODO add ledger as sender
                 break
 
     def unload_cli_owners(self, owners: List[str]):
@@ -888,6 +889,28 @@ class SafeOperator:
         else:
             return safe_tx
 
+    def ledger_sign(self, safe_tx: SafeTx, account: LedgerAccount) -> bytes:
+        """
+        {bytes32 r}{bytes32 s}{uint8 v}
+        :param private_key:
+        :return: Signature
+        """
+        encode_hash = eip712_encode(safe_tx.eip712_structured_data)
+        v, r, s = account.signHash(encode_hash[1], encode_hash[2])
+        signature = signature_to_bytes(v, r, s)
+        # Insert signature sorted
+        if account.address not in safe_tx.signers:
+            new_owners = safe_tx.signers + [account.address]
+            new_owner_pos = sorted(new_owners, key=lambda x: int(x, 16)).index(
+                account.address
+            )
+            safe_tx.signatures = (
+                safe_tx.signatures[: 65 * new_owner_pos]
+                + signature
+                + safe_tx.signatures[65 * new_owner_pos :]
+            )
+        return safe_tx
+
     # TODO Set sender so we can save gas in that signature
     def sign_transaction(self, safe_tx: SafeTx) -> SafeTx:
         permitted_signers = self.get_permitted_signers()
@@ -906,7 +929,10 @@ class SafeOperator:
             raise NotEnoughSignatures(threshold)
 
         for selected_account in selected_accounts:
-            safe_tx.sign(selected_account.key)
+            if selected_account.key:
+                safe_tx.sign(selected_account.key)
+            else:
+                safe_tx = self.ledger_sign(safe_tx, selected_account)
 
         return safe_tx
 

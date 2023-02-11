@@ -52,7 +52,7 @@ class LedgerAccount(BaseAccount):
         # TODO with ledger
         pass
 
-    def signHash(self, message_hash, domain_hash: bytes):
+    def signHash(self, domain_hash: bytes, message_hash: bytes):
         signed = sign_typed_data_draft(domain_hash, message_hash, dongle=self.dongle)
         return (signed.v, signed.r, signed.s)
 
