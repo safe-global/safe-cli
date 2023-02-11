@@ -2,7 +2,7 @@ import warnings
 
 from eth_account.signers.base import BaseAccount
 from ledgerblue import Dongle
-from ledgereth import sign_typed_data_draft, create_transaction
+from ledgereth import create_transaction, sign_typed_data_draft
 from web3.types import TxParams
 
 
@@ -84,7 +84,7 @@ class LedgerAccount(BaseAccount):
             nonce=tx["nonce"],
             chain_id=tx["chainId"],
             sender_path=self.path,
-            dongle=self.dongle
+            dongle=self.dongle,
         )
         return signed
 
