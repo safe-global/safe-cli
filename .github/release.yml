@@ -1,0 +1,15 @@
+changelog:
+  categories:
+    - title: 🏕 Features
+      labels:
+        - '*'
+      exclude:
+        labels:
+          - dependencies
+          - breaking_change
+    - title: 🛠 Breaking Changes
+      labels:
+        - breaking_change
+    - title: 👒 Dependencies
+      labels:
+        - dependencies
