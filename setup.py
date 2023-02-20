@@ -24,7 +24,7 @@ setuptools.setup(
         "pyfiglet>=0.8",
         "pygments>=2",
         "requests>=2",
-        "safe-eth-py>=4.5.2",
+        "safe-eth-py>=5.0.1",
         "tabulate>=0.8",
     ],
     packages=setuptools.find_packages(),
