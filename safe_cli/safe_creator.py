@@ -210,4 +210,4 @@ def main(*args, **kwargs):
             f"Tx with tx-hash={ethereum_tx_sent.tx_hash.hex()} "
             f"will create safe={ethereum_tx_sent.contract_address}"
         )
-        print_formatted_text(f"Tx paramters={ethereum_tx_sent.tx}")
+        print_formatted_text(f"Tx parameters={ethereum_tx_sent.tx}")
