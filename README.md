@@ -7,6 +7,24 @@
 # Safe-CLI
 Command line utility for **Gnosis Safe** contracts. Use it to manage your **Gnosis Safe** easily from the command line
 
+## Using with docker
+
+If you have **Docker** installed on your system, you can just run:
+
+```bash
+docker run safeglobal/safe-cli safe_creator
+```
+
+for creating Safes
+
+or
+
+```bash
+docker run safeglobal/safe-cli safe_cli
+```
+
+to run the actual **safe-cli**
+
 ## Installing
 **Python >= 3.7** is required. **Python 3.10** is recommended.
 
