@@ -19,10 +19,10 @@ from gnosis.safe import ProxyFactory
 
 from safe_cli.prompt_parser import check_ethereum_address
 from safe_cli.safe_addresses import (
-    LAST_DEFAULT_CALLBACK_HANDLER,
-    LAST_PROXY_FACTORY_CONTRACT,
-    LAST_SAFE_CONTRACT,
-    LAST_SAFE_L2_CONTRACT,
+    get_default_fallback_handler_address,
+    get_proxy_factory_address,
+    get_safe_contract_address,
+    get_safe_l2_contract_address,
 )
 from safe_cli.utils import yes_or_no_question
 
@@ -77,14 +77,14 @@ def setup_argument_parser():
     parser.add_argument(
         "--proxy-factory",
         help="Use a custom proxy factory",
-        default=LAST_PROXY_FACTORY_CONTRACT,
+        default=None,
         type=check_ethereum_address,
     )
     parser.add_argument(
         "--callback-handler",
         help="Use a custom fallback handler. It is not required for Safe Master Copies "
         "with version < 1.1.0",
-        default=LAST_DEFAULT_CALLBACK_HANDLER,
+        default=None,
         type=check_ethereum_address,
     )
     parser.add_argument(
@@ -98,8 +98,8 @@ def setup_argument_parser():
     )
 
     parser.add_argument(
-        "--l2",
-        help="Use L2 deployment of the Safe instead of the regular one. Recommended for every network but mainnet",
+        "--without-events",
+        help="Use non events deployment of the Safe instead of the regular one. Recommended for mainnet to save gas costs when using the Safe",
         default=False,
         action="store_true",
     )
@@ -108,9 +108,7 @@ def setup_argument_parser():
 
 def main(*args, **kwargs):
     parser = setup_argument_parser()
-    print_formatted_text(
-        pyfiglet.figlet_format("Gnosis Safe Creator")
-    )  # Print fancy text
+    print_formatted_text(pyfiglet.figlet_format("Safe Creator"))  # Print fancy text
     args = parser.parse_args()
     node_url: URI = args.node_url
     account: LocalAccount = Account.from_key(args.private_key)
@@ -129,13 +127,20 @@ def main(*args, **kwargs):
         )
         sys.exit(1)
 
-    safe_contract_address = args.safe_contract or (
-        LAST_SAFE_L2_CONTRACT if args.l2 else LAST_SAFE_CONTRACT
-    )
-    proxy_factory_address = args.proxy_factory
-    fallback_handler = args.callback_handler
     ethereum_client = EthereumClient(node_url)
     ethereum_network = ethereum_client.get_network()
+
+    safe_contract_address = args.safe_contract or (
+        get_safe_contract_address(ethereum_client)
+        if args.without_events
+        else get_safe_l2_contract_address(ethereum_client)
+    )
+    proxy_factory_address = args.proxy_factory or get_proxy_factory_address(
+        ethereum_client
+    )
+    fallback_handler = args.callback_handler or get_default_fallback_handler_address(
+        ethereum_client
+    )
 
     if not ethereum_client.is_contract(safe_contract_address):
         print_formatted_text(
@@ -182,8 +187,8 @@ def main(*args, **kwargs):
         f"Creating new Safe with owners={owners} threshold={threshold} salt-nonce={salt_nonce}"
     )
     print_formatted_text(
-        f"Proxy factory={proxy_factory_address} safe-master-copy={safe_contract_address} and "
-        f"fallback-handler={fallback_handler}"
+        f"Safe-master-copy={safe_contract_address}\nFallback-handler={fallback_handler}\n"
+        f"Proxy factory={proxy_factory_address}"
     )
     if yes_or_no_question("Do you want to continue?"):
         safe_contract = get_safe_V1_3_0_contract(

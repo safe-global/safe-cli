@@ -6,6 +6,7 @@ from typing import List, Optional, Sequence, Set
 from ens import ENS
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
+from eth_typing import ChecksumAddress
 from eth_utils import ValidationError
 from hexbytes import HexBytes
 from packaging import version as semantic_version
@@ -28,7 +29,11 @@ from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 from safe_cli.api.relay_service_api import RelayServiceApi
 from safe_cli.api.transaction_service_api import TransactionServiceApi
 from safe_cli.ethereum_hd_wallet import get_account_from_words
-from safe_cli.safe_addresses import LAST_DEFAULT_CALLBACK_HANDLER, LAST_SAFE_CONTRACT
+from safe_cli.safe_addresses import (
+    get_default_fallback_handler_address,
+    get_safe_contract_address,
+    get_safe_l2_contract_address,
+)
 from safe_cli.utils import get_erc_20_list, yes_or_no_question
 
 
@@ -202,6 +207,23 @@ class SafeOperator:
         )
 
     @cached_property
+    def last_default_fallback_handler_address(self) -> ChecksumAddress:
+        """
+        :return: Address for last version of default fallback handler contract
+        """
+        return get_default_fallback_handler_address(self.ethereum_client)
+
+    @cached_property
+    def last_safe_contract_address_address(self) -> ChecksumAddress:
+        """
+        :return: Last version of the Safe Contract. Use events version for every network but mainnet
+        """
+        if self.network == EthereumNetwork.MAINNET:
+            return get_safe_contract_address(self.ethereum_client)
+        else:
+            return get_safe_l2_contract_address(self.ethereum_client)
+
+    @cached_property
     def ens_domain(self) -> Optional[str]:
         # FIXME After web3.py fixes the middleware copy
         if self.network == EthereumNetwork.MAINNET:
@@ -218,11 +240,11 @@ class SafeOperator:
         :return: True if Safe Master Copy is updated, False otherwise
         """
 
-        if self._safe_cli_info.master_copy == LAST_SAFE_CONTRACT:
+        if self._safe_cli_info.master_copy == self.last_safe_contract_address:
             return True
         else:  # Check versions, maybe safe-cli addresses were not updated
             safe_contract = get_safe_contract(
-                self.ethereum_client.w3, LAST_SAFE_CONTRACT
+                self.ethereum_client.w3, self.last_safe_contract_address
             )
             try:
                 safe_contract_version = safe_contract.functions.VERSION().call()
@@ -515,7 +537,10 @@ class SafeOperator:
         if self.is_version_updated():
             raise SafeAlreadyUpdatedException()
 
-        addresses = (LAST_SAFE_CONTRACT, LAST_DEFAULT_CALLBACK_HANDLER)
+        addresses = (
+            self.last_safe_contract_address,
+            self.last_default_fallback_handler_address,
+        )
         if not all(
             self.ethereum_client.is_contract(contract) for contract in addresses
         ):
@@ -529,10 +554,10 @@ class SafeOperator:
             MultiSendTx(MultiSendOperation.CALL, self.address, 0, data)
             for data in (
                 self.safe_contract_1_1_0.functions.changeMasterCopy(
-                    LAST_SAFE_CONTRACT
+                    self.last_safe_contract_address
                 ).build_transaction(tx_params)["data"],
                 self.safe_contract_1_1_0.functions.setFallbackHandler(
-                    LAST_DEFAULT_CALLBACK_HANDLER
+                    self.last_default_fallback_handler_address
                 ).build_transaction(tx_params)["data"],
             )
         ]
@@ -542,8 +567,10 @@ class SafeOperator:
         if self.prepare_and_execute_safe_transaction(
             multisend.address, 0, multisend_data, operation=SafeOperation.DELEGATE_CALL
         ):
-            self.safe_cli_info.master_copy = LAST_SAFE_CONTRACT
-            self.safe_cli_info.fallback_handler = LAST_DEFAULT_CALLBACK_HANDLER
+            self.safe_cli_info.master_copy = self.last_safe_contract_address
+            self.safe_cli_info.fallback_handler = (
+                self.last_default_fallback_handler_address
+            )
             self.safe_cli_info.version = self.safe.retrieve_version()
 
     def change_threshold(self, threshold: int):
