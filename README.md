@@ -12,7 +12,7 @@ Command line utility for **Gnosis Safe** contracts. Use it to manage your **Gnos
 If you have **Docker** installed on your system, you can just run:
 
 ```bash
-docker run safeglobal/safe-cli safe_creator
+docker run safeglobal/safe-cli safe-creator
 ```
 
 for creating Safes
@@ -20,7 +20,7 @@ for creating Safes
 or
 
 ```bash
-docker run safeglobal/safe-cli safe_cli
+docker run safeglobal/safe-cli safe-cli
 ```
 
 to run the actual **safe-cli**
