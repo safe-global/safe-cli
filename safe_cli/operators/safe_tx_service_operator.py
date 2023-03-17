@@ -272,13 +272,13 @@ class SafeTxServiceOperator(SafeOperator):
 
     def post_transaction_to_tx_service(self, safe_tx: SafeTx) -> bool:
         if yes_or_no_question(
-            "Do you want to send the tx to Gnosis Safe Transaction Service (it will not be executed) "
+            f"Do you want to send the tx with safe-tx-hash={safe_tx.safe_tx_hash.hex()} to Safe Transaction Service (it will not be executed) "
             + str(safe_tx)
         ):
             self.safe_tx_service.post_transaction(self.address, safe_tx)
             print_formatted_text(
                 HTML(
-                    "<ansigreen>Tx was sent to Gnosis Safe Transaction service</ansigreen>"
+                    f"<ansigreen>Tx with safe-tx-hash={safe_tx.safe_tx_hash.hex()} was sent to Safe Transaction service</ansigreen>"
                 )
             )
             return True

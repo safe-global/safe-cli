@@ -59,7 +59,7 @@ class SafeRelayOperator(SafeOperator):
                 tx_hash = transaction_data["txHash"]
                 print_formatted_text(
                     HTML(
-                        f"<ansigreen>Gnosis Safe Relay has queued transaction with "
+                        f"<ansigreen>Safe Relay has queued transaction with "
                         f"transaction-hash <b>{tx_hash}</b></ansigreen>"
                     )
                 )

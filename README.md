@@ -5,7 +5,7 @@
 ![Python 3.10](https://img.shields.io/badge/Python-3.10-blue.svg)
 
 # Safe-CLI
-Command line utility for **Gnosis Safe** contracts. Use it to manage your **Gnosis Safe** easily from the command line
+Command line utility for **Safe** contracts. Use it to manage your **Safe** easily from the command line
 
 ## Using with docker
 
@@ -43,7 +43,7 @@ on the Safe and at least one of them should have funds for sending transactions.
 
 There're 3 operation modes:
 - **blockchain**: The default mode, transactions are sent to blockchain.
-- **tx-service**: Use `tx-service` command to enable it. Transactions are sent to the Gnosis Transaction Service (if available on the network), so you will be able to see it on the Gnosis Safe web interface/mobile apps. At least one signer is needed to send transactions to the service. Txs are **not executed**.
+- **tx-service**: Use `tx-service` command to enable it. Transactions are sent to the Gnosis Transaction Service (if available on the network), so you will be able to see it on the Safe web interface/mobile apps. At least one signer is needed to send transactions to the service. Txs are **not executed**.
 - **relay-service**: Use `relay-service [optional-gas-token]` to enable it. Sends transactions trough the Gnosis Relay Service (if available on the network). If a optional gas token is set, it will be used to send transactions.
 
 Loading owners is not needed if you just want to do `read-only` operations.
@@ -78,12 +78,12 @@ To unload an owner:
 
 Operations currently supported:
 - `send_custom <address> <value-wei> <data-hex-str> [--delegate] [--safe-nonce <int>]`:
-Sends a custom transaction from the Gnosis Safe to a contract. If `--delegate` is set a `delegatecall`
+Sends a custom transaction from the Safe to a contract. If `--delegate` is set a `delegatecall`
 will be triggered.
 - `send_ether <address> <value-wei> [--safe-nonce <int>]`:
-Sends ether from the Gnosis Safe to another account
+Sends ether from the Safe to another account
 - `send_erc20 <address> <token_address> <value> [--safe-nonce <int>]`:
-Send ERC20 token from the Gnosis Safe to another account
+Send ERC20 token from the Safe to another account
 - `approve_hash <keccak-hexstr-hash> <sender-address>`: Approves a `safe-tx-hash` for the provided sender address.
   Sender private key must be loaded first.
 - `add_owner <address>`: Adds a new owner `address` to the Safe.
@@ -100,7 +100,7 @@ THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 - `update`: Updates the Safe to the latest version (if you are on a known network like `Goerli` or `Mainnet`).
 **WARNING: DON'T USE THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 
-Operations on `tx-service` mode, requires a Gnosis Safe Transaction Service working on the network
+Operations on `tx-service` mode, requires a Safe Transaction Service working on the network
 (Mainnet, Gnosis Chain, Goerli, Polygon...):
 - `balances`: Returns a list of balances for ERC20 tokens and ether.
 - `history`: History of multisig transactions (including pending).
@@ -135,12 +135,12 @@ For this demo, `PRIVATE_KEY` environment variable was set to a _EOA_ private key
 and `ETHEREUM_NODE_URL` to a http goerli node.
 At first, Safe is updated to the last version and then `123 Wei` are sent to the owner of the Safe (it could be any other address).
 
-**Don't use `update` command in mainnet, as it can leave your Gnosis Safe funds stuck. Safe CLI is still a beta**
+**Be careful when using `update` command, as it can leave your Safe funds stuck. Safe CLI is still a beta**
 
 [![asciicast](https://asciinema.org/a/346692.svg)](https://asciinema.org/a/346692)
 
 ## Use custom contracts
-**Safe-cli** comes with the official Gnosis Safe contract addresses deployed on Mainnet, Rinkeby, Kovan and Goerli
+**Safe-cli** comes with the official Safe contract addresses deployed on Mainnet, Rinkeby, Kovan and Goerli
 configured by default. If you want to use your own you can edit the file `safe_cli/safe_addresses.py`
 
 Be careful when modifying these addresses, the funds in a Safe can get stuck if an invalid address it's used when updating

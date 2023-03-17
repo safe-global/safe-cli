@@ -74,7 +74,7 @@ meta = {
         "transaction using the provided safe nonce"
     ),
     "execute-tx": HTML(
-        "Take a pending transaction from Gnosis Safe Tx Service and execute it using a loaded sender"
+        "Take a pending transaction from Safe Tx Service and execute it using a loaded sender"
     ),
     "sign-tx": HTML(
         "<b>sign-tx</b> will sign the provided safeTxHash using the owners loaded on the CLI"

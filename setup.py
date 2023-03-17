@@ -11,7 +11,7 @@ setuptools.setup(
     version=version,
     author="Uxío Fuentefría",
     author_email="uxio@safe.global",
-    description="Command Line Interface for Gnosis Safe",
+    description="Command Line Interface for Safe",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/gnosis/safe-cli",

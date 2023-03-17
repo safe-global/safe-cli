@@ -53,9 +53,7 @@ class SafeCli:
         self.prompt_parser = PromptParser(self.safe_operator)
 
     def print_startup_info(self):
-        print_formatted_text(
-            pyfiglet.figlet_format("Gnosis Safe CLI")
-        )  # Print fancy text
+        print_formatted_text(pyfiglet.figlet_format("Safe CLI"))  # Print fancy text
         print_formatted_text(HTML(f"<b><ansigreen>Version {version}</ansigreen></b>"))
         print_formatted_text(
             HTML("<b><ansigreen>Loading Safe information...</ansigreen></b>")
