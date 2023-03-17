@@ -214,7 +214,7 @@ class SafeOperator:
         return get_default_fallback_handler_address(self.ethereum_client)
 
     @cached_property
-    def last_safe_contract_address_address(self) -> ChecksumAddress:
+    def last_safe_contract_address(self) -> ChecksumAddress:
         """
         :return: Last version of the Safe Contract. Use events version for every network but mainnet
         """
