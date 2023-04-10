@@ -39,6 +39,7 @@ jobs:
       env:
         SOURCE_FOLDER: safe_cli
     - name: Send results to coveralls
+      continue-on-error: true  # Ignore coveralls problems
       run: coveralls --service=github
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Required for coveralls
