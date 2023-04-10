@@ -2,4 +2,4 @@
 coverage==7.2.3
 flake8==6.0.0
 pytest==7.3.0
-pytest-sugar==0.9.6
+pytest-sugar==0.9.7
