@@ -94,7 +94,9 @@ class SafeCli:
                 )
                 return SafeTxServiceOperator(safe_address, node_url)
             elif split_command[0] == "relay-service":
-                if len(split_command) == 2 and Web3.isChecksumAddress(split_command[1]):
+                if len(split_command) == 2 and Web3.is_checksum_address(
+                    split_command[1]
+                ):
                     gas_token = split_command[1]
                 else:
                     gas_token = None

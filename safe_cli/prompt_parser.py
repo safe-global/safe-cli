@@ -32,7 +32,7 @@ def check_ethereum_address(address: str) -> str:
     :param address:
     :return:
     """
-    if not Web3.isChecksumAddress(address):
+    if not Web3.is_checksum_address(address):
         raise argparse.ArgumentTypeError(
             f"{address} is not a valid checksummed ethereum address"
         )

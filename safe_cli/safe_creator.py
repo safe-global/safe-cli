@@ -170,7 +170,7 @@ def main(*args, **kwargs):
         )
     else:
         ether_account_balance = round(
-            ethereum_client.w3.fromWei(account_balance, "ether"), 6
+            ethereum_client.w3.from_wei(account_balance, "ether"), 6
         )
         print_formatted_text(
             f"Network {ethereum_client.get_network().name} - Sender {account.address} - "
