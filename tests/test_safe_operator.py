@@ -227,7 +227,7 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
     def test_drain(self):
         safe_operator = self.setup_operator()
         account = Account.create()
-        value = self.w3.toWei(10.5, "ether")
+        value = self.w3.to_wei(10.5, "ether")
 
         with self.assertRaises(NotEnoughEtherToSend):
             safe_operator.send_ether(account.address, value)

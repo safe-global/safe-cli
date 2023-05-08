@@ -181,7 +181,7 @@ class SafeOperator:
         self.address = address
         self.node_url = node_url
         self.ethereum_client = EthereumClient(self.node_url)
-        self.ens = ENS.fromWeb3(self.ethereum_client.w3)
+        self.ens = ENS.from_web3(self.ethereum_client.w3)
         self.network: EthereumNetwork = self.ethereum_client.get_network()
         try:
             self.etherscan = EtherscanClient(self.network)
@@ -289,7 +289,7 @@ class SafeOperator:
                 print_formatted_text(
                     HTML(
                         f"Loaded account <b>{account.address}</b> "
-                        f'with balance={Web3.fromWei(balance, "ether")} ether'
+                        f'with balance={Web3.from_wei(balance, "ether")} ether'
                     )
                 )
                 if not self.default_sender and balance > 0:
@@ -674,7 +674,7 @@ class SafeOperator:
 
     def get_safe_cli_info(self) -> SafeCliInfo:
         safe = self.safe
-        balance_ether = Web3.fromWei(
+        balance_ether = Web3.from_wei(
             self.ethereum_client.get_balance(self.address), "ether"
         )
         safe_info = safe.retrieve_all_info()
@@ -750,7 +750,7 @@ class SafeOperator:
                     tx_hash, timeout=120
                 )
                 if tx_receipt:
-                    fees = self.ethereum_client.w3.fromWei(
+                    fees = self.ethereum_client.w3.from_wei(
                         tx_receipt["gasUsed"]
                         * tx_receipt.get("effectiveGasPrice", tx.get("gasPrice", 0)),
                         "ether",
