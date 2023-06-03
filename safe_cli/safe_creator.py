@@ -177,9 +177,9 @@ def main(*args, **kwargs):
             f"Balance: {ether_account_balance}Ξ"
         )
 
-    if not ethereum_client.w3.eth.getCode(
+    if not ethereum_client.w3.eth.get_code(
         safe_contract_address
-    ) or not ethereum_client.w3.eth.getCode(proxy_factory_address):
+    ) or not ethereum_client.w3.eth.get_code(proxy_factory_address):
         print_formatted_text("Network not supported")
         sys.exit(1)
 
