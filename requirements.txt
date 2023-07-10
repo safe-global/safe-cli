@@ -1,6 +1,6 @@
 colorama==0.4.6
 packaging>=23.1
-prompt_toolkit==3.0.38
+prompt_toolkit==3.0.39
 pyfiglet==0.8.post1
 pygments==2.15.1
 requests==2.31.0
