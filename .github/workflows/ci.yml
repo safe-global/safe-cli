@@ -38,11 +38,22 @@ jobs:
         coverage run --source=$SOURCE_FOLDER -m pytest -rxXs
       env:
         SOURCE_FOLDER: safe_cli
-    - name: Send results to coveralls
-      continue-on-error: true  # Ignore coveralls problems
-      run: coveralls --service=github
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Required for coveralls
+    - name: Coveralls Parallel
+      uses: coverallsapp/github-action@v2
+      with:
+        flag-name: run-${{ matrix.python-version }}
+        parallel: true
+
+  finish:
+    needs: test-app
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: coverallsapp/github-action@v2
+      with:
+        parallel-finished: true
+
   publish:
     runs-on: ubuntu-latest
     needs: test-app
