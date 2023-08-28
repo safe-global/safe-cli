@@ -67,7 +67,7 @@ def check_keccak256_hash(hex_str: str) -> HexBytes:
 
 def to_checksummed_ethereum_address(address: str) -> str:
     try:
-        return Web3.toChecksumAddress(address)
+        return Web3.to_checksum_address(address)
     except ValueError:
         raise argparse.ArgumentTypeError(f"{address} is not a valid ethereum address")
 
