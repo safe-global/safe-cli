@@ -1,8 +1,9 @@
 [![PyPI version](https://badge.fury.io/py/safe-cli.svg)](https://badge.fury.io/py/safe-cli)
-[![Build Status](https://github.com/gnosis/safe-cli/actions/workflows/python.yml/badge.svg)](https://github.com/gnosis/safe-cli/actions/workflows/ci.yml)
+[![Build Status](https://github.com/5afe/safe-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/5afe/safe-cli/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/gnosis/safe-cli/badge.svg?branch=master)](https://coveralls.io/github/gnosis/safe-cli?branch=master)
 ![Python 3.9](https://img.shields.io/badge/Python-3.9-blue.svg)
 ![Python 3.10](https://img.shields.io/badge/Python-3.10-blue.svg)
+[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/safeglobal/safe-cli?label=Docker&sort=semver)](https://hub.docker.com/r/safeglobal/safe-cli)
 
 # Safe-CLI
 Command line utility for **Safe** contracts. Use it to manage your **Safe** easily from the command line
