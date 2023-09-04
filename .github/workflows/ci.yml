@@ -17,7 +17,7 @@ jobs:
     steps:
     - name: Setup and run ganache
       run: docker run --detach --publish 8545:8545 --network-alias ganache -e DOCKER=true trufflesuite/ganache:latest --defaultBalanceEther 10000 --gasLimit 10000000 -a 30 --chain.chainId 1337 --chain.networkId 1337 -d
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
@@ -59,7 +59,7 @@ jobs:
     needs: test-app
     if: github.event_name == 'release' && github.event.action == 'released'
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -80,7 +80,7 @@ jobs:
     needs: test-app
     if: github.event_name == 'release' && github.event.action == 'released'
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: docker/setup-qemu-action@v2
       with:
         platforms: arm64
