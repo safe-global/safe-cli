@@ -45,7 +45,7 @@ on the Safe and at least one of them should have funds for sending transactions.
 There're 3 operation modes:
 - **blockchain**: The default mode, transactions are sent to blockchain.
 - **tx-service**: Use `tx-service` command to enable it. Transactions are sent to the Gnosis Transaction Service (if available on the network), so you will be able to see it on the Safe web interface/mobile apps. At least one signer is needed to send transactions to the service. Txs are **not executed**.
-- **relay-service**: Use `relay-service [optional-gas-token]` to enable it. Sends transactions trough the Gnosis Relay Service (if available on the network). If a optional gas token is set, it will be used to send transactions.
+- **relay-service**: Use `relay-service [optional-gas-token]` to enable it. Sends transactions through the Gnosis Relay Service (if available on the network). If a optional gas token is set, it will be used to send transactions.
 
 Loading owners is not needed if you just want to do `read-only` operations.
 
