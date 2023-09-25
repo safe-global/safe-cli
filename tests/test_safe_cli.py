@@ -19,7 +19,7 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             owners=account_addresses,
             threshold=2,
             initial_funding_wei=self.w3.to_wei(1, "ether"),
-        ).safe_address
+        ).address
         safe = Safe(safe_address, self.ethereum_client)
         safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
         prompt_parser = PromptParser(safe_operator)

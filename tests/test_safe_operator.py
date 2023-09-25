@@ -74,7 +74,7 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
     def test_approve_hash(self):
         safe_address = self.deploy_test_safe(
             owners=[self.ethereum_test_account.address]
-        ).safe_address
+        ).address
         safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
         safe_tx_hash = Web3.keccak(text="random-test")
         random_account = Account.create()
@@ -96,7 +96,7 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
     def test_add_owner(self):
         safe_address = self.deploy_test_safe(
             owners=[self.ethereum_test_account.address]
-        ).safe_address
+        ).address
         safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
         with self.assertRaises(ExistingOwnerException):
             safe_operator.add_owner(self.ethereum_test_account.address)
@@ -120,7 +120,7 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
     def test_remove_owner(self):
         safe_address = self.deploy_test_safe(
             owners=[self.ethereum_test_account.address]
-        ).safe_address
+        ).address
         safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
         random_address = Account.create().address
         with self.assertRaises(NonExistingOwnerException):
@@ -158,7 +158,7 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         )
         self.assertEqual(safe.retrieve_fallback_handler(), new_fallback_handler)
 
-        safe_operator.change_master_copy(self.safe_old_contract_address)
+        safe_operator.change_master_copy(self.safe_contract_V1_1_1.address)
         with self.assertRaises(FallbackHandlerNotSupportedException):
             safe_operator.change_fallback_handler(Account.create().address)
 
@@ -167,7 +167,7 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         with self.assertRaises(GuardNotSupportedException):
             safe_operator.change_guard(Account.create().address)
 
-        safe_operator = self.setup_operator(version="1.3.0")
+        safe_operator = self.setup_operator(version="1.4.1")
         safe = Safe(safe_operator.address, self.ethereum_client)
         current_guard = safe.retrieve_guard()
         with self.assertRaises(SameGuardException):
@@ -196,13 +196,13 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             safe_operator.change_master_copy(random_address)
 
         self.assertTrue(
-            safe_operator.change_master_copy(self.safe_old_contract_address)
+            safe_operator.change_master_copy(self.safe_contract_V1_1_1.address)
         )
         self.assertEqual(
-            safe_operator.safe_cli_info.master_copy, self.safe_old_contract_address
+            safe_operator.safe_cli_info.master_copy, self.safe_contract_V1_1_1.address
         )
         self.assertEqual(
-            safe.retrieve_master_copy_address(), self.safe_old_contract_address
+            safe.retrieve_master_copy_address(), self.safe_contract_V1_1_1.address
         )
 
     def test_send_ether(self):

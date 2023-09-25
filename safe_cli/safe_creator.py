@@ -14,7 +14,7 @@ from prompt_toolkit import print_formatted_text
 
 from gnosis.eth import EthereumClient
 from gnosis.eth.constants import NULL_ADDRESS
-from gnosis.eth.contracts import get_safe_V1_3_0_contract
+from gnosis.eth.contracts import get_safe_V1_4_1_contract
 from gnosis.safe import ProxyFactory
 
 from safe_cli.prompt_parser import check_ethereum_address
@@ -91,9 +91,7 @@ def setup_argument_parser():
         "--salt-nonce",
         help="Use a custom nonce for the deployment. Same nonce with same deployment configuration will "
         "lead to the same Safe address ",
-        default=secrets.SystemRandom().randint(
-            0, 2**256 - 1
-        ),  # TODO Add support for CPK
+        default=secrets.randbits(256),
         type=int,
     )
 
@@ -191,7 +189,7 @@ def main(*args, **kwargs):
         f"Proxy factory={proxy_factory_address}"
     )
     if yes_or_no_question("Do you want to continue?"):
-        safe_contract = get_safe_V1_3_0_contract(
+        safe_contract = get_safe_V1_4_1_contract(
             ethereum_client.w3, safe_contract_address
         )
         safe_creation_tx_data = HexBytes(
