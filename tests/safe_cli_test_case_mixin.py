@@ -8,7 +8,11 @@ from safe_cli.operators.safe_operator import SafeOperator
 class SafeCliTestCaseMixin(SafeTestCaseMixin):
     def setup_operator(self, number_owners: int = 1, version="1.4.1") -> SafeOperator:
         assert number_owners >= 1, "Number of owners cannot be less than 1!"
-        if version == "1.1.1":
+        if version == "1.0.0":
+            safe = self.deploy_test_safe_v1_0_0(
+                owners=[self.ethereum_test_account.address]
+            )
+        elif version == "1.1.1":
             safe = self.deploy_test_safe_v1_1_1(
                 owners=[self.ethereum_test_account.address]
             )

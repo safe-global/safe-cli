@@ -512,7 +512,6 @@ class SafeOperator:
                 return True
 
     def change_master_copy(self, new_master_copy: str) -> bool:
-        # TODO Check that master copy is valid
         if new_master_copy == self.safe_cli_info.master_copy:
             raise SameMasterCopyException(new_master_copy)
         else:
