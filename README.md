@@ -1,6 +1,6 @@
 [![PyPI version](https://badge.fury.io/py/safe-cli.svg)](https://badge.fury.io/py/safe-cli)
-[![Build Status](https://github.com/5afe/safe-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/5afe/safe-cli/actions/workflows/ci.yml)
-[![Coverage Status](https://coveralls.io/repos/github/gnosis/safe-cli/badge.svg?branch=master)](https://coveralls.io/github/gnosis/safe-cli?branch=master)
+[![Build Status](https://github.com/safe-global/safe-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/safe-global/safe-cli/actions/workflows/ci.yml)
+[![Coverage Status](https://coveralls.io/repos/github/safe-global/safe-cli/badge.svg?branch=master)](https://coveralls.io/github/safe-global/safe-cli?branch=master)
 ![Python 3.9](https://img.shields.io/badge/Python-3.9-blue.svg)
 ![Python 3.10](https://img.shields.io/badge/Python-3.10-blue.svg)
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/safeglobal/safe-cli?label=Docker&sort=semver)](https://hub.docker.com/r/safeglobal/safe-cli)
@@ -44,8 +44,8 @@ on the Safe and at least one of them should have funds for sending transactions.
 
 There're 3 operation modes:
 - **blockchain**: The default mode, transactions are sent to blockchain.
-- **tx-service**: Use `tx-service` command to enable it. Transactions are sent to the Gnosis Transaction Service (if available on the network), so you will be able to see it on the Safe web interface/mobile apps. At least one signer is needed to send transactions to the service. Txs are **not executed**.
-- **relay-service**: Use `relay-service [optional-gas-token]` to enable it. Sends transactions through the Gnosis Relay Service (if available on the network). If a optional gas token is set, it will be used to send transactions.
+- **tx-service**: Use `tx-service` command to enable it. Transactions are sent to the Safe Transaction Service (if available on the network), so you will be able to see it on the Safe web interface/mobile apps. At least one signer is needed to send transactions to the service. Txs are **not executed**.
+- **relay-service**: Use `relay-service [optional-gas-token]` to enable it. Sends transactions through the Safe Relay Service (if available on the network). If a optional gas token is set, it will be used to send transactions.
 
 Loading owners is not needed if you just want to do `read-only` operations.
 
@@ -148,14 +148,14 @@ Be careful when modifying these addresses, the funds in a Safe can get stuck if 
 to an invalid Safe Master Copy.
 
 ## Safe contracts
-- [Safe contracts](https://github.com/gnosis/safe-contracts)
-- [Safe contracts deployment info and addreses](https://github.com/gnosis/safe-deployments/tree/main/src/assets)
+- [Safe contracts](https://github.com/safe-global/safe-contracts)
+- [Safe contracts deployment info and addreses](https://github.com/safe-global/safe-deployments/tree/main/src/assets)
 
 ## Setting up for developing
 If you miss something and want to send us a PR:
 
 ```bash
-git clone https://github.com/gnosis/safe-cli.git
+git clone https://github.com/safe-global/safe-cli.git
 cd safe-cli
 stat venv 2>/dev/null || python3 -m venv venv
 source venv/bin/activate && pip install -r requirements-dev.txt
@@ -164,4 +164,5 @@ pre-commit install -f
 
 ## Contributors
 - [Pedro Arias Ruiz](https://github.com/AsiganTheSunk)
-- [Uxío Fuentefría](https://github.com/uxio0) (uxio@gnosis.io)
+- [Uxío Fuentefría](https://github.com/uxio0)
+- [Moisés Fernández](https://github.com/moisses89)
