@@ -7,9 +7,9 @@ from tabulate import tabulate
 
 from gnosis.eth.contracts import get_erc20_contract
 from gnosis.safe import SafeOperation, SafeTx
+from gnosis.safe.api import SafeAPIException
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
-from safe_cli.api.base_api import BaseAPIException
 from safe_cli.utils import yes_or_no_question
 
 from .safe_operator import (
@@ -58,7 +58,7 @@ class SafeTxServiceOperator(SafeOperator):
                     self.address, delegate_address, label, signer_account
                 )
                 return True
-            except BaseAPIException:
+            except SafeAPIException:
                 return False
 
     def remove_delegate(self, delegate_address: str, signer_address: str):
@@ -76,7 +76,7 @@ class SafeTxServiceOperator(SafeOperator):
                     self.address, delegate_address, signer_account
                 )
                 return True
-            except BaseAPIException:
+            except SafeAPIException:
                 return False
 
     def submit_signatures(self, safe_tx_hash: bytes) -> bool:

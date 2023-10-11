@@ -5,7 +5,8 @@ from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
 from web3 import Web3
 
-from .api.base_api import BaseAPIException
+from gnosis.safe.api import SafeAPIException
+
 from .operators.safe_operator import (
     AccountNotLoadedException,
     ExistingOwnerException,
@@ -77,7 +78,7 @@ def safe_exception(function):
     def wrapper(*args, **kwargs):
         try:
             return function(*args, **kwargs)
-        except BaseAPIException as e:
+        except SafeAPIException as e:
             if e.args:
                 print_formatted_text(HTML(f"<b><ansired>{e.args[0]}</ansired></b>"))
         except AccountNotLoadedException as e:
