@@ -26,7 +26,6 @@ from gnosis.eth.contracts import (
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
-from safe_cli.api.relay_service_api import RelayServiceApi
 from safe_cli.api.transaction_service_api import TransactionServiceApi
 from safe_cli.ethereum_hd_wallet import get_account_from_words
 from safe_cli.safe_addresses import (
@@ -187,9 +186,6 @@ class SafeOperator:
             self.etherscan = EtherscanClient(self.network)
         except EtherscanClientConfigurationProblem:
             self.etherscan = None
-        self.safe_relay_service = RelayServiceApi.from_ethereum_client(
-            self.ethereum_client
-        )
         self.safe_tx_service = TransactionServiceApi.from_ethereum_client(
             self.ethereum_client
         )
@@ -641,15 +637,6 @@ class SafeOperator:
             print_formatted_text(
                 HTML(
                     f"<b><ansigreen>Safe Tx Service</ansigreen></b>="
-                    f"<ansiblue>{url}</ansiblue>"
-                )
-            )
-
-        if self.safe_relay_service:
-            url = f"{self.safe_relay_service.base_url}/api/v1/safes/{self.address}/transactions/"
-            print_formatted_text(
-                HTML(
-                    f"<b><ansigreen>Safe Relay Service</ansigreen></b>="
                     f"<ansiblue>{url}</ansiblue>"
                 )
             )
