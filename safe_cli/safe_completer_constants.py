@@ -37,7 +37,6 @@ safe_commands_arguments = {
     "unload_cli_owners": "<address> [<address>...]",
     "update": "",
     "blockchain": "",
-    "relay-service": "[<token-address>]",
     "tx-service": "",
     "drain": "<address>",
 }
@@ -186,11 +185,6 @@ meta = {
     "blockchain": HTML(
         "<b>blockchain</b> sets the default mode for tx service. Transactions will be "
         "sent to blockchain"
-    ),
-    "relay-service": HTML(
-        "<b>relay-service</b> enables relay-service integration. Transactions will be sent to the "
-        "relay-service so fees will be deducted from the Safe instead of from the sender. "
-        "A payment token can be provided to be used instead of Ether (stable coins, WETH and OWL"
     ),
     "tx-service": HTML(
         "<b>tx-service</b> enables tx-service integration. Transactions will be sent to the tx-service "

@@ -9,11 +9,9 @@ from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.lexers import PygmentsLexer
-from web3 import Web3
 
 from safe_cli.operators import (
     SafeOperator,
-    SafeRelayOperator,
     SafeServiceNotAvailable,
     SafeTxServiceOperator,
 )
@@ -61,18 +59,13 @@ class SafeCli:
         self.safe_operator.print_info()
 
     def get_prompt_text(self):
-        if isinstance(self.prompt_parser.safe_operator, SafeRelayOperator):
-            return HTML(
-                f"<bold><ansiblue>relay-service > {safe_address}</ansiblue><ansired> > </ansired></bold>"
-            )
-        elif isinstance(self.prompt_parser.safe_operator, SafeTxServiceOperator):
-            return HTML(
-                f"<bold><ansiblue>tx-service > {safe_address}</ansiblue><ansired> > </ansired></bold>"
-            )
-        elif isinstance(self.prompt_parser.safe_operator, SafeOperator):
-            return HTML(
-                f"<bold><ansiblue>blockchain > {safe_address}</ansiblue><ansired> > </ansired></bold>"
-            )
+        mode: Optional[str] = "blockchain"
+        if isinstance(self.prompt_parser.safe_operator, SafeTxServiceOperator):
+            mode = "tx-service"
+
+        return HTML(
+            f"<bold><ansiblue>blockchain > {safe_address}</ansiblue><ansired> > </ansired></bold>"
+        )
 
     def get_bottom_toolbar(self):
         return HTML(
@@ -82,7 +75,7 @@ class SafeCli:
 
     def parse_operator_mode(self, command: str) -> Optional[SafeOperator]:
         """
-        Parse operator mode to switch between blockchain (default), relay-service, and tx-service
+        Parse operator mode to switch between blockchain (default) and tx-service
         :param command:
         :return: SafeOperator if detected
         """
@@ -93,19 +86,6 @@ class SafeCli:
                     HTML("<b><ansigreen>Sending txs to tx service</ansigreen></b>")
                 )
                 return SafeTxServiceOperator(safe_address, node_url)
-            elif split_command[0] == "relay-service":
-                if len(split_command) == 2 and Web3.is_checksum_address(
-                    split_command[1]
-                ):
-                    gas_token = split_command[1]
-                else:
-                    gas_token = None
-                print_formatted_text(
-                    HTML(
-                        f"<b><ansigreen>Sending txs trough relay service gas-token={gas_token}</ansigreen></b>"
-                    )
-                )
-                return SafeRelayOperator(safe_address, node_url, gas_token=gas_token)
             elif split_command[0] == "blockchain":
                 print_formatted_text(
                     HTML("<b><ansigreen>Sending txs to blockchain</ansigreen></b>")
