@@ -5,6 +5,7 @@ import sys
 from typing import Optional
 
 import pyfiglet
+from eth_typing import ChecksumAddress
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
@@ -21,26 +22,16 @@ from safe_cli.safe_lexer import SafeLexer
 
 from .version import version
 
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "safe_address", help="Address of Safe to use", type=to_checksummed_ethereum_address
-)
-parser.add_argument("node_url", help="Ethereum node url")
-parser.add_argument(
-    "--history",
-    action="store_true",
-    help="Enable history. By default it's disabled due to security reasons",
-)
-
-args = parser.parse_args()
-
-safe_address = args.safe_address
-node_url = args.node_url
-history = args.history
-
 
 class SafeCli:
-    def __init__(self):
+    def __init__(self, safe_address: ChecksumAddress, node_url: str, history: bool):
+        """
+        :param safe_address: Safe address
+        :param node_url: Ethereum RPC url for the Safe address chain
+        :param history: If `True` keep command history, otherwise history is not kept after closing the CLI
+        """
+        self.safe_address = safe_address
+        self.node_url = node_url
         if history:
             self.session = PromptSession(
                 history=FileHistory(os.path.join(sys.path[0], ".history"))
@@ -64,7 +55,7 @@ class SafeCli:
             mode = "tx-service"
 
         return HTML(
-            f"<bold><ansiblue>blockchain > {safe_address}</ansiblue><ansired> > </ansired></bold>"
+            f"<bold><ansiblue>{mode} > {self.safe_address}</ansiblue><ansired> > </ansired></bold>"
         )
 
     def get_bottom_toolbar(self):
@@ -85,7 +76,7 @@ class SafeCli:
                 print_formatted_text(
                     HTML("<b><ansigreen>Sending txs to tx service</ansigreen></b>")
                 )
-                return SafeTxServiceOperator(safe_address, node_url)
+                return SafeTxServiceOperator(self.safe_address, self.node_url)
             elif split_command[0] == "blockchain":
                 print_formatted_text(
                     HTML("<b><ansigreen>Sending txs to blockchain</ansigreen></b>")
@@ -96,16 +87,19 @@ class SafeCli:
                 HTML("<b><ansired>Mode not supported on this network</ansired></b>")
             )
 
+    def get_command(self) -> str:
+        return self.session.prompt(
+            self.get_prompt_text,
+            auto_suggest=AutoSuggestFromHistory(),
+            bottom_toolbar=self.get_bottom_toolbar,
+            lexer=PygmentsLexer(SafeLexer),
+            completer=SafeCompleter(),
+        )
+
     def loop(self):
         while True:
             try:
-                command = self.session.prompt(
-                    self.get_prompt_text,
-                    auto_suggest=AutoSuggestFromHistory(),
-                    bottom_toolbar=self.get_bottom_toolbar,
-                    lexer=PygmentsLexer(SafeLexer),
-                    completer=SafeCompleter(),
-                )
+                command = self.get_command()
                 if not command.strip():
                     continue
 
@@ -123,14 +117,27 @@ class SafeCli:
                 pass
 
 
-def main(*args, **kwgars):
-    """
-    Entry point for the Safe-CLI
-    """
-    safe_cli = SafeCli()
-    safe_cli.print_startup_info()
-    safe_cli.loop()
+def build_safe_cli():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "safe_address",
+        help="Address of Safe to use",
+        type=to_checksummed_ethereum_address,
+    )
+    parser.add_argument("node_url", help="Ethereum node url")
+    parser.add_argument(
+        "--history",
+        action="store_true",
+        help="Enable history. By default it's disabled due to security reasons",
+        default=False,
+    )
+
+    args = parser.parse_args()
+
+    return SafeCli(args.safe_address, args.node_url, args.history)
 
 
 if __name__ == "__main__":
-    main()
+    safe_cli = build_safe_cli()
+    safe_cli.print_startup_info()
+    safe_cli.loop()
