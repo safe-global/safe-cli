@@ -2,8 +2,7 @@ import unittest
 from unittest import mock
 
 from gnosis.eth import EthereumClient, EthereumNetwork
-
-from safe_cli.api.transaction_service_api import TransactionServiceApi
+from gnosis.safe.api import TransactionServiceApi
 
 
 class TestTransactionService(unittest.TestCase):
