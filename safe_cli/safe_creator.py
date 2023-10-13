@@ -12,7 +12,7 @@ from eth_typing import URI
 from hexbytes import HexBytes
 from prompt_toolkit import print_formatted_text
 
-from gnosis.eth import EthereumClient
+from gnosis.eth import EthereumClient, EthereumTxSent
 from gnosis.eth.constants import NULL_ADDRESS
 from gnosis.eth.contracts import get_safe_V1_4_1_contract
 from gnosis.safe import ProxyFactory, Safe
@@ -104,7 +104,7 @@ def setup_argument_parser():
     return parser
 
 
-def main(*args, **kwargs):
+def main(*args, **kwargs) -> EthereumTxSent:
     parser = setup_argument_parser()
     print_formatted_text(pyfiglet.figlet_format("Safe Creator"))  # Print fancy text
     args = parser.parse_args()
@@ -216,3 +216,4 @@ def main(*args, **kwargs):
             f"will create safe={ethereum_tx_sent.contract_address}"
         )
         print_formatted_text(f"Tx parameters={ethereum_tx_sent.tx}")
+        return ethereum_tx_sent

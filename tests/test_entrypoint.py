@@ -19,15 +19,13 @@ from .safe_cli_test_case_mixin import SafeCliTestCaseMixin
 class SafeCliEntrypointTestCase(SafeCliTestCaseMixin, unittest.TestCase):
     random_safe_address = Account.create().address
 
-    @mock.patch(
-        "argparse.ArgumentParser.parse_args",
-        return_value=argparse.Namespace(
-            safe_address=random_safe_address,
-            node_url="http://localhost:8545",
-            history=True,
-        ),
-    )
+    @mock.patch("argparse.ArgumentParser.parse_args")
     def build_test_safe_cli(self, mock_parse_args: MagicMock):
+        mock_parse_args.return_value = argparse.Namespace(
+            safe_address=self.random_safe_address,
+            node_url=self.ethereum_node_url,
+            history=True,
+        )
         return build_safe_cli()
 
     @mock.patch.object(Safe, "retrieve_all_info")
