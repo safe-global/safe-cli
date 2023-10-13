@@ -74,7 +74,7 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
     def test_approve_hash(self):
         safe_address = self.deploy_test_safe(
             owners=[self.ethereum_test_account.address]
-        ).safe_address
+        ).address
         safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
         safe_tx_hash = Web3.keccak(text="random-test")
         random_account = Account.create()
@@ -96,7 +96,7 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
     def test_add_owner(self):
         safe_address = self.deploy_test_safe(
             owners=[self.ethereum_test_account.address]
-        ).safe_address
+        ).address
         safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
         with self.assertRaises(ExistingOwnerException):
             safe_operator.add_owner(self.ethereum_test_account.address)
@@ -120,7 +120,7 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
     def test_remove_owner(self):
         safe_address = self.deploy_test_safe(
             owners=[self.ethereum_test_account.address]
-        ).safe_address
+        ).address
         safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
         random_address = Account.create().address
         with self.assertRaises(NonExistingOwnerException):
@@ -144,9 +144,8 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             safe_operator.change_fallback_handler(current_fallback_handler)
 
         new_fallback_handler = Account.create().address
-        with self.assertRaises(
-            InvalidFallbackHandlerException
-        ):  # Contract does not exist
+        with self.assertRaises(InvalidFallbackHandlerException):
+            # Contract does not exist
             self.assertTrue(safe_operator.change_fallback_handler(new_fallback_handler))
 
         with mock.patch.object(
@@ -158,36 +157,36 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         )
         self.assertEqual(safe.retrieve_fallback_handler(), new_fallback_handler)
 
-        safe_operator.change_master_copy(self.safe_old_contract_address)
+        # Safes < 1.1.0 don't support the fallback handler
+        safe_operator_v1_0_0 = self.setup_operator(version="1.0.0")
         with self.assertRaises(FallbackHandlerNotSupportedException):
-            safe_operator.change_fallback_handler(Account.create().address)
+            safe_operator_v1_0_0.change_fallback_handler(Account.create().address)
 
     def test_change_guard(self):
         safe_operator = self.setup_operator(version="1.1.1")
         with self.assertRaises(GuardNotSupportedException):
             safe_operator.change_guard(Account.create().address)
 
-        safe_operator = self.setup_operator(version="1.3.0")
+        safe_operator = self.setup_operator(version="1.4.1")
         safe = Safe(safe_operator.address, self.ethereum_client)
         current_guard = safe.retrieve_guard()
         with self.assertRaises(SameGuardException):
             safe_operator.change_guard(current_guard)
 
-        new_guard = Account.create().address
+        not_valid_guard = Account.create().address
         with self.assertRaises(InvalidGuardException):  # Contract does not exist
-            self.assertTrue(safe_operator.change_guard(new_guard))
+            self.assertTrue(safe_operator.change_guard(not_valid_guard))
 
-        with mock.patch.object(
-            EthereumClient, "is_contract", autospec=True, return_value=True
-        ):
-            self.assertTrue(safe_operator.change_guard(new_guard))
+        new_guard = self.deploy_example_guard()
+        self.assertTrue(safe_operator.change_guard(new_guard))
         self.assertEqual(safe_operator.safe_cli_info.guard, new_guard)
         self.assertEqual(safe.retrieve_guard(), new_guard)
 
     def test_change_master_copy(self):
-        safe_operator = self.setup_operator()
+        safe_operator = self.setup_operator(version="1.1.1")
         safe = Safe(safe_operator.address, self.ethereum_client)
         current_master_copy = safe.retrieve_master_copy_address()
+        self.assertEqual(current_master_copy, self.safe_contract_V1_1_1.address)
         with self.assertRaises(SameMasterCopyException):
             safe_operator.change_master_copy(current_master_copy)
 
@@ -195,15 +194,10 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         with self.assertRaises(InvalidMasterCopyException):
             safe_operator.change_master_copy(random_address)
 
-        self.assertTrue(
-            safe_operator.change_master_copy(self.safe_old_contract_address)
-        )
-        self.assertEqual(
-            safe_operator.safe_cli_info.master_copy, self.safe_old_contract_address
-        )
-        self.assertEqual(
-            safe.retrieve_master_copy_address(), self.safe_old_contract_address
-        )
+        new_master_copy = self.safe_contract_V1_3_0.address
+        self.assertTrue(safe_operator.change_master_copy(new_master_copy))
+        self.assertEqual(safe_operator.safe_cli_info.master_copy, new_master_copy)
+        self.assertEqual(safe.retrieve_master_copy_address(), new_master_copy)
 
     def test_send_ether(self):
         safe_operator = self.setup_operator()

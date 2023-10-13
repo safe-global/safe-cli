@@ -19,11 +19,11 @@ def generate_transfers_erc20(
         # Deploy ERC20
         erc20_contract = deploy_erc20(
             safe_operator.safe.w3,
+            account,
             token_name,
             token_name,
             account.address,
             10,
-            account=account,
         )
         # Create a transaction of 1 token ERC20
         transaction = erc20_contract.functions.transfer(
