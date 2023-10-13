@@ -11,15 +11,16 @@ from .safe_completer_constants import (
 
 
 class SafeCompleter(Completer):
-    """Command Completer
-    This class will perform the utilities regarding auto-completion of known user input commands
+    """
+    This class will handle auto-completion of known user input commands
     """
 
     def get_completions(
         self, document: Document, complete_event: CompleteEvent
     ) -> Completion:
-        """Get Completions
-        This will function will provide the completions for param types and function name
+        """
+        Provide command completion for function names and param types
+
         :param document:
         :param complete_event:
         :return:
