@@ -4,7 +4,7 @@ import os
 import sys
 from typing import Optional
 
-import pyfiglet
+from art import text2art
 from eth_typing import ChecksumAddress
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
@@ -42,7 +42,7 @@ class SafeCli:
         self.prompt_parser = PromptParser(self.safe_operator)
 
     def print_startup_info(self):
-        print_formatted_text(pyfiglet.figlet_format("Safe CLI"))  # Print fancy text
+        print_formatted_text(text2art("Safe CLI"))  # Print fancy text
         print_formatted_text(HTML(f"<b><ansigreen>Version {version}</ansigreen></b>"))
         print_formatted_text(
             HTML("<b><ansigreen>Loading Safe information...</ansigreen></b>")

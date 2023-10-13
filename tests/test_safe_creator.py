@@ -7,7 +7,7 @@ from eth_account import Account
 
 from gnosis.safe import Safe
 
-from safe_cli.safe_creator import main
+from safe_cli.safe_creator import check_private_key, main, positive_integer
 
 from .safe_cli_test_case_mixin import SafeCliTestCaseMixin
 
@@ -40,6 +40,22 @@ class TestSafeCreator(SafeCliTestCaseMixin, unittest.TestCase):
         self.assertEqual(
             safe_info.fallback_handler, self.compatibility_fallback_handler.address
         )
+
+    def test_positive_integer(self):
+        self.assertEqual(positive_integer(1), 1)
+        self.assertEqual(positive_integer(500), 500)
+
+        with self.assertRaises(argparse.ArgumentTypeError):
+            self.assertEqual(positive_integer(0), 0)
+        with self.assertRaises(argparse.ArgumentTypeError):
+            positive_integer(-1)
+
+    def test_check_private_key(self):
+        account = Account.create()
+        self.assertEqual(check_private_key(account.key.hex()), account.key.hex())
+
+        with self.assertRaises(argparse.ArgumentTypeError):
+            check_private_key("Random")
 
 
 if __name__ == "__main__":

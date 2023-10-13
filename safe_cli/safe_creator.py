@@ -5,7 +5,7 @@ import sys
 from binascii import Error
 from typing import List
 
-import pyfiglet
+from art import text2art
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
 from eth_typing import URI
@@ -106,7 +106,7 @@ def setup_argument_parser():
 
 def main(*args, **kwargs) -> EthereumTxSent:
     parser = setup_argument_parser()
-    print_formatted_text(pyfiglet.figlet_format("Safe Creator"))  # Print fancy text
+    print_formatted_text(text2art("Safe Creator"))  # Print fancy text
     args = parser.parse_args()
     node_url: URI = args.node_url
     account: LocalAccount = Account.from_key(args.private_key)
