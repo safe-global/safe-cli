@@ -45,7 +45,8 @@ class SafeCliEntrypointTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         )
 
         safe_cli = self.build_test_safe_cli()
-        self.assertIsNone(safe_cli.print_startup_info())
+        with mock.patch.object(SafeOperator, "is_version_updated", return_value=True):
+            self.assertIsNone(safe_cli.print_startup_info())
         self.assertIsInstance(safe_cli.get_prompt_text(), HTML)
         self.assertIsInstance(safe_cli.get_bottom_toolbar(), HTML)
 

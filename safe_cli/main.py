@@ -137,7 +137,11 @@ def build_safe_cli():
     return SafeCli(args.safe_address, args.node_url, args.history)
 
 
-if __name__ == "__main__":
+def main(*args, **kwargs):
     safe_cli = build_safe_cli()
     safe_cli.print_startup_info()
     safe_cli.loop()
+
+
+if __name__ == "__main__":
+    main()
