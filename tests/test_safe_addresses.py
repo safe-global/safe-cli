@@ -20,6 +20,12 @@ class TestSafeAddresses(SafeCliTestCaseMixin, unittest.TestCase):
             _get_valid_contract(self.ethereum_client, addresses), expected_address
         )
 
+        with self.assertRaisesRegex(
+            ValueError,
+            f"Network {self.ethereum_client.get_network().name} is not supported",
+        ):
+            _get_valid_contract(self.ethereum_client, addresses[:1])
+
 
 if __name__ == "__main__":
     unittest.main()
