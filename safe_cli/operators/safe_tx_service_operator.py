@@ -89,6 +89,7 @@ class SafeTxServiceOperator(SafeOperator):
         """
 
         safe_tx, tx_hash = self.safe_tx_service.get_safe_transaction(safe_tx_hash)
+        safe_tx.signatures = b""  # Don't post again existing signatures
         if tx_hash:
             print_formatted_text(
                 HTML(
