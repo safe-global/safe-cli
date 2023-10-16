@@ -911,7 +911,10 @@ class SafeOperator:
     def execute_tx(self, safe_tx_hash: Sequence[bytes]) -> bool:
         return self._require_tx_service_mode()
 
-    def get_permitted_signers(self) -> Set[str]:
+    def get_permitted_signers(self) -> Set[ChecksumAddress]:
+        """
+        :return: Accounts that can sign a transaction
+        """
         return set(self.safe_cli_info.owners)
 
     def drain(self, to: str):

@@ -1,6 +1,7 @@
 from typing import Any, Dict, Optional, Sequence, Set
 
 from colorama import Fore, Style
+from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
 from tabulate import tabulate
@@ -42,6 +43,7 @@ class SafeTxServiceOperator(SafeOperator):
             row = [delegate["delegate"], delegate["delegator"], delegate["label"]]
             rows.append(row)
         print(tabulate(rows, headers=headers))
+        return rows
 
     def add_delegate(self, delegate_address: str, label: str, signer_address: str):
         signer_account = [
@@ -284,7 +286,10 @@ class SafeTxServiceOperator(SafeOperator):
             return True
         return False
 
-    def get_permitted_signers(self) -> Set[str]:
+    def get_permitted_signers(self) -> Set[ChecksumAddress]:
+        """
+        :return: Owners and delegates, as they also can sign a transaction for the tx service
+        """
         owners = super().get_permitted_signers()
         owners.update(
             [
@@ -295,7 +300,7 @@ class SafeTxServiceOperator(SafeOperator):
         return owners
 
     # Function that sends all assets to an account (to)
-    def drain(self, to: str):
+    def drain(self, to: ChecksumAddress):
         balances = self.safe_tx_service.get_balances(self.address)
         safe_txs = []
         safe_tx = None
