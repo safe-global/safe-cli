@@ -13,6 +13,7 @@ from gnosis.safe.api import TransactionServiceApi
 from safe_cli.operators import SafeOperatorMode, SafeTxServiceOperator
 
 from .mocks.balances_mock import balances_mock
+from .mocks.data_decoded_mock import data_decoded_mock
 from .mocks.multisig_tx_mock import GetMultisigTxRequestMock
 from .mocks.txs_mock import txs_mock
 from .safe_cli_test_case_mixin import SafeCliTestCaseMixin
@@ -482,6 +483,22 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
             ],
         ]
         self.assertEqual(safe_operator.get_transaction_history(), expected)
+
+    def test_data_decoded_to_text(self):
+        safe_operator = self.setup_operator(
+            number_owners=1, mode=SafeOperatorMode.TX_SERVICE
+        )
+        decoded_data_text = safe_operator.safe_tx_service.data_decoded_to_text(
+            data_decoded_mock
+        )
+        self.assertIn(
+            "- changeMasterCopy: 0x34CfAC646f301356fAa8B21e94227e3583Fe3F5F",
+            decoded_data_text,
+        )
+        self.assertIn(
+            "- setFallbackHandler: 0xd5D82B6aDDc9027B22dCA772Aa68D5d74cdBdF44",
+            decoded_data_text,
+        )
 
     def test_drain(self):
         # TODO Drain is a complex to mock
