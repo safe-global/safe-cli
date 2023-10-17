@@ -228,6 +228,7 @@ class SafeTxServiceOperator(SafeOperator):
                 ]
             rows.append(row)
         print(tabulate(rows, headers=headers))
+        return rows
 
     def get_transaction_history(self):
         transactions = self.safe_tx_service.get_transactions(self.address)
@@ -239,15 +240,17 @@ class SafeTxServiceOperator(SafeOperator):
             data_decoded: Dict[str, Any] = transaction.get("dataDecoded")
             if data_decoded:
                 row.append(self.safe_tx_service.data_decoded_to_text(data_decoded))
-            if transaction["transactionHash"] and transaction["isSuccessful"]:
-                row[0] = Fore.GREEN + str(
-                    row[0]
-                )  # For executed transactions we use green
-                if not last_executed_tx:
-                    row[0] = Style.BRIGHT + row[0]
-                    last_executed_tx = True
-            elif transaction["transactionHash"]:
-                row[0] = Fore.RED + str(row[0])  # For transactions failed
+            if transaction["transactionHash"]:
+                if not transaction["isSuccessful"]:
+                    # Transaction failed
+                    row[0] = Fore.RED + str(row[0])
+                else:
+                    row[0] = Fore.GREEN + str(
+                        row[0]
+                    )  # For executed transactions we use green
+                    if not last_executed_tx:
+                        row[0] = Style.BRIGHT + row[0]
+                        last_executed_tx = True
             else:
                 row[0] = Fore.YELLOW + str(
                     row[0]
@@ -259,6 +262,7 @@ class SafeTxServiceOperator(SafeOperator):
         headers.append("dataDecoded")
         headers[0] = Style.BRIGHT + headers[0]
         print(tabulate(rows, headers=headers))
+        return rows
 
     def prepare_and_execute_safe_transaction(
         self,
@@ -274,18 +278,19 @@ class SafeTxServiceOperator(SafeOperator):
         return self.post_transaction_to_tx_service(safe_tx)
 
     def post_transaction_to_tx_service(self, safe_tx: SafeTx) -> bool:
-        if yes_or_no_question(
+        if not yes_or_no_question(
             f"Do you want to send the tx with safe-tx-hash={safe_tx.safe_tx_hash.hex()} to Safe Transaction Service (it will not be executed) "
             + str(safe_tx)
         ):
-            self.safe_tx_service.post_transaction(self.address, safe_tx)
-            print_formatted_text(
-                HTML(
-                    f"<ansigreen>Tx with safe-tx-hash={safe_tx.safe_tx_hash.hex()} was sent to Safe Transaction service</ansigreen>"
-                )
+            return False
+
+        self.safe_tx_service.post_transaction(safe_tx)
+        print_formatted_text(
+            HTML(
+                f"<ansigreen>Tx with safe-tx-hash={safe_tx.safe_tx_hash.hex()} was sent to Safe Transaction service</ansigreen>"
             )
-            return True
-        return False
+        )
+        return True
 
     def get_permitted_signers(self) -> Set[ChecksumAddress]:
         """
