@@ -28,7 +28,7 @@ class SafeCli:
     def __init__(self, safe_address: ChecksumAddress, node_url: str, history: bool):
         """
         :param safe_address: Safe address
-        :param node_url: Ethereum RPC url for the Safe address chain
+        :param node_url: Ethereum RPC url
         :param history: If `True` keep command history, otherwise history is not kept after closing the CLI
         """
         self.safe_address = safe_address
