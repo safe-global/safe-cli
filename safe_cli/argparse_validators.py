@@ -12,7 +12,7 @@ def check_positive_integer(number: str) -> int:
     Positive integer validator for Argparse
 
     :param number:
-    :return:
+    :return: Positive integer
     """
     number = int(number)
     if number <= 0:
@@ -27,7 +27,7 @@ def check_ethereum_address(address: str) -> ChecksumAddress:
     Ethereum address validator for Argparse
 
     :param address:
-    :return:
+    :return: Checksummed ethereum address
     """
     if not Web3.is_checksum_address(address):
         raise argparse.ArgumentTypeError(
@@ -55,7 +55,7 @@ def check_hex_str(hex_str: str) -> HexBytes:
     Hexadecimal string validator for Argparse
 
     :param hex_str:
-    :return:
+    :return: HexBytes from the provided hex string
     """
     try:
         return HexBytes(hex_str)
@@ -68,7 +68,7 @@ def check_keccak256_hash(hex_str: str) -> HexBytes:
     Hexadecimal keccak256 validator for Argparse
 
     :param hex_str:
-    :return:
+    :return: HexBytes from the provided hex string
     """
     hex_str_bytes = check_hex_str(hex_str)
     if len(hex_str_bytes) != 32:
