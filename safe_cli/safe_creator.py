@@ -2,22 +2,20 @@
 import argparse
 import secrets
 import sys
-from binascii import Error
 from typing import List
 
-import pyfiglet
+from art import text2art
 from eth_account import Account
 from eth_account.signers.local import LocalAccount
 from eth_typing import URI
 from hexbytes import HexBytes
 from prompt_toolkit import print_formatted_text
 
-from gnosis.eth import EthereumClient
+from gnosis.eth import EthereumClient, EthereumTxSent
 from gnosis.eth.constants import NULL_ADDRESS
 from gnosis.eth.contracts import get_safe_V1_4_1_contract
 from gnosis.safe import ProxyFactory, Safe
 
-from safe_cli.prompt_parser import check_ethereum_address
 from safe_cli.safe_addresses import (
     get_default_fallback_handler_address,
     get_proxy_factory_address,
@@ -26,27 +24,11 @@ from safe_cli.safe_addresses import (
 )
 from safe_cli.utils import yes_or_no_question
 
-
-def positive_integer(number: str) -> int:
-    number = int(number)
-    if number <= 0:
-        raise argparse.ArgumentTypeError(
-            f"{number} is not a valid threshold. Must be > 0"
-        )
-    return number
-
-
-def check_private_key(private_key: str) -> str:
-    """
-    Ethereum private key validator for ArgParse
-    :param private_key: Ethereum Private key
-    :return: Ethereum Private key
-    """
-    try:
-        Account.from_key(private_key)
-    except (ValueError, Error):  # TODO Report `Error` exception as a bug of eth_account
-        raise argparse.ArgumentTypeError(f"{private_key} is not a valid private key")
-    return private_key
+from .argparse_validators import (
+    check_ethereum_address,
+    check_positive_integer,
+    check_private_key,
+)
 
 
 def setup_argument_parser():
@@ -59,7 +41,7 @@ def setup_argument_parser():
         "--threshold",
         help="Number of owners required to execute transactions on the created Safe. It must"
         "be greater than 0 and less or equal than the number of owners",
-        type=positive_integer,
+        type=check_positive_integer,
         default=1,
     )
     parser.add_argument(
@@ -104,9 +86,9 @@ def setup_argument_parser():
     return parser
 
 
-def main(*args, **kwargs):
+def main(*args, **kwargs) -> EthereumTxSent:
     parser = setup_argument_parser()
-    print_formatted_text(pyfiglet.figlet_format("Safe Creator"))  # Print fancy text
+    print_formatted_text(text2art("Safe Creator"))  # Print fancy text
     args = parser.parse_args()
     node_url: URI = args.node_url
     account: LocalAccount = Account.from_key(args.private_key)
@@ -216,3 +198,4 @@ def main(*args, **kwargs):
             f"will create safe={ethereum_tx_sent.contract_address}"
         )
         print_formatted_text(f"Tx parameters={ethereum_tx_sent.tx}")
+        return ethereum_tx_sent

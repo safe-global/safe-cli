@@ -1,15 +1,16 @@
 from typing import Any, Dict, Optional, Sequence, Set
 
 from colorama import Fore, Style
+from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
 from tabulate import tabulate
 
 from gnosis.eth.contracts import get_erc20_contract
 from gnosis.safe import SafeOperation, SafeTx
+from gnosis.safe.api import SafeAPIException
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
-from safe_cli.api.base_api import BaseAPIException
 from safe_cli.utils import yes_or_no_question
 
 from .safe_operator import (
@@ -42,6 +43,7 @@ class SafeTxServiceOperator(SafeOperator):
             row = [delegate["delegate"], delegate["delegator"], delegate["label"]]
             rows.append(row)
         print(tabulate(rows, headers=headers))
+        return rows
 
     def add_delegate(self, delegate_address: str, label: str, signer_address: str):
         signer_account = [
@@ -58,7 +60,7 @@ class SafeTxServiceOperator(SafeOperator):
                     self.address, delegate_address, label, signer_account
                 )
                 return True
-            except BaseAPIException:
+            except SafeAPIException:
                 return False
 
     def remove_delegate(self, delegate_address: str, signer_address: str):
@@ -76,7 +78,7 @@ class SafeTxServiceOperator(SafeOperator):
                     self.address, delegate_address, signer_account
                 )
                 return True
-            except BaseAPIException:
+            except SafeAPIException:
                 return False
 
     def submit_signatures(self, safe_tx_hash: bytes) -> bool:
@@ -87,6 +89,7 @@ class SafeTxServiceOperator(SafeOperator):
         """
 
         safe_tx, tx_hash = self.safe_tx_service.get_safe_transaction(safe_tx_hash)
+        safe_tx.signatures = b""  # Don't post again existing signatures
         if tx_hash:
             print_formatted_text(
                 HTML(
@@ -225,6 +228,7 @@ class SafeTxServiceOperator(SafeOperator):
                 ]
             rows.append(row)
         print(tabulate(rows, headers=headers))
+        return rows
 
     def get_transaction_history(self):
         transactions = self.safe_tx_service.get_transactions(self.address)
@@ -236,15 +240,17 @@ class SafeTxServiceOperator(SafeOperator):
             data_decoded: Dict[str, Any] = transaction.get("dataDecoded")
             if data_decoded:
                 row.append(self.safe_tx_service.data_decoded_to_text(data_decoded))
-            if transaction["transactionHash"] and transaction["isSuccessful"]:
-                row[0] = Fore.GREEN + str(
-                    row[0]
-                )  # For executed transactions we use green
-                if not last_executed_tx:
-                    row[0] = Style.BRIGHT + row[0]
-                    last_executed_tx = True
-            elif transaction["transactionHash"]:
-                row[0] = Fore.RED + str(row[0])  # For transactions failed
+            if transaction["transactionHash"]:
+                if not transaction["isSuccessful"]:
+                    # Transaction failed
+                    row[0] = Fore.RED + str(row[0])
+                else:
+                    row[0] = Fore.GREEN + str(
+                        row[0]
+                    )  # For executed transactions we use green
+                    if not last_executed_tx:
+                        row[0] = Style.BRIGHT + row[0]
+                        last_executed_tx = True
             else:
                 row[0] = Fore.YELLOW + str(
                     row[0]
@@ -256,6 +262,7 @@ class SafeTxServiceOperator(SafeOperator):
         headers.append("dataDecoded")
         headers[0] = Style.BRIGHT + headers[0]
         print(tabulate(rows, headers=headers))
+        return rows
 
     def prepare_and_execute_safe_transaction(
         self,
@@ -271,20 +278,24 @@ class SafeTxServiceOperator(SafeOperator):
         return self.post_transaction_to_tx_service(safe_tx)
 
     def post_transaction_to_tx_service(self, safe_tx: SafeTx) -> bool:
-        if yes_or_no_question(
+        if not yes_or_no_question(
             f"Do you want to send the tx with safe-tx-hash={safe_tx.safe_tx_hash.hex()} to Safe Transaction Service (it will not be executed) "
             + str(safe_tx)
         ):
-            self.safe_tx_service.post_transaction(self.address, safe_tx)
-            print_formatted_text(
-                HTML(
-                    f"<ansigreen>Tx with safe-tx-hash={safe_tx.safe_tx_hash.hex()} was sent to Safe Transaction service</ansigreen>"
-                )
-            )
-            return True
-        return False
+            return False
 
-    def get_permitted_signers(self) -> Set[str]:
+        self.safe_tx_service.post_transaction(safe_tx)
+        print_formatted_text(
+            HTML(
+                f"<ansigreen>Tx with safe-tx-hash={safe_tx.safe_tx_hash.hex()} was sent to Safe Transaction service</ansigreen>"
+            )
+        )
+        return True
+
+    def get_permitted_signers(self) -> Set[ChecksumAddress]:
+        """
+        :return: Owners and delegates, as they also can sign a transaction for the tx service
+        """
         owners = super().get_permitted_signers()
         owners.update(
             [
@@ -295,7 +306,7 @@ class SafeTxServiceOperator(SafeOperator):
         return owners
 
     # Function that sends all assets to an account (to)
-    def drain(self, to: str):
+    def drain(self, to: ChecksumAddress):
         balances = self.safe_tx_service.get_balances(self.address)
         safe_txs = []
         safe_tx = None

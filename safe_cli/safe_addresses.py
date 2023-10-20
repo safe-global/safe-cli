@@ -4,24 +4,26 @@ Currently using Safe v1.4.1 when available, and 1.3.0 as fallback as they are co
 https://github.com/gnosis/safe-deployments/tree/main/src/assets/v1.4.1
 https://github.com/gnosis/safe-deployments/tree/main/src/assets/v1.3.0
 """
+from typing import Sequence
+
 from eth_typing import ChecksumAddress
 
 from gnosis.eth import EthereumClient
 
 
 def _get_valid_contract(
-    ethereum_client: EthereumClient, addresses: ChecksumAddress
+    ethereum_client: EthereumClient, addresses: Sequence[ChecksumAddress]
 ) -> ChecksumAddress:
     """
     :param ethereum_client:
     :param addresses:
-    :return: First valid contract found in blockchain
+    :return: First valid contract from the list of addresses provided found in blockchain
     """
 
     for address in addresses:
         if ethereum_client.is_contract(address):
             return address
-    raise ValueError(f"Network ${ethereum_client.get_network()} is not supported")
+    raise ValueError(f"Network {ethereum_client.get_network().name} is not supported")
 
 
 def get_safe_contract_address(ethereum_client: EthereumClient) -> ChecksumAddress:

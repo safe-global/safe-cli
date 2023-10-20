@@ -1,4 +1,3 @@
-import os
 import unittest
 from unittest import mock
 from unittest.mock import MagicMock
@@ -34,10 +33,7 @@ from tests.utils import generate_transfers_erc20
 from .safe_cli_test_case_mixin import SafeCliTestCaseMixin
 
 
-class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
-    ETHEREUM_NODE_URL = os.environ.get("ETHEREUM_NODE_URL", "http://localhost:8545")
-    ETHEREUM_ACCOUNT_KEY = "0x4f3edf983ac636a65a842ce7c78d9aa706d3b113bce9c46f30d7d21715b23b1d"  # Ganache #0
-
+class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
     def test_setup_operator(self):
         for number_owners in range(1, 4):
             safe_operator = self.setup_operator(number_owners=number_owners)

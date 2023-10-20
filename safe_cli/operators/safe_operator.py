@@ -12,9 +12,15 @@ from hexbytes import HexBytes
 from packaging import version as semantic_version
 from prompt_toolkit import HTML, print_formatted_text
 from web3 import Web3
+from web3.contract import Contract
 from web3.exceptions import BadFunctionCallOutput
 
-from gnosis.eth import EthereumClient, EthereumNetwork, TxSpeed
+from gnosis.eth import (
+    EthereumClient,
+    EthereumNetwork,
+    EthereumNetworkNotSupported,
+    TxSpeed,
+)
 from gnosis.eth.clients import EtherscanClient, EtherscanClientConfigurationProblem
 from gnosis.eth.constants import NULL_ADDRESS, SENTINEL_ADDRESS
 from gnosis.eth.contracts import (
@@ -24,9 +30,9 @@ from gnosis.eth.contracts import (
     get_safe_V1_1_1_contract,
 )
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
+from gnosis.safe.api import TransactionServiceApi
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
-from safe_cli.api.transaction_service_api import TransactionServiceApi
 from safe_cli.ethereum_hd_wallet import get_account_from_words
 from safe_cli.safe_addresses import (
     get_default_fallback_handler_address,
@@ -176,7 +182,23 @@ def require_default_sender(f):
 
 
 class SafeOperator:
-    def __init__(self, address: str, node_url: str):
+    address: ChecksumAddress
+    node_url: str
+    ethereum_client: EthereumClient
+    ens: ENS
+    network: EthereumNetwork
+    etherscan: Optional[EtherscanClient]
+    safe_tx_service: Optional[TransactionServiceApi]
+    safe: Safe
+    safe_contract: Contract
+    safe_contract_1_1_0: Contract
+    accounts: Set[LocalAccount] = set()
+    default_sender: Optional[LocalAccount]
+    executed_transactions: List[str]
+    _safe_cli_info: Optional[SafeCliInfo]
+    require_all_signatures: bool
+
+    def __init__(self, address: ChecksumAddress, node_url: str):
         self.address = address
         self.node_url = node_url
         self.ethereum_client = EthereumClient(self.node_url)
@@ -186,9 +208,14 @@ class SafeOperator:
             self.etherscan = EtherscanClient(self.network)
         except EtherscanClientConfigurationProblem:
             self.etherscan = None
-        self.safe_tx_service = TransactionServiceApi.from_ethereum_client(
-            self.ethereum_client
-        )
+
+        try:
+            self.safe_tx_service = TransactionServiceApi.from_ethereum_client(
+                self.ethereum_client
+            )
+        except EthereumNetworkNotSupported:
+            self.safe_tx_service = None
+
         self.safe = Safe(address, self.ethereum_client)
         self.safe_contract = self.safe.contract
         self.safe_contract_1_1_0 = get_safe_V1_1_1_contract(
@@ -884,7 +911,10 @@ class SafeOperator:
     def execute_tx(self, safe_tx_hash: Sequence[bytes]) -> bool:
         return self._require_tx_service_mode()
 
-    def get_permitted_signers(self) -> Set[str]:
+    def get_permitted_signers(self) -> Set[ChecksumAddress]:
+        """
+        :return: Accounts that can sign a transaction
+        """
         return set(self.safe_cli_info.owners)
 
     def drain(self, to: str):

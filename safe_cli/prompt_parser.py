@@ -1,11 +1,15 @@
 import argparse
 import functools
 
-from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
-from web3 import Web3
 
-from .api.base_api import BaseAPIException
+from gnosis.safe.api import SafeAPIException
+
+from .argparse_validators import (
+    check_ethereum_address,
+    check_hex_str,
+    check_keccak256_hash,
+)
 from .operators.safe_operator import (
     AccountNotLoadedException,
     ExistingOwnerException,
@@ -26,58 +30,12 @@ from .operators.safe_operator import (
 )
 
 
-def check_ethereum_address(address: str) -> str:
-    """
-    Ethereum address validator for ArgParse
-    :param address:
-    :return:
-    """
-    if not Web3.is_checksum_address(address):
-        raise argparse.ArgumentTypeError(
-            f"{address} is not a valid checksummed ethereum address"
-        )
-    return address
-
-
-def check_hex_str(hex_str: str) -> HexBytes:
-    """
-    Hexadecimal
-    :param hex_str:
-    :return:
-    """
-    try:
-        return HexBytes(hex_str)
-    except ValueError:
-        raise argparse.ArgumentTypeError(f"{hex_str} is not a valid hexadecimal string")
-
-
-def check_keccak256_hash(hex_str: str) -> HexBytes:
-    """
-    Hexadecimal
-    :param hex_str:
-    :return:
-    """
-    hex_str_bytes = check_hex_str(hex_str)
-    if len(hex_str_bytes) != 32:
-        raise argparse.ArgumentTypeError(
-            f"{hex_str} is not a valid keccak256 hash hexadecimal string"
-        )
-    return hex_str_bytes
-
-
-def to_checksummed_ethereum_address(address: str) -> str:
-    try:
-        return Web3.to_checksum_address(address)
-    except ValueError:
-        raise argparse.ArgumentTypeError(f"{address} is not a valid ethereum address")
-
-
 def safe_exception(function):
     @functools.wraps(function)
     def wrapper(*args, **kwargs):
         try:
             return function(*args, **kwargs)
-        except BaseAPIException as e:
+        except SafeAPIException as e:
             if e.args:
                 print_formatted_text(HTML(f"<b><ansired>{e.args[0]}</ansired></b>"))
         except AccountNotLoadedException as e:

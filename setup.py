@@ -19,9 +19,9 @@ setuptools.setup(
     license="MIT",
     test_suite="tests",
     install_requires=[
+        "art>=6",
         "colorama>=0.4",
         "prompt_toolkit>=3",
-        "pyfiglet>=0.8",
         "pygments>=2",
         "requests>=2",
         "safe-eth-py>=6",
