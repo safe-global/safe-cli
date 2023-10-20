@@ -71,7 +71,7 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
     @mock.patch("safe_cli.operators.safe_operator.get_account_by_path")
     def test_load_ledger_cli_owner(self, mock_get_account_by_path: MagicMock):
         owner_address = Account.create().address
-        safe_address = self.deploy_test_safe(owners=[owner_address]).safe_address
+        safe_address = self.deploy_test_safe(owners=[owner_address]).address
         safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
         safe_operator.load_ledger_cli_owners()
         self.assertEqual(len(safe_operator.accounts), 0)

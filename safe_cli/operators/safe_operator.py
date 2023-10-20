@@ -11,7 +11,7 @@ from eth_utils import ValidationError
 from hexbytes import HexBytes
 from ledgereth import get_account_by_path
 from ledgereth.comms import init_dongle
-from ledgereth.exceptions import LedgerNotFound
+from ledgereth.exceptions import LedgerAppNotOpened, LedgerLocked, LedgerNotFound
 from packaging import version as semantic_version
 from prompt_toolkit import HTML, print_formatted_text
 from web3 import Web3
@@ -39,12 +39,12 @@ from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 from gnosis.safe.signatures import signature_to_bytes
 
 from safe_cli.ethereum_hd_wallet import get_account_from_words
+from safe_cli.operators.hw_accounts.ledger_account import LedgerAccount
 from safe_cli.safe_addresses import (
     get_default_fallback_handler_address,
     get_safe_contract_address,
     get_safe_l2_contract_address,
 )
-from safe_cli.operators.hw_accounts.ledger_account import LedgerAccount
 from safe_cli.utils import get_erc_20_list, yes_or_no_question
 
 
@@ -334,28 +334,38 @@ class SafeOperator:
     def load_ledger_cli_owners(self):
         try:
             dongle = init_dongle()
+            # Search between 10 first accounts
+            for index in range(10):
+                path = f"44'/60'/{index}'/0/0"
+                account = get_account_by_path(path, dongle=dongle)
+                if account.address in self.safe_cli_info.owners:
+                    sender = LedgerAccount(account.path, account.address, dongle)
+                    self.accounts.add(sender)
+                    balance = self.ethereum_client.get_balance(account.address)
+                    print_formatted_text(
+                        HTML(
+                            f"Loaded account <b>{account.address}</b> "
+                            f'with balance={Web3.from_wei(balance, "ether")} ether'
+                            f"Ledger account cannot be defined as sender"
+                        )
+                    )
+                    # TODO add ledger as sender
+                    break
         except LedgerNotFound:
             print_formatted_text(
                 HTML("<ansired>Unable to find Ledger device</ansired>")
             )
             return
-        # Search between 10 first accounts
-        for index in range(10):
-            path = f"44'/60'/{index}'/0/0"
-            account = get_account_by_path(path, dongle=dongle)
-            if account.address in self.safe_cli_info.owners:
-                sender = LedgerAccount(account.path, account.address, dongle)
-                self.accounts.add(sender)
-                balance = self.ethereum_client.get_balance(account.address)
-                print_formatted_text(
-                    HTML(
-                        f"Loaded account <b>{account.address}</b> "
-                        f'with balance={Web3.fromWei(balance, "ether")} ether'
-                        f"Ledger account cannot be defined as sender"
-                    )
-                )
-                # TODO add ledger as sender
-                break
+        except LedgerAppNotOpened:
+            print_formatted_text(
+                HTML("<ansired>Ensure open ethereum app on your ledger</ansired>")
+            )
+            return
+        except LedgerLocked:
+            print_formatted_text(
+                HTML("<ansired>Ensure open ethereum app on your ledger</ansired>")
+            )
+            return
 
     def unload_cli_owners(self, owners: List[str]):
         accounts_to_remove: Set[Account] = set()

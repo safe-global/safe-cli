@@ -1,8 +1,11 @@
 import warnings
 
+from eth_account.datastructures import SignedTransaction
 from eth_account.signers.base import BaseAccount
+from hexbytes import HexBytes
 from ledgerblue import Dongle
 from ledgereth import create_transaction, sign_typed_data_draft
+from web3 import Web3
 from web3.types import TxParams
 
 
@@ -73,7 +76,7 @@ class LedgerAccount(BaseAccount):
         )
         pass
 
-    def sign_transaction(self, tx: TxParams):
+    def sign_transaction(self, tx: TxParams) -> SignedTransaction:
         signed = create_transaction(
             destination=tx["to"],
             amount=tx["value"],
@@ -86,7 +89,14 @@ class LedgerAccount(BaseAccount):
             sender_path=self.path,
             dongle=self.dongle,
         )
-        return signed
+        raw_transaction = signed.raw_transaction()
+        return SignedTransaction(
+            HexBytes(raw_transaction),
+            Web3.keccak(HexBytes(raw_transaction)),
+            signed.sender_r,
+            signed.sender_s,
+            signed.y_parity,
+        )
 
     def __bytes__(self):
         return self.key
