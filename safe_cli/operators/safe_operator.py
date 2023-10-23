@@ -9,9 +9,6 @@ from eth_account.signers.local import LocalAccount
 from eth_typing import ChecksumAddress
 from eth_utils import ValidationError
 from hexbytes import HexBytes
-from ledgereth import get_account_by_path
-from ledgereth.comms import init_dongle
-from ledgereth.exceptions import LedgerAppNotOpened, LedgerLocked, LedgerNotFound
 from packaging import version as semantic_version
 from prompt_toolkit import HTML, print_formatted_text
 from web3 import Web3
@@ -36,16 +33,14 @@ from gnosis.eth.eip712 import eip712_encode
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
 from gnosis.safe.api import TransactionServiceApi
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
-from gnosis.safe.signatures import signature_to_bytes
 
 from safe_cli.ethereum_hd_wallet import get_account_from_words
-from safe_cli.operators.hw_accounts.ledger_account import LedgerAccount
 from safe_cli.safe_addresses import (
     get_default_fallback_handler_address,
     get_safe_contract_address,
     get_safe_l2_contract_address,
 )
-from safe_cli.utils import get_erc_20_list, yes_or_no_question
+from safe_cli.utils import choose_option_question, get_erc_20_list, yes_or_no_question
 
 
 @dataclasses.dataclass
@@ -227,13 +222,19 @@ class SafeOperator:
         self.safe_contract_1_1_0 = get_safe_V1_1_1_contract(
             self.ethereum_client.w3, address=self.address
         )
-        self.accounts: Set[LocalAccount | LedgerAccount] = set()
-        self.default_sender: Optional[LocalAccount] | LedgerAccount = None
+        self.accounts: Set[LocalAccount] = set()
+        self.default_sender: Optional[LocalAccount] = None
         self.executed_transactions: List[str] = []
         self._safe_cli_info: Optional[SafeCliInfo] = None  # Cache for SafeCliInfo
         self.require_all_signatures = (
             True  # Require all signatures to be present to send a tx
         )
+        try:
+            from safe_cli.operators.hw_accounts.ledger_manager import LedgerManager
+
+            self.ledger_manager = LedgerManager()
+        except (ModuleNotFoundError, IOError):
+            self.ledger_manager = None
 
     @cached_property
     def last_default_fallback_handler_address(self) -> ChecksumAddress:
@@ -332,40 +333,30 @@ class SafeOperator:
                 print_formatted_text(HTML(f"<ansired>Cannot load key={key}</ansired>"))
 
     def load_ledger_cli_owners(self):
-        try:
-            dongle = init_dongle()
-            # Search between 10 first accounts
-            for index in range(10):
-                path = f"44'/60'/{index}'/0/0"
-                account = get_account_by_path(path, dongle=dongle)
-                if account.address in self.safe_cli_info.owners:
-                    sender = LedgerAccount(account.path, account.address, dongle)
-                    self.accounts.add(sender)
-                    balance = self.ethereum_client.get_balance(account.address)
-                    print_formatted_text(
-                        HTML(
-                            f"Loaded account <b>{account.address}</b> "
-                            f'with balance={Web3.from_wei(balance, "ether")} ether'
-                            f"Ledger account cannot be defined as sender"
-                        )
-                    )
-                    # TODO add ledger as sender
-                    break
-        except LedgerNotFound:
+        if not self.ledger_manager:
+            return None
+
+        ledger_accounts = self.ledger_manager.get_accounts()
+        if ledger_accounts:
+            return None
+
+        for option, ledger_account in enumerate(ledger_accounts):
+            address, _ = ledger_account
+            print_formatted_text(HTML(f"{option} - <b>{address}</b> "))
+
+        option = choose_option_question(
+            "Select the owner address", len(ledger_accounts) - 1
+        )
+        address, derivation_path = ledger_accounts[option]
+        if self.ledger_manager.add_account(derivation_path):
+            balance = self.ethereum_client.get_balance(address)
             print_formatted_text(
-                HTML("<ansired>Unable to find Ledger device</ansired>")
+                HTML(
+                    f"Loaded account <b>{address}</b> "
+                    f'with balance={Web3.from_wei(balance, "ether")} ether'
+                    f"Ledger account cannot be defined as sender"
+                )
             )
-            return
-        except LedgerAppNotOpened:
-            print_formatted_text(
-                HTML("<ansired>Ensure open ethereum app on your ledger</ansired>")
-            )
-            return
-        except LedgerLocked:
-            print_formatted_text(
-                HTML("<ansired>Ensure open ethereum app on your ledger</ansired>")
-            )
-            return
 
     def unload_cli_owners(self, owners: List[str]):
         accounts_to_remove: Set[Account] = set()
@@ -385,10 +376,15 @@ class SafeOperator:
             print_formatted_text(HTML("<ansired>No account was deleted</ansired>"))
 
     def show_cli_owners(self):
-        if not self.accounts:
+        accounts = (
+            self.accounts | self.ledger_manager.accounts
+            if self.ledger_manager
+            else self.accounts
+        )
+        if not accounts:
             print_formatted_text(HTML("<ansired>No accounts loaded</ansired>"))
         else:
-            for account in self.accounts:
+            for account in accounts:
                 print_formatted_text(
                     HTML(
                         f"<ansigreen><b>Account</b> {account.address} loaded</ansigreen>"
@@ -719,6 +715,28 @@ class SafeOperator:
                 )
             )
 
+        if not self.ledger_manager:
+            print_formatted_text(
+                HTML(
+                    "<b><ansigree>Ledger</ansigreen></b>="
+                    "<ansiblue>ledgereth library is not installed</ansiblue>"
+                )
+            )
+        elif self.ledger_manager.connected:
+            print_formatted_text(
+                HTML(
+                    "<b><ansigreen>Ledger</ansigreen></b>="
+                    "<ansiblue>Connected</ansiblue>"
+                )
+            )
+        else:
+            print_formatted_text(
+                HTML(
+                    "<b><ansigreen>Ledger</ansigreen></b>="
+                    "<ansiblue>disconnected</ansiblue>"
+                )
+            )
+
         if not self.is_version_updated():
             print_formatted_text(
                 HTML(
@@ -899,28 +917,6 @@ class SafeOperator:
         else:
             return safe_tx
 
-    def ledger_sign(self, safe_tx: SafeTx, account: LedgerAccount) -> bytes:
-        """
-        {bytes32 r}{bytes32 s}{uint8 v}
-        :param private_key:
-        :return: Signature
-        """
-        encode_hash = eip712_encode(safe_tx.eip712_structured_data)
-        v, r, s = account.signHash(encode_hash[1], encode_hash[2])
-        signature = signature_to_bytes(v, r, s)
-        # Insert signature sorted
-        if account.address not in safe_tx.signers:
-            new_owners = safe_tx.signers + [account.address]
-            new_owner_pos = sorted(new_owners, key=lambda x: int(x, 16)).index(
-                account.address
-            )
-            safe_tx.signatures = (
-                safe_tx.signatures[: 65 * new_owner_pos]
-                + signature
-                + safe_tx.signatures[65 * new_owner_pos :]
-            )
-        return safe_tx
-
     # TODO Set sender so we can save gas in that signature
     def sign_transaction(self, safe_tx: SafeTx) -> SafeTx:
         permitted_signers = self.get_permitted_signers()
@@ -934,16 +930,41 @@ class SafeOperator:
                 threshold -= 1
                 if threshold == 0:
                     break
+        # If still pending required signatures continue with ledger owners
+        selected_ledger_accounts = []
+        if threshold > 0 and self.ledger_manager:
+            for ledger_account in self.ledger_manager.accounts:
+                if ledger_account.address in permitted_signers:
+                    selected_ledger_accounts.append(ledger_account)
+                    threshold -= 1
+                    if threshold == 0:
+                        break
 
         if self.require_all_signatures and threshold > 0:
             raise NotEnoughSignatures(threshold)
 
         for selected_account in selected_accounts:
-            if selected_account.key:
-                safe_tx.sign(selected_account.key)
-            else:
-                safe_tx = self.ledger_sign(safe_tx, selected_account)
+            safe_tx.sign(selected_account.key)
 
+        # Sign with ledger if
+        for selected_ledger_account in selected_ledger_accounts:
+            encode_hash = eip712_encode(safe_tx.eip712_structured_data)
+            signature = self.ledger_manager.sign_eip712(
+                encode_hash[1], encode_hash[2], selected_ledger_account
+            )
+            if signature:
+                # TODO refactor on safe_eth_py function insert_signature_sorted
+                # Insert signature sorted
+                if selected_ledger_account.address not in safe_tx.signers:
+                    new_owners = safe_tx.signers + [selected_ledger_account.address]
+                    new_owner_pos = sorted(new_owners, key=lambda x: int(x, 16)).index(
+                        selected_ledger_account.address
+                    )
+                    safe_tx.signatures = (
+                        safe_tx.signatures[: 65 * new_owner_pos]
+                        + signature
+                        + safe_tx.signatures[65 * new_owner_pos :]
+                    )
         return safe_tx
 
     @require_tx_service

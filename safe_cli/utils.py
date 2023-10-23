@@ -1,3 +1,4 @@
+import argparse
 import os
 
 from gnosis.eth import EthereumClient
@@ -41,3 +42,16 @@ def yes_or_no_question(question: str, default_no: bool = True) -> bool:
         return False
     else:
         return False if default_no else True
+
+
+def choose_option_question(
+    question: str, number_options: int, default_option: int = 0
+) -> bool:
+    if "PYTEST_CURRENT_TEST" in os.environ:
+        return True  # Ignore confirmations when running tests
+    choices = f" [0-{number_options}] default {default_option}:"
+    reply = str(input(question + choices)).lower().strip() or str(default_option)
+    option = int(reply)
+    if option not in range(0, number_options):
+        argparse.ArgumentTypeError(f"{option} is not between [0-{number_options}}}")
+    return option

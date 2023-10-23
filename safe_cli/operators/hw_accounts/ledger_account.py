@@ -1,7 +1,4 @@
-import warnings
-
 from eth_account.datastructures import SignedTransaction
-from eth_account.signers.base import BaseAccount
 from hexbytes import HexBytes
 from ledgerblue import Dongle
 from ledgereth import create_transaction, sign_typed_data_draft
@@ -9,8 +6,8 @@ from web3 import Web3
 from web3.types import TxParams
 
 
-class LedgerAccount(BaseAccount):
-    def __init__(self, path, address, dongle: Dongle):
+class LedgerAccount:
+    def __init__(self, path, address):
         """
         Initialize a new ledger account (no private key)
 
@@ -19,64 +16,16 @@ class LedgerAccount(BaseAccount):
         """
         self._address = address
         self.path = path
-        self.dongle = dongle
 
     @property
     def address(self):
         return self._address
 
-    @property
-    def privateKey(self):
-        """
-        .. CAUTION:: Deprecated for :meth:`~eth_account.signers.local.LocalAccount.key`.
-            This attribute will be removed in v0.5
-        """
-        warnings.warn(
-            "privateKey is deprecated in favor of key",
-            category=DeprecationWarning,
-        )
-        return None
-
-    @property
-    def key(self):
-        """
-        Get the private key.
-        """
-        return None
-
-    def encrypt(self, password, kdf=None, iterations=None):
-        """
-        Generate a string with the encrypted key.
-
-        This uses the same structure as in
-        :meth:`~eth_account.account.Account.encrypt`, but without a private key argument.
-        """
-        # return self._publicapi.encrypt(self.key, password, kdf=kdf, iterations=iterations)
-        # TODO with ledger
-        pass
-
-    def signHash(self, domain_hash: bytes, message_hash: bytes):
-        signed = sign_typed_data_draft(domain_hash, message_hash, dongle=self.dongle)
+    def signMessage(self, domain_hash: bytes, message_hash: bytes, dongle: Dongle):
+        signed = sign_typed_data_draft(domain_hash, message_hash, self.path, dongle)
         return (signed.v, signed.r, signed.s)
 
-    def sign_message(self, signable_message):
-        """
-        Generate a string with the encrypted key.
-
-        This uses the same structure as in
-        :meth:`~eth_account.account.Account.sign_message`, but without a private key argument.
-        """
-        # TODO with ledger
-        pass
-
-    def signTransaction(self, transaction_dict):
-        warnings.warn(
-            "signTransaction is deprecated in favor of sign_transaction",
-            category=DeprecationWarning,
-        )
-        pass
-
-    def sign_transaction(self, tx: TxParams) -> SignedTransaction:
+    def sign_transaction(self, tx: TxParams, dongle: Dongle) -> SignedTransaction:
         signed = create_transaction(
             destination=tx["to"],
             amount=tx["value"],
@@ -87,7 +36,7 @@ class LedgerAccount(BaseAccount):
             nonce=tx["nonce"],
             chain_id=tx["chainId"],
             sender_path=self.path,
-            dongle=self.dongle,
+            dongle=dongle,
         )
         raw_transaction = signed.raw_transaction()
         return SignedTransaction(
@@ -97,6 +46,3 @@ class LedgerAccount(BaseAccount):
             signed.sender_s,
             signed.y_parity,
         )
-
-    def __bytes__(self):
-        return self.key
