@@ -148,6 +148,10 @@ class SafeServiceNotAvailable(SafeOperatorException):
     pass
 
 
+class HwDeviceException(SafeOperatorException):
+    pass
+
+
 def require_tx_service(f):
     @wraps(f)
     def decorated(self, *args, **kwargs):
@@ -337,7 +341,7 @@ class SafeOperator:
             return None
 
         ledger_accounts = self.ledger_manager.get_accounts()
-        if ledger_accounts:
+        if len(ledger_accounts) == 0:
             return None
 
         for option, ledger_account in enumerate(ledger_accounts):
@@ -718,7 +722,7 @@ class SafeOperator:
         if not self.ledger_manager:
             print_formatted_text(
                 HTML(
-                    "<b><ansigree>Ledger</ansigreen></b>="
+                    "<b><ansigreen>Ledger</ansigreen></b>="
                     "<ansiblue>ledgereth library is not installed</ansiblue>"
                 )
             )

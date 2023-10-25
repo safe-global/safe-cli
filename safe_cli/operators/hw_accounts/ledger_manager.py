@@ -1,63 +1,39 @@
-from enum import Enum
 from typing import List, Optional, Set, Tuple
 
 from eth_typing import ChecksumAddress
-from ledgereth.accounts import get_account_by_path
+from ledgereth import sign_typed_data_draft
+from ledgereth.accounts import LedgerAccount, get_account_by_path
 from ledgereth.comms import init_dongle
-from ledgereth.constants import DEFAULT_PATH_STRING
-from ledgereth.exceptions import LedgerAppNotOpened, LedgerLocked, LedgerNotFound
+from ledgereth.exceptions import LedgerNotFound
 from prompt_toolkit import HTML, print_formatted_text
 
 from gnosis.safe.signatures import signature_to_bytes
 
-from safe_cli.operators.hw_accounts.ledger_account import LedgerAccount
-
-
-class LedgerStatus(Enum):
-    DISCONNECTED = 0
-    LOCKED = 1  # Connected but locked
-    APP_CLOSED = 2  # Connected, unlocked but app is closed
-    READY = 3  # Ready to communicate
+from safe_cli.operators.hw_accounts.hw_exceptions import hw_account_exception
 
 
 class LedgerManager:
 
-    LEDGER_SEARCH_DEEP = 10
+    LEDGER_SEARCH_DEEP = 5
 
     def __init__(self):
         self.dongle = None
         self.accounts: Set[LedgerAccount] = set()
-        self.connected: bool
+        self.connect()
 
-    def _print_error_message(self, message: str):
-        print_formatted_text(HTML(f"<ansired>{message}</ansired>"))
-
-    def check_status(self, print_message: bool = False) -> LedgerStatus:
+    def connect(self) -> bool:
         try:
             self.dongle = init_dongle(self.dongle)
-            # Get default derivation to check following status
-            get_account_by_path(DEFAULT_PATH_STRING)
+            return True
         except LedgerNotFound:
-            if print_message:
-                self._print_error_message("Ledger is disconnected")
-            return LedgerStatus.DISCONNECTED
-        except LedgerLocked:
-            if print_message:
-                self._print_error_message("Ledger is locked")
-            return LedgerStatus.LOCKED
-        except LedgerAppNotOpened:
-            if print_message:
-                self._print_error_message("Ledger is disconnected")
-            return LedgerStatus.APP_CLOSED
-
-        return LedgerStatus.READY
+            return False
 
     @property
+    @hw_account_exception
     def connected(self) -> bool:
-        if self.check_status() != LedgerStatus.DISCONNECTED:
-            return True
-        return False
+        return self.connect()
 
+    @hw_account_exception
     def get_accounts(
         self, legacy_account: Optional[bool] = False
     ) -> List[Tuple[ChecksumAddress, str]]:
@@ -66,36 +42,31 @@ class LedgerManager:
         :return: a list of tuples with address and derivation path
         """
         accounts = []
-        if self.check_status(True) != LedgerStatus.READY:
-            return []
         for i in range(self.LEDGER_SEARCH_DEEP):
             if legacy_account:
                 path_string = f"44'/60'/0'/{i}"
             else:
                 path_string = f"44'/60'/{i}'/0/0"
-            try:
-                account = get_account_by_path(path_string, self.dongle)
-            except LedgerLocked as ledger_error:
-                print(f"Ledger exception: {ledger_error}")
+
+            account = get_account_by_path(path_string, self.dongle)
             accounts.append((account.address, account.path))
         return accounts
 
-    def add_account(self, derivation_path: str) -> bool:
+    @hw_account_exception
+    def add_account(self, derivation_path: str):
         """
         Add account to ledger manager list
 
         :param derivation_path:
         :return:
         """
-        if self.check_status(True) != LedgerStatus.READY:
-            return False
         account = get_account_by_path(derivation_path, self.dongle)
         self.accounts.add(LedgerAccount(account.path, account.address))
-        return True
 
+    @hw_account_exception
     def sign_eip712(
         self, domain_hash: bytes, message_hash: bytes, account: LedgerAccount
-    ) -> bytes | None:
+    ) -> bytes:
         """
         Sign eip712 hashes
 
@@ -104,9 +75,15 @@ class LedgerManager:
         :param account: ledger account
         :return: bytes signature
         """
-        if self.check_status(True) != LedgerStatus.READY:
-            return None
+        print_formatted_text(
+            HTML(
+                "Ensure to compare in your ledger before to sign that domain_hash and message_hash are  both correct"
+            )
+        )
+        print_formatted_text(HTML(f"Domain_hash: <b>{domain_hash.hex()}</b>"))
+        print_formatted_text(HTML(f"Message_hash: <b>{message_hash.hex()}</b>"))
+        signed = sign_typed_data_draft(
+            domain_hash, message_hash, account.path, self.dongle
+        )
 
-        v, r, s = account.signMessage(domain_hash, message_hash, self.dongle)
-
-        return signature_to_bytes(v, r, s)
+        return signature_to_bytes(signed.v, signed.r, signed.s)

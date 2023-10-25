@@ -15,6 +15,7 @@ from .operators.safe_operator import (
     ExistingOwnerException,
     FallbackHandlerNotSupportedException,
     HashAlreadyApproved,
+    HwDeviceException,
     InvalidMasterCopyException,
     NonExistingOwnerException,
     NotEnoughEtherToSend,
@@ -115,6 +116,10 @@ def safe_exception(function):
                 HTML(
                     f"<ansired>Service not available for network {e.args[0]}</ansired>"
                 )
+            )
+        except HwDeviceException as e:
+            print_formatted_text(
+                HTML(f"<ansired>HwDevice exception: {e.args[0]}</ansired>")
             )
 
     return wrapper

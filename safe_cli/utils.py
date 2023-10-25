@@ -48,7 +48,7 @@ def choose_option_question(
     question: str, number_options: int, default_option: int = 0
 ) -> bool:
     if "PYTEST_CURRENT_TEST" in os.environ:
-        return True  # Ignore confirmations when running tests
+        return 0  # Ignore confirmations when running tests
     choices = f" [0-{number_options}] default {default_option}:"
     reply = str(input(question + choices)).lower().strip() or str(default_option)
     option = int(reply)

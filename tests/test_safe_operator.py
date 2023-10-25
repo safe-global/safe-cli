@@ -68,30 +68,25 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         self.assertEqual(len(safe_operator.accounts), number_of_accounts - 1)
         self.assertFalse(safe_operator.default_sender)
 
-    @mock.patch("safe_cli.operators.safe_operator.get_account_by_path")
+    @mock.patch("safe_cli.operators.hw_accounts.ledger_manager.get_account_by_path")
     def test_load_ledger_cli_owner(self, mock_get_account_by_path: MagicMock):
         owner_address = Account.create().address
         safe_address = self.deploy_test_safe(owners=[owner_address]).address
         safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
+        safe_operator.ledger_manager.get_accounts = MagicMock(return_value=[])
         safe_operator.load_ledger_cli_owners()
-        self.assertEqual(len(safe_operator.accounts), 0)
-
-        with mock.patch("safe_cli.operators.safe_operator.init_dongle"):
-            # Test ledger address is not an owner
-            random_account = Account.create().address
-            mock_get_account_by_path.return_value = LedgerAccount(
-                "44'/60'/0'/0/0", random_account
-            )
-            safe_operator.load_ledger_cli_owners()
-            self.assertEqual(len(safe_operator.accounts), 0)
-
-            # Test ledger address is an owner
-            mock_get_account_by_path.return_value = LedgerAccount(
-                "44'/60'/0'/0/0", owner_address
-            )
-            safe_operator.load_ledger_cli_owners()
-            self.assertEqual(len(safe_operator.accounts), 1)
-            self.assertEqual(list(safe_operator.accounts)[0].address, owner_address)
+        self.assertEqual(len(safe_operator.ledger_manager.accounts), 0)
+        random_account = Account.create().address
+        other_random_account = Account.create().address
+        safe_operator.ledger_manager.get_accounts.return_value = [
+            (random_account, "44'/60'/0'/0/0"),
+            (other_random_account, "44'/60'/0'/0/1"),
+        ]
+        mock_get_account_by_path.return_value = LedgerAccount(
+            "44'/60'/0'/0/0", random_account
+        )
+        safe_operator.load_ledger_cli_owners()
+        self.assertEqual(len(safe_operator.ledger_manager.accounts), 1)
 
     def test_approve_hash(self):
         safe_address = self.deploy_test_safe(
