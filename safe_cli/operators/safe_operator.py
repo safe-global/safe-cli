@@ -29,7 +29,6 @@ from gnosis.eth.contracts import (
     get_safe_contract,
     get_safe_V1_1_1_contract,
 )
-from gnosis.eth.eip712 import eip712_encode
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
 from gnosis.safe.api import TransactionServiceApi
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
@@ -372,6 +371,12 @@ class SafeOperator:
                     accounts_to_remove.add(account)
                     break
         self.accounts = self.accounts.difference(accounts_to_remove)
+        # Check if there are ledger owners
+        if self.ledger_manager and len(accounts_to_remove) < len(owners):
+            accounts_to_remove = (
+                accounts_to_remove | self.ledger_manager.delete_accounts(owners)
+            )
+
         if accounts_to_remove:
             print_formatted_text(
                 HTML("<ansigreen>Accounts have been deleted</ansigreen>")
@@ -723,7 +728,7 @@ class SafeOperator:
             print_formatted_text(
                 HTML(
                     "<b><ansigreen>Ledger</ansigreen></b>="
-                    "<ansiblue>ledgereth library is not installed</ansiblue>"
+                    "<ansired>Disabled </ansired> <b>Optional ledger library is not installed, run pip install safe-cli[ledger] </b>"
                 )
             )
         elif self.ledger_manager.connected:
@@ -950,25 +955,10 @@ class SafeOperator:
         for selected_account in selected_accounts:
             safe_tx.sign(selected_account.key)
 
-        # Sign with ledger if
-        for selected_ledger_account in selected_ledger_accounts:
-            encode_hash = eip712_encode(safe_tx.eip712_structured_data)
-            signature = self.ledger_manager.sign_eip712(
-                encode_hash[1], encode_hash[2], selected_ledger_account
-            )
-            if signature:
-                # TODO refactor on safe_eth_py function insert_signature_sorted
-                # Insert signature sorted
-                if selected_ledger_account.address not in safe_tx.signers:
-                    new_owners = safe_tx.signers + [selected_ledger_account.address]
-                    new_owner_pos = sorted(new_owners, key=lambda x: int(x, 16)).index(
-                        selected_ledger_account.address
-                    )
-                    safe_tx.signatures = (
-                        safe_tx.signatures[: 65 * new_owner_pos]
-                        + signature
-                        + safe_tx.signatures[65 * new_owner_pos :]
-                    )
+        # Sign with ledger
+        if len(selected_ledger_accounts) > 0:
+            safe_tx = self.ledger_manager.sign_eip712(safe_tx, selected_ledger_accounts)
+
         return safe_tx
 
     @require_tx_service

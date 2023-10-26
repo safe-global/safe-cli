@@ -64,9 +64,17 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         # Test unload cli owner
         safe_operator.default_sender = random_accounts[0]
         number_of_accounts = len(safe_operator.accounts)
-        safe_operator.unload_cli_owners(["aloha", random_accounts[0].address, "bye"])
+        ledger_random_address = Account.create().address
+        safe_operator.ledger_manager.accounts.add(
+            LedgerAccount("44'/60'/0'/1", ledger_random_address)
+        )
+        self.assertEqual(len(safe_operator.ledger_manager.accounts), 1)
+        safe_operator.unload_cli_owners(
+            ["aloha", random_accounts[0].address, "bye", ledger_random_address]
+        )
         self.assertEqual(len(safe_operator.accounts), number_of_accounts - 1)
         self.assertFalse(safe_operator.default_sender)
+        self.assertEqual(len(safe_operator.ledger_manager.accounts), 0)
 
     @mock.patch("safe_cli.operators.hw_accounts.ledger_manager.get_account_by_path")
     def test_load_ledger_cli_owner(self, mock_get_account_by_path: MagicMock):

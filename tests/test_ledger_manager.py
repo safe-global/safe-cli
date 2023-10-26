@@ -5,7 +5,12 @@ from unittest.mock import MagicMock
 from eth_account import Account
 from ledgerblue.Dongle import Dongle
 from ledgereth.accounts import LedgerAccount
-from ledgereth.exceptions import LedgerLocked, LedgerNotFound
+from ledgereth.exceptions import (
+    LedgerAppNotOpened,
+    LedgerCancel,
+    LedgerLocked,
+    LedgerNotFound,
+)
 
 from gnosis.eth.eip712 import eip712_encode
 from gnosis.safe import SafeTx
@@ -13,6 +18,7 @@ from gnosis.safe.signatures import signature_split
 from gnosis.safe.tests.safe_test_case import SafeTestCaseMixin
 
 from safe_cli.operators.hw_accounts.ledger_manager import LedgerManager
+from safe_cli.operators.safe_operator import HwDeviceException
 
 
 class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
@@ -39,23 +45,87 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
         self.assertEqual(ledger_manager.connected, True)
 
     @mock.patch(
-        "safe_cli.operators.hw_accounts.ledger_manager.LedgerManager.LEDGER_SEARCH_DEEP",
-        2,
+        "safe_cli.operators.hw_accounts.ledger_manager.sign_typed_data_draft",
+        autospec=True,
     )
+    @mock.patch(
+        "safe_cli.operators.hw_accounts.ledger_manager.get_account_by_path",
+        autospec=True,
+    )
+    def test_hw_device_exception(self, mock_ledger_fn: MagicMock, mock_sign: MagicMock):
+        ledger_manager = LedgerManager()
+
+        derivation_path = "44'/60'/0'/0"
+        ledger_account = LedgerAccount(derivation_path, Account.create().address)
+        safe = self.deploy_test_safe(
+            owners=[Account.create().address],
+            threshold=1,
+            initial_funding_wei=self.w3.to_wei(0.1, "ether"),
+        )
+        safe_tx = SafeTx(
+            self.ethereum_client,
+            safe.address,
+            Account.create().address,
+            10,
+            b"",
+            0,
+            200000,
+            200000,
+            self.gas_price,
+            None,
+            None,
+            safe_nonce=0,
+        )
+
+        mock_ledger_fn.side_effect = LedgerNotFound
+        mock_sign.side_effect = LedgerNotFound
+        with self.assertRaises(HwDeviceException):
+            ledger_manager.get_accounts()
+        with self.assertRaises(HwDeviceException):
+            ledger_manager.add_account(derivation_path)
+        with self.assertRaises(HwDeviceException):
+            ledger_manager.sign_eip712(safe_tx, [ledger_account])
+
+        mock_ledger_fn.side_effect = LedgerLocked
+        mock_sign.side_effect = LedgerLocked
+        with self.assertRaises(HwDeviceException):
+            ledger_manager.get_accounts()
+        with self.assertRaises(HwDeviceException):
+            ledger_manager.add_account(derivation_path)
+        with self.assertRaises(HwDeviceException):
+            ledger_manager.sign_eip712(safe_tx, [ledger_account])
+
+        mock_ledger_fn.side_effect = LedgerAppNotOpened
+        mock_sign.side_effect = LedgerAppNotOpened
+        with self.assertRaises(HwDeviceException):
+            ledger_manager.get_accounts()
+        with self.assertRaises(HwDeviceException):
+            ledger_manager.add_account(derivation_path)
+        with self.assertRaises(HwDeviceException):
+            ledger_manager.sign_eip712(safe_tx, [ledger_account])
+
+        mock_ledger_fn.side_effect = LedgerCancel
+        mock_sign.side_effect = LedgerCancel
+        with self.assertRaises(HwDeviceException):
+            ledger_manager.get_accounts()
+        with self.assertRaises(HwDeviceException):
+            ledger_manager.add_account(derivation_path)
+        with self.assertRaises(HwDeviceException):
+            ledger_manager.sign_eip712(safe_tx, [ledger_account])
+
     @mock.patch(
         "safe_cli.operators.hw_accounts.ledger_manager.get_account_by_path",
         autospec=True,
     )
     def test_get_accounts(self, mock_get_account_by_path: MagicMock):
         ledger_manager = LedgerManager()
-
         addresses = [Account.create().address, Account.create().address]
         derivation_paths = ["44'/60'/0'/0", "44'/60'/0'/1"]
         mock_get_account_by_path.side_effect = [
             LedgerAccount(derivation_paths[0], addresses[0]),
             LedgerAccount(derivation_paths[1], addresses[1]),
         ]
-        ledger_accounts = ledger_manager.get_accounts()
+        ledger_accounts = ledger_manager.get_accounts(number_accounts=2)
         self.assertEqual(len(ledger_accounts), 2)
         for ledger_account, expected_address, expected_derivation_path in zip(
             ledger_accounts, addresses, derivation_paths
@@ -83,6 +153,27 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
         ledger_account = list(ledger_manager.accounts)[0]
         self.assertEqual(ledger_account.address, account_address)
         self.assertEqual(ledger_account.path, derivation_path)
+
+    def test_delete_account(self):
+        ledger_manager = LedgerManager()
+        random_address = Account.create().address
+        random_address_2 = Account.create().address
+        self.assertEqual(len(ledger_manager.accounts), 0)
+        self.assertEqual(len(ledger_manager.delete_accounts([random_address])), 0)
+        ledger_manager.accounts.add(LedgerAccount("44'/60'/0'/0", random_address_2))
+        self.assertEqual(len(ledger_manager.delete_accounts([random_address])), 0)
+        self.assertEqual(len(ledger_manager.accounts), 1)
+        self.assertEqual(len(ledger_manager.delete_accounts([])), 0)
+        ledger_manager.accounts.add(LedgerAccount("44'/60'/0'/1", random_address))
+        self.assertEqual(len(ledger_manager.accounts), 2)
+        self.assertEqual(len(ledger_manager.delete_accounts([random_address])), 1)
+        self.assertEqual(len(ledger_manager.accounts), 1)
+        ledger_manager.accounts.add(LedgerAccount("44'/60'/0'/1", random_address))
+        self.assertEqual(len(ledger_manager.accounts), 2)
+        self.assertEqual(
+            len(ledger_manager.delete_accounts([random_address, random_address_2])), 2
+        )
+        self.assertEqual(len(ledger_manager.accounts), 0)
 
     @mock.patch(
         "safe_cli.operators.hw_accounts.ledger_manager.init_dongle",
@@ -114,21 +205,20 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
             safe_nonce=0,
         )
         encode_hash = eip712_encode(safe_tx.eip712_structured_data)
+        expected_signature = safe_tx.sign(owner.key)
         # We need to split to change the bytes signature order to v + r + s like ledger return signature
-        expected_v, expected_r, expected_s = signature_split(safe_tx.sign(owner.key))
+        v, r, s = signature_split(expected_signature)
 
-        signature = (
-            expected_v.to_bytes(1, byteorder="big")
-            + expected_r.to_bytes(32, byteorder="big")
-            + expected_s.to_bytes(32, byteorder="big")
+        ledger_return_signature = (
+            v.to_bytes(1, byteorder="big")
+            + r.to_bytes(32, byteorder="big")
+            + s.to_bytes(32, byteorder="big")
         )
-        mock_init_dongle.return_value.exchange = MagicMock(return_value=signature)
-        v, r, s = signature_split(
-            ledger_manager.sign_eip712(encode_hash[1], encode_hash[2], ledger_account)
+        mock_init_dongle.return_value.exchange = MagicMock(
+            return_value=ledger_return_signature
         )
-        self.assertEqual(expected_v, v)
-        self.assertEqual(expected_r, r)
-        self.assertEqual(expected_s, s)
+        safe_tx = ledger_manager.sign_eip712(safe_tx, [ledger_account])
+        self.assertEqual(safe_tx.signatures, expected_signature)
 
         # Check that dongle exchange is called with the expected payload
         # https://github.com/LedgerHQ/app-ethereum/blob/master/doc/ethapp.adoc#sign-eth-eip-712
