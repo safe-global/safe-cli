@@ -335,11 +335,13 @@ class SafeOperator:
             except ValueError:
                 print_formatted_text(HTML(f"<ansired>Cannot load key={key}</ansired>"))
 
-    def load_ledger_cli_owners(self):
+    def load_ledger_cli_owners(self, legacy_account: bool = False):
         if not self.ledger_manager:
             return None
 
-        ledger_accounts = self.ledger_manager.get_accounts()
+        ledger_accounts = self.ledger_manager.get_accounts(
+            legacy_account=legacy_account
+        )
         if len(ledger_accounts) == 0:
             return None
 
