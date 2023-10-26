@@ -102,7 +102,7 @@ class SafeTxServiceOperator(SafeOperator):
             for account in self.accounts:
                 if account.address in owners:
                     safe_tx.sign(account.key)
-            # Check if there is ledger signers
+            # Check if there are ledger signers
             if self.ledger_manager:
                 selected_ledger_accounts = []
                 for ledger_account in self.ledger_manager.accounts:
