@@ -76,7 +76,7 @@ To unload an owner:
 > unload_cli_owners <ethereum_checksummed_address>
 ```
 
-Operations currently supported:
+## Operations currently supported:
 - `send_custom <address> <value-wei> <data-hex-str> [--delegate] [--safe-nonce <int>]`:
 Sends a custom transaction from the Safe to a contract. If `--delegate` is set a `delegatecall`
 will be triggered.
@@ -165,6 +165,36 @@ configured by default. If you want to use your own you can edit the file `safe_c
 
 Be careful when modifying these addresses, the funds in a Safe can get stuck if an invalid address it's used when updating
 to an invalid Safe Master Copy.
+
+## Recovery Safe Deployment Guide
+This guide will walk you through the process of recreating a Safe with the same address on the desired network.
+### Recreate Safe 1.3.0 or 1.1.1
+To recreate a Safe (version 1.3.0 or 1.1.1), you'll need the following essential data::
+- The `Singleton` address
+- The `ProxyFactory` address
+- The `FallbackHandler` address
+- The `Owners` addresses with which Safe was created
+- The `SaltNonce` value
+- The `threeshold` value
+- RPC node provider for the target chain.
+- The private-key of deployer address
+
+The necessary addresses can be collected from [safe-deployments](https://github.com/safe-global/safe-deployments/tree/main/src/assets) and the salt nonce from the Safe creation transaction.
+
+Ensure that the `Singleton`, `ProxyFactory`, and `FallbackHandler` are deployed in the target chain with the same address as the previous chain.
+
+To recreate the Safe is necessary execute `safe-creator` as follows:
+```commandline
+safe-creator --owners <owners-addresses> --safe-contract <singleton-address>
+--callback-handler <fallback-handler-address> --proxy-factory <proxy-factory-address>
+--threshold <threshold-value> --salt-nonce <salt-nonce-value> <url-rpc-node>  <deployer-private-key>
+```
+The Safe should have been successfully recreated with the same address on the target chain. If not, double-check the data collected from the transaction and ensure that all the necessary contracts are deployed in the chain.
+
+### Migrate a Safe from Non L2 to L2
+If you've recreated a Safe originally using the L1 singleton on a L2 network, it implies that our services aren't currently indexing the new Safe.
+To address this, you'll need to update it to the L2 singleton with command `update_to_l2`  or consider transferring the funds to a new Safe on L2 that you control with `drain` command.
+For detailed instructions on running these commands, please refer to the [Operations currently supported](#Operations-currently-supported) section for more information.
 
 ## Safe contracts
 - [Safe contracts](https://github.com/safe-global/safe-contracts)
