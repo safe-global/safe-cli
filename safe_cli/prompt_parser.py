@@ -10,25 +10,25 @@ from .argparse_validators import (
     check_hex_str,
     check_keccak256_hash,
 )
-from .operators.safe_operator import (
+from .operators import SafeServiceNotAvailable
+from .operators.exceptions import (
     AccountNotLoadedException,
     ExistingOwnerException,
     FallbackHandlerNotSupportedException,
+    HardwareWalletException,
     HashAlreadyApproved,
-    HwDeviceException,
     InvalidMasterCopyException,
     NonExistingOwnerException,
     NotEnoughEtherToSend,
     NotEnoughSignatures,
     NotEnoughTokenToSend,
     SafeAlreadyUpdatedException,
-    SafeOperator,
-    SafeServiceNotAvailable,
     SameFallbackHandlerException,
     SameMasterCopyException,
     SenderRequiredException,
     ThresholdLimitException,
 )
+from .operators.safe_operator import SafeOperator
 
 
 def safe_exception(function):
@@ -117,7 +117,7 @@ def safe_exception(function):
                     f"<ansired>Service not available for network {e.args[0]}</ansired>"
                 )
             )
-        except HwDeviceException as e:
+        except HardwareWalletException as e:
             print_formatted_text(
                 HTML(f"<ansired>HwDevice exception: {e.args[0]}</ansired>")
             )

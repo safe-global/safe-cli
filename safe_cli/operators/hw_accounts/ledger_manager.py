@@ -11,7 +11,7 @@ from gnosis.eth.eip712 import eip712_encode
 from gnosis.safe import SafeTx
 from gnosis.safe.signatures import signature_to_bytes
 
-from safe_cli.operators.hw_accounts.hw_exceptions import hw_account_exception
+from safe_cli.operators.hw_accounts.exceptions import raise_as_hw_account_exception
 
 
 class LedgerManager:
@@ -32,14 +32,14 @@ class LedgerManager:
             return False
 
     @property
-    @hw_account_exception
+    @raise_as_hw_account_exception
     def connected(self) -> bool:
         """
         :return: True if ledger is connected or False in other case
         """
         return self.connect()
 
-    @hw_account_exception
+    @raise_as_hw_account_exception
     def get_accounts(
         self, legacy_account: Optional[bool] = False, number_accounts: Optional[int] = 5
     ) -> List[Tuple[ChecksumAddress, str]]:
@@ -61,7 +61,7 @@ class LedgerManager:
             accounts.append((account.address, account.path))
         return accounts
 
-    @hw_account_exception
+    @raise_as_hw_account_exception
     def add_account(self, derivation_path: str):
         """
         Add an account to ledger manager set
@@ -87,7 +87,7 @@ class LedgerManager:
         self.accounts = self.accounts.difference(accounts_to_remove)
         return accounts_to_remove
 
-    @hw_account_exception
+    @raise_as_hw_account_exception
     def sign_eip712(self, safe_tx: SafeTx, accounts: List[LedgerAccount]) -> SafeTx:
         """
         Call ledger ethereum app method to sign eip712 hashes with a ledger account

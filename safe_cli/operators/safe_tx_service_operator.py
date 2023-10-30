@@ -13,12 +13,9 @@ from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
 from safe_cli.utils import yes_or_no_question
 
-from .safe_operator import (
-    AccountNotLoadedException,
-    NonExistingOwnerException,
-    SafeOperator,
-    SafeServiceNotAvailable,
-)
+from . import SafeServiceNotAvailable
+from .exceptions import AccountNotLoadedException, NonExistingOwnerException
+from .safe_operator import SafeOperator
 
 
 class SafeTxServiceOperator(SafeOperator):

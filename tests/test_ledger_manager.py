@@ -17,8 +17,8 @@ from gnosis.safe import SafeTx
 from gnosis.safe.signatures import signature_split
 from gnosis.safe.tests.safe_test_case import SafeTestCaseMixin
 
+from safe_cli.operators.exceptions import HardwareWalletException
 from safe_cli.operators.hw_accounts.ledger_manager import LedgerManager
-from safe_cli.operators.safe_operator import HwDeviceException
 
 
 class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
@@ -79,38 +79,38 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
 
         mock_ledger_fn.side_effect = LedgerNotFound
         mock_sign.side_effect = LedgerNotFound
-        with self.assertRaises(HwDeviceException):
+        with self.assertRaises(HardwareWalletException):
             ledger_manager.get_accounts()
-        with self.assertRaises(HwDeviceException):
+        with self.assertRaises(HardwareWalletException):
             ledger_manager.add_account(derivation_path)
-        with self.assertRaises(HwDeviceException):
+        with self.assertRaises(HardwareWalletException):
             ledger_manager.sign_eip712(safe_tx, [ledger_account])
 
         mock_ledger_fn.side_effect = LedgerLocked
         mock_sign.side_effect = LedgerLocked
-        with self.assertRaises(HwDeviceException):
+        with self.assertRaises(HardwareWalletException):
             ledger_manager.get_accounts()
-        with self.assertRaises(HwDeviceException):
+        with self.assertRaises(HardwareWalletException):
             ledger_manager.add_account(derivation_path)
-        with self.assertRaises(HwDeviceException):
+        with self.assertRaises(HardwareWalletException):
             ledger_manager.sign_eip712(safe_tx, [ledger_account])
 
         mock_ledger_fn.side_effect = LedgerAppNotOpened
         mock_sign.side_effect = LedgerAppNotOpened
-        with self.assertRaises(HwDeviceException):
+        with self.assertRaises(HardwareWalletException):
             ledger_manager.get_accounts()
-        with self.assertRaises(HwDeviceException):
+        with self.assertRaises(HardwareWalletException):
             ledger_manager.add_account(derivation_path)
-        with self.assertRaises(HwDeviceException):
+        with self.assertRaises(HardwareWalletException):
             ledger_manager.sign_eip712(safe_tx, [ledger_account])
 
         mock_ledger_fn.side_effect = LedgerCancel
         mock_sign.side_effect = LedgerCancel
-        with self.assertRaises(HwDeviceException):
+        with self.assertRaises(HardwareWalletException):
             ledger_manager.get_accounts()
-        with self.assertRaises(HwDeviceException):
+        with self.assertRaises(HardwareWalletException):
             ledger_manager.add_account(derivation_path)
-        with self.assertRaises(HwDeviceException):
+        with self.assertRaises(HardwareWalletException):
             ledger_manager.sign_eip712(safe_tx, [ledger_account])
 
     @mock.patch(

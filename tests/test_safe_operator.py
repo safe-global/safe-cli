@@ -10,7 +10,7 @@ from gnosis.eth import EthereumClient
 from gnosis.safe import Safe
 from gnosis.safe.multi_send import MultiSend
 
-from safe_cli.operators.safe_operator import (
+from safe_cli.operators.exceptions import (
     AccountNotLoadedException,
     ExistingOwnerException,
     FallbackHandlerNotSupportedException,
@@ -22,12 +22,12 @@ from safe_cli.operators.safe_operator import (
     NonExistingOwnerException,
     NotEnoughEtherToSend,
     NotEnoughSignatures,
-    SafeOperator,
     SameFallbackHandlerException,
     SameGuardException,
     SameMasterCopyException,
     SenderRequiredException,
 )
+from safe_cli.operators.safe_operator import SafeOperator
 from safe_cli.utils import get_erc_20_list
 from tests.utils import generate_transfers_erc20
 

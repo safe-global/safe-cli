@@ -34,6 +34,26 @@ from gnosis.safe.api import TransactionServiceApi
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
 from safe_cli.ethereum_hd_wallet import get_account_from_words
+from safe_cli.operators.exceptions import (
+    AccountNotLoadedException,
+    ExistingOwnerException,
+    FallbackHandlerNotSupportedException,
+    GuardNotSupportedException,
+    HashAlreadyApproved,
+    InvalidFallbackHandlerException,
+    InvalidGuardException,
+    InvalidMasterCopyException,
+    NonExistingOwnerException,
+    NotEnoughEtherToSend,
+    NotEnoughSignatures,
+    SafeAlreadyUpdatedException,
+    SameFallbackHandlerException,
+    SameGuardException,
+    SameMasterCopyException,
+    SenderRequiredException,
+    ThresholdLimitException,
+    UpdateAddressesNotValid,
+)
 from safe_cli.safe_addresses import (
     get_default_fallback_handler_address,
     get_safe_contract_address,
@@ -61,94 +81,6 @@ class SafeCliInfo:
             f"master-copy={self.master_copy} fallback-hander={self.fallback_handler} "
             f"modules={self.modules} balance-ether={self.balance_ether:.4f}"
         )
-
-
-class SafeOperatorException(Exception):
-    pass
-
-
-class ExistingOwnerException(SafeOperatorException):
-    pass
-
-
-class NonExistingOwnerException(SafeOperatorException):
-    pass
-
-
-class HashAlreadyApproved(SafeOperatorException):
-    pass
-
-
-class ThresholdLimitException(SafeOperatorException):
-    pass
-
-
-class SameFallbackHandlerException(SafeOperatorException):
-    pass
-
-
-class InvalidFallbackHandlerException(SafeOperatorException):
-    pass
-
-
-class FallbackHandlerNotSupportedException(SafeOperatorException):
-    pass
-
-
-class SameGuardException(SafeOperatorException):
-    pass
-
-
-class InvalidGuardException(SafeOperatorException):
-    pass
-
-
-class GuardNotSupportedException(SafeOperatorException):
-    pass
-
-
-class SameMasterCopyException(SafeOperatorException):
-    pass
-
-
-class SafeAlreadyUpdatedException(SafeOperatorException):
-    pass
-
-
-class UpdateAddressesNotValid(SafeOperatorException):
-    pass
-
-
-class SenderRequiredException(SafeOperatorException):
-    pass
-
-
-class AccountNotLoadedException(SafeOperatorException):
-    pass
-
-
-class NotEnoughSignatures(SafeOperatorException):
-    pass
-
-
-class InvalidMasterCopyException(SafeOperatorException):
-    pass
-
-
-class NotEnoughEtherToSend(SafeOperatorException):
-    pass
-
-
-class NotEnoughTokenToSend(SafeOperatorException):
-    pass
-
-
-class SafeServiceNotAvailable(SafeOperatorException):
-    pass
-
-
-class HwDeviceException(SafeOperatorException):
-    pass
 
 
 def require_tx_service(f):
