@@ -103,7 +103,7 @@ class LedgerManager:
         for account in accounts:
             print_formatted_text(
                 HTML(
-                    "Ensure to compare in your ledger before to sign that domain_hash and message_hash are  both correct"
+                    "<ansired>Make sure in your ledger before signing that domain_hash and message_hash are both correct</ansired>"
                 )
             )
             print_formatted_text(HTML(f"Domain_hash: <b>{domain_hash.hex()}</b>"))

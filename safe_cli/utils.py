@@ -1,5 +1,7 @@
-import argparse
 import os
+from typing import Optional
+
+from prompt_toolkit import HTML, print_formatted_text
 
 from gnosis.eth import EthereumClient
 
@@ -46,12 +48,21 @@ def yes_or_no_question(question: str, default_no: bool = True) -> bool:
 
 def choose_option_question(
     question: str, number_options: int, default_option: int = 0
-) -> bool:
+) -> Optional[int]:
     if "PYTEST_CURRENT_TEST" in os.environ:
-        return 0  # Ignore confirmations when running tests
+        return default_option  # Ignore confirmations when running tests
     choices = f" [0-{number_options}] default {default_option}:"
-    reply = str(input(question + choices)).lower().strip() or str(default_option)
-    option = int(reply)
+    reply = str(get_input(question + choices)).lower().strip() or str(default_option)
+    try:
+        option = int(reply)
+    except ValueError:
+        print_formatted_text(HTML("<ansired> Option must be an integer </ansired>"))
+        return None
+
     if option not in range(0, number_options):
-        argparse.ArgumentTypeError(f"{option} is not between [0-{number_options}}}")
+        print_formatted_text(
+            HTML(f"<ansired> {option} is not between [0-{number_options}}} </ansired>")
+        )
+        return None
+
     return option

@@ -292,16 +292,18 @@ class SafeOperator:
         option = choose_option_question(
             "Select the owner address", len(ledger_accounts) - 1
         )
+        if option is None:
+            return None
         address, derivation_path = ledger_accounts[option]
-        if self.ledger_manager.add_account(derivation_path):
-            balance = self.ethereum_client.get_balance(address)
-            print_formatted_text(
-                HTML(
-                    f"Loaded account <b>{address}</b> "
-                    f'with balance={Web3.from_wei(balance, "ether")} ether'
-                    f"Ledger account cannot be defined as sender"
-                )
+        self.ledger_manager.add_account(derivation_path)
+        balance = self.ethereum_client.get_balance(address)
+        print_formatted_text(
+            HTML(
+                f"Loaded account <b>{address}</b> "
+                f'with balance={Web3.from_wei(balance, "ether")} ether'
+                f"Ledger account cannot be defined as sender"
             )
+        )
 
     def unload_cli_owners(self, owners: List[str]):
         accounts_to_remove: Set[Account] = set()
