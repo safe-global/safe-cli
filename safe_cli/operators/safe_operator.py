@@ -117,6 +117,19 @@ def require_default_sender(f):
     return decorated
 
 
+def load_ledger_manager():
+    """
+    Load ledgerManager if dependencies are installed
+    :return: LedgerManager or None
+    """
+    try:
+        from safe_cli.operators.hw_accounts.ledger_manager import LedgerManager
+
+        return LedgerManager()
+    except (ModuleNotFoundError, IOError):
+        return None
+
+
 class SafeOperator:
     address: ChecksumAddress
     node_url: str
@@ -164,12 +177,7 @@ class SafeOperator:
         self.require_all_signatures = (
             True  # Require all signatures to be present to send a tx
         )
-        try:
-            from safe_cli.operators.hw_accounts.ledger_manager import LedgerManager
-
-            self.ledger_manager = LedgerManager()
-        except (ModuleNotFoundError, IOError):
-            self.ledger_manager = None
+        self.ledger_manager = load_ledger_manager()
 
     @cached_property
     def last_default_fallback_handler_address(self) -> ChecksumAddress:
