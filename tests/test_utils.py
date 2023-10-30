@@ -3,7 +3,7 @@ import unittest
 from unittest import mock
 from unittest.mock import MagicMock
 
-from safe_cli.utils import yes_or_no_question
+from safe_cli.utils import choose_option_question, yes_or_no_question
 
 
 class TestUtils(unittest.TestCase):
@@ -31,6 +31,23 @@ class TestUtils(unittest.TestCase):
 
         input_mock.return_value = "random"
         self.assertFalse(yes_or_no_question(""))
+
+        os.environ["PYTEST_CURRENT_TEST"] = pytest_current_test
+
+    @mock.patch("safe_cli.utils.get_input")
+    def test_choose_option_question(self, input_mock: MagicMock):
+        pytest_current_test = os.environ.pop("PYTEST_CURRENT_TEST")
+
+        input_mock.return_value = ""
+        self.assertEqual(choose_option_question("", 1), 0)
+        input_mock.return_value = ""
+        self.assertEqual(choose_option_question("", 5, 4), 4)
+        input_mock.return_value = "m"
+        self.assertIsNone(choose_option_question("", 1))
+        input_mock.return_value = "10"
+        self.assertIsNone(choose_option_question("", 1))
+        input_mock.return_value = "1"
+        self.assertEqual(choose_option_question("", 2), 1)
 
         os.environ["PYTEST_CURRENT_TEST"] = pytest_current_test
 

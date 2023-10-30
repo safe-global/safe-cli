@@ -34,12 +34,32 @@ from gnosis.safe.api import TransactionServiceApi
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
 from safe_cli.ethereum_hd_wallet import get_account_from_words
+from safe_cli.operators.exceptions import (
+    AccountNotLoadedException,
+    ExistingOwnerException,
+    FallbackHandlerNotSupportedException,
+    GuardNotSupportedException,
+    HashAlreadyApproved,
+    InvalidFallbackHandlerException,
+    InvalidGuardException,
+    InvalidMasterCopyException,
+    NonExistingOwnerException,
+    NotEnoughEtherToSend,
+    NotEnoughSignatures,
+    SafeAlreadyUpdatedException,
+    SameFallbackHandlerException,
+    SameGuardException,
+    SameMasterCopyException,
+    SenderRequiredException,
+    ThresholdLimitException,
+    UpdateAddressesNotValid,
+)
 from safe_cli.safe_addresses import (
     get_default_fallback_handler_address,
     get_safe_contract_address,
     get_safe_l2_contract_address,
 )
-from safe_cli.utils import get_erc_20_list, yes_or_no_question
+from safe_cli.utils import choose_option_question, get_erc_20_list, yes_or_no_question
 
 
 @dataclasses.dataclass
@@ -61,90 +81,6 @@ class SafeCliInfo:
             f"master-copy={self.master_copy} fallback-hander={self.fallback_handler} "
             f"modules={self.modules} balance-ether={self.balance_ether:.4f}"
         )
-
-
-class SafeOperatorException(Exception):
-    pass
-
-
-class ExistingOwnerException(SafeOperatorException):
-    pass
-
-
-class NonExistingOwnerException(SafeOperatorException):
-    pass
-
-
-class HashAlreadyApproved(SafeOperatorException):
-    pass
-
-
-class ThresholdLimitException(SafeOperatorException):
-    pass
-
-
-class SameFallbackHandlerException(SafeOperatorException):
-    pass
-
-
-class InvalidFallbackHandlerException(SafeOperatorException):
-    pass
-
-
-class FallbackHandlerNotSupportedException(SafeOperatorException):
-    pass
-
-
-class SameGuardException(SafeOperatorException):
-    pass
-
-
-class InvalidGuardException(SafeOperatorException):
-    pass
-
-
-class GuardNotSupportedException(SafeOperatorException):
-    pass
-
-
-class SameMasterCopyException(SafeOperatorException):
-    pass
-
-
-class SafeAlreadyUpdatedException(SafeOperatorException):
-    pass
-
-
-class UpdateAddressesNotValid(SafeOperatorException):
-    pass
-
-
-class SenderRequiredException(SafeOperatorException):
-    pass
-
-
-class AccountNotLoadedException(SafeOperatorException):
-    pass
-
-
-class NotEnoughSignatures(SafeOperatorException):
-    pass
-
-
-class InvalidMasterCopyException(SafeOperatorException):
-    pass
-
-
-class NotEnoughEtherToSend(SafeOperatorException):
-    pass
-
-
-class NotEnoughTokenToSend(SafeOperatorException):
-    pass
-
-
-class SafeServiceNotAvailable(SafeOperatorException):
-    pass
 
 
 def require_tx_service(f):
@@ -179,6 +115,19 @@ def require_default_sender(f):
             return f(self, *args, **kwargs)
 
     return decorated
+
+
+def load_ledger_manager():
+    """
+    Load ledgerManager if dependencies are installed
+    :return: LedgerManager or None
+    """
+    try:
+        from safe_cli.operators.hw_accounts.ledger_manager import LedgerManager
+
+        return LedgerManager()
+    except (ModuleNotFoundError, IOError):
+        return None
 
 
 class SafeOperator:
@@ -228,6 +177,7 @@ class SafeOperator:
         self.require_all_signatures = (
             True  # Require all signatures to be present to send a tx
         )
+        self.ledger_manager = load_ledger_manager()
 
     @cached_property
     def last_default_fallback_handler_address(self) -> ChecksumAddress:
@@ -325,6 +275,36 @@ class SafeOperator:
             except ValueError:
                 print_formatted_text(HTML(f"<ansired>Cannot load key={key}</ansired>"))
 
+    def load_ledger_cli_owners(self, legacy_account: bool = False):
+        if not self.ledger_manager:
+            return None
+
+        ledger_accounts = self.ledger_manager.get_accounts(
+            legacy_account=legacy_account
+        )
+        if len(ledger_accounts) == 0:
+            return None
+
+        for option, ledger_account in enumerate(ledger_accounts):
+            address, _ = ledger_account
+            print_formatted_text(HTML(f"{option} - <b>{address}</b> "))
+
+        option = choose_option_question(
+            "Select the owner address", len(ledger_accounts) - 1
+        )
+        if option is None:
+            return None
+        address, derivation_path = ledger_accounts[option]
+        self.ledger_manager.add_account(derivation_path)
+        balance = self.ethereum_client.get_balance(address)
+        print_formatted_text(
+            HTML(
+                f"Loaded account <b>{address}</b> "
+                f'with balance={Web3.from_wei(balance, "ether")} ether'
+                f"Ledger account cannot be defined as sender"
+            )
+        )
+
     def unload_cli_owners(self, owners: List[str]):
         accounts_to_remove: Set[Account] = set()
         for owner in owners:
@@ -335,6 +315,12 @@ class SafeOperator:
                     accounts_to_remove.add(account)
                     break
         self.accounts = self.accounts.difference(accounts_to_remove)
+        # Check if there are ledger owners
+        if self.ledger_manager and len(accounts_to_remove) < len(owners):
+            accounts_to_remove = (
+                accounts_to_remove | self.ledger_manager.delete_accounts(owners)
+            )
+
         if accounts_to_remove:
             print_formatted_text(
                 HTML("<ansigreen>Accounts have been deleted</ansigreen>")
@@ -343,10 +329,15 @@ class SafeOperator:
             print_formatted_text(HTML("<ansired>No account was deleted</ansired>"))
 
     def show_cli_owners(self):
-        if not self.accounts:
+        accounts = (
+            self.accounts | self.ledger_manager.accounts
+            if self.ledger_manager
+            else self.accounts
+        )
+        if not accounts:
             print_formatted_text(HTML("<ansired>No accounts loaded</ansired>"))
         else:
-            for account in self.accounts:
+            for account in accounts:
                 print_formatted_text(
                     HTML(
                         f"<ansigreen><b>Account</b> {account.address} loaded</ansigreen>"
@@ -677,6 +668,28 @@ class SafeOperator:
                 )
             )
 
+        if not self.ledger_manager:
+            print_formatted_text(
+                HTML(
+                    "<b><ansigreen>Ledger</ansigreen></b>="
+                    "<ansired>Disabled </ansired> <b>Optional ledger library is not installed, run pip install safe-cli[ledger] </b>"
+                )
+            )
+        elif self.ledger_manager.connected:
+            print_formatted_text(
+                HTML(
+                    "<b><ansigreen>Ledger</ansigreen></b>="
+                    "<ansiblue>Connected</ansiblue>"
+                )
+            )
+        else:
+            print_formatted_text(
+                HTML(
+                    "<b><ansigreen>Ledger</ansigreen></b>="
+                    "<ansiblue>disconnected</ansiblue>"
+                )
+            )
+
         if not self.is_version_updated():
             print_formatted_text(
                 HTML(
@@ -870,12 +883,25 @@ class SafeOperator:
                 threshold -= 1
                 if threshold == 0:
                     break
+        # If still pending required signatures continue with ledger owners
+        selected_ledger_accounts = []
+        if threshold > 0 and self.ledger_manager:
+            for ledger_account in self.ledger_manager.accounts:
+                if ledger_account.address in permitted_signers:
+                    selected_ledger_accounts.append(ledger_account)
+                    threshold -= 1
+                    if threshold == 0:
+                        break
 
         if self.require_all_signatures and threshold > 0:
             raise NotEnoughSignatures(threshold)
 
         for selected_account in selected_accounts:
             safe_tx.sign(selected_account.key)
+
+        # Sign with ledger
+        if len(selected_ledger_accounts) > 0:
+            safe_tx = self.ledger_manager.sign_eip712(safe_tx, selected_ledger_accounts)
 
         return safe_tx
 

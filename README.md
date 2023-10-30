@@ -121,7 +121,20 @@ the information about the Safe using:
 ```
 > refresh
 ```
+## Ledger module
+Ledger module is an optional feature of safe-cli to sign transactions with the help of [ledgereth](https://github.com/mikeshultz/ledger-eth-lib) library based on [ledgerblue](https://github.com/LedgerHQ/blue-loader-python).
 
+To enable, safe-cli must be installed as follows:
+```
+pip install safe-cli[ledger]
+```
+When running on Linux, make sure the following rules have been added to `/etc/udev/rules.d/`:
+```commandline
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="2c97", ATTRS{idProduct}=="0000", MODE="0660", TAG+="uaccess", TAG+="udev-acl" OWNER="<UNIX username>"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="2c97", ATTRS{idProduct}=="0001", MODE="0660", TAG+="uaccess", TAG+="udev-acl" OWNER="<UNIX username>"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="2c97", ATTRS{idProduct}=="0004", MODE="0660", TAG+="uaccess", TAG+="udev-acl" OWNER="<UNIX username>"
+```
+**NOTE**: before signing anything ensure that the data showing on your ledger is the same as the safe-cli data.
 ## Creating a new Safe
 Use `safe-creator <node_url> <private_key> --owners <checksummed_address_1> <checksummed_address_2> --threshold <uint> --salt-nonce <uint256>`.
 

@@ -3,13 +3,14 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 from eth_account import Account
+from ledgereth.objects import LedgerAccount
 from web3 import Web3
 
 from gnosis.eth import EthereumClient
 from gnosis.safe import Safe
 from gnosis.safe.multi_send import MultiSend
 
-from safe_cli.operators.safe_operator import (
+from safe_cli.operators.exceptions import (
     AccountNotLoadedException,
     ExistingOwnerException,
     FallbackHandlerNotSupportedException,
@@ -21,12 +22,12 @@ from safe_cli.operators.safe_operator import (
     NonExistingOwnerException,
     NotEnoughEtherToSend,
     NotEnoughSignatures,
-    SafeOperator,
     SameFallbackHandlerException,
     SameGuardException,
     SameMasterCopyException,
     SenderRequiredException,
 )
+from safe_cli.operators.safe_operator import SafeOperator
 from safe_cli.utils import get_erc_20_list
 from tests.utils import generate_transfers_erc20
 
@@ -63,9 +64,37 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         # Test unload cli owner
         safe_operator.default_sender = random_accounts[0]
         number_of_accounts = len(safe_operator.accounts)
-        safe_operator.unload_cli_owners(["aloha", random_accounts[0].address, "bye"])
+        ledger_random_address = Account.create().address
+        safe_operator.ledger_manager.accounts.add(
+            LedgerAccount("44'/60'/0'/1", ledger_random_address)
+        )
+        self.assertEqual(len(safe_operator.ledger_manager.accounts), 1)
+        safe_operator.unload_cli_owners(
+            ["aloha", random_accounts[0].address, "bye", ledger_random_address]
+        )
         self.assertEqual(len(safe_operator.accounts), number_of_accounts - 1)
         self.assertFalse(safe_operator.default_sender)
+        self.assertEqual(len(safe_operator.ledger_manager.accounts), 0)
+
+    @mock.patch("safe_cli.operators.hw_accounts.ledger_manager.get_account_by_path")
+    def test_load_ledger_cli_owner(self, mock_get_account_by_path: MagicMock):
+        owner_address = Account.create().address
+        safe_address = self.deploy_test_safe(owners=[owner_address]).address
+        safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
+        safe_operator.ledger_manager.get_accounts = MagicMock(return_value=[])
+        safe_operator.load_ledger_cli_owners()
+        self.assertEqual(len(safe_operator.ledger_manager.accounts), 0)
+        random_account = Account.create().address
+        other_random_account = Account.create().address
+        safe_operator.ledger_manager.get_accounts.return_value = [
+            (random_account, "44'/60'/0'/0/0"),
+            (other_random_account, "44'/60'/0'/0/1"),
+        ]
+        mock_get_account_by_path.return_value = LedgerAccount(
+            "44'/60'/0'/0/0", random_account
+        )
+        safe_operator.load_ledger_cli_owners()
+        self.assertEqual(len(safe_operator.ledger_manager.accounts), 1)
 
     def test_approve_hash(self):
         safe_address = self.deploy_test_safe(

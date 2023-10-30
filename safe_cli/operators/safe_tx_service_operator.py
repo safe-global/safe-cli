@@ -13,12 +13,9 @@ from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 
 from safe_cli.utils import yes_or_no_question
 
-from .safe_operator import (
-    AccountNotLoadedException,
-    NonExistingOwnerException,
-    SafeOperator,
-    SafeServiceNotAvailable,
-)
+from . import SafeServiceNotAvailable
+from .exceptions import AccountNotLoadedException, NonExistingOwnerException
+from .safe_operator import SafeOperator
 
 
 class SafeTxServiceOperator(SafeOperator):
@@ -102,6 +99,16 @@ class SafeTxServiceOperator(SafeOperator):
             for account in self.accounts:
                 if account.address in owners:
                     safe_tx.sign(account.key)
+            # Check if there are ledger signers
+            if self.ledger_manager:
+                selected_ledger_accounts = []
+                for ledger_account in self.ledger_manager.accounts:
+                    if ledger_account.address in owners:
+                        selected_ledger_accounts.append(ledger_account)
+                if len(selected_ledger_accounts) > 0:
+                    safe_tx = self.ledger_manager.sign_eip712(
+                        safe_tx, selected_ledger_accounts
+                    )
 
             if safe_tx.signers:
                 self.safe_tx_service.post_signatures(safe_tx_hash, safe_tx.signatures)

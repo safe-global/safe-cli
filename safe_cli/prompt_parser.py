@@ -10,10 +10,12 @@ from .argparse_validators import (
     check_hex_str,
     check_keccak256_hash,
 )
-from .operators.safe_operator import (
+from .operators import SafeServiceNotAvailable
+from .operators.exceptions import (
     AccountNotLoadedException,
     ExistingOwnerException,
     FallbackHandlerNotSupportedException,
+    HardwareWalletException,
     HashAlreadyApproved,
     InvalidMasterCopyException,
     NonExistingOwnerException,
@@ -21,13 +23,12 @@ from .operators.safe_operator import (
     NotEnoughSignatures,
     NotEnoughTokenToSend,
     SafeAlreadyUpdatedException,
-    SafeOperator,
-    SafeServiceNotAvailable,
     SameFallbackHandlerException,
     SameMasterCopyException,
     SenderRequiredException,
     ThresholdLimitException,
 )
+from .operators.safe_operator import SafeOperator
 
 
 def safe_exception(function):
@@ -116,6 +117,10 @@ def safe_exception(function):
                     f"<ansired>Service not available for network {e.args[0]}</ansired>"
                 )
             )
+        except HardwareWalletException as e:
+            print_formatted_text(
+                HTML(f"<ansired>HwDevice exception: {e.args[0]}</ansired>")
+            )
 
     return wrapper
 
@@ -151,6 +156,10 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     @safe_exception
     def load_cli_owners(args):
         safe_operator.load_cli_owners(args.keys)
+
+    @safe_exception
+    def load_ledger_cli_owners(args):
+        safe_operator.load_ledger_cli_owners(args.legacy_accounts)
 
     @safe_exception
     def unload_cli_owners(args):
@@ -291,6 +300,14 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_load_cli_owners = subparsers.add_parser("load_cli_owners")
     parser_load_cli_owners.add_argument("keys", type=str, nargs="+")
     parser_load_cli_owners.set_defaults(func=load_cli_owners)
+
+    parser_load_ledger_cli_owners = subparsers.add_parser("load_ledger_cli_owners")
+    parser_load_ledger_cli_owners.add_argument(
+        "--legacy-accounts",
+        action="store_true",
+        help="Enable search legacy accounts",
+    )
+    parser_load_ledger_cli_owners.set_defaults(func=load_ledger_cli_owners)
 
     parser_unload_cli_owners = subparsers.add_parser("unload_cli_owners")
     parser_unload_cli_owners.add_argument(

@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 from eth_account import Account
 from hexbytes import HexBytes
+from ledgereth.objects import LedgerAccount
 from web3 import Web3
 
 from gnosis.eth import EthereumClient
@@ -133,6 +134,24 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         # Cannot sign executed transactions
         get_safe_transaction_mock.return_value = GetMultisigTxRequestMock(executed=True)
         self.assertFalse(safe_operator.submit_signatures(safe_tx_hash))
+
+        # Test ledger signers
+        with mock.patch.object(
+            SafeTx, "signers", return_value=["signer"], new_callable=mock.PropertyMock
+        ) as mock_safe_tx:
+            safe_operator.ledger_manager.sign_eip712 = MagicMock(
+                return_value=mock_safe_tx
+            )
+            get_safe_transaction_mock.return_value = GetMultisigTxRequestMock(
+                executed=False
+            )
+            safe_operator.ledger_manager.accounts.add(
+                LedgerAccount("44'/60'/0'/0", Account.create().address)
+            )
+            get_permitted_signers_mock.return_value = {
+                list(safe_operator.ledger_manager.accounts)[0].address
+            }
+            self.assertTrue(safe_operator.submit_signatures(safe_tx_hash))
 
     @mock.patch.object(TransactionServiceApi, "post_transaction", return_value=True)
     @mock.patch.object(
