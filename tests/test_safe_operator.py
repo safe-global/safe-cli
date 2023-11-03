@@ -1,5 +1,5 @@
 import unittest
-from functools import cache
+from functools import lru_cache
 from unittest import mock
 from unittest.mock import MagicMock
 
@@ -246,7 +246,7 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         self.assertTrue(safe_operator.send_ether(random_address, value))
         self.assertEqual(self.ethereum_client.get_balance(random_address), value)
 
-    @cache
+    @lru_cache(maxsize=None)
     def _deploy_l2_migration_contract(self) -> ChecksumAddress:
         # Deploy L2 migration contract
         safe_to_l2_migration_contract = self.w3.eth.contract(
