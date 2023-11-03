@@ -98,6 +98,10 @@ THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 - `change_master_copy <address>`: Updates the master copy to be `address`. It's used to update the Safe. **WARNING: DON'T USE
 THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 - `update`: Updates the Safe to the latest version (if you are on a known network like `Goerli` or `Mainnet`).
+- `update_to_l2 <address>`: Updates a v1.1.1/v1.3.0/v1.4.1 non L2 Safe to a L2 Safe supported by Safe Wallet UI.
+The migration contract address needs to be provided.
+It can be found [here](https://github.com/safe-global/safe-contracts/blob/main/contracts/libraries/SafeToL2Migration.sol).
+Nonce for the Safe must be 0 and supported versions are v1.1.1, v1.3.0 and v1.4.1.
 **WARNING: DON'T USE THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 
 Operations on `tx-service` mode, requires a Safe Transaction Service working on the network
