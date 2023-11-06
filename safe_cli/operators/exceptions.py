@@ -50,6 +50,10 @@ class SafeAlreadyUpdatedException(SafeOperatorException):
     pass
 
 
+class SafeVersionNotSupportedException(SafeOperatorException):
+    pass
+
+
 class UpdateAddressesNotValid(SafeOperatorException):
     pass
 

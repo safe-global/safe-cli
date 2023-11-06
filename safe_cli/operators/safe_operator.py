@@ -50,6 +50,7 @@ from safe_cli.operators.exceptions import (
     NotEnoughEtherToSend,
     NotEnoughSignatures,
     SafeAlreadyUpdatedException,
+    SafeVersionNotSupportedException,
     SameFallbackHandlerException,
     SameGuardException,
     SameMasterCopyException,
@@ -213,25 +214,29 @@ class SafeOperator:
             self._safe_cli_info = self.refresh_safe_cli_info()
         return self._safe_cli_info
 
+    def refresh_safe_cli_info(self) -> SafeCliInfo:
+        self._safe_cli_info = self.get_safe_cli_info()
+        return self._safe_cli_info
+
     def is_version_updated(self) -> bool:
         """
         :return: True if Safe Master Copy is updated, False otherwise
         """
 
-        if self._safe_cli_info.master_copy == self.last_safe_contract_address:
+        last_safe_contract_address = self.last_safe_contract_address
+        if self.safe_cli_info.master_copy == last_safe_contract_address:
             return True
         else:  # Check versions, maybe safe-cli addresses were not updated
             try:
-                safe_contract_version = self.safe.retrieve_version()
+                safe_contract_version = Safe(
+                    last_safe_contract_address, self.ethereum_client
+                ).retrieve_version()
             except BadFunctionCallOutput:  # Safe master copy is not deployed or errored, maybe custom network
                 return True  # We cannot say you are not updated ¯\_(ツ)_/¯
+
             return semantic_version.parse(
                 self.safe_cli_info.version
             ) >= semantic_version.parse(safe_contract_version)
-
-    def refresh_safe_cli_info(self) -> SafeCliInfo:
-        self._safe_cli_info = self.get_safe_cli_info()
-        return self._safe_cli_info
 
     def load_cli_owners_from_words(self, words: List[str]):
         if len(words) == 1:  # Reading seed from Environment Variable
@@ -531,6 +536,12 @@ class SafeOperator:
         if new_master_copy == self.safe_cli_info.master_copy:
             raise SameMasterCopyException(new_master_copy)
         else:
+            safe_version = self.safe.retrieve_version()
+            if semantic_version.parse(safe_version) >= semantic_version.parse("1.3.0"):
+                raise SafeVersionNotSupportedException(
+                    f"{safe_version} cannot be updated (yet)"
+                )
+
             try:
                 Safe(new_master_copy, self.ethereum_client).retrieve_version()
             except BadFunctionCallOutput:
@@ -550,8 +561,15 @@ class SafeOperator:
 
         :return:
         """
+
+        safe_version = self.safe.retrieve_version()
+        if semantic_version.parse(safe_version) >= semantic_version.parse("1.3.0"):
+            raise SafeVersionNotSupportedException(
+                f"{safe_version} cannot be updated (yet)"
+            )
+
         if self.is_version_updated():
-            raise SafeAlreadyUpdatedException()
+            raise SafeAlreadyUpdatedException(f"{safe_version} already updated")
 
         addresses = (
             self.last_safe_contract_address,
