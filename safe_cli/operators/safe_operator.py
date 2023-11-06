@@ -28,6 +28,7 @@ from gnosis.eth.contracts import (
     get_erc721_contract,
     get_safe_V1_1_1_contract,
 )
+from gnosis.eth.utils import get_empty_tx_params
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
 from gnosis.safe.api import TransactionServiceApi
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
@@ -63,7 +64,7 @@ from safe_cli.safe_addresses import (
 )
 from safe_cli.utils import choose_option_question, get_erc_20_list, yes_or_no_question
 
-from .utils.l2_migration import get_l2_migration_v111_data, get_l2_migration_v130_data
+from ..contracts import safe_to_l2_migration
 
 
 @dataclasses.dataclass
@@ -610,20 +611,29 @@ class SafeOperator:
         if self.safe.retrieve_nonce() > 0:
             raise InvalidNonceException("Nonce must be 0 for non L2 to L2 migration")
 
+        l2_migration_contract = self.ethereum_client.w3.eth.contract(
+            NULL_ADDRESS, abi=safe_to_l2_migration["abi"]
+        )
         if safe_version == "1.1.1":
             safe_l2_singleton = safe_deployments["1.3.0"]["GnosisSafeL2"][str(chain_id)]
             fallback_handler = safe_deployments["1.3.0"][
                 "CompatibilityFallbackHandler"
             ][str(chain_id)]
-            data = get_l2_migration_v111_data(
-                self.safe, safe_l2_singleton, fallback_handler
+            data = HexBytes(
+                l2_migration_contract.functions.migrateFromV111(
+                    safe_l2_singleton, fallback_handler
+                ).build_transaction(get_empty_tx_params())["data"]
             )
         elif safe_version in ("1.3.0", "1.4.1"):
             safe_l2_singleton = safe_deployments[safe_version]["GnosisSafeL2"][
                 str(chain_id)
             ]
             fallback_handler = self.safe_cli_info.fallback_handler
-            data = get_l2_migration_v130_data(self.safe, safe_l2_singleton)
+            data = HexBytes(
+                l2_migration_contract.functions.migrateToL2(
+                    safe_l2_singleton
+                ).build_transaction(get_empty_tx_params())["data"]
+            )
         else:
             raise InvalidMasterCopyException(
                 "Current version is not supported to migrate to L2"

@@ -12,6 +12,7 @@ from gnosis.eth import EthereumClient
 from gnosis.safe import Safe
 from gnosis.safe.multi_send import MultiSend
 
+from safe_cli.contracts import safe_to_l2_migration
 from safe_cli.operators.exceptions import (
     AccountNotLoadedException,
     ExistingOwnerException,
@@ -30,7 +31,6 @@ from safe_cli.operators.exceptions import (
     SenderRequiredException,
 )
 from safe_cli.operators.safe_operator import SafeOperator
-from safe_cli.operators.utils.safe_to_l2_migration import safe_to_l2_migration
 from safe_cli.utils import get_erc_20_list
 from tests.utils import generate_transfers_erc20
 
