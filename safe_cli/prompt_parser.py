@@ -25,6 +25,8 @@ from .operators.exceptions import (
     NotEnoughSignatures,
     NotEnoughTokenToSend,
     SafeAlreadyUpdatedException,
+    SafeOperatorException,
+    SafeVersionNotSupportedException,
     SameFallbackHandlerException,
     SameMasterCopyException,
     SenderRequiredException,
@@ -110,6 +112,8 @@ def safe_exception(function):
             print_formatted_text(HTML(f"<ansired>{e.args[0]}</ansired>"))
         except SafeAlreadyUpdatedException:
             print_formatted_text(HTML("<ansired>Safe is already updated</ansired>"))
+        except SafeVersionNotSupportedException as e:
+            print_formatted_text(HTML(f"<ansired>{e.args[0]}</ansired>"))
         except (NotEnoughEtherToSend, NotEnoughTokenToSend) as e:
             print_formatted_text(
                 HTML(
@@ -127,6 +131,8 @@ def safe_exception(function):
             print_formatted_text(
                 HTML(f"<ansired>HwDevice exception: {e.args[0]}</ansired>")
             )
+        except SafeOperatorException as e:
+            print_formatted_text(HTML(f"<ansired>{e.args[0]}</ansired>"))
 
     return wrapper
 

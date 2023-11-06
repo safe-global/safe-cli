@@ -1,7 +1,7 @@
 import unittest
 from functools import lru_cache
 from unittest import mock
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, PropertyMock
 
 from eth_account import Account
 from eth_typing import ChecksumAddress
@@ -26,6 +26,7 @@ from safe_cli.operators.exceptions import (
     NonExistingOwnerException,
     NotEnoughEtherToSend,
     NotEnoughSignatures,
+    SafeVersionNotSupportedException,
     SameFallbackHandlerException,
     SameGuardException,
     SameMasterCopyException,
@@ -39,6 +40,18 @@ from .safe_cli_test_case_mixin import SafeCliTestCaseMixin
 
 
 class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
+    @lru_cache(maxsize=None)
+    def _deploy_l2_migration_contract(self) -> ChecksumAddress:
+        # Deploy L2 migration contract
+        safe_to_l2_migration_contract = self.w3.eth.contract(
+            abi=safe_to_l2_migration["abi"], bytecode=safe_to_l2_migration["bytecode"]
+        )
+        tx_hash = safe_to_l2_migration_contract.constructor().transact(
+            {"from": self.ethereum_test_account.address}
+        )
+        tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+        return tx_receipt["contractAddress"]
+
     def test_setup_operator(self):
         for number_owners in range(1, 4):
             safe_operator = self.setup_operator(number_owners=number_owners)
@@ -229,6 +242,10 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         self.assertEqual(safe.retrieve_guard(), new_guard)
 
     def test_change_master_copy(self):
+        safe_operator = self.setup_operator(version="1.3.0")
+        with self.assertRaises(SafeVersionNotSupportedException):
+            safe_operator.change_master_copy(self.safe_contract_V1_4_1.address)
+
         safe_operator = self.setup_operator(version="1.1.1")
         safe = Safe(safe_operator.address, self.ethereum_client)
         current_master_copy = safe.retrieve_master_copy_address()
@@ -264,17 +281,42 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         self.assertTrue(safe_operator.send_ether(random_address, value))
         self.assertEqual(self.ethereum_client.get_balance(random_address), value)
 
-    @lru_cache(maxsize=None)
-    def _deploy_l2_migration_contract(self) -> ChecksumAddress:
-        # Deploy L2 migration contract
-        safe_to_l2_migration_contract = self.w3.eth.contract(
-            abi=safe_to_l2_migration["abi"], bytecode=safe_to_l2_migration["bytecode"]
+    @mock.patch.object(
+        SafeOperator, "last_default_fallback_handler_address", new_callable=PropertyMock
+    )
+    @mock.patch.object(
+        SafeOperator, "last_safe_contract_address", new_callable=PropertyMock
+    )
+    def test_update_version(
+        self,
+        last_safe_contract_address_mock: PropertyMock,
+        last_default_fallback_handler_address: PropertyMock,
+    ):
+        last_safe_contract_address_mock.return_value = self.safe_contract_V1_4_1.address
+        last_default_fallback_handler_address.return_value = (
+            self.compatibility_fallback_handler.address
         )
-        tx_hash = safe_to_l2_migration_contract.constructor().transact(
-            {"from": self.ethereum_test_account.address}
+
+        safe_operator_v130 = self.setup_operator(version="1.3.0")
+        with self.assertRaises(SafeVersionNotSupportedException):
+            safe_operator_v130.update_version()
+
+        safe_operator_v111 = self.setup_operator(version="1.1.1")
+        with mock.patch.object(
+            MultiSend,
+            "MULTISEND_CALL_ONLY_ADDRESSES",
+            [self.multi_send_contract.address],
+        ):
+            safe_operator_v111.update_version()
+
+        self.assertEqual(
+            safe_operator_v111.safe.retrieve_master_copy_address(),
+            last_safe_contract_address_mock.return_value,
         )
-        tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
-        return tx_receipt["contractAddress"]
+        self.assertEqual(
+            safe_operator_v111.safe.retrieve_fallback_handler(),
+            last_default_fallback_handler_address.return_value,
+        )
 
     def test_update_to_l2_v111(self):
         migration_contract_address = self._deploy_l2_migration_contract()
