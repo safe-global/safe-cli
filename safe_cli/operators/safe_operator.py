@@ -277,27 +277,30 @@ class SafeOperator:
             except ValueError:
                 print_formatted_text(HTML(f"<ansired>Cannot load key={key}</ansired>"))
 
-    def load_ledger_cli_owners(self, legacy_account: bool = False):
+    def load_ledger_cli_owners(
+        self, derivation_path: str = None, legacy_account: bool = False
+    ):
         if not self.ledger_manager:
             return None
+        if derivation_path is None:
+            ledger_accounts = self.ledger_manager.get_accounts(
+                legacy_account=legacy_account
+            )
+            if len(ledger_accounts) == 0:
+                return None
 
-        ledger_accounts = self.ledger_manager.get_accounts(
-            legacy_account=legacy_account
-        )
-        if len(ledger_accounts) == 0:
-            return None
+            for option, ledger_account in enumerate(ledger_accounts):
+                address, _ = ledger_account
+                print_formatted_text(HTML(f"{option} - <b>{address}</b> "))
 
-        for option, ledger_account in enumerate(ledger_accounts):
-            address, _ = ledger_account
-            print_formatted_text(HTML(f"{option} - <b>{address}</b> "))
+            option = choose_option_question(
+                "Select the owner address", len(ledger_accounts) - 1
+            )
+            if option is None:
+                return None
+            _, derivation_path = ledger_accounts[option]
 
-        option = choose_option_question(
-            "Select the owner address", len(ledger_accounts) - 1
-        )
-        if option is None:
-            return None
-        address, derivation_path = ledger_accounts[option]
-        self.ledger_manager.add_account(derivation_path)
+        address = self.ledger_manager.add_account(derivation_path)
         balance = self.ethereum_client.get_balance(address)
         print_formatted_text(
             HTML(

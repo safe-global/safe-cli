@@ -165,7 +165,7 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
 
     @safe_exception
     def load_ledger_cli_owners(args):
-        safe_operator.load_ledger_cli_owners(args.legacy_accounts)
+        safe_operator.load_ledger_cli_owners(args.derivation_path, args.legacy_accounts)
 
     @safe_exception
     def unload_cli_owners(args):
@@ -312,6 +312,11 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_load_cli_owners.set_defaults(func=load_cli_owners)
 
     parser_load_ledger_cli_owners = subparsers.add_parser("load_ledger_cli_owners")
+    parser_load_ledger_cli_owners.add_argument(
+        "--derivation-path",
+        type=str,
+        help="Load address for the provided derivation path",
+    )
     parser_load_ledger_cli_owners.add_argument(
         "--legacy-accounts",
         action="store_true",
