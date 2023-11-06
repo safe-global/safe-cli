@@ -26,12 +26,13 @@ from gnosis.eth.constants import NULL_ADDRESS, SENTINEL_ADDRESS
 from gnosis.eth.contracts import (
     get_erc20_contract,
     get_erc721_contract,
-    get_safe_contract,
     get_safe_V1_1_1_contract,
 )
+from gnosis.eth.utils import get_empty_tx_params
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
 from gnosis.safe.api import TransactionServiceApi
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
+from gnosis.safe.safe_deployments import safe_deployments
 
 from safe_cli.ethereum_hd_wallet import get_account_from_words
 from safe_cli.operators.exceptions import (
@@ -43,6 +44,8 @@ from safe_cli.operators.exceptions import (
     InvalidFallbackHandlerException,
     InvalidGuardException,
     InvalidMasterCopyException,
+    InvalidMigrationContractException,
+    InvalidNonceException,
     NonExistingOwnerException,
     NotEnoughEtherToSend,
     NotEnoughSignatures,
@@ -60,6 +63,8 @@ from safe_cli.safe_addresses import (
     get_safe_l2_contract_address,
 )
 from safe_cli.utils import choose_option_question, get_erc_20_list, yes_or_no_question
+
+from ..contracts import safe_to_l2_migration
 
 
 @dataclasses.dataclass
@@ -216,11 +221,8 @@ class SafeOperator:
         if self._safe_cli_info.master_copy == self.last_safe_contract_address:
             return True
         else:  # Check versions, maybe safe-cli addresses were not updated
-            safe_contract = get_safe_contract(
-                self.ethereum_client.w3, self.last_safe_contract_address
-            )
             try:
-                safe_contract_version = safe_contract.functions.VERSION().call()
+                safe_contract_version = self.safe.retrieve_version()
             except BadFunctionCallOutput:  # Safe master copy is not deployed or errored, maybe custom network
                 return True  # We cannot say you are not updated ¯\_(ツ)_/¯
             return semantic_version.parse(
@@ -545,6 +547,7 @@ class SafeOperator:
     def update_version(self) -> Optional[bool]:
         """
         Update Safe Master Copy and Fallback handler to the last version
+
         :return:
         """
         if self.is_version_updated():
@@ -584,6 +587,63 @@ class SafeOperator:
             self.safe_cli_info.fallback_handler = (
                 self.last_default_fallback_handler_address
             )
+            self.safe_cli_info.version = self.safe.retrieve_version()
+
+    def update_version_to_l2(
+        self, migration_contract_address: ChecksumAddress
+    ) -> Optional[bool]:
+        """
+        Update not L2 Safe to L2, so official UI supports it. Useful when replaying Safes deployed in
+        non L2 networks (like mainnet) in L2 networks.
+        Only v1.1.1, v1.3.0 and v1.4.1 versions are supported. Also, Safe nonce must be 0.
+
+        :return:
+        """
+
+        if not self.ethereum_client.is_contract(migration_contract_address):
+            raise InvalidMigrationContractException(
+                f"Non L2 to L2 migration contract {migration_contract_address} is not deployed"
+            )
+
+        safe_version = self.safe.retrieve_version()
+        chain_id = self.ethereum_client.get_chain_id()
+
+        if self.safe.retrieve_nonce() > 0:
+            raise InvalidNonceException("Nonce must be 0 for non L2 to L2 migration")
+
+        l2_migration_contract = self.ethereum_client.w3.eth.contract(
+            NULL_ADDRESS, abi=safe_to_l2_migration["abi"]
+        )
+        if safe_version == "1.1.1":
+            safe_l2_singleton = safe_deployments["1.3.0"]["GnosisSafeL2"][str(chain_id)]
+            fallback_handler = safe_deployments["1.3.0"][
+                "CompatibilityFallbackHandler"
+            ][str(chain_id)]
+            data = HexBytes(
+                l2_migration_contract.functions.migrateFromV111(
+                    safe_l2_singleton, fallback_handler
+                ).build_transaction(get_empty_tx_params())["data"]
+            )
+        elif safe_version in ("1.3.0", "1.4.1"):
+            safe_l2_singleton = safe_deployments[safe_version]["GnosisSafeL2"][
+                str(chain_id)
+            ]
+            fallback_handler = self.safe_cli_info.fallback_handler
+            data = HexBytes(
+                l2_migration_contract.functions.migrateToL2(
+                    safe_l2_singleton
+                ).build_transaction(get_empty_tx_params())["data"]
+            )
+        else:
+            raise InvalidMasterCopyException(
+                "Current version is not supported to migrate to L2"
+            )
+
+        if self.prepare_and_execute_safe_transaction(
+            migration_contract_address, 0, data, operation=SafeOperation.DELEGATE_CALL
+        ):
+            self.safe_cli_info.master_copy = safe_l2_singleton
+            self.safe_cli_info.fallback_handler = fallback_handler
             self.safe_cli_info.version = self.safe.retrieve_version()
 
     def change_threshold(self, threshold: int):

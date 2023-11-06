@@ -1,8 +1,10 @@
 import unittest
+from functools import lru_cache
 from unittest import mock
 from unittest.mock import MagicMock
 
 from eth_account import Account
+from eth_typing import ChecksumAddress
 from ledgereth.objects import LedgerAccount
 from web3 import Web3
 
@@ -10,6 +12,7 @@ from gnosis.eth import EthereumClient
 from gnosis.safe import Safe
 from gnosis.safe.multi_send import MultiSend
 
+from safe_cli.contracts import safe_to_l2_migration
 from safe_cli.operators.exceptions import (
     AccountNotLoadedException,
     ExistingOwnerException,
@@ -242,6 +245,81 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         )
         self.assertTrue(safe_operator.send_ether(random_address, value))
         self.assertEqual(self.ethereum_client.get_balance(random_address), value)
+
+    @lru_cache(maxsize=None)
+    def _deploy_l2_migration_contract(self) -> ChecksumAddress:
+        # Deploy L2 migration contract
+        safe_to_l2_migration_contract = self.w3.eth.contract(
+            abi=safe_to_l2_migration["abi"], bytecode=safe_to_l2_migration["bytecode"]
+        )
+        tx_hash = safe_to_l2_migration_contract.constructor().transact(
+            {"from": self.ethereum_test_account.address}
+        )
+        tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+        return tx_receipt["contractAddress"]
+
+    def test_update_to_l2_v111(self):
+        migration_contract_address = self._deploy_l2_migration_contract()
+        safe_operator_v111 = self.setup_operator(version="1.1.1")
+
+        with mock.patch.dict(
+            "safe_cli.operators.safe_operator.safe_deployments",
+            {
+                "1.3.0": {
+                    "GnosisSafeL2": {"1337": self.safe_contract_V1_3_0.address},
+                    "CompatibilityFallbackHandler": {
+                        "1337": self.compatibility_fallback_handler.address
+                    },
+                }
+            },
+        ):
+            self.assertEqual(safe_operator_v111.safe.retrieve_version(), "1.1.1")
+            safe_operator_v111.update_version_to_l2(migration_contract_address)
+            self.assertEqual(
+                safe_operator_v111.safe.retrieve_master_copy_address(),
+                self.safe_contract_V1_3_0.address,
+            )
+            self.assertEqual(
+                safe_operator_v111.safe.retrieve_fallback_handler(),
+                self.compatibility_fallback_handler.address,
+            )
+
+    def test_update_to_l2_v130(self):
+        migration_contract_address = self._deploy_l2_migration_contract()
+        safe_operator_v130 = self.setup_operator(version="1.3.0")
+
+        # For testing v1.3.0 non L2 to L2 update we need 1.3.0 deployed in a different address
+        # L2 Migration Contract only checks version but cannot tell apart L2 from not L2
+        tx_hash = self.safe_contract_V1_3_0.constructor().transact(
+            {"from": self.ethereum_test_account.address}
+        )
+        tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
+        safe_contract_l2_130_address = tx_receipt["contractAddress"]
+        with mock.patch.dict(
+            "safe_cli.operators.safe_operator.safe_deployments",
+            {
+                "1.3.0": {
+                    "GnosisSafeL2": {"1337": safe_contract_l2_130_address},
+                }
+            },
+        ):
+            self.assertEqual(safe_operator_v130.safe.retrieve_version(), "1.3.0")
+            self.assertEqual(
+                safe_operator_v130.safe.retrieve_master_copy_address(),
+                self.safe_contract_V1_3_0.address,
+            )
+            previous_fallback_handler = (
+                safe_operator_v130.safe.retrieve_fallback_handler()
+            )
+            safe_operator_v130.update_version_to_l2(migration_contract_address)
+            self.assertEqual(
+                safe_operator_v130.safe.retrieve_master_copy_address(),
+                safe_contract_l2_130_address,
+            )
+            self.assertEqual(
+                safe_operator_v130.safe.retrieve_fallback_handler(),
+                previous_fallback_handler,
+            )
 
     def test_drain(self):
         safe_operator = self.setup_operator()

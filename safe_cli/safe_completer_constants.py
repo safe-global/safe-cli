@@ -37,6 +37,7 @@ safe_commands_arguments = {
     "sign-tx": "<safe-tx-hash>",
     "unload_cli_owners": "<address> [<address>...]",
     "update": "",
+    "update_version_to_l2": "<address>",
     "blockchain": "",
     "tx-service": "",
     "drain": "<address>",
@@ -185,6 +186,10 @@ meta = {
     ),
     "update": HTML(
         "Command <b>update</b> will upgrade the Safe master copy to the latest version"
+    ),
+    "update_version_to_l2": HTML(
+        "Updates a v1.1.1/v1.3.0/v1.4.1 non L2 Safe to a L2 Safe supported by Safe Wallet UI. "
+        "The migration contract address needs to be provided. Nonce for the Safe must be 0."
     ),
     "blockchain": HTML(
         "<b>blockchain</b> sets the default mode for tx service. Transactions will be "

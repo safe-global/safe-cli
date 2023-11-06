@@ -70,6 +70,14 @@ class InvalidMasterCopyException(SafeOperatorException):
     pass
 
 
+class InvalidMigrationContractException(SafeOperatorException):
+    pass
+
+
+class InvalidNonceException(SafeOperatorException):
+    pass
+
+
 class NotEnoughEtherToSend(SafeOperatorException):
     pass
 

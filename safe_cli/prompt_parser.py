@@ -18,6 +18,8 @@ from .operators.exceptions import (
     HardwareWalletException,
     HashAlreadyApproved,
     InvalidMasterCopyException,
+    InvalidMigrationContractException,
+    InvalidNonceException,
     NonExistingOwnerException,
     NotEnoughEtherToSend,
     NotEnoughSignatures,
@@ -102,6 +104,10 @@ def safe_exception(function):
             print_formatted_text(
                 HTML(f"<ansired>Master Copy {e.args[0]} is not valid</ansired>")
             )
+        except InvalidMigrationContractException as e:
+            print_formatted_text(HTML(f"<ansired>{e.args[0]}</ansired>"))
+        except InvalidNonceException as e:
+            print_formatted_text(HTML(f"<ansired>{e.args[0]}</ansired>"))
         except SafeAlreadyUpdatedException:
             print_formatted_text(HTML("<ansired>Safe is already updated</ansired>"))
         except (NotEnoughEtherToSend, NotEnoughTokenToSend) as e:
@@ -248,6 +254,10 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
         safe_operator.update_version()
 
     @safe_exception
+    def update_version_to_l2(args):
+        safe_operator.update_version_to_l2(args.migration_contract)
+
+    @safe_exception
     def get_info(args):
         safe_operator.print_info()
 
@@ -339,14 +349,14 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_remove_owner.set_defaults(func=remove_owner)
 
     # Change FallbackHandler
-    parser_change_master_copy = subparsers.add_parser("change_fallback_handler")
-    parser_change_master_copy.add_argument("address", type=check_ethereum_address)
-    parser_change_master_copy.set_defaults(func=change_fallback_handler)
+    parser_change_fallback_handler = subparsers.add_parser("change_fallback_handler")
+    parser_change_fallback_handler.add_argument("address", type=check_ethereum_address)
+    parser_change_fallback_handler.set_defaults(func=change_fallback_handler)
 
-    # Change FallbackHandler
-    parser_change_master_copy = subparsers.add_parser("change_guard")
-    parser_change_master_copy.add_argument("address", type=check_ethereum_address)
-    parser_change_master_copy.set_defaults(func=change_guard)
+    # Change Guard
+    parser_change_guard = subparsers.add_parser("change_guard")
+    parser_change_guard.add_argument("address", type=check_ethereum_address)
+    parser_change_guard.set_defaults(func=change_guard)
 
     # Change MasterCopy
     parser_change_master_copy = subparsers.add_parser("change_master_copy")
@@ -354,8 +364,15 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_change_master_copy.set_defaults(func=change_master_copy)
 
     # Update Safe to last version
-    parser_change_master_copy = subparsers.add_parser("update")
-    parser_change_master_copy.set_defaults(func=update_version)
+    parser_update_version = subparsers.add_parser("update")
+    parser_update_version.set_defaults(func=update_version)
+
+    # Update non L2 Safe to L2 Safe
+    parser_update_version_to_l2 = subparsers.add_parser("update_version_to_l2")
+    parser_update_version_to_l2.add_argument(
+        "migration_contract", type=check_ethereum_address
+    )
+    parser_update_version_to_l2.set_defaults(func=update_version_to_l2)
 
     # Send custom/ether/erc20/erc721
     parser_send_custom = subparsers.add_parser("send_custom")
