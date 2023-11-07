@@ -147,7 +147,7 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
         )
         self.assertEqual(len(ledger_manager.accounts), 0)
 
-        ledger_manager.add_account(derivation_path)
+        self.assertEqual(ledger_manager.add_account(derivation_path), account_address)
 
         self.assertEqual(len(ledger_manager.accounts), 1)
         ledger_account = list(ledger_manager.accounts)[0]

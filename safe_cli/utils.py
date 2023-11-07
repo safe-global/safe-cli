@@ -51,7 +51,7 @@ def choose_option_question(
 ) -> Optional[int]:
     if "PYTEST_CURRENT_TEST" in os.environ:
         return default_option  # Ignore confirmations when running tests
-    choices = f" [0-{number_options}] default {default_option}:"
+    choices = f" [0-{number_options-1}] default {default_option}: "
     reply = str(get_input(question + choices)).lower().strip() or str(default_option)
     try:
         option = int(reply)

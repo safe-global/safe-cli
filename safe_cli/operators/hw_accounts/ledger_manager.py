@@ -5,13 +5,17 @@ from ledgereth import sign_typed_data_draft
 from ledgereth.accounts import LedgerAccount, get_account_by_path
 from ledgereth.comms import init_dongle
 from ledgereth.exceptions import LedgerNotFound
+from ledgereth.utils import is_bip32_path
 from prompt_toolkit import HTML, print_formatted_text
 
 from gnosis.eth.eip712 import eip712_encode
 from gnosis.safe import SafeTx
 from gnosis.safe.signatures import signature_to_bytes
 
-from safe_cli.operators.hw_accounts.exceptions import raise_as_hw_account_exception
+from safe_cli.operators.hw_accounts.exceptions import (
+    InvalidDerivationPath,
+    raise_as_hw_account_exception,
+)
 
 
 class LedgerManager:
@@ -62,15 +66,19 @@ class LedgerManager:
         return accounts
 
     @raise_as_hw_account_exception
-    def add_account(self, derivation_path: str):
+    def add_account(self, derivation_path: str) -> ChecksumAddress:
         """
-        Add an account to ledger manager set
+        Add an account to ledger manager set and return the added address
 
         :param derivation_path:
         :return:
         """
+        if not is_bip32_path(derivation_path):
+            raise InvalidDerivationPath()
+
         account = get_account_by_path(derivation_path, self.dongle)
         self.accounts.add(LedgerAccount(account.path, account.address))
+        return account.address
 
     def delete_accounts(self, addresses: List[ChecksumAddress]) -> Set:
         """

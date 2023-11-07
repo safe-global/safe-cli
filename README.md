@@ -138,6 +138,9 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="2c97", ATTRS{idProduct}=="0000", MODE="0660
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="2c97", ATTRS{idProduct}=="0001", MODE="0660", TAG+="uaccess", TAG+="udev-acl" OWNER="<UNIX username>"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="2c97", ATTRS{idProduct}=="0004", MODE="0660", TAG+="uaccess", TAG+="udev-acl" OWNER="<UNIX username>"
 ```
+Safe-cli Ledger commands:
+- `load_ledger_cli_owners [--legacy-accounts] [--derivation-path <str>]`: show a list of the first 5 accounts (--legacy-accounts search using ledger legacy derivation) or load an account from provided derivation path.
+
 **NOTE**: before signing anything ensure that the data showing on your ledger is the same as the safe-cli data.
 ## Creating a new Safe
 Use `safe-creator <node_url> <private_key> --owners <checksummed_address_1> <checksummed_address_2> --threshold <uint> --salt-nonce <uint256>`.

@@ -18,6 +18,7 @@ from safe_cli.operators.exceptions import (
     ExistingOwnerException,
     FallbackHandlerNotSupportedException,
     GuardNotSupportedException,
+    HardwareWalletException,
     HashAlreadyApproved,
     InvalidFallbackHandlerException,
     InvalidGuardException,
@@ -87,17 +88,34 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         safe_operator.ledger_manager.get_accounts = MagicMock(return_value=[])
         safe_operator.load_ledger_cli_owners()
         self.assertEqual(len(safe_operator.ledger_manager.accounts), 0)
-        random_account = Account.create().address
-        other_random_account = Account.create().address
+        random_address = Account.create().address
+        other_random_address = Account.create().address
         safe_operator.ledger_manager.get_accounts.return_value = [
-            (random_account, "44'/60'/0'/0/0"),
-            (other_random_account, "44'/60'/0'/0/1"),
+            (random_address, "44'/60'/0'/0/0"),
+            (other_random_address, "44'/60'/0'/0/1"),
         ]
+
         mock_get_account_by_path.return_value = LedgerAccount(
-            "44'/60'/0'/0/0", random_account
+            "44'/60'/0'/0/0", random_address
         )
         safe_operator.load_ledger_cli_owners()
         self.assertEqual(len(safe_operator.ledger_manager.accounts), 1)
+        self.assertEqual(
+            safe_operator.ledger_manager.accounts.pop().address, random_address
+        )
+
+        # Only accept ethereum derivation paths
+        with self.assertRaises(HardwareWalletException):
+            safe_operator.load_ledger_cli_owners(derivation_path="44'/137'/0'/0/1")
+
+        mock_get_account_by_path.return_value = LedgerAccount(
+            "44'/60'/0'/0/0", owner_address
+        )
+        safe_operator.load_ledger_cli_owners(derivation_path="44'/60'/0'/0/0")
+        self.assertEqual(len(safe_operator.ledger_manager.accounts), 1)
+        self.assertEqual(
+            safe_operator.ledger_manager.accounts.pop().address, owner_address
+        )
 
     def test_approve_hash(self):
         safe_address = self.deploy_test_safe(
