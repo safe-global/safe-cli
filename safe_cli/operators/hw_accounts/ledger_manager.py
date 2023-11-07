@@ -73,6 +73,10 @@ class LedgerManager:
         :param derivation_path:
         :return:
         """
+        # we should accept m/ or m'/ starting derivation paths
+        if derivation_path[0:2] == "m/":
+            derivation_path = derivation_path.replace("m/", "")
+
         if not is_bip32_path(derivation_path):
             raise InvalidDerivationPath()
 
