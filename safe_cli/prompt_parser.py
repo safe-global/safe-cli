@@ -426,7 +426,7 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
         parser.add_argument("token_address", type=check_ethereum_address)
 
     parser_send_erc20.add_argument("amount", type=int)
-    parser_send_erc721.add_argument("token-id", type=int)
+    parser_send_erc721.add_argument("token_id", type=int)
 
     # Drain only needs receiver account
     parser_drain = subparsers.add_parser("drain")
