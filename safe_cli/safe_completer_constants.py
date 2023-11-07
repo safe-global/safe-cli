@@ -24,7 +24,7 @@ safe_commands_arguments = {
     "history": "(read-only)",
     "info": "(read-only)",
     "load_cli_owners": "<account-private-key> [<account-private-key>...]",
-    "load_ledger_cli_owners": "[--legacy-accounts]",
+    "load_ledger_cli_owners": "[--legacy-accounts] [--derivation-path <str>]",
     "load_cli_owners_from_words": "<word_1> <word_2> ... <word_12>",
     "refresh": "",
     "remove_delegate": "<address> <signer-address>",
