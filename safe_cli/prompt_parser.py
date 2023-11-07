@@ -165,7 +165,9 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
 
     @safe_exception
     def load_ledger_cli_owners(args):
-        safe_operator.load_ledger_cli_owners(args.derivation_path, args.legacy_accounts)
+        safe_operator.load_ledger_cli_owners(
+            derivation_path=args.derivation_path, legacy_account=args.legacy_accounts
+        )
 
     @safe_exception
     def unload_cli_owners(args):

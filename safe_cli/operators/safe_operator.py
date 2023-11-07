@@ -294,7 +294,7 @@ class SafeOperator:
                 print_formatted_text(HTML(f"{option} - <b>{address}</b> "))
 
             option = choose_option_question(
-                "Select the owner address", len(ledger_accounts) - 1
+                "Select the owner address", len(ledger_accounts)
             )
             if option is None:
                 return None
@@ -305,7 +305,7 @@ class SafeOperator:
         print_formatted_text(
             HTML(
                 f"Loaded account <b>{address}</b> "
-                f'with balance={Web3.from_wei(balance, "ether")} ether'
+                f'with balance={Web3.from_wei(balance, "ether")} ether.\n'
                 f"Ledger account cannot be defined as sender"
             )
         )
