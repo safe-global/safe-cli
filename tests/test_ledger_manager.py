@@ -153,7 +153,7 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
         ledger_account = list(ledger_manager.accounts)[0]
         self.assertEqual(ledger_account.address, account_address)
         self.assertEqual(ledger_account.path, derivation_path)
-        # Should accept derivation paths started with master
+        # Should accept derivation paths starting with master
         master_derivation_path = "m/44'/60'/0'/0"
         self.assertEqual(
             ledger_manager.add_account(master_derivation_path), account_address
