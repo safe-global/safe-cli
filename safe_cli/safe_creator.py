@@ -190,12 +190,22 @@ def main(*args, **kwargs) -> EthereumTxSent:
         )
 
         proxy_factory = ProxyFactory(proxy_factory_address, ethereum_client)
-        ethereum_tx_sent = proxy_factory.deploy_proxy_contract_with_nonce(
-            account, safe_contract_address, safe_creation_tx_data, salt_nonce
+        expected_safe_address = proxy_factory.calculate_proxy_address(
+            safe_contract_address, safe_creation_tx_data, salt_nonce
         )
-        print_formatted_text(
-            f"Tx with tx-hash={ethereum_tx_sent.tx_hash.hex()} "
-            f"will create safe={ethereum_tx_sent.contract_address}"
-        )
-        print_formatted_text(f"Tx parameters={ethereum_tx_sent.tx}")
-        return ethereum_tx_sent
+        if ethereum_client.is_contract(expected_safe_address):
+            print_formatted_text(f"Safe on {expected_safe_address} is already deployed")
+            sys.exit(1)
+
+        if yes_or_no_question(
+            f"Safe will be deployed on {expected_safe_address}, looks good?"
+        ):
+            ethereum_tx_sent = proxy_factory.deploy_proxy_contract_with_nonce(
+                account, safe_contract_address, safe_creation_tx_data, salt_nonce
+            )
+            print_formatted_text(
+                f"Sent tx with tx-hash={ethereum_tx_sent.tx_hash.hex()} "
+                f"Safe={ethereum_tx_sent.contract_address} is being created"
+            )
+            print_formatted_text(f"Tx parameters={ethereum_tx_sent.tx}")
+            return ethereum_tx_sent

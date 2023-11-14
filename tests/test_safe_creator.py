@@ -41,6 +41,10 @@ class TestSafeCreator(SafeCliTestCaseMixin, unittest.TestCase):
             safe_info.fallback_handler, self.compatibility_fallback_handler.address
         )
 
+        # If contract is deployed script should exit with code 1
+        with self.assertRaisesRegex(SystemExit, "1"):
+            main()
+
 
 if __name__ == "__main__":
     unittest.main()
