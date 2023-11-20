@@ -24,7 +24,7 @@ setuptools.setup(
         "prompt_toolkit>=3",
         "pygments>=2",
         "requests>=2",
-        "safe-eth-py==6.0.0b5",
+        "safe-eth-py==6.0.0b7",
         "tabulate>=0.8",
     ],
     extras_require={"ledger": ["ledgereth==0.9.1"]},
