@@ -61,7 +61,7 @@ def choose_option_question(
 
     if option not in range(0, number_options):
         print_formatted_text(
-            HTML(f"<ansired> {option} is not between [0-{number_options}}} </ansired>")
+            HTML(f"<ansired> {option} is not between [0-{number_options-1}] </ansired>")
         )
         return None
 

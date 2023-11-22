@@ -7,7 +7,9 @@ from eth_account import Account
 from prompt_toolkit import HTML
 
 from gnosis.eth.constants import NULL_ADDRESS
+from gnosis.eth.ethereum_client import EthereumClient
 from gnosis.safe import Safe
+from gnosis.safe.api import TransactionServiceApi
 from gnosis.safe.safe import SafeInfo
 
 from safe_cli.main import SafeCli, build_safe_cli
@@ -22,9 +24,20 @@ class SafeCliEntrypointTestCase(SafeCliTestCaseMixin, unittest.TestCase):
     @mock.patch("argparse.ArgumentParser.parse_args")
     def build_test_safe_cli(self, mock_parse_args: MagicMock):
         mock_parse_args.return_value = argparse.Namespace(
-            safe_address=self.random_safe_address,
+            address=self.random_safe_address,
             node_url=self.ethereum_node_url,
             history=True,
+            is_owner=False,
+        )
+        return build_safe_cli()
+
+    @mock.patch("argparse.ArgumentParser.parse_args")
+    def build_test_safe_cli_for_owner(self, mock_parse_args: MagicMock):
+        mock_parse_args.return_value = argparse.Namespace(
+            address=self.random_safe_address,
+            node_url=self.ethereum_node_url,
+            history=True,
+            is_owner=True,
         )
         return build_safe_cli()
 
@@ -43,6 +56,37 @@ class SafeCliEntrypointTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         )
 
         safe_cli = self.build_test_safe_cli()
+        with mock.patch.object(SafeOperator, "is_version_updated", return_value=True):
+            self.assertIsNone(safe_cli.print_startup_info())
+        self.assertIsInstance(safe_cli.get_prompt_text(), HTML)
+        self.assertIsInstance(safe_cli.get_bottom_toolbar(), HTML)
+
+    @mock.patch.object(EthereumClient, "get_chain_id", return_value=5)
+    @mock.patch.object(TransactionServiceApi, "get_safes_for_owner")
+    @mock.patch.object(Safe, "retrieve_all_info")
+    def test_build_safe_cli_for_owner(
+        self,
+        retrieve_all_info_mock: MagicMock,
+        get_safes_for_owner_mock: MagicMock,
+        get_chain_id_mock: MagicMock,
+    ):
+        retrieve_all_info_mock.return_value = SafeInfo(
+            self.random_safe_address,
+            "0xfd0732Dc9E303f09fCEf3a7388Ad10A83459Ec99",
+            NULL_ADDRESS,
+            "0x29fcB43b46531BcA003ddC8FCB67FFE91900C762",
+            [],
+            0,
+            [Account.create().address],
+            1,
+            "1.4.1",
+        )
+        get_safes_for_owner_mock.return_value = []
+        safe_cli = self.build_test_safe_cli_for_owner()
+        self.assertIsNone(safe_cli)
+        get_safes_for_owner_mock.return_value = [self.random_safe_address]
+        safe_cli = self.build_test_safe_cli_for_owner()
+        self.assertIsNotNone(safe_cli)
         with mock.patch.object(SafeOperator, "is_version_updated", return_value=True):
             self.assertIsNone(safe_cli.print_startup_info())
         self.assertIsInstance(safe_cli.get_prompt_text(), HTML)

@@ -11,6 +11,9 @@ from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.lexers import PygmentsLexer
 
+from gnosis.eth import EthereumClient
+from gnosis.safe.api import TransactionServiceApi
+
 from safe_cli.argparse_validators import check_ethereum_address
 from safe_cli.operators import (
     SafeOperator,
@@ -20,6 +23,7 @@ from safe_cli.operators import (
 from safe_cli.prompt_parser import PromptParser
 from safe_cli.safe_completer import SafeCompleter
 from safe_cli.safe_lexer import SafeLexer
+from safe_cli.utils import choose_option_question
 
 from .version import version
 
@@ -118,11 +122,37 @@ class SafeCli:
                 pass
 
 
-def build_safe_cli():
+def get_safe_from_owner(owner: ChecksumAddress, node_url: str) -> ChecksumAddress:
+    """
+    Show a list of Safe to chose between them and return the selected one.
+    :param owner:
+    :param node_url:
+    :return: Safe address of a selected Safe
+    """
+    ethereum_client = EthereumClient(node_url)
+    safe_tx_service = TransactionServiceApi.from_ethereum_client(ethereum_client)
+    safes = safe_tx_service.get_safes_for_owner(owner)
+    if len(safes):
+        # Show safes
+        for option, safe in enumerate(safes):
+            print_formatted_text(HTML(f"{option} - <b>{safe}</b> "))
+        option = choose_option_question(
+            "Select the Safe to initialize the safe-cli", len(safes)
+        )
+        if option:
+            return safes[option]
+
+    print_formatted_text(
+        HTML(f"<ansired>No safe was found for the specified owner {owner}</ansired>")
+    )
+    return None
+
+
+def build_safe_cli() -> SafeCli:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "safe_address",
-        help="Address of Safe to use",
+        "address",
+        help="Address of Safe by default or owner if  is-owner is true",
         type=check_ethereum_address,
     )
     parser.add_argument("node_url", help="Ethereum node url")
@@ -132,14 +162,26 @@ def build_safe_cli():
         help="Enable history. By default it's disabled due to security reasons",
         default=False,
     )
+    parser.add_argument(
+        "--is-owner",
+        action="store_true",
+        help="Indicates that address is an owner",
+        default=False,
+    )
 
     args = parser.parse_args()
-
-    return SafeCli(args.safe_address, args.node_url, args.history)
+    if args.is_owner:
+        if (
+            safe_address := get_safe_from_owner(args.address, args.node_url)
+        ) is not None:
+            return SafeCli(safe_address, args.node_url, args.history)
+    else:
+        return SafeCli(args.address, args.node_url, args.history)
 
 
 def main(*args, **kwargs):
-    safe_cli = build_safe_cli()
+    if (safe_cli := build_safe_cli()) is None:
+        return None
     safe_cli.print_startup_info()
     safe_cli.loop()
 
