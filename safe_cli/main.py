@@ -122,7 +122,9 @@ class SafeCli:
                 pass
 
 
-def get_safe_from_owner(owner: ChecksumAddress, node_url: str) -> ChecksumAddress:
+def get_safe_from_owner(
+    owner: ChecksumAddress, node_url: str
+) -> Optional[ChecksumAddress]:
     """
     Show a list of Safe to chose between them and return the selected one.
     :param owner:
@@ -139,7 +141,7 @@ def get_safe_from_owner(owner: ChecksumAddress, node_url: str) -> ChecksumAddres
         option = choose_option_question(
             "Select the Safe to initialize the safe-cli", len(safes)
         )
-        if option:
+        if option is not None:
             return safes[option]
 
     print_formatted_text(
@@ -148,7 +150,7 @@ def get_safe_from_owner(owner: ChecksumAddress, node_url: str) -> ChecksumAddres
     return None
 
 
-def build_safe_cli() -> SafeCli:
+def build_safe_cli() -> Optional[SafeCli]:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "address",
