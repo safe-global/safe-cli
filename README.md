@@ -33,11 +33,25 @@ to run the actual **safe-cli**
 pip3 install -U safe-cli
 ```
 
-## Using
+## Usage
+
+```bash
+safe-cli [-h] [--history] [--is-owner] address node_url
+
+positional arguments:
+  address     The address of the Safe, or an owner address if --is-owner is specified.
+  node_url    Ethereum node url
+
+options:
+  -h, --help  show this help message and exit
+  --history   Enable history. By default it's disabled due to security reasons
+  --is-owner  Indicates that address is an owner
+```
+### Quick Load Command:
+To load a Safe, use the following command:
 ```bash
 safe-cli <checksummed_safe_address> <ethereum_node_url>
 ```
-
 Then you should be on the prompt and see information about the Safe, like the owners, version, etc.
 Next step would be loading some owners for the Safe. At least `threshold` owners need to be loaded to do operations
 on the Safe and at least one of them should have funds for sending transactions.

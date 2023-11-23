@@ -152,7 +152,7 @@ def build_safe_cli() -> SafeCli:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "address",
-        help="Address of Safe by default or owner if  is-owner is true",
+        help="The address of the Safe, or an owner address if --is-owner is specified.",
         type=check_ethereum_address,
     )
     parser.add_argument("node_url", help="Ethereum node url")
