@@ -82,8 +82,8 @@ class SafeCliEntrypointTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             "1.4.1",
         )
         get_safes_for_owner_mock.return_value = []
-        safe_cli = self.build_test_safe_cli_for_owner()
-        self.assertIsNone(safe_cli)
+        with self.assertRaises(ValueError):
+            self.build_test_safe_cli_for_owner()
         get_safes_for_owner_mock.return_value = [self.random_safe_address]
         safe_cli = self.build_test_safe_cli_for_owner()
         self.assertIsNotNone(safe_cli)

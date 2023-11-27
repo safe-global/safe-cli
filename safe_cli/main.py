@@ -123,7 +123,7 @@ def build_safe_cli() -> Optional[SafeCli]:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "address",
-        help="The address of the Safe, or an owner address if --is-owner is specified.",
+        help="The address of the Safe, or an owner address if --get-safes-from-owner is specified.",
         type=check_ethereum_address,
     )
     parser.add_argument("node_url", help="Ethereum node url")
@@ -151,8 +151,7 @@ def build_safe_cli() -> Optional[SafeCli]:
 
 
 def main(*args, **kwargs):
-    if (safe_cli := build_safe_cli()) is None:
-        return None
+    safe_cli = build_safe_cli()
     safe_cli.print_startup_info()
     safe_cli.loop()
 

@@ -55,7 +55,7 @@ def yes_or_no_question(question: str, default_no: bool = True) -> bool:
         return False if default_no else True
 
 
-def choose_option_from_list_question(
+def choose_option_from_list(
     question: str, options: List, default_option: int = 0
 ) -> Optional[int]:
     if "PYTEST_CURRENT_TEST" in os.environ:
@@ -93,13 +93,10 @@ def get_safe_from_owner(
     safe_tx_service = TransactionServiceApi.from_ethereum_client(ethereum_client)
     safes = safe_tx_service.get_safes_for_owner(owner)
     if safes:
-        option = choose_option_from_list_question(
+        option = choose_option_from_list(
             "Select the Safe to initialize the safe-cli", safes
         )
         if option is not None:
             return safes[option]
-
-    print_formatted_text(
-        HTML(f"<ansired>No safe was found for the specified owner {owner}</ansired>")
-    )
-    return None
+    else:
+        raise ValueError(f"No safe was found for the specified owner {owner}")
