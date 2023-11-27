@@ -45,7 +45,7 @@ positional arguments:
 options:
   -h, --help  show this help message and exit
   --history   Enable history. By default it's disabled due to security reasons
-  --is-owner  Indicates that address is an owner
+  ----get-safes-from-owner  Indicates that address is an owner (Safe Transaction Service is required for this feature)
 ```
 ### Quick Load Command:
 To load a Safe, use the following command:

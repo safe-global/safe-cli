@@ -27,7 +27,7 @@ class SafeCliEntrypointTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             address=self.random_safe_address,
             node_url=self.ethereum_node_url,
             history=True,
-            is_owner=False,
+            get_safes_from_owner=False,
         )
         return build_safe_cli()
 
@@ -37,7 +37,7 @@ class SafeCliEntrypointTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             address=self.random_safe_address,
             node_url=self.ethereum_node_url,
             history=True,
-            is_owner=True,
+            get_safes_from_owner=True,
         )
         return build_safe_cli()
 
