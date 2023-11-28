@@ -63,7 +63,7 @@ from safe_cli.safe_addresses import (
     get_safe_contract_address,
     get_safe_l2_contract_address,
 )
-from safe_cli.utils import choose_option_question, get_erc_20_list, yes_or_no_question
+from safe_cli.utils import choose_option_from_list, get_erc_20_list, yes_or_no_question
 
 from ..contracts import safe_to_l2_migration
 
@@ -294,12 +294,8 @@ class SafeOperator:
             if len(ledger_accounts) == 0:
                 return None
 
-            for option, ledger_account in enumerate(ledger_accounts):
-                address, _ = ledger_account
-                print_formatted_text(HTML(f"{option} - <b>{address}</b> "))
-
-            option = choose_option_question(
-                "Select the owner address", len(ledger_accounts)
+            option = choose_option_from_list(
+                "Select the owner address", ledger_accounts
             )
             if option is None:
                 return None

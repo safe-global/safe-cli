@@ -20,6 +20,7 @@ from safe_cli.operators import (
 from safe_cli.prompt_parser import PromptParser
 from safe_cli.safe_completer import SafeCompleter
 from safe_cli.safe_lexer import SafeLexer
+from safe_cli.utils import get_safe_from_owner
 
 from .version import version
 
@@ -118,11 +119,11 @@ class SafeCli:
                 pass
 
 
-def build_safe_cli():
+def build_safe_cli() -> Optional[SafeCli]:
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "safe_address",
-        help="Address of Safe to use",
+        "address",
+        help="The address of the Safe, or an owner address if --get-safes-from-owner is specified.",
         type=check_ethereum_address,
     )
     parser.add_argument("node_url", help="Ethereum node url")
@@ -132,10 +133,21 @@ def build_safe_cli():
         help="Enable history. By default it's disabled due to security reasons",
         default=False,
     )
+    parser.add_argument(
+        "--get-safes-from-owner",
+        action="store_true",
+        help="Indicates that address is an owner (Safe Transaction Service is required for this feature)",
+        default=False,
+    )
 
     args = parser.parse_args()
-
-    return SafeCli(args.safe_address, args.node_url, args.history)
+    if args.get_safes_from_owner:
+        if (
+            safe_address := get_safe_from_owner(args.address, args.node_url)
+        ) is not None:
+            return SafeCli(safe_address, args.node_url, args.history)
+    else:
+        return SafeCli(args.address, args.node_url, args.history)
 
 
 def main(*args, **kwargs):
