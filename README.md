@@ -36,16 +36,16 @@ pip3 install -U safe-cli
 ## Usage
 
 ```bash
-safe-cli [-h] [--history] [--is-owner] address node_url
+safe-cli [-h] [--history] [--get-safes-from-owner] address node_url
 
 positional arguments:
-  address     The address of the Safe, or an owner address if --is-owner is specified.
-  node_url    Ethereum node url
+  address                The address of the Safe, or an owner address if --get-safes-from-owner is specified.
+  node_url               Ethereum node url
 
 options:
-  -h, --help  show this help message and exit
-  --history   Enable history. By default it's disabled due to security reasons
-  ----get-safes-from-owner  Indicates that address is an owner (Safe Transaction Service is required for this feature)
+  -h, --help             Show this help message and exit
+  --history              Enable history. By default it's disabled due to security reasons
+  --get-safes-from-owner Indicates that address is an owner (Safe Transaction Service is required for this feature)
 ```
 ### Quick Load Command:
 To load a Safe, use the following command:
