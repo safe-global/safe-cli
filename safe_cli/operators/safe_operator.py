@@ -66,6 +66,7 @@ from safe_cli.safe_addresses import (
 from safe_cli.utils import choose_option_from_list, get_erc_20_list, yes_or_no_question
 
 from ..contracts import safe_to_l2_migration
+from .hw_accounts.hw_account_manager import HwAccountManager, HwWalletType
 
 
 @dataclasses.dataclass
@@ -123,19 +124,6 @@ def require_default_sender(f):
     return decorated
 
 
-def load_ledger_manager():
-    """
-    Load ledgerManager if dependencies are installed
-    :return: LedgerManager or None
-    """
-    try:
-        from safe_cli.operators.hw_accounts.ledger_manager import LedgerManager
-
-        return LedgerManager()
-    except (ModuleNotFoundError, IOError):
-        return None
-
-
 class SafeOperator:
     address: ChecksumAddress
     node_url: str
@@ -183,7 +171,7 @@ class SafeOperator:
         self.require_all_signatures = (
             True  # Require all signatures to be present to send a tx
         )
-        self.ledger_manager = load_ledger_manager()
+        self.hw_account_manager = HwAccountManager()
 
     @cached_property
     def last_default_fallback_handler_address(self) -> ChecksumAddress:
@@ -285,11 +273,11 @@ class SafeOperator:
     def load_ledger_cli_owners(
         self, derivation_path: str = None, legacy_account: bool = False
     ):
-        if not self.ledger_manager:
+        if not self.hw_account_manager.is_supported_hw_wallet(HwWalletType.LEDGER):
             return None
         if derivation_path is None:
-            ledger_accounts = self.ledger_manager.get_accounts(
-                legacy_account=legacy_account
+            ledger_accounts = self.hw_account_manager.get_accounts(
+                HwWalletType.LEDGER, legacy_account=legacy_account
             )
             if len(ledger_accounts) == 0:
                 return None
@@ -301,7 +289,9 @@ class SafeOperator:
                 return None
             _, derivation_path = ledger_accounts[option]
 
-        address = self.ledger_manager.add_account(derivation_path)
+        address = self.hw_account_manager.add_account(
+            HwWalletType.LEDGER, derivation_path
+        )
         balance = self.ethereum_client.get_balance(address)
         print_formatted_text(
             HTML(
@@ -322,9 +312,9 @@ class SafeOperator:
                     break
         self.accounts = self.accounts.difference(accounts_to_remove)
         # Check if there are ledger owners
-        if self.ledger_manager and len(accounts_to_remove) < len(owners):
+        if self.hw_account_manager.accounts and len(accounts_to_remove) < len(owners):
             accounts_to_remove = (
-                accounts_to_remove | self.ledger_manager.delete_accounts(owners)
+                accounts_to_remove | self.hw_account_manager.delete_accounts(owners)
             )
 
         if accounts_to_remove:
@@ -335,11 +325,7 @@ class SafeOperator:
             print_formatted_text(HTML("<ansired>No account was deleted</ansired>"))
 
     def show_cli_owners(self):
-        accounts = (
-            self.accounts | self.ledger_manager.accounts
-            if self.ledger_manager
-            else self.accounts
-        )
+        accounts = self.accounts | self.hw_account_manager.accounts
         if not accounts:
             print_formatted_text(HTML("<ansired>No accounts loaded</ansired>"))
         else:
@@ -745,25 +731,33 @@ class SafeOperator:
                 )
             )
 
-        if not self.ledger_manager:
+        if not self.hw_account_manager.is_supported_hw_wallet(HwWalletType.LEDGER):
             print_formatted_text(
                 HTML(
                     "<b><ansigreen>Ledger</ansigreen></b>="
                     "<ansired>Disabled </ansired> <b>Optional ledger library is not installed, run pip install safe-cli[ledger] </b>"
                 )
             )
-        elif self.ledger_manager.connected:
+        else:
             print_formatted_text(
                 HTML(
                     "<b><ansigreen>Ledger</ansigreen></b>="
-                    "<ansiblue>Connected</ansiblue>"
+                    "<ansiblue>supported</ansiblue>"
+                )
+            )
+
+        if not self.hw_account_manager.is_supported_hw_wallet(HwWalletType.TREZOR):
+            print_formatted_text(
+                HTML(
+                    "<b><ansigreen>Trezor</ansigreen></b>="
+                    "<ansired>Disabled </ansired> <b>Optional trezor library is not installed, run pip install safe-cli[trezor] </b>"
                 )
             )
         else:
             print_formatted_text(
                 HTML(
-                    "<b><ansigreen>Ledger</ansigreen></b>="
-                    "<ansiblue>disconnected</ansiblue>"
+                    "<b><ansigreen>Trezor</ansigreen></b>="
+                    "<ansiblue>supported</ansiblue>"
                 )
             )
 
@@ -962,8 +956,8 @@ class SafeOperator:
                     break
         # If still pending required signatures continue with ledger owners
         selected_ledger_accounts = []
-        if threshold > 0 and self.ledger_manager:
-            for ledger_account in self.ledger_manager.accounts:
+        if threshold > 0 and self.hw_account_manager.accounts:
+            for ledger_account in self.hw_account_manager.accounts:
                 if ledger_account.address in permitted_signers:
                     selected_ledger_accounts.append(ledger_account)
                     threshold -= 1
@@ -978,7 +972,9 @@ class SafeOperator:
 
         # Sign with ledger
         if len(selected_ledger_accounts) > 0:
-            safe_tx = self.ledger_manager.sign_eip712(safe_tx, selected_ledger_accounts)
+            safe_tx = self.hw_account_manager.sign_eip712(
+                safe_tx, selected_ledger_accounts
+            )
 
         return safe_tx
 

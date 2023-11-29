@@ -15,6 +15,10 @@ class InvalidDerivationPath(LedgerError):
     message = "The provided derivation path is not valid"
 
 
+class UnsupportedHwWalletException(Exception):
+    pass
+
+
 def raise_as_hw_account_exception(function):
     @functools.wraps(function)
     def wrapper(*args, **kwargs):

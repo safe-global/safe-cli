@@ -100,13 +100,13 @@ class SafeTxServiceOperator(SafeOperator):
                 if account.address in owners:
                     safe_tx.sign(account.key)
             # Check if there are ledger signers
-            if self.ledger_manager:
+            if self.hw_account_manager.accounts:
                 selected_ledger_accounts = []
-                for ledger_account in self.ledger_manager.accounts:
+                for ledger_account in self.hw_account_manager.accounts:
                     if ledger_account.address in owners:
                         selected_ledger_accounts.append(ledger_account)
                 if len(selected_ledger_accounts) > 0:
-                    safe_tx = self.ledger_manager.sign_eip712(
+                    safe_tx = self.hw_account_manager.sign_eip712(
                         safe_tx, selected_ledger_accounts
                     )
 
