@@ -25,6 +25,7 @@ safe_commands_arguments = {
     "info": "(read-only)",
     "load_cli_owners": "<account-private-key> [<account-private-key>...]",
     "load_ledger_cli_owners": "[--legacy-accounts] [--derivation-path <str>]",
+    "load_trezor_cli_owners": "[--legacy-accounts] [--derivation-path <str>]",
     "load_cli_owners_from_words": "<word_1> <word_2> ... <word_12>",
     "refresh": "",
     "remove_delegate": "<address> <signer-address>",
@@ -159,6 +160,9 @@ meta = {
     ),
     "load_ledger_cli_owners": HTML(
         "Command <b>load_ledger_cli_owners</b> show a list of ledger addresses to choose between them "
+    ),
+    "load_trezor_cli_owners": HTML(
+        "Command <b>load_trezor_cli_owners</b> show a list of trezor addresses to choose between them "
     ),
     "load_cli_owners_from_words": HTML(
         "Command <b>load_cli_owners_from_words</b> will try to load owners via"

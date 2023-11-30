@@ -1,11 +1,14 @@
 import re
 from abc import ABC, abstractmethod
-from typing import Tuple
 
 from eth_typing import ChecksumAddress
 
 BIP32_ETH_PATTERN = r"^(m/)?44'/60'/[0-9]+'/[0-9]+/[0-9]+$"
 BIP32_LEGACY_LEDGER_PATTERN = r"^(m/)?44'/60'/[0-9]+'/[0-9]+$"
+
+
+class InvalidDerivationPath(Exception):
+    message = "The provided derivation path is not valid"
 
 
 class HwAccount(ABC):
@@ -26,10 +29,13 @@ class HwAccount(ABC):
         """
         Detect if a string is a valid derivation path
         """
-        return (
+        if not (
             re.match(BIP32_ETH_PATTERN, derivation_path) is not None
             or re.match(BIP32_LEGACY_LEDGER_PATTERN, derivation_path) is not None
-        )
+        ):
+            raise InvalidDerivationPath
+
+        return True
 
     @staticmethod
     @abstractmethod
@@ -41,12 +47,12 @@ class HwAccount(ABC):
         """
 
     @abstractmethod
-    def sign_typed_hash(self, domain_hash, message_hash) -> Tuple[bytes, bytes, bytes]:
+    def sign_typed_hash(self, domain_hash, message_hash) -> bytes:
         """
 
         :param domain_hash:
         :param message_hash:
-        :return: tuple os signature v, r, s
+        :return: signature
         """
 
     def __eq__(self, other):

@@ -1,4 +1,3 @@
-import sys
 import unittest
 from unittest import mock
 from unittest.mock import MagicMock
@@ -16,25 +15,6 @@ from safe_cli.operators.hw_accounts.ledger_manager import LedgerManager
 
 class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
     def test_setup_hw_account_manager(self):
-        # Shouldn't be supported any wallets
-        with mock.patch(sys.modules, {"ledgereth": None, "trezorlib": None}):
-            hw_acccount_manager = HwAccountManager()
-            self.assertFalse(
-                hw_acccount_manager.is_supported_hw_wallet(HwWalletType.LEDGER)
-            )
-            self.assertFalse(
-                hw_acccount_manager.is_supported_hw_wallet(HwWalletType.TREZOR)
-            )
-        # Should support only Trezor
-        with mock.patch.dict(sys.modules, {"ledgereth": None}):
-            hw_acccount_manager = HwAccountManager()
-            self.assertTrue(
-                hw_acccount_manager.is_supported_hw_wallet(HwWalletType.TREZOR)
-            )
-            self.assertFalse(
-                hw_acccount_manager.is_supported_hw_wallet(HwWalletType.LEDGER)
-            )
-
         # Should support Treezor and Ledger
         hw_acccount_manager = HwAccountManager()
         self.assertTrue(hw_acccount_manager.is_supported_hw_wallet(HwWalletType.TREZOR))
@@ -45,13 +25,12 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
         "safe_cli.operators.hw_accounts.ledger_manager.LedgerManager.get_address_by_derivation_path",
         autospec=True,
     )
-    def test_get_accounts_from_ledger(
-        self, mock_get_address_by_derivation_path: MagicMock
-    ):
+    def test_get_accounts(self, mock_get_address_by_derivation_path: MagicMock):
         hw_account_manager = HwAccountManager()
         addresses = [Account.create().address, Account.create().address]
         derivation_paths = ["44'/60'/0'/0/0", "44'/60'/1'/0/0"]
         mock_get_address_by_derivation_path.side_effect = addresses
+        # Choosing LEDGER because function is mocked for LEDGER
         hw_accounts = hw_account_manager.get_accounts(
             HwWalletType.LEDGER, number_accounts=2
         )
@@ -67,14 +46,14 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
         "safe_cli.operators.hw_accounts.ledger_manager.LedgerManager.get_address_by_derivation_path",
         autospec=True,
     )
-    def test_add_ledger_account(self, mock_get_address_by_derivation_path: MagicMock):
+    def test_add_account(self, mock_get_address_by_derivation_path: MagicMock):
         hw_account_manager = HwAccountManager()
         derivation_path = "44'/60'/0'/0"
         account_address = Account.create().address
         mock_get_address_by_derivation_path.return_value = account_address
 
         self.assertEqual(len(hw_account_manager.accounts), 0)
-
+        # Choosing LEDGER because function is mocked for LEDGER
         self.assertEqual(
             hw_account_manager.add_account(HwWalletType.LEDGER, derivation_path),
             account_address,

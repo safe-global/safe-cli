@@ -270,14 +270,14 @@ class SafeOperator:
             except ValueError:
                 print_formatted_text(HTML(f"<ansired>Cannot load key={key}</ansired>"))
 
-    def load_ledger_cli_owners(
-        self, derivation_path: str = None, legacy_account: bool = False
+    def load_hw_wallet(
+        self, hw_wallet_type: HwWalletType, derivation_path: str, legacy_account: bool
     ):
-        if not self.hw_account_manager.is_supported_hw_wallet(HwWalletType.LEDGER):
+        if not self.hw_account_manager.is_supported_hw_wallet(hw_wallet_type):
             return None
         if derivation_path is None:
             ledger_accounts = self.hw_account_manager.get_accounts(
-                HwWalletType.LEDGER, legacy_account=legacy_account
+                hw_wallet_type, legacy_account=legacy_account
             )
             if len(ledger_accounts) == 0:
                 return None
@@ -289,9 +289,7 @@ class SafeOperator:
                 return None
             _, derivation_path = ledger_accounts[option]
 
-        address = self.hw_account_manager.add_account(
-            HwWalletType.LEDGER, derivation_path
-        )
+        address = self.hw_account_manager.add_account(hw_wallet_type, derivation_path)
         balance = self.ethereum_client.get_balance(address)
         print_formatted_text(
             HTML(
@@ -300,6 +298,16 @@ class SafeOperator:
                 f"Ledger account cannot be defined as sender"
             )
         )
+
+    def load_ledger_cli_owners(
+        self, derivation_path: str = None, legacy_account: bool = False
+    ):
+        self.load_hw_wallet(HwWalletType.LEDGER, derivation_path, legacy_account)
+
+    def load_trezor_cli_owners(
+        self, derivation_path: str = None, legacy_account: bool = False
+    ):
+        self.load_hw_wallet(HwWalletType.TREZOR, derivation_path, legacy_account)
 
     def unload_cli_owners(self, owners: List[str]):
         accounts_to_remove: Set[Account] = set()

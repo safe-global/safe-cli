@@ -6,9 +6,7 @@ from prompt_toolkit import HTML, print_formatted_text
 
 from gnosis.eth.eip712 import eip712_encode
 from gnosis.safe import SafeTx
-from gnosis.safe.signatures import signature_to_bytes
 
-from safe_cli.operators.exceptions import HardwareWalletException
 from safe_cli.operators.hw_accounts.hw_account import HwAccount
 
 
@@ -31,14 +29,11 @@ class HwAccountManager:
 
             self.supported_hw_wallets[HwWalletType.LEDGER] = LedgerManager
         except (ModuleNotFoundError, IOError):
-            print("Exception")
             pass
 
-        print("Continue")
         try:
             from safe_cli.operators.hw_accounts.trezor_manager import TrezorManager
 
-            print("Continue")
             self.supported_hw_wallets[HwWalletType.TREZOR] = TrezorManager
         except (ModuleNotFoundError, IOError):
             pass
@@ -88,12 +83,9 @@ class HwAccountManager:
 
         hw_wallet = self.get_hw_wallet(hw_wallet_type)
 
-        if hw_wallet.is_valid_derivation_path(derivation_path):
-            address = hw_wallet.get_address_by_derivation_path(derivation_path)
-            self.accounts.add(hw_wallet(derivation_path, address))
-            return address
-        else:
-            raise HardwareWalletException("Invalid derivation path")
+        address = hw_wallet.get_address_by_derivation_path(derivation_path)
+        self.accounts.add(hw_wallet(derivation_path, address))
+        return address
 
     def delete_accounts(self, addresses: List[ChecksumAddress]) -> Set:
         """
@@ -130,11 +122,8 @@ class HwAccountManager:
             )
             print_formatted_text(HTML(f"Domain_hash: <b>{domain_hash.hex()}</b>"))
             print_formatted_text(HTML(f"Message_hash: <b>{message_hash.hex()}</b>"))
-            signed_v, signed_r, signed_s = account.sign_typed_hash(
-                domain_hash, message_hash
-            )
+            signature = account.sign_typed_hash(domain_hash, message_hash)
 
-            signature = signature_to_bytes(signed_v, signed_r, signed_s)
             # TODO should be refactored on safe_eth_py function insert_signature_sorted
             # Insert signature sorted
             if account.address not in safe_tx.signers:

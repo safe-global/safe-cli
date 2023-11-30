@@ -1,13 +1,15 @@
-from typing import Tuple
-
 from eth_typing import ChecksumAddress
 from ledgereth import sign_typed_data_draft
 from ledgereth.accounts import get_account_by_path
 from ledgereth.comms import init_dongle
 from ledgereth.exceptions import LedgerNotFound
 
-from safe_cli.operators.hw_accounts.exceptions import raise_as_hw_account_exception
+from gnosis.safe.signatures import signature_to_bytes
+
 from safe_cli.operators.hw_accounts.hw_account import HwAccount
+from safe_cli.operators.hw_accounts.ledger_exceptions import (
+    raise_ledger_exception_as_hw_account_exception,
+)
 
 
 class LedgerManager(HwAccount):
@@ -28,14 +30,14 @@ class LedgerManager(HwAccount):
             return False
 
     @property
-    @raise_as_hw_account_exception
+    @raise_ledger_exception_as_hw_account_exception
     def connected(self) -> bool:
         """
         :return: True if ledger is connected or False in other case
         """
         return self.connect()
 
-    @raise_as_hw_account_exception
+    @raise_ledger_exception_as_hw_account_exception
     def get_address_by_derivation_path(derivation_path: str) -> ChecksumAddress:
         """
 
@@ -44,12 +46,14 @@ class LedgerManager(HwAccount):
         """
         if derivation_path[0:2] == "m/":
             derivation_path = derivation_path.replace("m/", "")
-        account = get_account_by_path(derivation_path)
-        return account.address
+        if LedgerManager.is_valid_derivation_path(derivation_path):
+            account = get_account_by_path(derivation_path)
+            return account.address
 
-    @raise_as_hw_account_exception
-    def sign_typed_hash(self, domain_hash, message_hash) -> Tuple[bytes, bytes, bytes]:
+    @raise_ledger_exception_as_hw_account_exception
+    def sign_typed_hash(self, domain_hash, message_hash) -> bytes:
         signed = sign_typed_data_draft(
             domain_hash, message_hash, self.derivation_path, self.dongle
         )
-        return (signed.v, signed.r, signed.s)
+
+        return signature_to_bytes(signed.v, signed.r, signed.s)

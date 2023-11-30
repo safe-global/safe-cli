@@ -127,12 +127,8 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
         mock_init_dongle.return_value.exchange = MagicMock(
             return_value=ledger_return_signature
         )
-        signature_v, signature_r, signature_s = ledger_manager.sign_typed_hash(
-            encode_hash[1], encode_hash[2]
-        )
-        self.assertEqual(signature_v, v)
-        self.assertEqual(signature_r, r)
-        self.assertEqual(signature_s, s)
+        signature = ledger_manager.sign_typed_hash(encode_hash[1], encode_hash[2])
+        self.assertEqual(expected_signature, signature)
 
         # Check that dongle exchange is called with the expected payload
         # https://github.com/LedgerHQ/app-ethereum/blob/master/doc/ethapp.adoc#sign-eth-eip-712
