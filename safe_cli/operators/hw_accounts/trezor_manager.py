@@ -26,21 +26,17 @@ def get_trezor_client() -> TrezorClient:
 
 
 class TrezorManager(HwAccount):
-    def __init__(self, derivation_path: str, address: ChecksumAddress):
+    def __init__(self, derivation_path: str):
         self.client = get_trezor_client()
-        super().__init__(derivation_path, address)
+        super().__init__(derivation_path)
 
     @raise_trezor_exception_as_hw_account_exception
-    def get_address_by_derivation_path(derivation_path: str) -> ChecksumAddress:
+    def get_address(self) -> ChecksumAddress:
         """
-
-        :param derivation_path:
-        :return: public address for provided derivation_path
+        :return: public address for derivation_path
         """
-        if TrezorManager.is_valid_derivation_path(derivation_path):
-            client = get_trezor_client()
-            address_n = tools.parse_path(derivation_path)
-            return get_address(client=client, n=address_n)
+        address_n = tools.parse_path(self.derivation_path)
+        return get_address(client=self.client, n=address_n)
 
     @raise_trezor_exception_as_hw_account_exception
     def sign_typed_hash(self, domain_hash, message_hash) -> bytes:

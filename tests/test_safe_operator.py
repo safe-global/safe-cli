@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, PropertyMock
 
 from eth_account import Account
 from eth_typing import ChecksumAddress
+from ledgerblue.Dongle import Dongle
 from ledgereth.objects import LedgerAccount
 from web3 import Web3
 
@@ -86,8 +87,14 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         self.assertEqual(len(safe_operator.accounts), number_of_accounts - 1)
         self.assertFalse(safe_operator.default_sender)
 
+    @mock.patch(
+        "safe_cli.operators.hw_accounts.ledger_manager.init_dongle",
+        return_value=Dongle(),
+    )
     @mock.patch("safe_cli.operators.hw_accounts.ledger_manager.get_account_by_path")
-    def test_load_ledger_cli_owner(self, mock_get_account_by_path: MagicMock):
+    def test_load_ledger_cli_owner(
+        self, mock_get_account_by_path: MagicMock, mock_init_dongle: MagicMock
+    ):
         owner_address = Account.create().address
         safe_address = self.deploy_test_safe(owners=[owner_address]).address
         safe_operator = SafeOperator(safe_address, self.ethereum_node_url)

@@ -3,6 +3,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 from eth_account import Account
+from ledgerblue.Dongle import Dongle
 
 from gnosis.safe.tests.safe_test_case import SafeTestCaseMixin
 
@@ -22,14 +23,21 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
         self.assertEqual(len(hw_acccount_manager.accounts), 0)
 
     @mock.patch(
-        "safe_cli.operators.hw_accounts.ledger_manager.LedgerManager.get_address_by_derivation_path",
+        "safe_cli.operators.hw_accounts.ledger_manager.init_dongle",
+        autospec=True,
+        return_value=Dongle(),
+    )
+    @mock.patch(
+        "safe_cli.operators.hw_accounts.ledger_manager.LedgerManager.get_address",
         autospec=True,
     )
-    def test_get_accounts(self, mock_get_address_by_derivation_path: MagicMock):
+    def test_get_accounts(
+        self, mock_get_address: MagicMock, mock_init_dongle: MagicMock
+    ):
         hw_account_manager = HwAccountManager()
         addresses = [Account.create().address, Account.create().address]
         derivation_paths = ["44'/60'/0'/0/0", "44'/60'/1'/0/0"]
-        mock_get_address_by_derivation_path.side_effect = addresses
+        mock_get_address.side_effect = addresses
         # Choosing LEDGER because function is mocked for LEDGER
         hw_accounts = hw_account_manager.get_accounts(
             HwWalletType.LEDGER, number_accounts=2
@@ -43,14 +51,21 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
             self.assertEqual(expected_derivation_path, derivation_path)
 
     @mock.patch(
-        "safe_cli.operators.hw_accounts.ledger_manager.LedgerManager.get_address_by_derivation_path",
+        "safe_cli.operators.hw_accounts.ledger_manager.init_dongle",
+        autospec=True,
+        return_value=Dongle(),
+    )
+    @mock.patch(
+        "safe_cli.operators.hw_accounts.ledger_manager.LedgerManager.get_address",
         autospec=True,
     )
-    def test_add_account(self, mock_get_address_by_derivation_path: MagicMock):
+    def test_add_account(
+        self, mock_get_address: MagicMock, mock_init_dongle: MagicMock
+    ):
         hw_account_manager = HwAccountManager()
         derivation_path = "44'/60'/0'/0"
         account_address = Account.create().address
-        mock_get_address_by_derivation_path.return_value = account_address
+        mock_get_address.return_value = account_address
 
         self.assertEqual(len(hw_account_manager.accounts), 0)
         # Choosing LEDGER because function is mocked for LEDGER
@@ -77,21 +92,36 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
             account_address,
         )
 
-    def test_delete_account(self):
+    @mock.patch(
+        "safe_cli.operators.hw_accounts.ledger_manager.init_dongle",
+        autospec=True,
+        return_value=Dongle(),
+    )
+    @mock.patch(
+        "safe_cli.operators.hw_accounts.ledger_manager.LedgerManager.get_address",
+        autospec=True,
+    )
+    def test_delete_account(
+        self, mock_get_address: MagicMock, mock_init_dongle: MagicMock
+    ):
         hw_account_manager = HwAccountManager()
         random_address = Account.create().address
         random_address_2 = Account.create().address
         self.assertEqual(len(hw_account_manager.accounts), 0)
         self.assertEqual(len(hw_account_manager.delete_accounts([random_address])), 0)
-        hw_account_manager.accounts.add(LedgerManager("44'/60'/0'/0", random_address_2))
+
+        mock_get_address.return_value = random_address_2
+        hw_account_manager.accounts.add(LedgerManager("44'/60'/0'/0"))
         self.assertEqual(len(hw_account_manager.delete_accounts([random_address])), 0)
         self.assertEqual(len(hw_account_manager.accounts), 1)
         self.assertEqual(len(hw_account_manager.delete_accounts([])), 0)
-        hw_account_manager.accounts.add(LedgerManager("44'/60'/0'/1", random_address))
+
+        mock_get_address.return_value = random_address
+        hw_account_manager.accounts.add(LedgerManager("44'/60'/0'/1"))
         self.assertEqual(len(hw_account_manager.accounts), 2)
         self.assertEqual(len(hw_account_manager.delete_accounts([random_address])), 1)
         self.assertEqual(len(hw_account_manager.accounts), 1)
-        hw_account_manager.accounts.add(LedgerManager("44'/60'/0'/1", random_address))
+        hw_account_manager.accounts.add(LedgerManager("44'/60'/0'/1"))
         self.assertEqual(len(hw_account_manager.accounts), 2)
         self.assertEqual(
             len(hw_account_manager.delete_accounts([random_address, random_address_2])),

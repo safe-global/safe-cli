@@ -11,6 +11,7 @@ from ledgereth.exceptions import (
     LedgerLocked,
     LedgerNotFound,
 )
+from ledgereth.objects import LedgerAccount
 
 from gnosis.eth.eip712 import eip712_encode
 from gnosis.safe import SafeTx
@@ -22,26 +23,22 @@ from safe_cli.operators.hw_accounts.ledger_manager import LedgerManager
 
 
 class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
-    def test_setup_ledger_manager(self):
-        ledger_manager = LedgerManager("44'/60'/0'/0", Account.create().address)
-        self.assertIsNone(ledger_manager.dongle)
-        self.assertEqual(ledger_manager.connected, False)
-
-    @mock.patch("safe_cli.operators.hw_accounts.ledger_manager.init_dongle")
-    @mock.patch("safe_cli.operators.hw_accounts.ledger_manager.get_account_by_path")
-    def test_connected(
-        self, mock_get_account_by_path: MagicMock, mock_init_dongle: MagicMock
-    ):
-        ledger_manager = LedgerManager("44'/60'/0'/0", Account.create().address)
-        mock_init_dongle.side_effect = LedgerNotFound()
-
-        self.assertEqual(ledger_manager.connected, False)
-
-        mock_init_dongle.side_effect = None
-        mock_init_dongle.return_value = Dongle()
-        mock_get_account_by_path.side_effect = LedgerLocked()
-
-        self.assertEqual(ledger_manager.connected, True)
+    @mock.patch(
+        "safe_cli.operators.hw_accounts.ledger_manager.init_dongle",
+        return_value=Dongle(),
+    )
+    def test_setup_ledger_manager(self, mock_init_dongle: MagicMock):
+        derivation_path = "44'/60'/0'/0"
+        address = Account.create().address
+        with self.assertRaises(HardwareWalletException):
+            LedgerManager(derivation_path)
+        with mock.patch(
+            "safe_cli.operators.hw_accounts.ledger_manager.get_account_by_path",
+            return_value=LedgerAccount(derivation_path, address),
+        ):
+            ledger_manager = LedgerManager(derivation_path)
+            self.assertIsNotNone(ledger_manager.dongle)
+            self.assertEqual(ledger_manager.address, address)
 
     @mock.patch(
         "safe_cli.operators.hw_accounts.ledger_manager.sign_typed_data_draft",
@@ -51,49 +48,74 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
         "safe_cli.operators.hw_accounts.ledger_manager.get_account_by_path",
         autospec=True,
     )
-    def test_hw_device_exception(self, mock_ledger_fn: MagicMock, mock_sign: MagicMock):
+    @mock.patch(
+        "safe_cli.operators.hw_accounts.ledger_manager.init_dongle",
+        return_value=Dongle(),
+    )
+    def test_hw_device_exception(
+        self,
+        mock_init_dongle: MagicMock,
+        mock_get_account_by_path: MagicMock,
+        mock_sign: MagicMock,
+    ):
         derivation_path = "44'/60'/0'/0"
-        ledger_manager = LedgerManager(derivation_path, Account.create().address)
-
+        address = Account.create().address
         random_domain_bytes = os.urandom(32)
         random_message_bytes = os.urandom(32)
-        mock_ledger_fn.side_effect = LedgerNotFound
+        mock_get_account_by_path.side_effect = LedgerNotFound
+        with self.assertRaises(HardwareWalletException):
+            LedgerManager(derivation_path)
+
+        mock_get_account_by_path.side_effect = LedgerLocked
+        with self.assertRaises(HardwareWalletException):
+            LedgerManager(derivation_path)
+
+        mock_get_account_by_path.side_effect = LedgerAppNotOpened
+        with self.assertRaises(HardwareWalletException):
+            LedgerManager(derivation_path)
+
+        # Test sign exceptions
+        mock_get_account_by_path.side_effect = None
+        mock_get_account_by_path.return_value = LedgerAccount(derivation_path, address)
         mock_sign.side_effect = LedgerNotFound
         with self.assertRaises(HardwareWalletException):
-            LedgerManager.get_address_by_derivation_path(derivation_path)
-        with self.assertRaises(HardwareWalletException):
+            ledger_manager = LedgerManager(derivation_path)
             ledger_manager.sign_typed_hash(random_domain_bytes, random_message_bytes)
 
-        mock_ledger_fn.side_effect = LedgerLocked
         mock_sign.side_effect = LedgerLocked
         with self.assertRaises(HardwareWalletException):
-            LedgerManager.get_address_by_derivation_path(derivation_path)
-        with self.assertRaises(HardwareWalletException):
+            ledger_manager = LedgerManager(derivation_path)
             ledger_manager.sign_typed_hash(random_domain_bytes, random_message_bytes)
 
-        mock_ledger_fn.side_effect = LedgerAppNotOpened
         mock_sign.side_effect = LedgerAppNotOpened
         with self.assertRaises(HardwareWalletException):
-            LedgerManager.get_address_by_derivation_path(derivation_path)
-        with self.assertRaises(HardwareWalletException):
+            ledger_manager = LedgerManager(derivation_path)
             ledger_manager.sign_typed_hash(random_domain_bytes, random_message_bytes)
 
-        mock_ledger_fn.side_effect = LedgerCancel
         mock_sign.side_effect = LedgerCancel
         with self.assertRaises(HardwareWalletException):
-            LedgerManager.get_address_by_derivation_path(derivation_path)
-        with self.assertRaises(HardwareWalletException):
+            ledger_manager = LedgerManager(derivation_path)
             ledger_manager.sign_typed_hash(random_domain_bytes, random_message_bytes)
 
+    @mock.patch(
+        "safe_cli.operators.hw_accounts.ledger_manager.get_account_by_path",
+        autospec=True,
+    )
     @mock.patch(
         "safe_cli.operators.hw_accounts.ledger_manager.init_dongle",
         autospec=True,
         return_value=Dongle(),
     )
-    def test_sign_typed_hash(self, mock_init_dongle: MagicMock):
+    def test_sign_typed_hash(
+        self, mock_init_dongle: MagicMock, mock_get_account_by_path: MagicMock
+    ):
         owner = Account.create()
         to = Account.create()
-        ledger_manager = LedgerManager("44'/60'/0'/0", owner.address)
+        derivation_path = "44'/60'/0'/0"
+        mock_get_account_by_path.return_value = LedgerAccount(
+            derivation_path, owner.address
+        )
+        ledger_manager = LedgerManager(derivation_path)
 
         safe = self.deploy_test_safe(
             owners=[owner.address],

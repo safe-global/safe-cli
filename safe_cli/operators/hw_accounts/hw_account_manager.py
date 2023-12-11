@@ -67,8 +67,7 @@ class HwAccountManager:
             else:
                 path_string = f"44'/60'/{i}'/0/0"
 
-            address = hw_wallet.get_address_by_derivation_path(path_string)
-            accounts.append((address, path_string))
+            accounts.append((hw_wallet(path_string).address, path_string))
         return accounts
 
     def add_account(
@@ -83,8 +82,8 @@ class HwAccountManager:
 
         hw_wallet = self.get_hw_wallet(hw_wallet_type)
 
-        address = hw_wallet.get_address_by_derivation_path(derivation_path)
-        self.accounts.add(hw_wallet(derivation_path, address))
+        address = hw_wallet(derivation_path).address
+        self.accounts.add(hw_wallet(derivation_path))
         return address
 
     def delete_accounts(self, addresses: List[ChecksumAddress]) -> Set:

@@ -1,10 +1,8 @@
 import re
 from abc import ABC, abstractmethod
 
-from eth_typing import ChecksumAddress
-
-BIP32_ETH_PATTERN = r"^(m/)?44'/60'/[0-9]+'/[0-9]+/[0-9]+$"
-BIP32_LEGACY_LEDGER_PATTERN = r"^(m/)?44'/60'/[0-9]+'/[0-9]+$"
+BIP32_ETH_PATTERN = r"^44'/60'/[0-9]+'/[0-9]+/[0-9]+$"
+BIP32_LEGACY_LEDGER_PATTERN = r"^44'/60'/[0-9]+'/[0-9]+$"
 
 
 class InvalidDerivationPath(Exception):
@@ -12,20 +10,24 @@ class InvalidDerivationPath(Exception):
 
 
 class HwAccount(ABC):
-    def __init__(self, derivation_path: str, address: ChecksumAddress):
-        self.derivation_path = derivation_path
-        self.address = address
+    def __init__(self, derivation_path: str):
+        derivation_path = derivation_path.replace("m/", "")
+        if self._is_valid_derivation_path(derivation_path):
+            self.derivation_path = derivation_path
+        self.address = self.get_address()
 
     @property
     def get_derivation_path(self):
         return self.derivation_path
 
-    @property
+    @abstractmethod
     def get_address(self):
-        return self.address
+        """
 
-    @staticmethod
-    def is_valid_derivation_path(derivation_path: str):
+        :return:
+        """
+
+    def _is_valid_derivation_path(self, derivation_path: str):
         """
         Detect if a string is a valid derivation path
         """
@@ -36,15 +38,6 @@ class HwAccount(ABC):
             raise InvalidDerivationPath
 
         return True
-
-    @staticmethod
-    @abstractmethod
-    def get_address_by_derivation_path(derivation_path: str) -> ChecksumAddress:
-        """
-
-        :param derivation_path:
-        :return: public address for provided derivation_path
-        """
 
     @abstractmethod
     def sign_typed_hash(self, domain_hash, message_hash) -> bytes:
