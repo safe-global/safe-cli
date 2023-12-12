@@ -49,3 +49,10 @@ class TrezorWallet(HwWallet):
             self.client, n=address_n, domain_hash=domain_hash, message_hash=message_hash
         )
         return signed.signature
+
+    def print_type(self) -> str:
+        """
+
+        :return: str represantation of wallet type
+        """
+        return "Ledger"

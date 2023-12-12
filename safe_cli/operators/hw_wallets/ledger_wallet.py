@@ -49,3 +49,10 @@ class LedgerWallet(HwWallet):
         )
 
         return signature_to_bytes(signed.v, signed.r, signed.s)
+
+    def print_type(self) -> str:
+        """
+
+        :return: str represantation of wallet type
+        """
+        return "Ledger"

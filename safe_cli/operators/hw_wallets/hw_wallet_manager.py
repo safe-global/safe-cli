@@ -101,34 +101,33 @@ class HwWalletManager:
         self.wallets = self.wallets.difference(accounts_to_remove)
         return accounts_to_remove
 
-    def sign_eip712(self, safe_tx: SafeTx, accounts: List[HwWallet]) -> SafeTx:
+    def sign_eip712(self, safe_tx: SafeTx, wallets: List[HwWallet]) -> SafeTx:
         """
-        Call ledger ethereum app method to sign eip712 hashes with a ledger account
+        Sign a safeTx EIP-712 hashes with supported hw wallet devices
 
         :param domain_hash:
         :param message_hash:
-        :param account: ledger account
-        :return: bytes of signature
+        :param wallets: list of HwWallet
+        :return: signed safeTx
         """
         encode_hash = eip712_encode(safe_tx.eip712_structured_data)
         domain_hash = encode_hash[1]
         message_hash = encode_hash[2]
-        for account in accounts:
+        for wallet in wallets:
             print_formatted_text(
                 HTML(
-                    "<ansired>Make sure in your ledger before signing that domain_hash and message_hash are both correct</ansired>"
+                    f"<ansired>Make sure before signing in your {wallet} that the domain_hash and message_hash are both correct</ansired>"
                 )
             )
             print_formatted_text(HTML(f"Domain_hash: <b>{domain_hash.hex()}</b>"))
             print_formatted_text(HTML(f"Message_hash: <b>{message_hash.hex()}</b>"))
-            signature = account.sign_typed_hash(domain_hash, message_hash)
+            signature = wallet.sign_typed_hash(domain_hash, message_hash)
 
-            # TODO should be refactored on safe_eth_py function insert_signature_sorted
             # Insert signature sorted
-            if account.address not in safe_tx.signers:
-                new_owners = safe_tx.signers + [account.address]
+            if wallet.address not in safe_tx.signers:
+                new_owners = safe_tx.signers + [wallet.address]
                 new_owner_pos = sorted(new_owners, key=lambda x: int(x, 16)).index(
-                    account.address
+                    wallet.address
                 )
                 safe_tx.signatures = (
                     safe_tx.signatures[: 65 * new_owner_pos]

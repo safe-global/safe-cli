@@ -139,7 +139,10 @@ the information about the Safe using:
 ```
 > refresh
 ```
-## Ledger module
+## Hardware wallets support
+**NOTE**: before signing anything ensure that the data showing on your hardware wallet device is the same as the safe-cli data.
+
+### Ledger
 Ledger module is an optional feature of safe-cli to sign transactions with the help of [ledgereth](https://github.com/mikeshultz/ledger-eth-lib) library based on [ledgerblue](https://github.com/LedgerHQ/blue-loader-python).
 
 To enable, safe-cli must be installed as follows:
@@ -155,7 +158,19 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="2c97", ATTRS{idProduct}=="0004", MODE="0660
 Safe-cli Ledger commands:
 - `load_ledger_cli_owners [--legacy-accounts] [--derivation-path <str>]`: show a list of the first 5 accounts (--legacy-accounts search using ledger legacy derivation) or load an account from provided derivation path.
 
-**NOTE**: before signing anything ensure that the data showing on your ledger is the same as the safe-cli data.
+### Trezor
+Trezor module is an optional feature of safe-cli to sign transactions from Trezor hardware wallet using the [trezor](https://pypi.org/project/trezor/) library.
+
+To enable, safe-cli must be installed as follows:
+```
+pip install safe-cli[trezor]
+```
+
+### Enable multiple hardware wallets
+```
+pip install safe-cli[ledger, trezor]
+```
+
 ## Creating a new Safe
 Use `safe-creator <node_url> <private_key> --owners <checksummed_address_1> <checksummed_address_2> --threshold <uint> --salt-nonce <uint256>`.
 
