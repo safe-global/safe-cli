@@ -7,44 +7,43 @@ from prompt_toolkit import HTML, print_formatted_text
 from gnosis.eth.eip712 import eip712_encode
 from gnosis.safe import SafeTx
 
-from safe_cli.operators.hw_accounts.hw_account import HwAccount
+from safe_cli.operators.hw_wallets.hw_wallet import HwWallet
 
 
 class HwWalletType(Enum):
-    TREZOR = "Trezor"
-    LEDGER = "Ledger"
+    TREZOR = 0
+    LEDGER = 1
 
 
-class HwAccountManager:
+class HwWalletManager:
     def __new__(cls):
         if not hasattr(cls, "instance"):
-            cls.instance = super(HwAccountManager, cls).__new__(cls)
+            cls.instance = super(HwWalletManager, cls).__new__(cls)
         return cls.instance
 
     def __init__(self):
-        self.accounts: Set[HwAccount] = set()
-        self.supported_hw_wallets: Dict[str, HwAccount] = {}
+        self.wallets: Set[HwWallet] = set()
+        self.supported_hw_wallet_types: Dict[str, HwWallet] = {}
         try:
-            from safe_cli.operators.hw_accounts.ledger_manager import LedgerManager
+            from safe_cli.operators.hw_wallets.ledger_wallet import LedgerWallet
 
-            self.supported_hw_wallets[HwWalletType.LEDGER] = LedgerManager
-        except (ModuleNotFoundError, IOError):
+            self.supported_hw_wallet_types[HwWalletType.LEDGER] = LedgerWallet
+        except (ImportError):
             pass
 
         try:
-            from safe_cli.operators.hw_accounts.trezor_manager import TrezorManager
+            from safe_cli.operators.hw_wallets.trezor_wallet import TrezorWallet
 
-            self.supported_hw_wallets[HwWalletType.TREZOR] = TrezorManager
-        except (ModuleNotFoundError, IOError):
+            self.supported_hw_wallet_types[HwWalletType.TREZOR] = TrezorWallet
+        except (ImportError):
             pass
 
-    def is_supported_hw_wallet(self, hw_wallet_type: HwWalletType):
-        return hw_wallet_type in self.supported_hw_wallets
+    def is_supported_hw_wallet(self, hw_wallet_type: HwWalletType) -> bool:
+        return hw_wallet_type in self.supported_hw_wallet_types
 
-    def get_hw_wallet(self, hw_wallet_type: HwWalletType):
-        if hw_wallet_type in self.supported_hw_wallets:
-            return self.supported_hw_wallets[hw_wallet_type]
-        # TODO add unsupported exception
+    def get_hw_wallet(self, hw_wallet_type: HwWalletType) -> Optional[HwWallet]:
+        if hw_wallet_type in self.supported_hw_wallet_types:
+            return self.supported_hw_wallet_types[hw_wallet_type]
 
     def get_accounts(
         self,
@@ -83,7 +82,7 @@ class HwAccountManager:
         hw_wallet = self.get_hw_wallet(hw_wallet_type)
 
         address = hw_wallet(derivation_path).address
-        self.accounts.add(hw_wallet(derivation_path))
+        self.wallets.add(hw_wallet(derivation_path))
         return address
 
     def delete_accounts(self, addresses: List[ChecksumAddress]) -> Set:
@@ -95,13 +94,13 @@ class HwAccountManager:
         """
         accounts_to_remove = set()
         for address in addresses:
-            for account in self.accounts:
+            for account in self.wallets:
                 if account.address == address:
                     accounts_to_remove.add(account)
-        self.accounts = self.accounts.difference(accounts_to_remove)
+        self.wallets = self.wallets.difference(accounts_to_remove)
         return accounts_to_remove
 
-    def sign_eip712(self, safe_tx: SafeTx, accounts: List[HwAccount]) -> SafeTx:
+    def sign_eip712(self, safe_tx: SafeTx, accounts: List[HwWallet]) -> SafeTx:
         """
         Call ledger ethereum app method to sign eip712 hashes with a ledger account
 

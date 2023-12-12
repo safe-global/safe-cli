@@ -5,20 +5,20 @@ from ledgereth.comms import init_dongle
 
 from gnosis.safe.signatures import signature_to_bytes
 
-from safe_cli.operators.hw_accounts.hw_account import HwAccount
-from safe_cli.operators.hw_accounts.ledger_exceptions import (
-    raise_ledger_exception_as_hw_account_exception,
+from safe_cli.operators.hw_wallets.hw_wallet import HwWallet
+from safe_cli.operators.hw_wallets.ledger_exceptions import (
+    raise_ledger_exception_as_hw_wallet_exception,
 )
 
 
-class LedgerManager(HwAccount):
-    @raise_ledger_exception_as_hw_account_exception
+class LedgerWallet(HwWallet):
+    @raise_ledger_exception_as_hw_wallet_exception
     def __init__(self, derivation_path: str):
         self.dongle = None
         self.connect()
         super().__init__(derivation_path)
 
-    @raise_ledger_exception_as_hw_account_exception
+    @raise_ledger_exception_as_hw_wallet_exception
     def connect(self) -> bool:
         """
         Connect with ledger
@@ -26,7 +26,7 @@ class LedgerManager(HwAccount):
         """
         self.dongle = init_dongle(self.dongle)
 
-    @raise_ledger_exception_as_hw_account_exception
+    @raise_ledger_exception_as_hw_wallet_exception
     def get_address(self) -> ChecksumAddress:
         """
 
@@ -35,7 +35,7 @@ class LedgerManager(HwAccount):
         account = get_account_by_path(self.derivation_path)
         return account.address
 
-    @raise_ledger_exception_as_hw_account_exception
+    @raise_ledger_exception_as_hw_wallet_exception
     def sign_typed_hash(self, domain_hash, message_hash) -> bytes:
         signed = sign_typed_data_draft(
             domain_hash, message_hash, self.derivation_path, self.dongle

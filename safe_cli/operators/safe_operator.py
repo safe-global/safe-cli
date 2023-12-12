@@ -66,7 +66,7 @@ from safe_cli.safe_addresses import (
 from safe_cli.utils import choose_option_from_list, get_erc_20_list, yes_or_no_question
 
 from ..contracts import safe_to_l2_migration
-from .hw_accounts.hw_account_manager import HwAccountManager, HwWalletType
+from .hw_wallets.hw_wallet_manager import HwWalletManager, HwWalletType
 
 
 @dataclasses.dataclass
@@ -171,7 +171,7 @@ class SafeOperator:
         self.require_all_signatures = (
             True  # Require all signatures to be present to send a tx
         )
-        self.hw_account_manager = HwAccountManager()
+        self.hw_wallet_manager = HwWalletManager()
 
     @cached_property
     def last_default_fallback_handler_address(self) -> ChecksumAddress:
@@ -273,10 +273,10 @@ class SafeOperator:
     def load_hw_wallet(
         self, hw_wallet_type: HwWalletType, derivation_path: str, legacy_account: bool
     ):
-        if not self.hw_account_manager.is_supported_hw_wallet(hw_wallet_type):
+        if not self.hw_wallet_manager.is_supported_hw_wallet(hw_wallet_type):
             return None
         if derivation_path is None:
-            ledger_accounts = self.hw_account_manager.get_accounts(
+            ledger_accounts = self.hw_wallet_manager.get_accounts(
                 hw_wallet_type, legacy_account=legacy_account
             )
             if len(ledger_accounts) == 0:
@@ -289,7 +289,7 @@ class SafeOperator:
                 return None
             _, derivation_path = ledger_accounts[option]
 
-        address = self.hw_account_manager.add_account(hw_wallet_type, derivation_path)
+        address = self.hw_wallet_manager.add_account(hw_wallet_type, derivation_path)
         balance = self.ethereum_client.get_balance(address)
         print_formatted_text(
             HTML(
@@ -320,9 +320,9 @@ class SafeOperator:
                     break
         self.accounts = self.accounts.difference(accounts_to_remove)
         # Check if there are ledger owners
-        if self.hw_account_manager.accounts and len(accounts_to_remove) < len(owners):
+        if self.hw_wallet_manager.wallets and len(accounts_to_remove) < len(owners):
             accounts_to_remove = (
-                accounts_to_remove | self.hw_account_manager.delete_accounts(owners)
+                accounts_to_remove | self.hw_wallet_manager.delete_accounts(owners)
             )
 
         if accounts_to_remove:
@@ -333,7 +333,7 @@ class SafeOperator:
             print_formatted_text(HTML("<ansired>No account was deleted</ansired>"))
 
     def show_cli_owners(self):
-        accounts = self.accounts | self.hw_account_manager.accounts
+        accounts = self.accounts | self.hw_wallet_manager.wallets
         if not accounts:
             print_formatted_text(HTML("<ansired>No accounts loaded</ansired>"))
         else:
@@ -739,7 +739,7 @@ class SafeOperator:
                 )
             )
 
-        if not self.hw_account_manager.is_supported_hw_wallet(HwWalletType.LEDGER):
+        if not self.hw_wallet_manager.is_supported_hw_wallet(HwWalletType.LEDGER):
             print_formatted_text(
                 HTML(
                     "<b><ansigreen>Ledger</ansigreen></b>="
@@ -754,7 +754,7 @@ class SafeOperator:
                 )
             )
 
-        if not self.hw_account_manager.is_supported_hw_wallet(HwWalletType.TREZOR):
+        if not self.hw_wallet_manager.is_supported_hw_wallet(HwWalletType.TREZOR):
             print_formatted_text(
                 HTML(
                     "<b><ansigreen>Trezor</ansigreen></b>="
@@ -964,8 +964,8 @@ class SafeOperator:
                     break
         # If still pending required signatures continue with ledger owners
         selected_ledger_accounts = []
-        if threshold > 0 and self.hw_account_manager.accounts:
-            for ledger_account in self.hw_account_manager.accounts:
+        if threshold > 0 and self.hw_wallet_manager.wallets:
+            for ledger_account in self.hw_wallet_manager.wallets:
                 if ledger_account.address in permitted_signers:
                     selected_ledger_accounts.append(ledger_account)
                     threshold -= 1
@@ -980,7 +980,7 @@ class SafeOperator:
 
         # Sign with ledger
         if len(selected_ledger_accounts) > 0:
-            safe_tx = self.hw_account_manager.sign_eip712(
+            safe_tx = self.hw_wallet_manager.sign_eip712(
                 safe_tx, selected_ledger_accounts
             )
 

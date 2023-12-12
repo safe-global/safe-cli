@@ -19,37 +19,37 @@ from gnosis.safe.signatures import signature_split
 from gnosis.safe.tests.safe_test_case import SafeTestCaseMixin
 
 from safe_cli.operators.exceptions import HardwareWalletException
-from safe_cli.operators.hw_accounts.ledger_manager import LedgerManager
+from safe_cli.operators.hw_wallets.ledger_wallet import LedgerWallet
 
 
-class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
+class Testledger_wallet(SafeTestCaseMixin, unittest.TestCase):
     @mock.patch(
-        "safe_cli.operators.hw_accounts.ledger_manager.init_dongle",
+        "safe_cli.operators.hw_wallets.ledger_wallet.init_dongle",
         return_value=Dongle(),
     )
-    def test_setup_ledger_manager(self, mock_init_dongle: MagicMock):
+    def test_setup_ledger_wallet(self, mock_init_dongle: MagicMock):
         derivation_path = "44'/60'/0'/0"
         address = Account.create().address
         with self.assertRaises(HardwareWalletException):
-            LedgerManager(derivation_path)
+            LedgerWallet(derivation_path)
         with mock.patch(
-            "safe_cli.operators.hw_accounts.ledger_manager.get_account_by_path",
+            "safe_cli.operators.hw_wallets.ledger_wallet.get_account_by_path",
             return_value=LedgerAccount(derivation_path, address),
         ):
-            ledger_manager = LedgerManager(derivation_path)
-            self.assertIsNotNone(ledger_manager.dongle)
-            self.assertEqual(ledger_manager.address, address)
+            ledger_wallet = LedgerWallet(derivation_path)
+            self.assertIsNotNone(ledger_wallet.dongle)
+            self.assertEqual(ledger_wallet.address, address)
 
     @mock.patch(
-        "safe_cli.operators.hw_accounts.ledger_manager.sign_typed_data_draft",
+        "safe_cli.operators.hw_wallets.ledger_wallet.sign_typed_data_draft",
         autospec=True,
     )
     @mock.patch(
-        "safe_cli.operators.hw_accounts.ledger_manager.get_account_by_path",
+        "safe_cli.operators.hw_wallets.ledger_wallet.get_account_by_path",
         autospec=True,
     )
     @mock.patch(
-        "safe_cli.operators.hw_accounts.ledger_manager.init_dongle",
+        "safe_cli.operators.hw_wallets.ledger_wallet.init_dongle",
         return_value=Dongle(),
     )
     def test_hw_device_exception(
@@ -64,45 +64,45 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
         random_message_bytes = os.urandom(32)
         mock_get_account_by_path.side_effect = LedgerNotFound
         with self.assertRaises(HardwareWalletException):
-            LedgerManager(derivation_path)
+            LedgerWallet(derivation_path)
 
         mock_get_account_by_path.side_effect = LedgerLocked
         with self.assertRaises(HardwareWalletException):
-            LedgerManager(derivation_path)
+            LedgerWallet(derivation_path)
 
         mock_get_account_by_path.side_effect = LedgerAppNotOpened
         with self.assertRaises(HardwareWalletException):
-            LedgerManager(derivation_path)
+            LedgerWallet(derivation_path)
 
         # Test sign exceptions
         mock_get_account_by_path.side_effect = None
         mock_get_account_by_path.return_value = LedgerAccount(derivation_path, address)
         mock_sign.side_effect = LedgerNotFound
         with self.assertRaises(HardwareWalletException):
-            ledger_manager = LedgerManager(derivation_path)
-            ledger_manager.sign_typed_hash(random_domain_bytes, random_message_bytes)
+            ledger_wallet = LedgerWallet(derivation_path)
+            ledger_wallet.sign_typed_hash(random_domain_bytes, random_message_bytes)
 
         mock_sign.side_effect = LedgerLocked
         with self.assertRaises(HardwareWalletException):
-            ledger_manager = LedgerManager(derivation_path)
-            ledger_manager.sign_typed_hash(random_domain_bytes, random_message_bytes)
+            ledger_wallet = LedgerWallet(derivation_path)
+            ledger_wallet.sign_typed_hash(random_domain_bytes, random_message_bytes)
 
         mock_sign.side_effect = LedgerAppNotOpened
         with self.assertRaises(HardwareWalletException):
-            ledger_manager = LedgerManager(derivation_path)
-            ledger_manager.sign_typed_hash(random_domain_bytes, random_message_bytes)
+            ledger_wallet = LedgerWallet(derivation_path)
+            ledger_wallet.sign_typed_hash(random_domain_bytes, random_message_bytes)
 
         mock_sign.side_effect = LedgerCancel
         with self.assertRaises(HardwareWalletException):
-            ledger_manager = LedgerManager(derivation_path)
-            ledger_manager.sign_typed_hash(random_domain_bytes, random_message_bytes)
+            ledger_wallet = LedgerWallet(derivation_path)
+            ledger_wallet.sign_typed_hash(random_domain_bytes, random_message_bytes)
 
     @mock.patch(
-        "safe_cli.operators.hw_accounts.ledger_manager.get_account_by_path",
+        "safe_cli.operators.hw_wallets.ledger_wallet.get_account_by_path",
         autospec=True,
     )
     @mock.patch(
-        "safe_cli.operators.hw_accounts.ledger_manager.init_dongle",
+        "safe_cli.operators.hw_wallets.ledger_wallet.init_dongle",
         autospec=True,
         return_value=Dongle(),
     )
@@ -115,7 +115,7 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
         mock_get_account_by_path.return_value = LedgerAccount(
             derivation_path, owner.address
         )
-        ledger_manager = LedgerManager(derivation_path)
+        ledger_wallet = LedgerWallet(derivation_path)
 
         safe = self.deploy_test_safe(
             owners=[owner.address],
@@ -149,7 +149,7 @@ class TestLedgerManager(SafeTestCaseMixin, unittest.TestCase):
         mock_init_dongle.return_value.exchange = MagicMock(
             return_value=ledger_return_signature
         )
-        signature = ledger_manager.sign_typed_hash(encode_hash[1], encode_hash[2])
+        signature = ledger_wallet.sign_typed_hash(encode_hash[1], encode_hash[2])
         self.assertEqual(expected_signature, signature)
 
         # Check that dongle exchange is called with the expected payload

@@ -9,7 +9,7 @@ class InvalidDerivationPath(Exception):
     message = "The provided derivation path is not valid"
 
 
-class HwAccount(ABC):
+class HwWallet(ABC):
     def __init__(self, derivation_path: str):
         derivation_path = derivation_path.replace("m/", "")
         if self._is_valid_derivation_path(derivation_path):
@@ -49,7 +49,7 @@ class HwAccount(ABC):
         """
 
     def __eq__(self, other):
-        if isinstance(other, HwAccount):
+        if isinstance(other, HwWallet):
             return (
                 self.derivation_path == other.derivation_path
                 and self.address == other.address

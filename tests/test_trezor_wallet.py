@@ -15,34 +15,34 @@ from gnosis.safe import SafeTx
 from gnosis.safe.tests.safe_test_case import SafeTestCaseMixin
 
 from safe_cli.operators.exceptions import HardwareWalletException
-from safe_cli.operators.hw_accounts.trezor_manager import TrezorManager
+from safe_cli.operators.hw_wallets.trezor_wallet import TrezorWallet
 
 
 class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
     @mock.patch(
-        "safe_cli.operators.hw_accounts.trezor_manager.get_trezor_client",
+        "safe_cli.operators.hw_wallets.trezor_wallet.get_trezor_client",
         return_value=None,
     )
     @mock.patch(
-        "safe_cli.operators.hw_accounts.trezor_manager.get_address",
+        "safe_cli.operators.hw_wallets.trezor_wallet.get_address",
         return_value=None,
     )
-    def test_setup_trezor_manager(
+    def test_setup_trezor_wallet(
         self, mock_trezor_client: MagicMock, mock_get_address: MagicMock
     ):
-        trezor_manager = TrezorManager("44'/60'/0'/0")
-        self.assertIsNone(trezor_manager.client)
+        trezor_wallet = TrezorWallet("44'/60'/0'/0")
+        self.assertIsNone(trezor_wallet.client)
 
     @mock.patch(
-        "safe_cli.operators.hw_accounts.trezor_manager.sign_typed_data_hash",
+        "safe_cli.operators.hw_wallets.trezor_wallet.sign_typed_data_hash",
         autospec=True,
     )
     @mock.patch(
-        "safe_cli.operators.hw_accounts.trezor_manager.get_address",
+        "safe_cli.operators.hw_wallets.trezor_wallet.get_address",
         autospec=True,
     )
     @mock.patch(
-        "safe_cli.operators.hw_accounts.trezor_manager.get_trezor_client",
+        "safe_cli.operators.hw_wallets.trezor_wallet.get_trezor_client",
         autospec=True,
     )
     def test_hw_device_exception(
@@ -62,48 +62,48 @@ class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
 
         mock_trezor_get_address.side_effect = TransportException
         with self.assertRaises(HardwareWalletException):
-            TrezorManager(derivation_path)
+            TrezorWallet(derivation_path)
 
         mock_trezor_get_address.side_effect = PinException
         with self.assertRaises(HardwareWalletException):
-            TrezorManager(derivation_path)
+            TrezorWallet(derivation_path)
 
         mock_trezor_get_address.side_effect = Cancelled
         with self.assertRaises(HardwareWalletException):
-            TrezorManager(derivation_path)
+            TrezorWallet(derivation_path)
 
         mock_trezor_get_address.side_effect = OutdatedFirmwareError
         with self.assertRaises(HardwareWalletException):
-            TrezorManager(derivation_path)
+            TrezorWallet(derivation_path)
 
         mock_trezor_get_address.side_effect = None
         mock_trezor_get_address.return_value = Account.create().address
         mock_trezor_sign.side_effect = TransportException
         with self.assertRaises(HardwareWalletException):
-            trezor_manager = TrezorManager(derivation_path)
-            trezor_manager.sign_typed_hash(random_domain_bytes, random_message_bytes)
+            trezor_wallet = TrezorWallet(derivation_path)
+            trezor_wallet.sign_typed_hash(random_domain_bytes, random_message_bytes)
 
         mock_trezor_sign.side_effect = PinException
         with self.assertRaises(HardwareWalletException):
-            trezor_manager = TrezorManager(derivation_path)
-            trezor_manager.sign_typed_hash(random_domain_bytes, random_message_bytes)
+            trezor_wallet = TrezorWallet(derivation_path)
+            trezor_wallet.sign_typed_hash(random_domain_bytes, random_message_bytes)
 
         mock_trezor_sign.side_effect = Cancelled
         with self.assertRaises(HardwareWalletException):
-            trezor_manager = TrezorManager(derivation_path)
-            trezor_manager.sign_typed_hash(random_domain_bytes, random_message_bytes)
+            trezor_wallet = TrezorWallet(derivation_path)
+            trezor_wallet.sign_typed_hash(random_domain_bytes, random_message_bytes)
 
         mock_trezor_sign.side_effect = OutdatedFirmwareError
         with self.assertRaises(HardwareWalletException):
-            trezor_manager = TrezorManager(derivation_path)
-            trezor_manager.sign_typed_hash(random_domain_bytes, random_message_bytes)
+            trezor_wallet = TrezorWallet(derivation_path)
+            trezor_wallet.sign_typed_hash(random_domain_bytes, random_message_bytes)
 
     @mock.patch(
-        "safe_cli.operators.hw_accounts.trezor_manager.get_address",
+        "safe_cli.operators.hw_wallets.trezor_wallet.get_address",
         autospec=True,
     )
     @mock.patch(
-        "safe_cli.operators.hw_accounts.trezor_manager.get_trezor_client",
+        "safe_cli.operators.hw_wallets.trezor_wallet.get_trezor_client",
         autospec=True,
     )
     def test_sign_typed_hash(
@@ -117,7 +117,7 @@ class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
         )
         mock_trezor_client.return_value.is_outdated = MagicMock(return_value=False)
         mock_get_address.return_value = owner.address
-        trezor_manager = TrezorManager("44'/60'/0'/0")
+        trezor_wallet = TrezorWallet("44'/60'/0'/0")
 
         safe = self.deploy_test_safe(
             owners=[owner.address],
@@ -147,5 +147,5 @@ class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
         mock_trezor_client.return_value.call = MagicMock(
             return_value=trezor_return_signature
         )
-        signature = trezor_manager.sign_typed_hash(encode_hash[1], encode_hash[2])
+        signature = trezor_wallet.sign_typed_hash(encode_hash[1], encode_hash[2])
         self.assertEqual(expected_signature, signature)

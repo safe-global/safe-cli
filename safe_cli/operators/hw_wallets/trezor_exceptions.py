@@ -9,14 +9,14 @@ from trezorlib.exceptions import (
 from trezorlib.transport import TransportException
 
 from safe_cli.operators.exceptions import HardwareWalletException
-from safe_cli.operators.hw_accounts.hw_account import InvalidDerivationPath
+from safe_cli.operators.hw_wallets.hw_wallet import InvalidDerivationPath
 
 
 class UnsupportedHwWalletException(Exception):
     pass
 
 
-def raise_trezor_exception_as_hw_account_exception(function):
+def raise_trezor_exception_as_hw_wallet_exception(function):
     @functools.wraps(function)
     def wrapper(*args, **kwargs):
         try:

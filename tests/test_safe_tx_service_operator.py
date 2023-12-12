@@ -139,17 +139,17 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         with mock.patch.object(
             SafeTx, "signers", return_value=["signer"], new_callable=mock.PropertyMock
         ) as mock_safe_tx:
-            safe_operator.hw_account_manager.sign_eip712 = MagicMock(
+            safe_operator.hw_wallet_manager.sign_eip712 = MagicMock(
                 return_value=mock_safe_tx
             )
             get_safe_transaction_mock.return_value = GetMultisigTxRequestMock(
                 executed=False
             )
-            safe_operator.hw_account_manager.accounts.add(
+            safe_operator.hw_wallet_manager.wallets.add(
                 LedgerAccount("44'/60'/0'/0", Account.create().address)
             )
             get_permitted_signers_mock.return_value = {
-                list(safe_operator.hw_account_manager.accounts)[0].address
+                list(safe_operator.hw_wallet_manager.wallets)[0].address
             }
             self.assertTrue(safe_operator.submit_signatures(safe_tx_hash))
 
