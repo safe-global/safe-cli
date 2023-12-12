@@ -1,12 +1,8 @@
 import re
 from abc import ABC, abstractmethod
 
-BIP32_ETH_PATTERN = r"^44'/60'/[0-9]+'/[0-9]+/[0-9]+$"
-BIP32_LEGACY_LEDGER_PATTERN = r"^44'/60'/[0-9]+'/[0-9]+$"
-
-
-class InvalidDerivationPath(Exception):
-    message = "The provided derivation path is not valid"
+from .constants import BIP32_ETH_PATTERN, BIP32_LEGACY_LEDGER_PATTERN
+from .exceptions import InvalidDerivationPath
 
 
 class HwWallet(ABC):
@@ -35,17 +31,17 @@ class HwWallet(ABC):
             re.match(BIP32_ETH_PATTERN, derivation_path) is not None
             or re.match(BIP32_LEGACY_LEDGER_PATTERN, derivation_path) is not None
         ):
-            raise InvalidDerivationPath
+            raise InvalidDerivationPath()
 
         return True
 
     @abstractmethod
-    def sign_typed_hash(self, domain_hash, message_hash) -> bytes:
+    def sign_typed_hash(self, domain_hash: bytes, message_hash: bytes) -> bytes:
         """
 
         :param domain_hash:
         :param message_hash:
-        :return: signature
+        :return: signature bytes
         """
 
     def __eq__(self, other):

@@ -1,4 +1,5 @@
 from enum import Enum
+from functools import cache
 from typing import Dict, List, Optional, Set, Tuple
 
 from eth_typing import ChecksumAddress
@@ -7,7 +8,7 @@ from prompt_toolkit import HTML, print_formatted_text
 from gnosis.eth.eip712 import eip712_encode
 from gnosis.safe import SafeTx
 
-from safe_cli.operators.hw_wallets.hw_wallet import HwWallet
+from .hw_wallet import HwWallet
 
 
 class HwWalletType(Enum):
@@ -15,24 +16,24 @@ class HwWalletType(Enum):
     LEDGER = 1
 
 
-class HwWalletManager:
-    def __new__(cls):
-        if not hasattr(cls, "instance"):
-            cls.instance = super(HwWalletManager, cls).__new__(cls)
-        return cls.instance
+@cache
+def get_hw_wallet_manager():
+    return HwWalletManager()
 
+
+class HwWalletManager:
     def __init__(self):
         self.wallets: Set[HwWallet] = set()
         self.supported_hw_wallet_types: Dict[str, HwWallet] = {}
         try:
-            from safe_cli.operators.hw_wallets.ledger_wallet import LedgerWallet
+            from .ledger_wallet import LedgerWallet
 
             self.supported_hw_wallet_types[HwWalletType.LEDGER] = LedgerWallet
         except (ImportError):
             pass
 
         try:
-            from safe_cli.operators.hw_wallets.trezor_wallet import TrezorWallet
+            from .trezor_wallet import TrezorWallet
 
             self.supported_hw_wallet_types[HwWalletType.TREZOR] = TrezorWallet
         except (ImportError):

@@ -8,12 +8,8 @@ from trezorlib.exceptions import (
 )
 from trezorlib.transport import TransportException
 
-from safe_cli.operators.exceptions import HardwareWalletException
-from safe_cli.operators.hw_wallets.hw_wallet import InvalidDerivationPath
-
-
-class UnsupportedHwWalletException(Exception):
-    pass
+from ..exceptions import HardwareWalletException
+from .exceptions import InvalidDerivationPath
 
 
 def raise_trezor_exception_as_hw_wallet_exception(function):

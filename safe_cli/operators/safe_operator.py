@@ -66,7 +66,7 @@ from safe_cli.safe_addresses import (
 from safe_cli.utils import choose_option_from_list, get_erc_20_list, yes_or_no_question
 
 from ..contracts import safe_to_l2_migration
-from .hw_wallets.hw_wallet_manager import HwWalletManager, HwWalletType
+from .hw_wallets.hw_wallet_manager import HwWalletType, get_hw_wallet_manager
 
 
 @dataclasses.dataclass
@@ -171,7 +171,7 @@ class SafeOperator:
         self.require_all_signatures = (
             True  # Require all signatures to be present to send a tx
         )
-        self.hw_wallet_manager = HwWalletManager()
+        self.hw_wallet_manager = get_hw_wallet_manager()
 
     @cached_property
     def last_default_fallback_handler_address(self) -> ChecksumAddress:

@@ -159,10 +159,10 @@ meta = {
         "<u>&lt;account-private-key&gt;</u>."
     ),
     "load_ledger_cli_owners": HTML(
-        "Command <b>load_ledger_cli_owners</b> show a list of ledger addresses to choose between them "
+        "Command <b>load_ledger_cli_owners</b> show a list of Ledger hardware wallet addresses to choose between them "
     ),
     "load_trezor_cli_owners": HTML(
-        "Command <b>load_trezor_cli_owners</b> show a list of trezor addresses to choose between them "
+        "Command <b>load_trezor_cli_owners</b> show a list of Trezor hardware wallet addresses to choose between them "
     ),
     "load_cli_owners_from_words": HTML(
         "Command <b>load_cli_owners_from_words</b> will try to load owners via"

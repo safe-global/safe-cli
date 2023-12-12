@@ -334,7 +334,7 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_load_ledger_cli_owners.add_argument(
         "--legacy-accounts",
         action="store_true",
-        help="Enable search legacy accounts",
+        help="Search for legacy accounts",
     )
     parser_load_ledger_cli_owners.set_defaults(func=load_ledger_cli_owners)
 
@@ -347,7 +347,7 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_load_trezor_cli_owners.add_argument(
         "--legacy-accounts",
         action="store_true",
-        help="Enable search legacy accounts",
+        help="Search for legacy accounts",
     )
     parser_load_trezor_cli_owners.set_defaults(func=load_trezor_cli_owners)
 
