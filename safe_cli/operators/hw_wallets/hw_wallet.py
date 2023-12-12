@@ -44,16 +44,8 @@ class HwWallet(ABC):
         :return: signature bytes
         """
 
-    @abstractmethod
-    def print_type(self) -> str:
-        """
-
-        :return: str represantation of wallet type
-        """
-        pass
-
     def __str__(self):
-        return f"{self.print_type()} device with address {self.address}"
+        return f"{self.__class__.__name__} device with address {self.address}"
 
     def __eq__(self, other):
         if isinstance(other, HwWallet):

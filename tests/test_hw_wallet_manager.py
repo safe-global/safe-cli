@@ -10,6 +10,7 @@ from gnosis.safe.tests.safe_test_case import SafeTestCaseMixin
 from safe_cli.operators.hw_wallets.hw_wallet_manager import (
     HwWalletManager,
     HwWalletType,
+    get_hw_wallet_manager,
 )
 from safe_cli.operators.hw_wallets.ledger_wallet import LedgerWallet
 
@@ -17,10 +18,14 @@ from safe_cli.operators.hw_wallets.ledger_wallet import LedgerWallet
 class Testledger_wallet(SafeTestCaseMixin, unittest.TestCase):
     def test_setup_hw_wallet_manager(self):
         # Should support Treezor and Ledger
-        hw_acccount_manager = HwWalletManager()
-        self.assertTrue(hw_acccount_manager.is_supported_hw_wallet(HwWalletType.TREZOR))
-        self.assertTrue(hw_acccount_manager.is_supported_hw_wallet(HwWalletType.LEDGER))
-        self.assertEqual(len(hw_acccount_manager.wallets), 0)
+        hw_wallet_manager = get_hw_wallet_manager()
+        self.assertTrue(hw_wallet_manager.is_supported_hw_wallet(HwWalletType.TREZOR))
+        self.assertTrue(hw_wallet_manager.is_supported_hw_wallet(HwWalletType.LEDGER))
+        self.assertEqual(len(hw_wallet_manager.wallets), 0)
+
+        # Should get the same instance
+        other_hw_wallet_manager = get_hw_wallet_manager()
+        self.assertEqual(other_hw_wallet_manager, hw_wallet_manager)
 
     @mock.patch(
         "safe_cli.operators.hw_wallets.ledger_wallet.init_dongle",

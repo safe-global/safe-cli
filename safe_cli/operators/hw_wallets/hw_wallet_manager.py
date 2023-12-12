@@ -1,5 +1,5 @@
 from enum import Enum
-from functools import cache
+from functools import lru_cache
 from typing import Dict, List, Optional, Set, Tuple
 
 from eth_typing import ChecksumAddress
@@ -16,7 +16,7 @@ class HwWalletType(Enum):
     LEDGER = 1
 
 
-@cache
+@lru_cache(maxsize=None)
 def get_hw_wallet_manager():
     return HwWalletManager()
 
@@ -51,7 +51,7 @@ class HwWalletManager:
         hw_wallet_type: HwWalletType,
         legacy_account: Optional[bool] = False,
         number_accounts: Optional[int] = 5,
-    ) -> Tuple[ChecksumAddress, str]:
+    ) -> List[Tuple[ChecksumAddress, str]]:
         """
 
         :param hw_wallet: Trezor or Ledger
