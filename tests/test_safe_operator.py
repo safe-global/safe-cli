@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, PropertyMock
 
 from eth_account import Account
 from eth_typing import ChecksumAddress
+from ledgerblue.Dongle import Dongle
 from ledgereth.objects import LedgerAccount
 from web3 import Web3
 
@@ -81,29 +82,28 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         # Test unload cli owner
         safe_operator.default_sender = random_accounts[0]
         number_of_accounts = len(safe_operator.accounts)
-        ledger_random_address = Account.create().address
-        safe_operator.ledger_manager.accounts.add(
-            LedgerAccount("44'/60'/0'/1", ledger_random_address)
-        )
-        self.assertEqual(len(safe_operator.ledger_manager.accounts), 1)
-        safe_operator.unload_cli_owners(
-            ["aloha", random_accounts[0].address, "bye", ledger_random_address]
-        )
+
+        safe_operator.unload_cli_owners(["aloha", random_accounts[0].address, "bye"])
         self.assertEqual(len(safe_operator.accounts), number_of_accounts - 1)
         self.assertFalse(safe_operator.default_sender)
-        self.assertEqual(len(safe_operator.ledger_manager.accounts), 0)
 
-    @mock.patch("safe_cli.operators.hw_accounts.ledger_manager.get_account_by_path")
-    def test_load_ledger_cli_owner(self, mock_get_account_by_path: MagicMock):
+    @mock.patch(
+        "safe_cli.operators.hw_wallets.ledger_wallet.init_dongle",
+        return_value=Dongle(),
+    )
+    @mock.patch("safe_cli.operators.hw_wallets.ledger_wallet.get_account_by_path")
+    def test_load_ledger_cli_owner(
+        self, mock_get_account_by_path: MagicMock, mock_init_dongle: MagicMock
+    ):
         owner_address = Account.create().address
         safe_address = self.deploy_test_safe(owners=[owner_address]).address
         safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
-        safe_operator.ledger_manager.get_accounts = MagicMock(return_value=[])
+        safe_operator.hw_wallet_manager.get_accounts = MagicMock(return_value=[])
         safe_operator.load_ledger_cli_owners()
-        self.assertEqual(len(safe_operator.ledger_manager.accounts), 0)
+        self.assertEqual(len(safe_operator.hw_wallet_manager.wallets), 0)
         random_address = Account.create().address
         other_random_address = Account.create().address
-        safe_operator.ledger_manager.get_accounts.return_value = [
+        safe_operator.hw_wallet_manager.get_accounts.return_value = [
             (random_address, "44'/60'/0'/0/0"),
             (other_random_address, "44'/60'/0'/0/1"),
         ]
@@ -112,9 +112,9 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
             "44'/60'/0'/0/0", random_address
         )
         safe_operator.load_ledger_cli_owners()
-        self.assertEqual(len(safe_operator.ledger_manager.accounts), 1)
+        self.assertEqual(len(safe_operator.hw_wallet_manager.wallets), 1)
         self.assertEqual(
-            safe_operator.ledger_manager.accounts.pop().address, random_address
+            safe_operator.hw_wallet_manager.wallets.pop().address, random_address
         )
 
         # Only accept ethereum derivation paths
@@ -125,10 +125,19 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
             "44'/60'/0'/0/0", owner_address
         )
         safe_operator.load_ledger_cli_owners(derivation_path="44'/60'/0'/0/0")
-        self.assertEqual(len(safe_operator.ledger_manager.accounts), 1)
+        self.assertEqual(len(safe_operator.hw_wallet_manager.wallets), 1)
         self.assertEqual(
-            safe_operator.ledger_manager.accounts.pop().address, owner_address
+            safe_operator.hw_wallet_manager.wallets.pop().address, owner_address
         )
+
+        # test unload ledger owner
+        ledger_random_address = Account.create().address
+        safe_operator.hw_wallet_manager.wallets.add(
+            LedgerAccount("44'/60'/0'/1", ledger_random_address)
+        )
+        self.assertEqual(len(safe_operator.hw_wallet_manager.wallets), 1)
+        safe_operator.unload_cli_owners([ledger_random_address])
+        self.assertEqual(len(safe_operator.hw_wallet_manager.wallets), 0)
 
     def test_approve_hash(self):
         safe_address = self.deploy_test_safe(

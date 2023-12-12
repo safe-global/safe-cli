@@ -27,7 +27,7 @@ setuptools.setup(
         "safe-eth-py==6.0.0b8",
         "tabulate>=0.8",
     ],
-    extras_require={"ledger": ["ledgereth==0.9.1"]},
+    extras_require={"ledger": ["ledgereth==0.9.1"], "trezor": ["trezor==0.13.8"]},
     packages=setuptools.find_packages(),
     entry_points={
         "console_scripts": [

@@ -176,6 +176,12 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
         )
 
     @safe_exception
+    def load_trezor_cli_owners(args):
+        safe_operator.load_trezor_cli_owners(
+            derivation_path=args.derivation_path, legacy_account=args.legacy_accounts
+        )
+
+    @safe_exception
     def unload_cli_owners(args):
         safe_operator.unload_cli_owners(args.addresses)
 
@@ -328,9 +334,22 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_load_ledger_cli_owners.add_argument(
         "--legacy-accounts",
         action="store_true",
-        help="Enable search legacy accounts",
+        help="Search for legacy accounts",
     )
     parser_load_ledger_cli_owners.set_defaults(func=load_ledger_cli_owners)
+
+    parser_load_trezor_cli_owners = subparsers.add_parser("load_trezor_cli_owners")
+    parser_load_trezor_cli_owners.add_argument(
+        "--derivation-path",
+        type=str,
+        help="Load address for the provided derivation path",
+    )
+    parser_load_trezor_cli_owners.add_argument(
+        "--legacy-accounts",
+        action="store_true",
+        help="Search for legacy accounts",
+    )
+    parser_load_trezor_cli_owners.set_defaults(func=load_trezor_cli_owners)
 
     parser_unload_cli_owners = subparsers.add_parser("unload_cli_owners")
     parser_unload_cli_owners.add_argument(

@@ -3,19 +3,15 @@ import functools
 from ledgereth.exceptions import (
     LedgerAppNotOpened,
     LedgerCancel,
-    LedgerError,
     LedgerLocked,
     LedgerNotFound,
 )
 
-from safe_cli.operators.exceptions import HardwareWalletException
+from ..exceptions import HardwareWalletException
+from .exceptions import InvalidDerivationPath
 
 
-class InvalidDerivationPath(LedgerError):
-    message = "The provided derivation path is not valid"
-
-
-def raise_as_hw_account_exception(function):
+def raise_ledger_exception_as_hw_wallet_exception(function):
     @functools.wraps(function)
     def wrapper(*args, **kwargs):
         try:
