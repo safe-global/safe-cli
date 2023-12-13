@@ -18,7 +18,7 @@ def get_trezor_client() -> TrezorClient:
     This method is cached to share the same configuration between trezor calls while the class is not instantiated.
     :return:
     """
-    ui = ClickUI(passphrase_on_host=True)
+    ui = ClickUI(passphrase_on_host=True, always_prompt=True)
     client = get_default_client(ui=ui)
     return client
 
