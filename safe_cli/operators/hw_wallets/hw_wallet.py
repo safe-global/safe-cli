@@ -1,6 +1,9 @@
 import re
 from abc import ABC, abstractmethod
 
+from eth_typing import HexStr
+from web3.types import TxParams
+
 from .constants import BIP32_ETH_PATTERN, BIP32_LEGACY_LEDGER_PATTERN
 from .exceptions import InvalidDerivationPath
 
@@ -42,6 +45,14 @@ class HwWallet(ABC):
         :param domain_hash:
         :param message_hash:
         :return: signature bytes
+        """
+
+    @abstractmethod
+    def get_signed_raw_transaction(self, tx_parameters: TxParams) -> HexStr:
+        """
+
+        :param tx_parameters:
+        :return:
         """
 
     def __str__(self):

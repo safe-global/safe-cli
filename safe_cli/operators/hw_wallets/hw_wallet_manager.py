@@ -3,8 +3,11 @@ from functools import lru_cache
 from typing import Dict, List, Optional, Set, Tuple
 
 from eth_typing import ChecksumAddress
+from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
+from web3.types import TxParams, Wei
 
+from gnosis.eth import TxSpeed
 from gnosis.eth.eip712 import eip712_encode
 from gnosis.safe import SafeTx
 
@@ -25,6 +28,7 @@ class HwWalletManager:
     def __init__(self):
         self.wallets: Set[HwWallet] = set()
         self.supported_hw_wallet_types: Dict[str, HwWallet] = {}
+        self.sender: Optional[HwWallet] = None
         try:
             from .ledger_wallet import LedgerWallet
 
@@ -71,7 +75,10 @@ class HwWalletManager:
         return accounts
 
     def add_account(
-        self, hw_wallet_type: HwWalletType, derivation_path: str
+        self,
+        hw_wallet_type: HwWalletType,
+        derivation_path: str,
+        set_as_sender: Optional[bool] = False,
     ) -> ChecksumAddress:
         """
         Add an account to ledger manager set and return the added address
@@ -82,9 +89,21 @@ class HwWalletManager:
 
         hw_wallet = self.get_hw_wallet(hw_wallet_type)
 
-        address = hw_wallet(derivation_path).address
-        self.wallets.add(hw_wallet(derivation_path))
-        return address
+        wallet = hw_wallet(derivation_path)
+        self.wallets.add(wallet)
+        if set_as_sender:
+            self.sender = wallet
+        return wallet.address
+
+    def set_sender(self, hw_wallet_type: HwWalletType, derivation_path: str):
+        """
+        Set a harware wallet as a sender to enable execute transaction from it.
+        :param hw_wallet_type:
+        :param derivation_path:
+        :return:
+        """
+        hw_wallet = self.get_hw_wallet(hw_wallet_type)
+        self.sender = hw_wallet(derivation_path)
 
     def delete_accounts(self, addresses: List[ChecksumAddress]) -> Set:
         """
@@ -136,3 +155,59 @@ class HwWalletManager:
                 )
 
         return safe_tx
+
+    def execute(
+        self,
+        safe_tx: SafeTx,
+        tx_gas: Optional[int] = None,
+        tx_gas_price: Optional[int] = None,
+        tx_nonce: Optional[int] = None,
+        eip1559_speed: Optional[TxSpeed] = None,
+    ) -> Tuple[HexBytes, TxParams]:
+        """
+        Send multisig tx to the Safe
+
+        :param safe_tx: Safe transaction to sign
+        :param tx_gas: Gas for the external tx. If not, `(safe_tx_gas + base_gas) * 2` will be used
+        :param tx_gas_price: Gas price of the external tx. If not, `gas_price` will be used
+        :param tx_nonce: Force nonce for `tx_sender`
+        :param eip1559_speed: If provided, use EIP1559 transaction
+        :return: Tuple(tx_hash, tx)
+        """
+
+        if eip1559_speed and safe_tx.ethereum_client.is_eip1559_supported():
+            tx_parameters = safe_tx.ethereum_client.set_eip1559_fees(
+                {
+                    "from": self.sender.address,
+                },
+                tx_speed=eip1559_speed,
+            )
+        else:
+            tx_parameters = {
+                "from": self.sender.address,
+                "gasPrice": tx_gas_price or safe_tx.w3.eth.gas_price,
+            }
+
+        if tx_gas:
+            tx_parameters["gas"] = tx_gas
+
+        if tx_nonce is not None:
+            tx_parameters["nonce"] = tx_nonce
+        else:
+            tx_parameters["nonce"] = safe_tx.ethereum_client.get_nonce_for_account(
+                self.sender.address, block_identifier="latest"
+            )
+        safe_tx.tx = safe_tx.w3_tx.build_transaction(tx_parameters)
+        safe_tx.tx["gas"] = Wei(
+            tx_gas or (max(safe_tx.tx["gas"] + 75000, safe_tx.recommended_gas()))
+        )
+        signed_raw_transaction = self.sender.get_signed_raw_transaction(
+            safe_tx.tx
+        )  # sign with ledger
+        safe_tx.tx_hash = safe_tx.ethereum_client.w3.eth.send_raw_transaction(
+            signed_raw_transaction
+        )
+        # Set signatures empty after executing the tx. `Nonce` is increased even if it fails,
+        # so signatures are not valid anymore
+        safe_tx.signatures = b""
+        return safe_tx.tx_hash, safe_tx.tx
