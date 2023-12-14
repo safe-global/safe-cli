@@ -75,10 +75,7 @@ class HwWalletManager:
         return accounts
 
     def add_account(
-        self,
-        hw_wallet_type: HwWalletType,
-        derivation_path: str,
-        set_as_sender: Optional[bool] = False,
+        self, hw_wallet_type: HwWalletType, derivation_path: str
     ) -> ChecksumAddress:
         """
         Add an account to ledger manager set and return the added address
@@ -91,8 +88,6 @@ class HwWalletManager:
 
         wallet = hw_wallet(derivation_path)
         self.wallets.add(wallet)
-        if set_as_sender:
-            self.sender = wallet
         return wallet.address
 
     def set_sender(self, hw_wallet_type: HwWalletType, derivation_path: str):
@@ -116,6 +111,8 @@ class HwWalletManager:
         for address in addresses:
             for account in self.wallets:
                 if account.address == address:
+                    if self.sender and self.sender.address == address:
+                        self.sender = None
                     accounts_to_remove.add(account)
         self.wallets = self.wallets.difference(accounts_to_remove)
         return accounts_to_remove
@@ -156,7 +153,7 @@ class HwWalletManager:
 
         return safe_tx
 
-    def execute(
+    def execute_safe_tx(
         self,
         safe_tx: SafeTx,
         tx_gas: Optional[int] = None,
@@ -202,7 +199,7 @@ class HwWalletManager:
             tx_gas or (max(safe_tx.tx["gas"] + 75000, safe_tx.recommended_gas()))
         )
         signed_raw_transaction = self.sender.get_signed_raw_transaction(
-            safe_tx.tx
+            safe_tx.tx, safe_tx.ethereum_client.get_chain_id()
         )  # sign with ledger
         safe_tx.tx_hash = safe_tx.ethereum_client.w3.eth.send_raw_transaction(
             signed_raw_transaction

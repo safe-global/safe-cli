@@ -3,8 +3,11 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 from eth_account import Account
+from hexbytes import HexBytes
 from ledgerblue.Dongle import Dongle
+from ledgereth import SignedTransaction
 
+from gnosis.safe import SafeTx
 from gnosis.safe.tests.safe_test_case import SafeTestCaseMixin
 
 from safe_cli.operators.hw_wallets.hw_wallet_manager import (
@@ -133,3 +136,81 @@ class Testledger_wallet(SafeTestCaseMixin, unittest.TestCase):
             2,
         )
         self.assertEqual(len(hw_wallet_manager.wallets), 0)
+
+    @mock.patch(
+        "safe_cli.operators.hw_wallets.ledger_wallet.create_transaction",
+        autospec=True,
+        return_value=Dongle(),
+    )
+    @mock.patch(
+        "safe_cli.operators.hw_wallets.ledger_wallet.LedgerWallet.get_address",
+        autospec=True,
+    )
+    @mock.patch(
+        "safe_cli.operators.hw_wallets.ledger_wallet.init_dongle",
+        autospec=True,
+        return_value=Dongle(),
+    )
+    def test_execute(
+        self,
+        mock_init_dongle: MagicMock,
+        mock_get_address: MagicMock,
+        mock_ledger_create_transaction: MagicMock,
+    ):
+        owner = self.ethereum_test_account
+        to = Account.create()
+        derivation_path = "44'/60'/0'/0"
+        hw_wallet_manager = HwWalletManager()
+        mock_get_address.return_value = owner.address
+        hw_wallet_manager.add_account(HwWalletType.LEDGER, derivation_path)
+        hw_wallet_manager.set_sender(HwWalletType.LEDGER, derivation_path)
+        self.assertEqual(hw_wallet_manager.sender.address, owner.address)
+        safe = self.deploy_test_safe(
+            owners=[owner.address],
+            threshold=1,
+            initial_funding_wei=self.w3.to_wei(0.1, "ether"),
+        )
+        safe_tx = SafeTx(
+            self.ethereum_client,
+            safe.address,
+            to.address,
+            10,
+            b"",
+            0,
+            200000,
+            200000,
+            self.gas_price,
+            None,
+            None,
+            safe_nonce=0,
+        )
+        safe_tx.sign(owner.key)
+        tx_parameters = {
+            "from": owner.address,
+            "gasPrice": safe_tx.w3.eth.gas_price,
+            "nonce": 0,
+            "gas": safe_tx.recommended_gas(),
+        }
+        safe_tx.tx = safe_tx.w3_tx.build_transaction(tx_parameters)
+        signed_fields = safe_tx.w3.eth.account.sign_transaction(
+            safe_tx.tx, private_key=owner.key
+        )
+
+        mocked_signed_transaction_response = SignedTransaction(
+            nonce=0,
+            gas_price=safe_tx.tx["gasPrice"],
+            gas_limit=safe_tx.tx["gas"],
+            destination=HexBytes(safe_tx.tx["to"]),
+            amount=safe_tx.tx["value"],
+            data=HexBytes(safe_tx.tx["data"]),
+            v=signed_fields.v,
+            r=signed_fields.r,
+            s=signed_fields.s,
+        )
+
+        mock_ledger_create_transaction.return_value = mocked_signed_transaction_response
+        tx_hash, tx = hw_wallet_manager.execute_safe_tx(safe_tx)
+        self.assertEqual(tx["data"], safe_tx.tx["data"])
+        self.assertIsNotNone(
+            self.ethereum_client.w3.eth.get_transaction_receipt(tx_hash)
+        )

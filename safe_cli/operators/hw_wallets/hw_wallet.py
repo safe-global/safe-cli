@@ -48,11 +48,14 @@ class HwWallet(ABC):
         """
 
     @abstractmethod
-    def get_signed_raw_transaction(self, tx_parameters: TxParams) -> HexStr:
+    def get_signed_raw_transaction(
+        self, tx_parameters: TxParams, chain_id: int
+    ) -> HexStr:
         """
 
+        :param chain_id:
         :param tx_parameters:
-        :return:
+        :return: raw transaction signed
         """
 
     def __str__(self):

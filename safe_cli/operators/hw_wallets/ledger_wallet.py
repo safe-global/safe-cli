@@ -52,21 +52,24 @@ class LedgerWallet(HwWallet):
         return signature_to_bytes(signed.v, signed.r, signed.s)
 
     @raise_ledger_exception_as_hw_wallet_exception
-    def get_signed_raw_transaction(self, tx_parameters: TxParams) -> HexStr:
+    def get_signed_raw_transaction(
+        self, tx_parameters: TxParams, chain_id: int
+    ) -> HexStr:
         """
 
+        :param chain_id:
         :param tx_parameters:
-        :return:
+        :return: raw transaction signed
         """
         signed_transaction = create_transaction(
             destination=tx_parameters["to"],
             amount=tx_parameters["value"],
             gas=tx_parameters["gas"],
             nonce=tx_parameters["nonce"],
-            data=tx_parameters["data"],
-            max_priority_fee_per_gas=tx_parameters["maxPriorityFeePerGas"],
-            max_fee_per_gas=tx_parameters["maxPriorityFeePerGas"],
-            chain_id=5,
+            data=tx_parameters.get("data"),
+            max_priority_fee_per_gas=tx_parameters.get("maxPriorityFeePerGas"),
+            max_fee_per_gas=tx_parameters.get("maxPriorityFeePerGas"),
+            chain_id=chain_id,
             sender_path=self.derivation_path,
             dongle=self.dongle,
         )

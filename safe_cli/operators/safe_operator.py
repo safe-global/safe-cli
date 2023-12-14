@@ -870,7 +870,7 @@ class SafeOperator:
                         self.default_sender.key, eip1559_speed=TxSpeed.NORMAL
                     )
                 else:
-                    tx_hash, tx = self.hw_wallet_manager.execute(
+                    tx_hash, tx = self.hw_wallet_manager.execute_safe_tx(
                         safe_tx, eip1559_speed=TxSpeed.NORMAL
                     )
                 self.executed_transactions.append(tx_hash.hex())

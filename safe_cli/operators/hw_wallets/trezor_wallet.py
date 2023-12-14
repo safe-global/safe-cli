@@ -54,7 +54,8 @@ class TrezorWallet(HwWallet):
     def get_signed_raw_transaction(self, tx_parameters: TxParams) -> HexStr:
         """
 
+        :param chain_id:
         :param tx_parameters:
-        :return:
+        :return: raw transaction signed
         """
         raise NotImplementedError
