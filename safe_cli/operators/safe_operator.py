@@ -116,7 +116,7 @@ def require_default_sender(f):
 
     @wraps(f)
     def decorated(self, *args, **kwargs):
-        if not self.default_sender:
+        if not self.default_sender and not self.hw_wallet_manager.sender:
             raise SenderRequiredException()
         else:
             return f(self, *args, **kwargs)
@@ -260,7 +260,11 @@ class SafeOperator:
                         f'with balance={Web3.from_wei(balance, "ether")} ether'
                     )
                 )
-                if not self.default_sender and balance > 0:
+                if (
+                    not self.default_sender
+                    and not self.hw_wallet_manager.sender
+                    and balance > 0
+                ):
                     print_formatted_text(
                         HTML(
                             f"Set account <b>{account.address}</b> as default sender of txs"
@@ -288,16 +292,26 @@ class SafeOperator:
             if option is None:
                 return None
             _, derivation_path = ledger_accounts[option]
-
         address = self.hw_wallet_manager.add_account(hw_wallet_type, derivation_path)
         balance = self.ethereum_client.get_balance(address)
+
         print_formatted_text(
             HTML(
                 f"Loaded account <b>{address}</b> "
-                f'with balance={Web3.from_wei(balance, "ether")} ether.\n'
-                f"Ledger account cannot be defined as sender"
+                f'with balance={Web3.from_wei(balance, "ether")} ether.'
             )
         )
+
+        if (
+            not self.default_sender
+            and not self.hw_wallet_manager.sender
+            and hw_wallet_type == HwWalletType.LEDGER
+            and balance > 0
+        ):
+            self.hw_wallet_manager.set_sender(hw_wallet_type, derivation_path)
+            print_formatted_text(HTML(f"HwDevice {address} added as sender"))
+        else:
+            print_formatted_text(HTML(f"HwDevice {address} wasn't added as sender"))
 
     def load_ledger_cli_owners(
         self, derivation_path: str = None, legacy_account: bool = False
@@ -347,6 +361,13 @@ class SafeOperator:
                 print_formatted_text(
                     HTML(
                         f"<ansigreen><b>Default sender:</b> {self.default_sender.address}"
+                        f"</ansigreen>"
+                    )
+                )
+            elif self.hw_wallet_manager.sender:
+                print_formatted_text(
+                    HTML(
+                        f"<ansigreen><b>HwDevice sender:</b> {self.hw_wallet_manager.sender}"
                         f"</ansigreen>"
                     )
                 )
@@ -838,12 +859,20 @@ class SafeOperator:
     @require_default_sender  # Throws Exception if default sender not found
     def execute_safe_transaction(self, safe_tx: SafeTx):
         try:
-            call_result = safe_tx.call(self.default_sender.address)
+            if self.default_sender:
+                call_result = safe_tx.call(self.default_sender.address)
+            else:
+                call_result = safe_tx.call(self.hw_wallet_manager.sender.address)
             print_formatted_text(HTML(f"Result: <ansigreen>{call_result}</ansigreen>"))
             if yes_or_no_question("Do you want to execute tx " + str(safe_tx)):
-                tx_hash, tx = safe_tx.execute(
-                    self.default_sender.key, eip1559_speed=TxSpeed.NORMAL
-                )
+                if self.default_sender:
+                    tx_hash, tx = safe_tx.execute(
+                        self.default_sender.key, eip1559_speed=TxSpeed.NORMAL
+                    )
+                else:
+                    tx_hash, tx = self.hw_wallet_manager.execute_safe_tx(
+                        safe_tx, eip1559_speed=TxSpeed.NORMAL
+                    )
                 self.executed_transactions.append(tx_hash.hex())
                 print_formatted_text(
                     HTML(

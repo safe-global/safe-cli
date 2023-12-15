@@ -1,10 +1,11 @@
 from functools import lru_cache
 
-from eth_typing import ChecksumAddress
+from eth_typing import ChecksumAddress, HexStr
 from trezorlib import tools
 from trezorlib.client import TrezorClient, get_default_client
 from trezorlib.ethereum import get_address, sign_typed_data_hash
 from trezorlib.ui import ClickUI
+from web3.types import TxParams
 
 from .hw_wallet import HwWallet
 from .trezor_exceptions import raise_trezor_exception_as_hw_wallet_exception
@@ -49,3 +50,12 @@ class TrezorWallet(HwWallet):
             self.client, n=address_n, domain_hash=domain_hash, message_hash=message_hash
         )
         return signed.signature
+
+    def get_signed_raw_transaction(self, tx_parameters: TxParams) -> HexStr:
+        """
+
+        :param chain_id:
+        :param tx_parameters:
+        :return: raw transaction signed
+        """
+        raise NotImplementedError

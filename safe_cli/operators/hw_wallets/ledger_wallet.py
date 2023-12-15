@@ -1,10 +1,11 @@
 from typing import Optional
 
-from eth_typing import ChecksumAddress
+from eth_typing import ChecksumAddress, HexStr
 from ledgerblue.Dongle import Dongle
-from ledgereth import sign_typed_data_draft
+from ledgereth import create_transaction, sign_typed_data_draft
 from ledgereth.accounts import get_account_by_path
 from ledgereth.comms import init_dongle
+from web3.types import TxParams
 
 from gnosis.safe.signatures import signature_to_bytes
 
@@ -49,3 +50,27 @@ class LedgerWallet(HwWallet):
         )
 
         return signature_to_bytes(signed.v, signed.r, signed.s)
+
+    @raise_ledger_exception_as_hw_wallet_exception
+    def get_signed_raw_transaction(
+        self, tx_parameters: TxParams, chain_id: int
+    ) -> HexStr:
+        """
+
+        :param chain_id:
+        :param tx_parameters:
+        :return: raw transaction signed
+        """
+        signed_transaction = create_transaction(
+            destination=tx_parameters["to"],
+            amount=tx_parameters["value"],
+            gas=tx_parameters["gas"],
+            nonce=tx_parameters["nonce"],
+            data=tx_parameters.get("data"),
+            max_priority_fee_per_gas=tx_parameters.get("maxPriorityFeePerGas"),
+            max_fee_per_gas=tx_parameters.get("maxPriorityFeePerGas"),
+            chain_id=chain_id,
+            sender_path=self.derivation_path,
+            dongle=self.dongle,
+        )
+        return signed_transaction.raw_transaction()
