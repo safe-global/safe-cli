@@ -48,7 +48,7 @@ class Testledger_wallet(SafeTestCaseMixin, unittest.TestCase):
         mock_get_address.side_effect = addresses
         # Choosing LEDGER because function is mocked for LEDGER
         hw_wallets = hw_wallet_manager.get_accounts(
-            HwWalletType.LEDGER, number_accounts=2
+            HwWalletType.LEDGER, "44'/60'/{i}'/0/0", number_accounts=2
         )
         self.assertEqual(len(hw_wallets), 2)
         for hw_wallet, expected_address, expected_derivation_path in zip(

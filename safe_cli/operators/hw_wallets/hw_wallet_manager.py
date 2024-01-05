@@ -53,24 +53,20 @@ class HwWalletManager:
     def get_accounts(
         self,
         hw_wallet_type: HwWalletType,
-        legacy_account: Optional[bool] = False,
+        template_derivation_path: str,
         number_accounts: Optional[int] = 5,
     ) -> List[Tuple[ChecksumAddress, str]]:
         """
 
         :param hw_wallet: Trezor or Ledger
-        :param legacy_account:
+        :param template_derivation_path: formatted string to indicate which path iterate
         :param number_accounts:  number of accounts requested to ledger
         :return: a list of tuples with address and derivation path
         """
         accounts = []
         hw_wallet = self.get_hw_wallet(hw_wallet_type)
         for i in range(number_accounts):
-            if legacy_account:
-                path_string = f"44'/60'/0'/{i}"
-            else:
-                path_string = f"44'/60'/{i}'/0/0"
-
+            path_string = template_derivation_path.format(i=i)
             accounts.append((hw_wallet(path_string).address, path_string))
         return accounts
 
