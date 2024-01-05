@@ -275,13 +275,16 @@ class SafeOperator:
                 print_formatted_text(HTML(f"<ansired>Cannot load key={key}</ansired>"))
 
     def load_hw_wallet(
-        self, hw_wallet_type: HwWalletType, derivation_path: str, legacy_account: bool
+        self,
+        hw_wallet_type: HwWalletType,
+        derivation_path: str,
+        template_derivation_path: str,
     ):
         if not self.hw_wallet_manager.is_supported_hw_wallet(hw_wallet_type):
             return None
         if derivation_path is None:
             ledger_accounts = self.hw_wallet_manager.get_accounts(
-                hw_wallet_type, legacy_account=legacy_account
+                hw_wallet_type, template_derivation_path
             )
             if len(ledger_accounts) == 0:
                 return None
@@ -316,12 +319,22 @@ class SafeOperator:
     def load_ledger_cli_owners(
         self, derivation_path: str = None, legacy_account: bool = False
     ):
-        self.load_hw_wallet(HwWalletType.LEDGER, derivation_path, legacy_account)
+        if legacy_account:
+            self.load_hw_wallet(HwWalletType.LEDGER, derivation_path, "44'/60'/0'/{i}")
+        else:
+            self.load_hw_wallet(
+                HwWalletType.LEDGER, derivation_path, "44'/60'/{i}'/0/0"
+            )
 
     def load_trezor_cli_owners(
         self, derivation_path: str = None, legacy_account: bool = False
     ):
-        self.load_hw_wallet(HwWalletType.TREZOR, derivation_path, legacy_account)
+        if legacy_account:
+            self.load_hw_wallet(HwWalletType.TREZOR, derivation_path, "44'/60'/0'/{i}")
+        else:
+            self.load_hw_wallet(
+                HwWalletType.TREZOR, derivation_path, "44'/60'/0'/0/{i}"
+            )
 
     def unload_cli_owners(self, owners: List[str]):
         accounts_to_remove: Set[Account] = set()
