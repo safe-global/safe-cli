@@ -190,6 +190,10 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
         safe_operator.approve_hash(args.hash_to_approve, args.sender)
 
     @safe_exception
+    def sign_message(args):
+        safe_operator.sign_message(args.eip191_message, args.eip712_path)
+
+    @safe_exception
     def add_owner(args):
         safe_operator.add_owner(args.address, threshold=args.threshold)
 
@@ -367,6 +371,13 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_approve_hash.add_argument("hash_to_approve", type=check_keccak256_hash)
     parser_approve_hash.add_argument("sender", type=check_ethereum_address)
     parser_approve_hash.set_defaults(func=approve_hash)
+
+    # Sign message
+    parser_sign_message = subparsers.add_parser("sign_message")
+    group = parser_sign_message.add_mutually_exclusive_group(required=True)
+    group.add_argument("--eip191_message", type=str)
+    group.add_argument("--eip712_path", type=str)
+    parser_sign_message.set_defaults(func=sign_message)
 
     # Add owner
     parser_add_owner = subparsers.add_parser("add_owner")

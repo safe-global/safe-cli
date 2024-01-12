@@ -1,15 +1,19 @@
+import json
 from typing import Any, Dict, Optional, Sequence, Set
 
 from colorama import Fore, Style
+from eth_account.messages import defunct_hash_message
 from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
 from tabulate import tabulate
 
 from gnosis.eth.contracts import get_erc20_contract
+from gnosis.eth.eip712 import eip712_encode_hash
 from gnosis.safe import SafeOperation, SafeTx
 from gnosis.safe.api import SafeAPIException
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
+from gnosis.safe.signatures import signature_to_bytes
 
 from safe_cli.utils import yes_or_no_question
 
@@ -31,6 +35,58 @@ class SafeTxServiceOperator(SafeOperator):
 
     def approve_hash(self, hash_to_approve: HexBytes, sender: str) -> bool:
         raise NotImplementedError("Not supported when using tx service")
+
+    def sign_message(
+        self,
+        eip191_message: Optional[str] = None,
+        eip712_message_path: Optional[str] = None,
+    ) -> bool:
+        if eip712_message_path:
+            try:
+                message = json.load(open(eip712_message_path, "r"))
+                message_hash = eip712_encode_hash(message)
+            except ValueError:
+                raise ValueError
+        else:
+            message = eip191_message
+            message_hash = defunct_hash_message(text=message)
+
+        safe_message_hash = self.safe.get_message_hash(message_hash)
+        eoa_signers, hw_wallet_signers = self.get_signers()
+        signers = []
+        signatures = b""
+        for eoa_signer in eoa_signers:
+            signature_dict = eoa_signer.signHash(safe_message_hash)
+            signature = signature_to_bytes(
+                signature_dict["v"], signature_dict["r"], signature_dict["s"]
+            )
+            signers.append(eoa_signer.address)
+            signer_pos = sorted(signers, key=lambda x: int(x, 16)).index(
+                eoa_signer.address
+            )
+            signatures = (
+                signatures[: 65 * signer_pos]
+                + signature
+                + signatures[65 * signer_pos :]
+            )
+
+        if len(hw_wallet_signers) > 0:
+            raise NotImplementedError("SignHash by hardware wallet is not implemented")
+
+        if self.safe_tx_service.post_message(self.address, message, signatures):
+            print_formatted_text(
+                HTML(
+                    "<ansigreen>Message was correctly created on Safe Transaction Service</ansigreen>"
+                )
+            )
+            return True
+        else:
+            print_formatted_text(
+                HTML(
+                    "<ansired>Something went wrong creating message on Safe Transaction Service</ansired>"
+                )
+            )
+            return False
 
     def get_delegates(self):
         delegates = self.safe_tx_service.get_delegates(self.address)

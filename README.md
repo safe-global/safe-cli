@@ -124,6 +124,7 @@ Operations on `tx-service` mode, requires a Safe Transaction Service working on 
 - `history`: History of multisig transactions (including pending).
 - `execute-tx <safe-tx-hash>`: Execute a pending tx with enough signatures.
 - `sign-tx <safe-tx-hash>`: Sign a tx with the loaded owners for the provided `SafeTxHash`.
+- `sign_message [--eip191_message <str>] [--eip712_path <file-path>]`: sign the provided string message provided by standard input or the `EIP712` provided by file.
 - `batch-txs <safe-nonce> <safe-tx-hash> [ <safe-tx-hash> ... ]`: Batch transactions into one Multisig
 Transaction using the provided `safe-nonce`. **Any safe-tx can be used**: transactions from other Safes, transactions
 already executed, transactions pending for execution... Only limitation is that

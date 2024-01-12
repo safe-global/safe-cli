@@ -1,3 +1,4 @@
+import json
 import unittest
 from functools import lru_cache
 from unittest import mock
@@ -11,6 +12,7 @@ from web3 import Web3
 from web3.types import Wei
 
 from gnosis.eth import EthereumClient
+from gnosis.eth.eip712 import eip712_encode
 from gnosis.safe import Safe
 from gnosis.safe.multi_send import MultiSend
 
@@ -171,6 +173,27 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         )
         with self.assertRaises(HashAlreadyApproved):
             safe_operator.approve_hash(safe_tx_hash, self.ethereum_test_account.address)
+
+    @mock.patch("safe_cli.safe_addresses._get_valid_contract")
+    def test_sign_message(self, mock_sign_message_lib_address):
+        safe_address = self.deploy_test_safe(
+            owners=[self.ethereum_test_account.address]
+        ).address
+        safe_operator = SafeOperator(safe_address, self.ethereum_node_url)
+        mock_sign_message_lib_address.return_value = self.deploy_sign_message_lib()
+        message = "Safe2024"
+        safe_operator.accounts.add(self.ethereum_test_account)
+        safe_operator.default_sender = self.ethereum_test_account
+        message_hash = safe_operator.safe.get_message_hash(bytes(message, "utf-8"))
+        safe_operator.sign_message(eip191_message=message)
+        self.assertTrue(safe_operator.safe.retrieve_is_message_signed(message_hash))
+        eip712_path = "tests/mocks/mock_eip712.json"
+        message = json.load(open(eip712_path, "r"))
+        message_hash = safe_operator.safe.get_message_hash(
+            b"".join(eip712_encode(message))
+        )
+        safe_operator.sign_message(eip712_message_path=eip712_path)
+        self.assertTrue(safe_operator.safe.retrieve_is_message_signed(message_hash))
 
     def test_add_owner(self):
         safe_address = self.deploy_test_safe(
