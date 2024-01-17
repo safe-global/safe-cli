@@ -35,6 +35,7 @@ safe_commands_arguments = {
     "send_erc721": "<address> <token-address> <token-id> [--safe-nonce <int>]",
     "send_ether": "<address> <value-wei> [--safe-nonce <int>]",
     "show_cli_owners": "(read-only)",
+    "sign_message": "[--eip191_message <str>] [--eip712_path <file-path>]",
     "sign-tx": "<safe-tx-hash>",
     "unload_cli_owners": "<address> [<address>...]",
     "update": "",
@@ -80,6 +81,9 @@ meta = {
     ),
     "sign-tx": HTML(
         "<b>sign-tx</b> will sign the provided safeTxHash using the owners loaded on the CLI"
+    ),
+    "sign_message": HTML(
+        "<b>sign_message</b> sign the provided string message provided by standard input or the EIP712 provided by file"
     ),
     "info": HTML(
         "<b>info</b> will return all the information available for a Safe, with Gnosis Tx Service and "

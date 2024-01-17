@@ -1,7 +1,8 @@
 import dataclasses
+import json
 import os
 from functools import cached_property, wraps
-from typing import List, Optional, Sequence, Set
+from typing import List, Optional, Sequence, Set, Tuple
 
 from ens import ENS
 from eth_account import Account
@@ -27,7 +28,9 @@ from gnosis.eth.contracts import (
     get_erc20_contract,
     get_erc721_contract,
     get_safe_V1_1_1_contract,
+    get_sign_message_lib_contract,
 )
+from gnosis.eth.eip712 import eip712_encode
 from gnosis.eth.utils import get_empty_tx_params
 from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
 from gnosis.safe.api import TransactionServiceApi
@@ -60,12 +63,14 @@ from safe_cli.operators.exceptions import (
 )
 from safe_cli.safe_addresses import (
     get_default_fallback_handler_address,
+    get_last_sign_message_lib_address,
     get_safe_contract_address,
     get_safe_l2_contract_address,
 )
 from safe_cli.utils import choose_option_from_list, get_erc_20_list, yes_or_no_question
 
 from ..contracts import safe_to_l2_migration
+from .hw_wallets.hw_wallet import HwWallet
 from .hw_wallets.hw_wallet_manager import HwWalletType, get_hw_wallet_manager
 
 
@@ -442,6 +447,43 @@ class SafeOperator:
                         )
                     )
                     return False
+
+    def sign_message(
+        self,
+        eip191_message: Optional[str] = None,
+        eip712_message_path: Optional[str] = None,
+    ) -> bool:
+        if eip712_message_path:
+            try:
+                message = json.load(open(eip712_message_path, "r"))
+                message_bytes = b"".join(eip712_encode(message))
+            except ValueError:
+                raise ValueError
+        else:
+            message = eip191_message
+            message_bytes = eip191_message.encode("UTF-8")
+
+        safe_message_hash = self.safe.get_message_hash(message_bytes)
+
+        sign_message_lib_address = get_last_sign_message_lib_address(
+            self.ethereum_client
+        )
+        contract = get_sign_message_lib_contract(self.ethereum_client.w3, self.address)
+        sign_message_data = HexBytes(
+            contract.functions.signMessage(message_bytes).build_transaction(
+                get_empty_tx_params(),
+            )["data"]
+        )
+        print_formatted_text(HTML(f"Signing message: \n {message}"))
+        if self.prepare_and_execute_safe_transaction(
+            sign_message_lib_address,
+            0,
+            sign_message_data,
+            operation=SafeOperation.DELEGATE_CALL,
+        ):
+            print_formatted_text(
+                HTML(f"Message was signed correctly: {safe_message_hash.hex()}")
+            )
 
     def add_owner(self, new_owner: str, threshold: Optional[int] = None) -> bool:
         threshold = threshold if threshold is not None else self.safe_cli_info.threshold
@@ -991,25 +1033,28 @@ class SafeOperator:
         else:
             return safe_tx
 
-    # TODO Set sender so we can save gas in that signature
-    def sign_transaction(self, safe_tx: SafeTx) -> SafeTx:
+    def get_signers(self) -> Tuple[List[LocalAccount], List[HwWallet]]:
+        """
+
+        :return: Tuple with eoa signers and hw_wallet signers
+        """
         permitted_signers = self.get_permitted_signers()
         threshold = self.safe_cli_info.threshold
-        selected_accounts: List[
+        eoa_signers: List[
             Account
         ] = []  # Some accounts that are not an owner can be loaded
         for account in self.accounts:
             if account.address in permitted_signers:
-                selected_accounts.append(account)
+                eoa_signers.append(account)
                 threshold -= 1
                 if threshold == 0:
                     break
         # If still pending required signatures continue with ledger owners
-        selected_ledger_accounts = []
+        hw_wallet_signers = []
         if threshold > 0 and self.hw_wallet_manager.wallets:
-            for ledger_account in self.hw_wallet_manager.wallets:
-                if ledger_account.address in permitted_signers:
-                    selected_ledger_accounts.append(ledger_account)
+            for hw_wallet in self.hw_wallet_manager.wallets:
+                if hw_wallet.address in permitted_signers:
+                    hw_wallet_signers.append(hw_wallet)
                     threshold -= 1
                     if threshold == 0:
                         break
@@ -1017,14 +1062,17 @@ class SafeOperator:
         if self.require_all_signatures and threshold > 0:
             raise NotEnoughSignatures(threshold)
 
-        for selected_account in selected_accounts:
+        return (eoa_signers, hw_wallet_signers)
+
+    # TODO Set sender so we can save gas in that signature
+    def sign_transaction(self, safe_tx: SafeTx) -> SafeTx:
+        eoa_signers, hw_wallets_signers = self.get_signers()
+        for selected_account in eoa_signers:
             safe_tx.sign(selected_account.key)
 
         # Sign with ledger
-        if len(selected_ledger_accounts) > 0:
-            safe_tx = self.hw_wallet_manager.sign_eip712(
-                safe_tx, selected_ledger_accounts
-            )
+        if len(hw_wallets_signers):
+            safe_tx = self.hw_wallet_manager.sign_eip712(safe_tx, hw_wallets_signers)
 
         return safe_tx
 

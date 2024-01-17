@@ -20,6 +20,7 @@ class SafeLexer(BashLexer):
         "load_cli_owners",
         "unload_cli_owners",
         "approve_hash",
+        "sign_message",
         "add_owner",
         "change_threshold",
         "change_fallback_handler",

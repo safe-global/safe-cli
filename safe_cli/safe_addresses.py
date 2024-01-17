@@ -99,3 +99,17 @@ def get_last_multisend_call_only_address(
             "0xf220D3b4DFb23C4ade8C88E526C1353AbAcbC38F",  # v1.3.0 zkSync
         ],
     )
+
+
+def get_last_sign_message_lib_address(
+    ethereum_client: EthereumClient,
+) -> ChecksumAddress:
+    return _get_valid_contract(
+        ethereum_client,
+        [
+            "0xd53cd0aB83D845Ac265BE939c57F53AD838012c9",  # v1.4.1
+            "0xA65387F16B013cf2Af4605Ad8aA5ec25a2cbA3a2",  # v1.3.0
+            "0x98FFBBF51bb33A056B08ddf711f289936AafF717",  # v1.3.0
+            "0x357147caf9C0cCa67DfA0CF5369318d8193c8407",  # v1.3.0 zkSync
+        ],
+    )
