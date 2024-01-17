@@ -1,7 +1,6 @@
 import re
 from abc import ABC, abstractmethod
 
-from eth_typing import HexStr
 from web3.types import TxParams
 
 from .constants import BIP32_ETH_PATTERN, BIP32_LEGACY_LEDGER_PATTERN
@@ -50,7 +49,7 @@ class HwWallet(ABC):
     @abstractmethod
     def get_signed_raw_transaction(
         self, tx_parameters: TxParams, chain_id: int
-    ) -> HexStr:
+    ) -> bytes:
         """
 
         :param chain_id:

@@ -313,7 +313,6 @@ class SafeOperator:
         if (
             not self.default_sender
             and not self.hw_wallet_manager.sender
-            and hw_wallet_type == HwWalletType.LEDGER
             and balance > 0
         ):
             self.hw_wallet_manager.set_sender(hw_wallet_type, derivation_path)
