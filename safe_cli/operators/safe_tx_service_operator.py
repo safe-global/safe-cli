@@ -1,5 +1,5 @@
 import json
-from typing import Any, Dict, Optional, Sequence, Set
+from typing import Any, Dict, List, Optional, Sequence, Set
 
 from colorama import Fore, Style
 from eth_account.messages import defunct_hash_message
@@ -13,6 +13,7 @@ from gnosis.eth.eip712 import eip712_encode_hash
 from gnosis.safe import SafeOperation, SafeTx
 from gnosis.safe.api import SafeAPIException
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
+from gnosis.safe.safe_signature import SafeSignature, SafeSignatureEOA
 from gnosis.safe.signatures import signature_to_bytes
 
 from safe_cli.utils import yes_or_no_question
@@ -53,24 +54,17 @@ class SafeTxServiceOperator(SafeOperator):
 
         safe_message_hash = self.safe.get_message_hash(message_hash)
         eoa_signers, hw_wallet_signers = self.get_signers()
-        signers = []
-        signatures = b""
+        safe_signatures: List[SafeSignature] = []
         for eoa_signer in eoa_signers:
             signature_dict = eoa_signer.signHash(safe_message_hash)
             signature = signature_to_bytes(
                 signature_dict["v"], signature_dict["r"], signature_dict["s"]
             )
-            signers.append(eoa_signer.address)
-            signer_pos = sorted(signers, key=lambda x: int(x, 16)).index(
-                eoa_signer.address
-            )
-            signatures = (
-                signatures[: 65 * signer_pos]
-                + signature
-                + signatures[65 * signer_pos :]
-            )
+            safe_signatures.append(SafeSignatureEOA(signature, safe_message_hash))
 
-        if len(hw_wallet_signers) > 0:
+        signatures = SafeSignature.export_signatures(safe_signatures)
+
+        if len(hw_wallet_signers):
             raise NotImplementedError("SignHash by hardware wallet is not implemented")
 
         if self.safe_tx_service.post_message(self.address, message, signatures):

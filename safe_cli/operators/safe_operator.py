@@ -1058,7 +1058,7 @@ class SafeOperator:
             safe_tx.sign(selected_account.key)
 
         # Sign with ledger
-        if len(hw_wallets_signers) > 0:
+        if len(hw_wallets_signers):
             safe_tx = self.hw_wallet_manager.sign_eip712(safe_tx, hw_wallets_signers)
 
         return safe_tx

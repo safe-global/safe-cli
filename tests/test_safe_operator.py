@@ -192,6 +192,7 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         message_hash = safe_operator.safe.get_message_hash(
             b"".join(eip712_encode(message))
         )
+        self.assertFalse(safe_operator.safe.retrieve_is_message_signed(message_hash))
         safe_operator.sign_message(eip712_message_path=eip712_path)
         self.assertTrue(safe_operator.safe.retrieve_is_message_signed(message_hash))
 
