@@ -1,7 +1,7 @@
 from functools import lru_cache
 
 import rlp
-from eth_typing import ChecksumAddress, HexStr
+from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
 from trezorlib import tools
 from trezorlib.client import TrezorClient, get_default_client
@@ -61,7 +61,7 @@ class TrezorWallet(HwWallet):
     @raise_trezor_exception_as_hw_wallet_exception
     def get_signed_raw_transaction(
         self, tx_parameters: TxParams, chain_id: int
-    ) -> HexStr:
+    ) -> bytes:
         """
 
         :param chain_id:
@@ -131,4 +131,4 @@ class TrezorWallet(HwWallet):
                 ]
             ).hex()
 
-        return HexStr(encoded_transaction)
+        return HexBytes(encoded_transaction)

@@ -1,6 +1,7 @@
 from typing import Optional
 
-from eth_typing import ChecksumAddress, HexStr
+from eth_typing import ChecksumAddress
+from hexbytes import HexBytes
 from ledgerblue.Dongle import Dongle
 from ledgereth import create_transaction, sign_typed_data_draft
 from ledgereth.accounts import get_account_by_path
@@ -54,7 +55,7 @@ class LedgerWallet(HwWallet):
     @raise_ledger_exception_as_hw_wallet_exception
     def get_signed_raw_transaction(
         self, tx_parameters: TxParams, chain_id: int
-    ) -> HexStr:
+    ) -> bytes:
         """
 
         :param chain_id:
@@ -73,4 +74,4 @@ class LedgerWallet(HwWallet):
             sender_path=self.derivation_path,
             dongle=self.dongle,
         )
-        return signed_transaction.raw_transaction()
+        return HexBytes(signed_transaction.raw_transaction())
