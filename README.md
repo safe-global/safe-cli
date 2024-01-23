@@ -234,7 +234,11 @@ For this demo, `PRIVATE_KEY` environment variable was set to an _EOA_ private ke
 
 ### Sending Ether using a Trezor hardware wallet
 
-[![asciicast](https://asciinema.org/a/346692.svg)](https://asciinema.org/a/346692)
+[![asciicast](https://asciinema.org/a/9BrQKYQRXbysmEL8rw1jDWZhn.svg)](https://asciinema.org/a/9BrQKYQRXbysmEL8rw1jDWZhn)
+
+### Create a remove owner transaction in the Transaction Service
+
+[![asciicast](https://asciinema.org/a/oV5UbXW2g1VZo2yKDQIxi0jYb.svg)](https://asciinema.org/a/oV5UbXW2g1VZo2yKDQIxi0jYb)
 
 ## Use custom contracts
 
