@@ -224,13 +224,15 @@ If the information in the information bar is outdated or there's any problem you
 > refresh
 ```
 
-## Demo
+## Demos
 
-For this demo, `PRIVATE_KEY` environment variable was set to a _EOA_ private key (owner of a a previously created and outdated Safe)
-and `ETHEREUM_NODE_URL` to a http goerli node.
-At first, Safe is updated to the last version and then `123 Wei` are sent to the owner of the Safe (it could be any other address).
+### Creating a Safe
 
-**Be careful when using `update` command, as it can leave your Safe funds stuck. Safe CLI is still a beta**
+For this demo, `PRIVATE_KEY` environment variable was set to an _EOA_ private key.
+
+[![asciicast](https://asciinema.org/a/0jdHGLVRrkS9URxPoZ8ZJ7W2C.svg)](https://asciinema.org/a/0jdHGLVRrkS9URxPoZ8ZJ7W2C)
+
+### Sending Ether using a Trezor hardware wallet
 
 [![asciicast](https://asciinema.org/a/346692.svg)](https://asciinema.org/a/346692)
 
