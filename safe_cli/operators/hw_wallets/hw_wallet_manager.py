@@ -8,8 +8,9 @@ from prompt_toolkit import HTML, print_formatted_text
 from web3.types import TxParams, Wei
 
 from gnosis.eth import TxSpeed
-from gnosis.eth.eip712 import eip712_encode
+from gnosis.eth.eip712 import eip712_encode, eip712_encode_hash
 from gnosis.safe import SafeTx
+from gnosis.safe.safe_signature import SafeSignature, SafeSignatureEOA
 
 from .hw_wallet import HwWallet
 
@@ -113,18 +114,12 @@ class HwWalletManager:
         self.wallets = self.wallets.difference(accounts_to_remove)
         return accounts_to_remove
 
-    def sign_eip712(self, safe_tx: SafeTx, wallets: List[HwWallet]) -> SafeTx:
-        """
-        Sign a safeTx EIP-712 hashes with supported hw wallet devices
-
-        :param domain_hash:
-        :param message_hash:
-        :param wallets: list of HwWallet
-        :return: signed safeTx
-        """
-        encode_hash = eip712_encode(safe_tx.eip712_structured_data)
+    def sign_eip712(self, eip712_message: Dict, wallets: List[HwWallet]):
+        encode_hash = eip712_encode(eip712_message)
+        eip712_message_hash = eip712_encode_hash(eip712_message)
         domain_hash = encode_hash[1]
         message_hash = encode_hash[2]
+        safe_signatures: List[SafeSignature] = []
         for wallet in wallets:
             print_formatted_text(
                 HTML(
@@ -134,19 +129,21 @@ class HwWalletManager:
             print_formatted_text(HTML(f"Domain_hash: <b>{domain_hash.hex()}</b>"))
             print_formatted_text(HTML(f"Message_hash: <b>{message_hash.hex()}</b>"))
             signature = wallet.sign_typed_hash(domain_hash, message_hash)
+            safe_signatures.append(SafeSignatureEOA(signature, eip712_message_hash))
 
-            # Insert signature sorted
-            if wallet.address not in safe_tx.signers:
-                new_owners = safe_tx.signers + [wallet.address]
-                new_owner_pos = sorted(new_owners, key=lambda x: int(x, 16)).index(
-                    wallet.address
-                )
-                safe_tx.signatures = (
-                    safe_tx.signatures[: 65 * new_owner_pos]
-                    + signature
-                    + safe_tx.signatures[65 * new_owner_pos :]
-                )
+        return SafeSignature.export_signatures(safe_signatures)
 
+    def sign_safe_tx(self, safe_tx: SafeTx, wallets: List[HwWallet]) -> SafeTx:
+        """
+        Sign a safeTx EIP-712 hashes with supported hw wallet devices
+
+        :param domain_hash:
+        :param message_hash:
+        :param wallets: list of HwWallet
+        :return: signed safeTx
+        """
+        signatures = self.sign_eip712(safe_tx.eip712_structured_data, wallets)
+        safe_tx.signatures = signatures
         return safe_tx
 
     def execute_safe_tx(

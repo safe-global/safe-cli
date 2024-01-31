@@ -30,6 +30,7 @@ safe_commands_arguments = {
     "refresh": "",
     "remove_delegate": "<address> <signer-address>",
     "remove_owner": "<address> [--threshold <int>]",
+    "remove_proposed_transaction": "safe-tx-hash",
     "send_custom": "<address> <value-wei> <data> [--delegate] [--safe-nonce <int>]",
     "send_erc20": "<address> <token-address> <value-wei> [--safe-nonce <int>]",
     "send_erc721": "<address> <token-address> <token-id> [--safe-nonce <int>]",
@@ -117,6 +118,10 @@ meta = {
     "remove_delegate": HTML(
         "Command <b>remove_delegate</b> will remove a delegate <u>&lt;address&gt;</u> from the "
         "current loaded safe."
+    ),
+    "remove_proposed_transaction": HTML(
+        "Command <b>remove_proposed_transaction</b> will proposed not executed transaction for "
+        "provided<u>&lt;safe-tx-hash&gt;</u>"
     ),
     "enable_module": HTML(
         "Command <b>enable_module</b> will enable a check-summed <u>&lt;address&gt;</u> module."

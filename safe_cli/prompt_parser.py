@@ -315,6 +315,10 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     def remove_delegate(args):
         safe_operator.remove_delegate(args.address, args.signer)
 
+    @safe_exception
+    def remove_proposed_transaction(args):
+        safe_operator.remove_proposed_transaction(args.safe_tx_hash)
+
     # Cli owners
     parser_show_cli_owners = subparsers.add_parser("show_cli_owners")
     parser_show_cli_owners.set_defaults(func=show_cli_owners)
@@ -526,5 +530,12 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_remove_delegate.set_defaults(func=remove_delegate)
     parser_remove_delegate.add_argument("address", type=check_ethereum_address)
     parser_remove_delegate.add_argument("signer", type=check_ethereum_address)
+
+    # Remove not executed proposed transaction
+    parser_remove_proposed_transaction = subparsers.add_parser(
+        "remove_proposed_transaction"
+    )
+    parser_remove_proposed_transaction.set_defaults(func=remove_proposed_transaction)
+    parser_remove_proposed_transaction.add_argument("safe_tx_hash", type=check_hex_str)
 
     return prompt_parser

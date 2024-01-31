@@ -139,7 +139,7 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         with mock.patch.object(
             SafeTx, "signers", return_value=["signer"], new_callable=mock.PropertyMock
         ) as mock_safe_tx:
-            safe_operator.hw_wallet_manager.sign_eip712 = MagicMock(
+            safe_operator.hw_wallet_manager.sign_safe_tx = MagicMock(
                 return_value=mock_safe_tx
             )
             get_safe_transaction_mock.return_value = GetMultisigTxRequestMock(
