@@ -99,6 +99,35 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
             safe_operator.address, delegate_address, signer
         )
 
+    @mock.patch.object(TransactionServiceApi, "delete_transaction", return_value=None)
+    @mock.patch.object(TransactionServiceApi, "get_safe_transaction")
+    @mock.patch(
+        "gnosis.safe.api.transaction_service_api.transaction_service_messages.get_totp",
+        return_value=8365,
+    )
+    def test_remove_transaction(
+        self,
+        mock_get_totp,
+        get_transaction_mock: MagicMock,
+        remove_transaction_mock: MagicMock,
+    ):
+        safe_operator = self.setup_operator(
+            number_owners=1, mode=SafeOperatorMode.TX_SERVICE
+        )
+        safe_operator.address = "0x23793e7Ce4f2Fd31C993893f658181fD39fB5dEb"
+        signer = list(safe_operator.accounts)[0]
+        safe_tx_mock = MagicMock()
+        safe_tx_mock.proposer = signer.address
+        get_transaction_mock.return_value = (safe_tx_mock, None)
+        safe_tx_hash = HexBytes(
+            "0x07eeea19b7d005b561f367e714bf65734d0ecc477de3e8b1fbc20ccb18c8747b"
+        )
+        expected_signature = "0xbc305f59a62c5bbb002645f658ee62cfa1966f20aca4dc1922b813e9d41bf1f02abd356891a3725af2066dd1758c930574298b4ba180117dc6146bbc4369cc0c1c"
+        self.assertTrue(safe_operator.remove_proposed_transaction(safe_tx_hash))
+        remove_transaction_mock.assert_called_with(
+            safe_tx_hash.hex(), expected_signature
+        )
+
     @mock.patch.object(SafeTxServiceOperator, "get_permitted_signers", return_value=[])
     @mock.patch.object(
         SafeTx, "safe_version", return_value="1.4.1", new_callable=mock.PropertyMock

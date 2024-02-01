@@ -460,6 +460,7 @@ class SafeTxServiceOperator(SafeOperator):
                     f"<ansigreen>Transaction {safe_tx_hash.hex()} was removed correctly</ansigreen>"
                 )
             )
+            return True
         except SafeAPIException as e:
             print_formatted_text(
                 HTML(f"<ansired>Transaction wasn't removed due an error: {e}</ansired>")
