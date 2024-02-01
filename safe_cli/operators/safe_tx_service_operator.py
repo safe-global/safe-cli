@@ -67,7 +67,7 @@ class SafeTxServiceOperator(SafeOperator):
         if hw_wallet_signers:
             print_formatted_text(
                 HTML(
-                    "<ansired>Sign messages are not currently supported by hardware wallets</ansired>"
+                    "<ansired>Signing messages is not currently supported by hardware wallets</ansired>"
                 )
             )
             return False
