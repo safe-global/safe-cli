@@ -120,7 +120,7 @@ meta = {
         "current loaded safe."
     ),
     "remove_proposed_transaction": HTML(
-        "Command <b>remove_proposed_transaction</b> will proposed not executed transaction for "
+        "Command <b>remove_proposed_transaction</b> will remove proposed not executed transaction for "
         "provided<u>&lt;safe-tx-hash&gt;</u>"
     ),
     "enable_module": HTML(

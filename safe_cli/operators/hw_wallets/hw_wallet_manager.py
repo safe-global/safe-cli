@@ -114,7 +114,14 @@ class HwWalletManager:
         self.wallets = self.wallets.difference(accounts_to_remove)
         return accounts_to_remove
 
-    def sign_eip712(self, eip712_message: Dict, wallets: List[HwWallet]):
+    def sign_eip712(self, eip712_message: Dict, wallets: List[HwWallet]) -> HexBytes:
+        """
+        Sign a eip712 message
+
+        :param eip712_message:
+        :param wallets:
+        :return: Appended sorted signatures for all the provided wallets
+        """
         encode_hash = eip712_encode(eip712_message)
         eip712_message_hash = eip712_encode_hash(eip712_message)
         domain_hash = encode_hash[1]
@@ -135,12 +142,11 @@ class HwWalletManager:
 
     def sign_safe_tx(self, safe_tx: SafeTx, wallets: List[HwWallet]) -> SafeTx:
         """
-        Sign a safeTx EIP-712 hashes with supported hw wallet devices
+        Sign a safe transaction with the provided hardware wallets
 
-        :param domain_hash:
-        :param message_hash:
-        :param wallets: list of HwWallet
-        :return: signed safeTx
+        :param safe_tx:
+        :param wallets:
+        :return: SafeTx with signature.
         """
         signatures = self.sign_eip712(safe_tx.eip712_structured_data, wallets)
         safe_tx.signatures = signatures

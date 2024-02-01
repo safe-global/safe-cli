@@ -216,6 +216,7 @@ There are 2 operation modes:
 - `get_delegates`: Returns a list of **delegates** for the Safe. A **delegate** can be used when you **trust an address to post transactions to the tx-service on your behalf**. If a transaction is not trusted (posted to the service not signed by a delegate or an owner of the Safe) it will be stored in the service but not shown in the UI or mobile applications.
 - `add_delegate <address> <label> <owner-address>`: Adds a new delegate `address` for the `owner` of the Safe.
 - `remove_delegate <address> <owner-address>`: Removes a delegate `address` from the Safe.
+- `remove_proposed_transaction <safe_tx_hsh>`: Removes a proposed transaction with the sign of the account that proposed the transaction.
 - `drain <address>`: Sends all Ether and ERC20 funds to the provided account. **WARNING: DON'T USE THIS IF YOU DON'T KNOW WHAT YOU ARE DOING. ALL YOUR FUNDS COULD BE LOST**
 
 If the information in the information bar is outdated or there's any problem you can force the `safe-cli` to update the information about the Safe using:

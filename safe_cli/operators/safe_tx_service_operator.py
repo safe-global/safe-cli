@@ -420,6 +420,11 @@ class SafeTxServiceOperator(SafeOperator):
     def search_account(
         self, address: ChecksumAddress
     ) -> Optional[Union[LocalAccount, HwWallet]]:
+        """
+        Search the provided address between loaded owners
+        :param address:
+        :return: LocalAccount or HwWallet of the provided address
+        """
         eoa_account = [
             account for account in self.accounts if account.address == address
         ]
