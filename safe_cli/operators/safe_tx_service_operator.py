@@ -64,8 +64,13 @@ class SafeTxServiceOperator(SafeOperator):
 
         signatures = SafeSignature.export_signatures(safe_signatures)
 
-        if len(hw_wallet_signers):
-            raise NotImplementedError("SignHash by hardware wallet is not implemented")
+        if hw_wallet_signers:
+            print_formatted_text(
+                HTML(
+                    "<ansired>Signing messages is not currently supported by hardware wallets</ansired>"
+                )
+            )
+            return False
 
         if self.safe_tx_service.post_message(self.address, message, signatures):
             print_formatted_text(
