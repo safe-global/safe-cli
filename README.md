@@ -113,7 +113,7 @@ To unload an owner:
 If you want to use both `ledger` and `trezor` you need to run
 
 ```bash
-pip install safe-cli[ledger, trezor]
+pip install "safe-cli[ledger, trezor]"
 ```
 
 #### Ledger
@@ -123,7 +123,7 @@ Ledger module is an optional feature of safe-cli to sign transactions with the h
 To enable, safe-cli must be installed as follows:
 
 ```
-pip install safe-cli[ledger]
+pip install "safe-cli[ledger]"
 ```
 
 When running on Linux, make sure the following rules have been added to `/etc/udev/rules.d/`:
@@ -145,7 +145,7 @@ Trezor module is an optional feature of safe-cli to sign transactions from Trezo
 To enable, safe-cli must be installed as follows:
 
 ```
-pip install safe-cli[trezor]
+pip install "safe-cli[trezor]"
 ```
 
 Trezor commands:
