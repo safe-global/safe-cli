@@ -503,16 +503,18 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
 
     parser_tx_service = subparsers.add_parser("sign-tx")
     parser_tx_service.set_defaults(func=sign_tx)
-    parser_tx_service.add_argument("safe_tx_hash", type=check_hex_str)
+    parser_tx_service.add_argument("safe_tx_hash", type=check_keccak256_hash)
 
     parser_tx_service = subparsers.add_parser("batch-txs")
     parser_tx_service.set_defaults(func=batch_txs)
     parser_tx_service.add_argument("safe_nonce", type=int)
-    parser_tx_service.add_argument("safe_tx_hashes", type=check_hex_str, nargs="+")
+    parser_tx_service.add_argument(
+        "safe_tx_hashes", type=check_keccak256_hash, nargs="+"
+    )
 
     parser_tx_service = subparsers.add_parser("execute-tx")
     parser_tx_service.set_defaults(func=execute_tx)
-    parser_tx_service.add_argument("safe_tx_hash", type=check_hex_str)
+    parser_tx_service.add_argument("safe_tx_hash", type=check_keccak256_hash)
 
     # List delegates
     parser_delegates = subparsers.add_parser("get_delegates")
@@ -536,6 +538,8 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
         "remove_proposed_transaction"
     )
     parser_remove_proposed_transaction.set_defaults(func=remove_proposed_transaction)
-    parser_remove_proposed_transaction.add_argument("safe_tx_hash", type=check_hex_str)
+    parser_remove_proposed_transaction.add_argument(
+        "safe_tx_hash", type=check_keccak256_hash
+    )
 
     return prompt_parser

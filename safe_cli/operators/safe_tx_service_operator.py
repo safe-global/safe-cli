@@ -1,4 +1,5 @@
 import json
+from itertools import chain
 from typing import Any, Dict, List, Optional, Sequence, Set, Union
 
 from colorama import Fore, Style
@@ -422,24 +423,13 @@ class SafeTxServiceOperator(SafeOperator):
     ) -> Optional[Union[LocalAccount, HwWallet]]:
         """
         Search the provided address between loaded owners
-        
+
         :param address:
         :return: LocalAccount or HwWallet of the provided address
         """
-        eoa_account = [
-            account for account in self.accounts if account.address == address
-        ]
-        if eoa_account:
-            return eoa_account[0]
-
-        hw_account = [
-            account
-            for account in self.hw_wallet_manager.wallets
-            if account.address == address
-        ]
-        if hw_account:
-            return hw_account[0]
-        return None
+        for account in chain(self.accounts, self.hw_wallet_manager.wallets):
+            if account.address == address:
+                return account
 
     def remove_proposed_transaction(self, safe_tx_hash: bytes):
         eip712_message = get_remove_transaction_message(
