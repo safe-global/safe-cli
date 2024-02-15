@@ -422,6 +422,7 @@ class SafeTxServiceOperator(SafeOperator):
     ) -> Optional[Union[LocalAccount, HwWallet]]:
         """
         Search the provided address between loaded owners
+        
         :param address:
         :return: LocalAccount or HwWallet of the provided address
         """

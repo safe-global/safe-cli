@@ -116,16 +116,14 @@ class HwWalletManager:
 
     def sign_eip712(self, eip712_message: Dict, wallets: List[HwWallet]) -> HexBytes:
         """
-        Sign a eip712 message
+        Sign an EIP712 message
 
         :param eip712_message:
         :param wallets:
         :return: Appended sorted signatures for all the provided wallets
         """
-        encode_hash = eip712_encode(eip712_message)
+        _,  domain_hash, message_hash = eip712_encode(eip712_message)
         eip712_message_hash = eip712_encode_hash(eip712_message)
-        domain_hash = encode_hash[1]
-        message_hash = encode_hash[2]
         safe_signatures: List[SafeSignature] = []
         for wallet in wallets:
             print_formatted_text(
