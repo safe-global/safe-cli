@@ -450,6 +450,21 @@ class SafeTxServiceOperator(SafeOperator):
             else:
                 signature = self.hw_wallet_manager.sign_eip712(eip712_message, [signer])
 
+            if len(safe_tx.signers) >= self.safe.retrieve_threshold():
+                print_formatted_text(
+                    HTML(
+                        "<ansired>The transaction has all the required signatures to be executed!!!\n"
+                        "This means that the transaction can be executed even after removal \n"
+                        f"Ensure to use the nonce {safe_tx.safe_nonce} to avoid it"
+                        "</ansired>"
+                    )
+                )
+
+            if not yes_or_no_question(
+                f"Do you want to remove the tx with safe-tx-hash={safe_tx.safe_tx_hash.hex()}"
+            ):
+                return False
+
             self.safe_tx_service.delete_transaction(safe_tx_hash.hex(), signature.hex())
             print_formatted_text(
                 HTML(
