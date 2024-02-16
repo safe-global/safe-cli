@@ -315,6 +315,10 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     def remove_delegate(args):
         safe_operator.remove_delegate(args.address, args.signer)
 
+    @safe_exception
+    def remove_proposed_transaction(args):
+        safe_operator.remove_proposed_transaction(args.safe_tx_hash)
+
     # Cli owners
     parser_show_cli_owners = subparsers.add_parser("show_cli_owners")
     parser_show_cli_owners.set_defaults(func=show_cli_owners)
@@ -499,16 +503,18 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
 
     parser_tx_service = subparsers.add_parser("sign-tx")
     parser_tx_service.set_defaults(func=sign_tx)
-    parser_tx_service.add_argument("safe_tx_hash", type=check_hex_str)
+    parser_tx_service.add_argument("safe_tx_hash", type=check_keccak256_hash)
 
     parser_tx_service = subparsers.add_parser("batch-txs")
     parser_tx_service.set_defaults(func=batch_txs)
     parser_tx_service.add_argument("safe_nonce", type=int)
-    parser_tx_service.add_argument("safe_tx_hashes", type=check_hex_str, nargs="+")
+    parser_tx_service.add_argument(
+        "safe_tx_hashes", type=check_keccak256_hash, nargs="+"
+    )
 
     parser_tx_service = subparsers.add_parser("execute-tx")
     parser_tx_service.set_defaults(func=execute_tx)
-    parser_tx_service.add_argument("safe_tx_hash", type=check_hex_str)
+    parser_tx_service.add_argument("safe_tx_hash", type=check_keccak256_hash)
 
     # List delegates
     parser_delegates = subparsers.add_parser("get_delegates")
@@ -526,5 +532,14 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_remove_delegate.set_defaults(func=remove_delegate)
     parser_remove_delegate.add_argument("address", type=check_ethereum_address)
     parser_remove_delegate.add_argument("signer", type=check_ethereum_address)
+
+    # Remove not executed proposed transaction
+    parser_remove_proposed_transaction = subparsers.add_parser(
+        "remove_proposed_transaction"
+    )
+    parser_remove_proposed_transaction.set_defaults(func=remove_proposed_transaction)
+    parser_remove_proposed_transaction.add_argument(
+        "safe_tx_hash", type=check_keccak256_hash
+    )
 
     return prompt_parser

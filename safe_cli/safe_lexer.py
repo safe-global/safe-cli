@@ -32,6 +32,7 @@ class SafeLexer(BashLexer):
         "send_ether",
         "send_erc20",
         "send_erc721",
+        "remove_proposed_transaction",
     }
 
     def get_tokens_unprocessed(self, text: str) -> (int, Token, str):

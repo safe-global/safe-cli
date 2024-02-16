@@ -1071,7 +1071,7 @@ class SafeOperator:
 
         # Sign with ledger
         if len(hw_wallets_signers):
-            safe_tx = self.hw_wallet_manager.sign_eip712(safe_tx, hw_wallets_signers)
+            safe_tx = self.hw_wallet_manager.sign_safe_tx(safe_tx, hw_wallets_signers)
 
         return safe_tx
 
@@ -1163,6 +1163,9 @@ class SafeOperator:
             print_formatted_text(
                 HTML("<ansigreen>Safe account is currently empty</ansigreen>")
             )
+
+    def remove_proposed_transaction(self, safe_tx_hash: bytes):
+        return self._require_tx_service_mode()
 
     def process_command(self, first_command: str, rest_command: List[str]) -> bool:
         if first_command == "help":

@@ -1,8 +1,10 @@
 import json
-from typing import Any, Dict, List, Optional, Sequence, Set
+from itertools import chain
+from typing import Any, Dict, List, Optional, Sequence, Set, Union
 
 from colorama import Fore, Style
 from eth_account.messages import defunct_hash_message
+from eth_account.signers.local import LocalAccount
 from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
@@ -12,6 +14,9 @@ from gnosis.eth.contracts import get_erc20_contract
 from gnosis.eth.eip712 import eip712_encode_hash
 from gnosis.safe import SafeOperation, SafeTx
 from gnosis.safe.api import SafeAPIException
+from gnosis.safe.api.transaction_service_api.transaction_service_messages import (
+    get_remove_transaction_message,
+)
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 from gnosis.safe.safe_signature import SafeSignature, SafeSignatureEOA
 from gnosis.safe.signatures import signature_to_bytes
@@ -20,6 +25,7 @@ from safe_cli.utils import yes_or_no_question
 
 from . import SafeServiceNotAvailable
 from .exceptions import AccountNotLoadedException, NonExistingOwnerException
+from .hw_wallets.hw_wallet import HwWallet
 from .safe_operator import SafeOperator
 
 
@@ -161,7 +167,7 @@ class SafeTxServiceOperator(SafeOperator):
                     if ledger_account.address in owners:
                         selected_ledger_accounts.append(ledger_account)
                 if len(selected_ledger_accounts) > 0:
-                    safe_tx = self.hw_wallet_manager.sign_eip712(
+                    safe_tx = self.hw_wallet_manager.sign_safe_tx(
                         safe_tx, selected_ledger_accounts
                     )
 
@@ -411,3 +417,63 @@ class SafeTxServiceOperator(SafeOperator):
             print_formatted_text(
                 HTML("<ansigreen>Safe account is currently empty</ansigreen>")
             )
+
+    def search_account(
+        self, address: ChecksumAddress
+    ) -> Optional[Union[LocalAccount, HwWallet]]:
+        """
+        Search the provided address between loaded owners
+
+        :param address:
+        :return: LocalAccount or HwWallet of the provided address
+        """
+        for account in chain(self.accounts, self.hw_wallet_manager.wallets):
+            if account.address == address:
+                return account
+
+    def remove_proposed_transaction(self, safe_tx_hash: bytes):
+        eip712_message = get_remove_transaction_message(
+            self.address, safe_tx_hash, self.ethereum_client.get_chain_id()
+        )
+        message_hash = eip712_encode_hash(eip712_message)
+        try:
+            safe_tx, _ = self.safe_tx_service.get_safe_transaction(safe_tx_hash)
+            signer = self.search_account(safe_tx.proposer)
+            if not signer:
+                print_formatted_text(
+                    HTML(
+                        f"<ansired>The proposer with address: {safe_tx.proposer} wasn loaded</ansired>"
+                    )
+                )
+            if isinstance(signer, LocalAccount):
+                signature = signer.signHash(message_hash).signature
+            else:
+                signature = self.hw_wallet_manager.sign_eip712(eip712_message, [signer])
+
+            if len(safe_tx.signers) >= self.safe.retrieve_threshold():
+                print_formatted_text(
+                    HTML(
+                        "<ansired>The transaction has all the required signatures to be executed!!!\n"
+                        "This means that the transaction can be executed by a 3rd party monitoring your Safe even after removal!\n"
+                        f"Make sure you execute a transaction with nonce {safe_tx.safe_nonce} to void the current transaction"
+                        "</ansired>"
+                    )
+                )
+
+            if not yes_or_no_question(
+                f"Do you want to remove the tx with safe-tx-hash={safe_tx.safe_tx_hash.hex()}"
+            ):
+                return False
+
+            self.safe_tx_service.delete_transaction(safe_tx_hash.hex(), signature.hex())
+            print_formatted_text(
+                HTML(
+                    f"<ansigreen>Transaction {safe_tx_hash.hex()} was removed correctly</ansigreen>"
+                )
+            )
+            return True
+        except SafeAPIException as e:
+            print_formatted_text(
+                HTML(f"<ansired>Transaction wasn't removed due an error: {e}</ansired>")
+            )
+            return False

@@ -143,7 +143,7 @@ class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
         expected_signature = safe_tx.sign(owner.key)
 
         trezor_return_signature = EthereumTypedDataSignature(
-            signature=expected_signature
+            signature=expected_signature, address=trezor_wallet.address
         )
         mock_trezor_client.return_value.call = MagicMock(
             return_value=trezor_return_signature
