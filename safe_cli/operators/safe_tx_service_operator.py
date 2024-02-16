@@ -454,8 +454,8 @@ class SafeTxServiceOperator(SafeOperator):
                 print_formatted_text(
                     HTML(
                         "<ansired>The transaction has all the required signatures to be executed!!!\n"
-                        "This means that the transaction can be executed even after removal \n"
-                        f"Ensure to use the nonce {safe_tx.safe_nonce} to avoid it"
+                        "This means that the transaction can be executed by a 3rd party monitoring your Safe even after removal!\n"
+                        f"Make sure you execute a transaction with nonce {safe_tx.safe_nonce} to void the current transaction"
                         "</ansired>"
                     )
                 )
