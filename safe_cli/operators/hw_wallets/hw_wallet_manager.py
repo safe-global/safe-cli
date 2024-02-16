@@ -122,7 +122,7 @@ class HwWalletManager:
         :param wallets:
         :return: Appended sorted signatures for all the provided wallets
         """
-        _,  domain_hash, message_hash = eip712_encode(eip712_message)
+        _, domain_hash, message_hash = eip712_encode(eip712_message)
         eip712_message_hash = eip712_encode_hash(eip712_message)
         safe_signatures: List[SafeSignature] = []
         for wallet in wallets:
