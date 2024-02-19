@@ -117,16 +117,19 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         safe_operator.address = "0x23793e7Ce4f2Fd31C993893f658181fD39fB5dEb"
         signer = list(safe_operator.accounts)[0]
         safe_tx_mock = MagicMock()
-        safe_tx_mock.proposer = signer.address
         get_transaction_mock.return_value = (safe_tx_mock, None)
         safe_tx_hash = HexBytes(
             "0x07eeea19b7d005b561f367e714bf65734d0ecc477de3e8b1fbc20ccb18c8747b"
         )
         expected_signature = "0xbc305f59a62c5bbb002645f658ee62cfa1966f20aca4dc1922b813e9d41bf1f02abd356891a3725af2066dd1758c930574298b4ba180117dc6146bbc4369cc0c1c"
+        safe_tx_mock.proposer = signer.address
         self.assertTrue(safe_operator.remove_proposed_transaction(safe_tx_hash))
         remove_transaction_mock.assert_called_with(
             safe_tx_hash.hex(), expected_signature
         )
+        # Different proposer should return False
+        safe_tx_mock.proposer = Account.create().address
+        self.assertFalse(safe_operator.remove_proposed_transaction(safe_tx_hash))
 
     @mock.patch.object(SafeTxServiceOperator, "get_permitted_signers", return_value=[])
     @mock.patch.object(
