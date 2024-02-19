@@ -442,9 +442,11 @@ class SafeTxServiceOperator(SafeOperator):
             if not signer:
                 print_formatted_text(
                     HTML(
-                        f"<ansired>The proposer with address: {safe_tx.proposer} wasn loaded</ansired>"
+                        f"<ansired>The proposer with address: {safe_tx.proposer} was not loaded</ansired>"
                     )
                 )
+                return False
+
             if isinstance(signer, LocalAccount):
                 signature = signer.signHash(message_hash).signature
             else:
