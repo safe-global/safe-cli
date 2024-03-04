@@ -32,7 +32,7 @@ from gnosis.eth.contracts import (
 )
 from gnosis.eth.eip712 import eip712_encode
 from gnosis.eth.utils import get_empty_tx_params
-from gnosis.safe import InvalidInternalTx, Safe, SafeOperation, SafeTx
+from gnosis.safe import InvalidInternalTx, Safe, SafeOperationEnum, SafeTx
 from gnosis.safe.api import TransactionServiceApi
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 from gnosis.safe.safe_deployments import safe_deployments
@@ -478,7 +478,7 @@ class SafeOperator:
             sign_message_lib_address,
             0,
             sign_message_data,
-            operation=SafeOperation.DELEGATE_CALL,
+            operation=SafeOperationEnum.DELEGATE_CALL,
         ):
             print_formatted_text(
                 HTML(f"Message was signed correctly: {safe_message_hash.hex()}")
@@ -533,7 +533,9 @@ class SafeOperator:
             safe_balance = self.ethereum_client.get_balance(self.address)
             if safe_balance < value:
                 raise NotEnoughEtherToSend(safe_balance)
-        operation = SafeOperation.DELEGATE_CALL if delegate_call else SafeOperation.CALL
+        operation = (
+            SafeOperationEnum.DELEGATE_CALL if delegate_call else SafeOperationEnum.CALL
+        )
         return self.prepare_and_execute_safe_transaction(
             to, value, data, operation, safe_nonce=safe_nonce
         )
@@ -667,7 +669,10 @@ class SafeOperator:
         multisend_data = multisend.build_tx_data(multisend_txs)
 
         if self.prepare_and_execute_safe_transaction(
-            multisend.address, 0, multisend_data, operation=SafeOperation.DELEGATE_CALL
+            multisend.address,
+            0,
+            multisend_data,
+            operation=SafeOperationEnum.DELEGATE_CALL,
         ):
             self.safe_cli_info.master_copy = self.last_safe_contract_address
             self.safe_cli_info.fallback_handler = (
@@ -726,7 +731,10 @@ class SafeOperator:
             )
 
         if self.prepare_and_execute_safe_transaction(
-            migration_contract_address, 0, data, operation=SafeOperation.DELEGATE_CALL
+            migration_contract_address,
+            0,
+            data,
+            operation=SafeOperationEnum.DELEGATE_CALL,
         ):
             self.safe_cli_info.master_copy = safe_l2_singleton
             self.safe_cli_info.fallback_handler = fallback_handler
@@ -888,7 +896,7 @@ class SafeOperator:
         to: str,
         value: int,
         data: bytes,
-        operation: SafeOperation = SafeOperation.CALL,
+        operation: SafeOperationEnum = SafeOperationEnum.CALL,
         safe_nonce: Optional[int] = None,
     ) -> SafeTx:
         safe_tx = self.safe.build_multisig_tx(
@@ -902,7 +910,7 @@ class SafeOperator:
         to: str,
         value: int,
         data: bytes,
-        operation: SafeOperation = SafeOperation.CALL,
+        operation: SafeOperationEnum = SafeOperationEnum.CALL,
         safe_nonce: Optional[int] = None,
     ) -> bool:
         safe_tx = self.prepare_safe_transaction(
@@ -1011,7 +1019,7 @@ class SafeOperator:
                 multisend.address,
                 0,
                 multisend.build_tx_data(multisend_txs),
-                SafeOperation.DELEGATE_CALL.value,
+                SafeOperationEnum.DELEGATE_CALL.value,
                 0,
                 0,
                 0,
@@ -1133,7 +1141,7 @@ class SafeOperator:
                     token_address,
                     0,
                     HexBytes(transaction["data"]),
-                    SafeOperation.CALL,
+                    SafeOperationEnum.CALL,
                     safe_nonce=None,
                 )
                 safe_txs.append(safe_tx)
@@ -1145,7 +1153,7 @@ class SafeOperator:
                 to,
                 balance_eth,
                 b"",
-                SafeOperation.CALL,
+                SafeOperationEnum.CALL,
                 safe_nonce=None,
             )
             safe_txs.append(safe_tx)

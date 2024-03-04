@@ -12,7 +12,7 @@ from tabulate import tabulate
 
 from gnosis.eth.contracts import get_erc20_contract
 from gnosis.eth.eip712 import eip712_encode_hash
-from gnosis.safe import SafeOperation, SafeTx
+from gnosis.safe import SafeOperationEnum, SafeTx
 from gnosis.safe.api import SafeAPIException
 from gnosis.safe.api.transaction_service_api.transaction_service_messages import (
     get_remove_transaction_message,
@@ -226,7 +226,7 @@ class SafeTxServiceOperator(SafeOperator):
                 multisend.address,
                 0,
                 multisend.build_tx_data(multisend_txs),
-                SafeOperation.DELEGATE_CALL.value,
+                SafeOperationEnum.DELEGATE_CALL.value,
                 0,
                 0,
                 0,
@@ -337,7 +337,7 @@ class SafeTxServiceOperator(SafeOperator):
         to: str,
         value: int,
         data: bytes,
-        operation: SafeOperation = SafeOperation.CALL,
+        operation: SafeOperationEnum = SafeOperationEnum.CALL,
         safe_nonce: Optional[int] = None,
     ) -> bool:
         safe_tx = self.prepare_safe_transaction(
@@ -386,7 +386,7 @@ class SafeTxServiceOperator(SafeOperator):
                         to,
                         amount,
                         b"",
-                        SafeOperation.CALL,
+                        SafeOperationEnum.CALL,
                         safe_nonce=None,
                     )
             else:
@@ -399,7 +399,7 @@ class SafeTxServiceOperator(SafeOperator):
                     balance["tokenAddress"],
                     0,
                     HexBytes(transaction["data"]),
-                    SafeOperation.CALL,
+                    SafeOperationEnum.CALL,
                     safe_nonce=None,
                 )
             if safe_tx:
