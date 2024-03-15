@@ -19,21 +19,21 @@ It does not rely on Safe{Core} API and can also be used in networks where Safe s
 
 Once Docker is installed on your system, run the following command to create Safe Smart Accounts:
 
-```
+```bash
 docker run -it safeglobal/safe-cli safe-creator
 ```
 
-You can also run the following command to run the Safe CLI:
-```
-docker run -it safeglobal/safe-cli safe-cli
+You can also run the following command to run the Safe CLI with an existing Safe:
+```bash
+docker run -it safeglobal/safe-cli safe-cli <checksummed_safe_address> <ethereum_node_url>
 ```
 
 ## Using Python PIP
 
-**Prerequisite:** [Python](https://www.python.org/downloads/) >= 3 (Python 3.10 is recommended).
+**Prerequisite:** [Python](https://www.python.org/downloads/) >= 3.7 (Python 3.10 is recommended).
 
 Once Python is installed on your system, run the following command to install Safe CLI:
-```
+```bash
 pip3 install -U safe-cli
 ```
 
