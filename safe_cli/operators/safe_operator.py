@@ -224,7 +224,9 @@ class SafeOperator:
                 safe_contract_version = Safe(
                     last_safe_contract_address, self.ethereum_client
                 ).retrieve_version()
-            except BadFunctionCallOutput:  # Safe master copy is not deployed or errored, maybe custom network
+            except (
+                BadFunctionCallOutput
+            ):  # Safe master copy is not deployed or errored, maybe custom network
                 return True  # We cannot say you are not updated ¯\_(ツ)_/¯
 
             return semantic_version.parse(
@@ -1047,9 +1049,9 @@ class SafeOperator:
         """
         permitted_signers = self.get_permitted_signers()
         threshold = self.safe_cli_info.threshold
-        eoa_signers: List[
-            Account
-        ] = []  # Some accounts that are not an owner can be loaded
+        eoa_signers: List[Account] = (
+            []
+        )  # Some accounts that are not an owner can be loaded
         for account in self.accounts:
             if account.address in permitted_signers:
                 eoa_signers.append(account)
