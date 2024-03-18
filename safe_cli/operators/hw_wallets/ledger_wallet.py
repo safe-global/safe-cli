@@ -69,7 +69,7 @@ class LedgerWallet(HwWallet):
             nonce=tx_parameters["nonce"],
             data=tx_parameters.get("data"),
             max_priority_fee_per_gas=tx_parameters.get("maxPriorityFeePerGas"),
-            max_fee_per_gas=tx_parameters.get("maxPriorityFeePerGas"),
+            max_fee_per_gas=tx_parameters.get("maxFeePerGas"),
             chain_id=chain_id,
             sender_path=self.derivation_path,
             dongle=self.dongle,
