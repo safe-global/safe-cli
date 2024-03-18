@@ -34,14 +34,14 @@ class HwWalletManager:
             from .ledger_wallet import LedgerWallet
 
             self.supported_hw_wallet_types[HwWalletType.LEDGER] = LedgerWallet
-        except (ImportError):
+        except ImportError:
             pass
 
         try:
             from .trezor_wallet import TrezorWallet
 
             self.supported_hw_wallet_types[HwWalletType.TREZOR] = TrezorWallet
-        except (ImportError):
+        except ImportError:
             pass
 
     def is_supported_hw_wallet(self, hw_wallet_type: HwWalletType) -> bool:

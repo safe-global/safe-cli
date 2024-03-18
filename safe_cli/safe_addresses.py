@@ -4,6 +4,7 @@ Currently using Safe v1.4.1 when available, and 1.3.0 as fallback as they are co
 https://github.com/gnosis/safe-deployments/tree/main/src/assets/v1.4.1
 https://github.com/gnosis/safe-deployments/tree/main/src/assets/v1.3.0
 """
+
 from typing import Sequence
 
 from eth_typing import ChecksumAddress
