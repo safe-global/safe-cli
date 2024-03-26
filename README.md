@@ -9,7 +9,7 @@
 
 # Safe CLI
 
-Safe CLI is a command-line utility for Safe contracts. You can use it to manage your Safe Smart Account from the command line.
+Safe CLI is a command-line utility for Safe contracts. You can use it to manage your Safe account from the command line.
 
 It does not rely on Safe{Core} API and can also be used in networks where Safe services are unavailable. Learn more through the [documentation](https://docs.safe.global/advanced/cli-overview).
 
