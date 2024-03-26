@@ -17,7 +17,7 @@ It does not rely on Safe{Core} API and can also be used in networks where Safe s
 
 **Prerequisite:** Install [Docker Desktop](https://www.docker.com/products/docker-desktop/).
 
-Once Docker is installed on your system, run the following command to create Safe Smart Accounts:
+Once Docker is installed on your system, run the following command to create new Safe accounts:
 
 ```bash
 docker run -it safeglobal/safe-cli safe-creator
