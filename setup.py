@@ -24,7 +24,7 @@ setuptools.setup(
         "prompt_toolkit>=3",
         "pygments>=2",
         "requests>=2",
-        "safe-eth-py==6.0.0b17",
+        "safe-eth-py==6.0.0b22",
         "tabulate>=0.8",
     ],
     extras_require={"ledger": ["ledgereth==0.9.1"], "trezor": ["trezor==0.13.8"]},
@@ -37,12 +37,12 @@ setuptools.setup(
     },
     classifiers=[
         "Programming Language :: Python",
-        "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires=">=3.8",
+    python_requires=">=3.9",
 )

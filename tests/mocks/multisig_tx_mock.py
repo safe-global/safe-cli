@@ -21,9 +21,11 @@ class GetMultisigTxRequestMock:
             "submissionDate": "2023-02-28T20:18:24Z",
             "modified": "2023-02-28T20:18:24Z",
             "blockNumber": 8573938,
-            "transactionHash": "0x7d229cdd1a197acdd23787cedcb7ec4d746ce0e730dff75e209359894af7fb52"
-            if self.executed
-            else None,
+            "transactionHash": (
+                "0x7d229cdd1a197acdd23787cedcb7ec4d746ce0e730dff75e209359894af7fb52"
+                if self.executed
+                else None
+            ),
             "safeTxHash": "0xeb5fa8e85dd530397172da07792c5d05dff9ffe5816fc0a260d672e924825b01",
             "proposer": None,
             "executor": "0x5aC255889882aCd3da2aA939679E3f3d4cea221e",

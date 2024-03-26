@@ -3,17 +3,29 @@ on:
   push:
     branches:
       - main
-      - develop
   pull_request:
   release:
     types: [ released ]
 
 jobs:
+  linting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: pip install pre-commit
+      - name: Run pre-commit
+        run: pre-commit run --all-files
+
   test-app:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8, 3.9, "3.10", "3.11"]
+        python-version: ["3.9", "3.10", "3.11", "3.12"]
     steps:
     - name: Setup and run ganache
       run: docker run --detach --publish 8545:8545 --network-alias ganache -e DOCKER=true trufflesuite/ganache:latest --defaultBalanceEther 10000 --gasLimit 10000000 -a 30 --chain.chainId 1337 --chain.networkId 1337 -d
@@ -30,8 +42,6 @@ jobs:
         pip install -r requirements-test.txt coveralls pre-commit
       env:
         PIP_USE_MIRRORS: true
-    - name: Run pre-commit
-      run: pre-commit run --all-files
     - name: Run tests and coverage
       run: |
         pytest -rxXs
