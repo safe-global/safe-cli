@@ -30,7 +30,7 @@ docker run -it safeglobal/safe-cli safe-cli <checksummed_safe_address> <ethereum
 
 ## Using Python PIP
 
-**Prerequisite:** [Python](https://www.python.org/downloads/) >= 3.7 (Python 3.10 is recommended).
+**Prerequisite:** [Python](https://www.python.org/downloads/) >= 3.9 (Python 3.12 is recommended).
 
 Once Python is installed on your system, run the following command to install Safe CLI:
 ```bash
