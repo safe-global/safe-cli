@@ -1,4 +1,4 @@
-art==6.1
+art==6.2
 colorama==0.4.6
 ledgereth==0.9.1
 packaging>=23.1
