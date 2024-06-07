@@ -63,7 +63,7 @@ def choose_option_from_list(
     number_options = len(options)
     for number_option, option in enumerate(options):
         print_formatted_text(HTML(f"{number_option} - <b>{option}</b> "))
-    choices = f" [0-{number_options-1}] default {default_option}: "
+    choices = f" [0-{number_options - 1}] default {default_option}: "
     reply = str(get_input(question + choices)).lower().strip() or str(default_option)
     try:
         option = int(reply)
@@ -73,7 +73,9 @@ def choose_option_from_list(
 
     if option not in range(0, number_options):
         print_formatted_text(
-            HTML(f"<ansired> {option} is not between [0-{number_options-1}] </ansired>")
+            HTML(
+                f"<ansired> {option} is not between [0-{number_options - 1}] </ansired>"
+            )
         )
         return None
 
