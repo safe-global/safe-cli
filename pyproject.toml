@@ -61,11 +61,15 @@ packages = ["/src/safe_cli"]
 source_pkgs = ["safe_cli", "tests"]
 branch = true
 parallel = true
-omit = ["*__init__.py*", "*tests*", "*/migrations/*"]
+omit = [
+    "*__init__.py*",
+    "*tests*",
+    "*/migrations/*"
+]
 
 [tool.coverage.paths]
-safe_cli = ["src/safe_cli", "*/safe_cli/src/safe_cli"]
-tests = ["tests", "*/safe_cli/tests"]
+safe_cli = ["src/safe_cli", "*/safe-cli/src/safe_cli"]
+tests = ["tests", "*/safe-cli/tests"]
 
 [tool.coverage.report]
 exclude_lines = [

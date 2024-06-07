@@ -43,8 +43,9 @@ jobs:
       env:
         PIP_USE_MIRRORS: true
     - name: Run tests and coverage
-      run:
+      run: |
         coverage run -m pytest -rxXs
+        coverage combine
     - name: Coveralls Parallel
       uses: coverallsapp/github-action@v2
       with:
