@@ -1,0 +1,106 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "safe-cli"
+dynamic = ["version"]
+description = "Command Line Interface for Safe"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.8"
+authors = [{ name = "Uxío Fuentefría", email = "uxio@safe.global" }]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "art>=6",
+    "colorama>=0.4",
+    "prompt_toolkit>=3",
+    "pygments>=2",
+    "requests>=2",
+    "safe-eth-py==6.0.0b17",
+    "tabulate>=0.8",
+]
+
+[project.optional-dependencies]
+ledger = ["ledgereth==0.9.1"]
+trezor = ["trezor==0.13.8"]
+
+[project.scripts]
+safe-cli = "safe_cli.main:main"
+safe-creator = "safe_cli.safe_creator:main"
+
+[project.urls]
+Download = "https://github.com/gnosis/safe-cli/releases"
+Homepage = "https://github.com/gnosis/safe-cli"
+
+[tool.hatch.version]
+path = "src/safe_cli/__init__.py"
+
+[tool.hatch.envs.types]
+extra-dependencies = ["mypy>=1.0.0"]
+
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/safe_cli tests}"
+
+[tool.hatch.build.targets.sdist]
+include = ["/src/safe_cli"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["/src/safe_cli"]
+
+[tool.coverage.run]
+source_pkgs = ["safe_cli", "tests"]
+branch = true
+parallel = true
+omit = [
+    "*__init__.py*",
+    "*tests*",
+    "*/migrations/*"
+]
+
+[tool.coverage.paths]
+safe_cli = ["src/safe_cli", "*/safe-cli/src/safe_cli"]
+tests = ["tests", "*/safe-cli/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "no cov",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "if settings.DEBUG",
+    "raise NotImplementedError",
+    "pass",
+]
+
+[tool.isort]
+profile = "black"
+default_section = "THIRDPARTY"
+known_first_party = "safe_cli"
+known_safe_foundation = ["py_eth_sig_utils", "gnosis"]
+known_django = "django"
+sections = [
+    "FUTURE",
+    "STDLIB",
+    "DJANGO",
+    "THIRDPARTY",
+    "SAFE_FOUNDATION",
+    "FIRSTPARTY",
+    "LOCALFOLDER",
+]
+
+[tool.mypy]
+python_version = "3.12"
+check_untyped_defs = true
+ignore_missing_imports = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unused_configs = true
