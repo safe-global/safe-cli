@@ -44,6 +44,7 @@ safe_commands_arguments = {
     "blockchain": "",
     "tx-service": "",
     "drain": "<address>",
+    "exit": "",
 }
 
 safe_commands = list(safe_commands_arguments.keys())
@@ -215,4 +216,5 @@ meta = {
     "drain": HTML(
         "Command <b>drain</b> will try to send all assets ether and ERC20 to a check-summed account"
     ),
+    "exit": HTML("Command <b>exit</b> will terminate the safe-cli process"),
 }

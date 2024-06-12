@@ -96,3 +96,7 @@ class SafeServiceNotAvailable(SafeOperatorException):
 
 class HardwareWalletException(SafeOperatorException):
     pass
+
+
+class SafeCliTerminationException(SafeOperatorException):
+    pass

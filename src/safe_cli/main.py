@@ -13,6 +13,7 @@ from prompt_toolkit.lexers import PygmentsLexer
 
 from safe_cli.argparse_validators import check_ethereum_address
 from safe_cli.operators import (
+    SafeCliTerminationException,
     SafeOperator,
     SafeServiceNotAvailable,
     SafeTxServiceOperator,
@@ -45,7 +46,7 @@ class SafeCli:
 
     def print_startup_info(self):
         print_formatted_text(text2art("Safe CLI"))  # Print fancy text
-        print_formatted_text(HTML(f"<b><ansigreen>Version {VERSION}</ansigreen></b>"))
+        print_formatted_text(HTML(f"<b>Package version: {VERSION}</b>"))
         print_formatted_text(
             HTML("<b><ansigreen>Loading Safe information...</ansigreen></b>")
         )
@@ -111,6 +112,8 @@ class SafeCli:
                     new_operator.refresh_safe_cli_info()  # ClI info needs to be initialized
                 else:
                     self.prompt_parser.process_command(command)
+            except SafeCliTerminationException:
+                break
             except EOFError:
                 break
             except KeyboardInterrupt:

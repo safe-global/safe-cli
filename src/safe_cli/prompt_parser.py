@@ -319,6 +319,9 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     def remove_proposed_transaction(args):
         safe_operator.remove_proposed_transaction(args.safe_tx_hash)
 
+    def terminate_cli(args):
+        safe_operator.terminate_cli()
+
     # Cli owners
     parser_show_cli_owners = subparsers.add_parser("show_cli_owners")
     parser_show_cli_owners.set_defaults(func=show_cli_owners)
@@ -541,5 +544,9 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_remove_proposed_transaction.add_argument(
         "safe_tx_hash", type=check_keccak256_hash
     )
+
+    # Terminate safe cli
+    parser_exit = subparsers.add_parser("exit")
+    parser_exit.set_defaults(func=terminate_cli)
 
     return prompt_parser

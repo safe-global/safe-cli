@@ -5,6 +5,7 @@ from web3 import Web3
 
 from gnosis.safe import Safe
 
+from safe_cli.operators import SafeCliTerminationException
 from safe_cli.operators.safe_operator import SafeOperator
 from safe_cli.prompt_parser import PromptParser
 
@@ -73,6 +74,10 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             safe_operator.safe_cli_info.owners, [self.ethereum_test_account.address]
         )
         self.assertEqual(safe.retrieve_owners(), [self.ethereum_test_account.address])
+
+        # Terminate cli
+        with self.assertRaises(SafeCliTerminationException):
+            prompt_parser.process_command("exit")
 
 
 if __name__ == "__main__":
