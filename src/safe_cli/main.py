@@ -46,7 +46,7 @@ class SafeCli:
 
     def print_startup_info(self):
         print_formatted_text(text2art("Safe CLI"))  # Print fancy text
-        print_formatted_text(HTML(f"<b>Package version: {VERSION}</b>"))
+        print_formatted_text(HTML(f"<b>Version: {VERSION}</b>"))
         print_formatted_text(
             HTML("<b><ansigreen>Loading Safe information...</ansigreen></b>")
         )
