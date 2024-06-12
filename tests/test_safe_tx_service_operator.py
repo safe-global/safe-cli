@@ -11,11 +11,7 @@ from gnosis.eth import EthereumClient
 from gnosis.safe import SafeTx
 from gnosis.safe.api import TransactionServiceApi
 
-from safe_cli.operators import (
-    SafeCliTerminationException,
-    SafeOperatorMode,
-    SafeTxServiceOperator,
-)
+from safe_cli.operators import SafeOperatorMode, SafeTxServiceOperator
 
 from .mocks.balances_mock import balances_mock
 from .mocks.data_decoded_mock import data_decoded_mock
@@ -558,13 +554,6 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
     def test_drain(self):
         # TODO Drain is a complex to mock
         pass
-
-    def test_terminate_cli(self):
-        safe_operator = self.setup_operator(
-            number_owners=1, mode=SafeOperatorMode.TX_SERVICE
-        )
-        with self.assertRaises(SafeCliTerminationException):
-            safe_operator.terminate_cli()
 
 
 if __name__ == "__main__":

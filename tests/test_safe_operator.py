@@ -17,7 +17,6 @@ from gnosis.safe import Safe
 from gnosis.safe.multi_send import MultiSend
 
 from safe_cli.contracts import safe_to_l2_migration
-from safe_cli.operators import SafeCliTerminationException
 from safe_cli.operators.exceptions import (
     AccountNotLoadedException,
     ExistingOwnerException,
@@ -479,11 +478,6 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
             self.assertEqual(
                 safe_operator.ethereum_client.get_balance(safe_operator.address), 0
             )
-
-    def test_terminate_cli(self):
-        safe_operator = self.setup_operator()
-        with self.assertRaises(SafeCliTerminationException):
-            safe_operator.terminate_cli()
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@ import argparse
 import functools
 
 from prompt_toolkit import HTML, print_formatted_text
+from prompt_toolkit.formatted_text import html
 
 from gnosis.safe.api import SafeAPIException
 
@@ -25,6 +26,7 @@ from .operators.exceptions import (
     NotEnoughSignatures,
     NotEnoughTokenToSend,
     SafeAlreadyUpdatedException,
+    SafeCliTerminationException,
     SafeOperatorException,
     SafeVersionNotSupportedException,
     SameFallbackHandlerException,
@@ -33,6 +35,7 @@ from .operators.exceptions import (
     ThresholdLimitException,
 )
 from .operators.safe_operator import SafeOperator
+from .safe_completer_constants import meta, safe_commands_arguments
 
 
 def safe_exception(function):
@@ -319,8 +322,23 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     def remove_proposed_transaction(args):
         safe_operator.remove_proposed_transaction(args.safe_tx_hash)
 
+    def list_commands(args):
+        print_formatted_text(HTML("<b>The following commands can be used:</b>"))
+        print_formatted_text()
+        for key in sorted(safe_commands_arguments.keys()):
+            print_formatted_text(
+                HTML(
+                    f"<b>{key} {html.html_escape(safe_commands_arguments.get(key))}</b>"
+                )
+            )
+            print_formatted_text(HTML("&#9;"), meta.get(key, ""))
+        print_formatted_text()
+        print_formatted_text(
+            "It's possible to use the tab key to show options in interactive mode."
+        )
+
     def terminate_cli(args):
-        safe_operator.terminate_cli()
+        raise SafeCliTerminationException()
 
     # Cli owners
     parser_show_cli_owners = subparsers.add_parser("show_cli_owners")
@@ -544,6 +562,10 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     parser_remove_proposed_transaction.add_argument(
         "safe_tx_hash", type=check_keccak256_hash
     )
+
+    # List all command options
+    parser_exit = subparsers.add_parser("help")
+    parser_exit.set_defaults(func=list_commands)
 
     # Terminate safe cli
     parser_exit = subparsers.add_parser("exit")

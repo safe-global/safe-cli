@@ -24,11 +24,7 @@ from gnosis.safe.signatures import signature_to_bytes
 from safe_cli.utils import yes_or_no_question
 
 from . import SafeServiceNotAvailable
-from .exceptions import (
-    AccountNotLoadedException,
-    NonExistingOwnerException,
-    SafeCliTerminationException,
-)
+from .exceptions import AccountNotLoadedException, NonExistingOwnerException
 from .hw_wallets.hw_wallet import HwWallet
 from .safe_operator import SafeOperator
 
@@ -483,6 +479,3 @@ class SafeTxServiceOperator(SafeOperator):
                 HTML(f"<ansired>Transaction wasn't removed due an error: {e}</ansired>")
             )
             return False
-
-    def terminate_cli(self):
-        raise SafeCliTerminationException()

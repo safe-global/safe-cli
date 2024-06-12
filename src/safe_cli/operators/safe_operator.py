@@ -53,7 +53,6 @@ from safe_cli.operators.exceptions import (
     NotEnoughEtherToSend,
     NotEnoughSignatures,
     SafeAlreadyUpdatedException,
-    SafeCliTerminationException,
     SafeVersionNotSupportedException,
     SameFallbackHandlerException,
     SameGuardException,
@@ -1177,9 +1176,6 @@ class SafeOperator:
 
     def remove_proposed_transaction(self, safe_tx_hash: bytes):
         return self._require_tx_service_mode()
-
-    def terminate_cli(self):
-        raise SafeCliTerminationException()
 
     def process_command(self, first_command: str, rest_command: List[str]) -> bool:
         if first_command == "help":
