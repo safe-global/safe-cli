@@ -564,8 +564,8 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     )
 
     # List all command options
-    parser_exit = subparsers.add_parser("help")
-    parser_exit.set_defaults(func=list_commands)
+    parser_help = subparsers.add_parser("help")
+    parser_help.set_defaults(func=list_commands)
 
     # Terminate safe cli
     parser_exit = subparsers.add_parser("exit")
