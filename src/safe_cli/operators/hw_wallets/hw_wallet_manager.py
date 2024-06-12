@@ -114,7 +114,9 @@ class HwWalletManager:
         self.wallets = self.wallets.difference(accounts_to_remove)
         return accounts_to_remove
 
-    def sign_eip712(self, eip712_message: Dict, wallets: List[HwWallet]) -> HexBytes:
+    def sign_eip712(
+        self, eip712_message: Dict, wallets: List[HwWallet]
+    ) -> List[SafeSignature]:
         """
         Sign an EIP712 message
 
@@ -136,7 +138,7 @@ class HwWalletManager:
             signature = wallet.sign_typed_hash(domain_hash, message_hash)
             safe_signatures.append(SafeSignatureEOA(signature, eip712_message_hash))
 
-        return SafeSignature.export_signatures(safe_signatures)
+        return safe_signatures
 
     def sign_safe_tx(self, safe_tx: SafeTx, wallets: List[HwWallet]) -> SafeTx:
         """
@@ -146,8 +148,14 @@ class HwWalletManager:
         :param wallets:
         :return: SafeTx with signature.
         """
-        signatures = self.sign_eip712(safe_tx.eip712_structured_data, wallets)
-        safe_tx.signatures = signatures
+        hw_wallet_signatures = self.sign_eip712(safe_tx.eip712_structured_data, wallets)
+        # Update signatures
+        signatures = (
+            SafeSignature.parse_signature(safe_tx.signatures, safe_tx.safe_tx_hash)
+            + hw_wallet_signatures
+        )
+
+        safe_tx.signatures = SafeSignature.export_signatures(signatures)
         return safe_tx
 
     def execute_safe_tx(

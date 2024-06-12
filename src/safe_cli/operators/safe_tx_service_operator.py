@@ -450,7 +450,9 @@ class SafeTxServiceOperator(SafeOperator):
             if isinstance(signer, LocalAccount):
                 signature = signer.signHash(message_hash).signature
             else:
-                signature = self.hw_wallet_manager.sign_eip712(eip712_message, [signer])
+                signature = self.hw_wallet_manager.sign_eip712(
+                    eip712_message, [signer]
+                )[0].signature
 
             if len(safe_tx.signers) >= self.safe.retrieve_threshold():
                 print_formatted_text(
