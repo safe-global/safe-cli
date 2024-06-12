@@ -323,8 +323,9 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
         safe_operator.remove_proposed_transaction(args.safe_tx_hash)
 
     def list_commands(args):
-        print_formatted_text(HTML("<b>The following commands can be used:</b>"))
-        print_formatted_text()
+        print_formatted_text(
+            HTML("<b>The following commands can be used:</b>"), end="\n\n"
+        )
         for key in sorted(safe_commands_arguments.keys()):
             print_formatted_text(
                 HTML(
@@ -332,9 +333,8 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
                 )
             )
             print_formatted_text(HTML("&#9;"), meta.get(key, ""))
-        print_formatted_text()
         print_formatted_text(
-            "It's possible to use the tab key to show options in interactive mode."
+            HTML("\nUse the <b>tab key</b> to show options in interactive mode.")
         )
 
     def terminate_cli(args):

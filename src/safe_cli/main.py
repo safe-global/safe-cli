@@ -52,6 +52,15 @@ class SafeCli:
         )
         self.safe_operator.print_info()
 
+        print_formatted_text(
+            HTML("\nUse the <b>tab key</b> to show options in interactive mode.")
+        )
+        print_formatted_text(
+            HTML(
+                "The <b>help</b> command displays all available options and the <b>exit</b> command terminates the safe-cli."
+            )
+        )
+
     def get_prompt_text(self):
         mode: Optional[str] = "blockchain"
         if isinstance(self.prompt_parser.safe_operator, SafeTxServiceOperator):
@@ -122,8 +131,29 @@ class SafeCli:
                 pass
 
 
+def get_usage_msg():
+    return """
+        safe-cli [-h] [--history] [--get-safes-from-owner] address node_url
+
+        Examples:
+            safe-cli 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
+            safe-cli --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
+
+            safe-cli --history 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
+            safe-cli --history --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
+    """
+
+
 def build_safe_cli() -> Optional[SafeCli]:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(usage=get_usage_msg())
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"Safe CLI v{VERSION}",
+        help="Show program's version number and exit.",
+    )
+
     parser.add_argument(
         "address",
         help="The address of the Safe, or an owner address if --get-safes-from-owner is specified.",

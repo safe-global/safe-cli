@@ -24,6 +24,7 @@ from safe_cli.safe_addresses import (
 )
 from safe_cli.utils import yes_or_no_question
 
+from . import VERSION
 from .argparse_validators import (
     check_ethereum_address,
     check_positive_integer,
@@ -31,8 +32,24 @@ from .argparse_validators import (
 )
 
 
+def get_usage_msg():
+    return """
+        safe-creator [-h] [-v] [--threshold THRESHOLD] [--owners OWNERS [OWNERS ...]] [--safe-contract SAFE_CONTRACT] [--proxy-factory PROXY_FACTORY] [--callback-handler CALLBACK_HANDLER] [--salt-nonce SALT_NONCE] [--without-events] node_url private_key
+
+        Example:
+            safe-creator https://sepolia.drpc.org 0000000000000000000000000000000000000000000000000000000000000000
+    """
+
+
 def setup_argument_parser():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(usage=get_usage_msg())
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"Safe Creator v{VERSION}",
+        help="Show program's version number and exit.",
+    )
     parser.add_argument("node_url", help="Ethereum node url")
     parser.add_argument(
         "private_key", help="Deployer private_key", type=check_private_key
@@ -88,8 +105,8 @@ def setup_argument_parser():
 
 def main(*args, **kwargs) -> EthereumTxSent:
     parser = setup_argument_parser()
-    print_formatted_text(text2art("Safe Creator"))  # Print fancy text
     args = parser.parse_args()
+    print_formatted_text(text2art("Safe Creator"))  # Print fancy text
     node_url: URI = args.node_url
     account: LocalAccount = Account.from_key(args.private_key)
     owners: List[str] = args.owners if args.owners else [account.address]
