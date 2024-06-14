@@ -9,7 +9,8 @@ from .exceptions import InvalidDerivationPath
 
 class HwWallet(ABC):
     def __init__(self, derivation_path: str):
-        derivation_path = derivation_path.replace("m/", "")
+        # Remove quoting and optional start m/
+        derivation_path = derivation_path.replace('"', "").replace("m/", "")
         if self._is_valid_derivation_path(derivation_path):
             self.derivation_path = derivation_path
         self.address = self.get_address()
