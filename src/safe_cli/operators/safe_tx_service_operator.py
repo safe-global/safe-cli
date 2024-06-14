@@ -271,8 +271,7 @@ class SafeTxServiceOperator(SafeOperator):
                 )
             )
         else:
-            executed = self.execute_safe_transaction(safe_tx)
-            if executed:
+            if executed := self.execute_safe_transaction(safe_tx):
                 self.refresh_safe_cli_info()
             return executed
 
