@@ -497,7 +497,7 @@ class SafeOperator:
             ).build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
             if self.execute_safe_internal_transaction(transaction["data"]):
                 self.safe_cli_info.owners = self.safe.retrieve_owners()
-                self.safe_cli_info.threshold = threshold
+                self.safe_cli_info.threshold = self.safe.retrieve_threshold()
                 return True
             return False
 
@@ -519,7 +519,7 @@ class SafeOperator:
             ).build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
             if self.execute_safe_internal_transaction(transaction["data"]):
                 self.safe_cli_info.owners = self.safe.retrieve_owners()
-                self.safe_cli_info.threshold = threshold
+                self.safe_cli_info.threshold = self.safe.retrieve_threshold()
                 return True
             return False
 
@@ -760,7 +760,7 @@ class SafeOperator:
             ).build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
 
             if self.execute_safe_internal_transaction(transaction["data"]):
-                self.safe_cli_info.threshold = threshold
+                self.safe_cli_info.threshold = self.safe.retrieve_threshold()
 
     def enable_module(self, module_address: str):
         if module_address in self.safe_cli_info.modules:

@@ -271,7 +271,9 @@ class SafeTxServiceOperator(SafeOperator):
                 )
             )
         else:
-            return self.execute_safe_transaction(safe_tx)
+            if executed := self.execute_safe_transaction(safe_tx):
+                self.refresh_safe_cli_info()
+            return executed
 
     def get_balances(self):
         balances = self.safe_tx_service.get_balances(self.address)
