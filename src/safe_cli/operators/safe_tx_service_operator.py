@@ -21,7 +21,7 @@ from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 from gnosis.safe.safe_signature import SafeSignature, SafeSignatureEOA
 from gnosis.safe.signatures import signature_to_bytes
 
-from safe_cli.utils import yes_or_no_question
+from safe_cli.utils import get_input, yes_or_no_question
 
 from . import SafeServiceNotAvailable
 from .exceptions import AccountNotLoadedException, NonExistingOwnerException
@@ -45,7 +45,7 @@ class SafeTxServiceOperator(SafeOperator):
 
     def sign_message(
         self,
-        eip191_message: Optional[str] = None,
+        eip191_message: Optional[bool] = False,
         eip712_message_path: Optional[str] = None,
     ) -> bool:
         if eip712_message_path:
@@ -55,7 +55,8 @@ class SafeTxServiceOperator(SafeOperator):
             except ValueError:
                 raise ValueError
         else:
-            message = eip191_message
+            print_formatted_text("EIP191 message to sign:")
+            message = get_input()
             message_hash = defunct_hash_message(text=message)
 
         safe_message_hash = self.safe.get_message_hash(message_hash)

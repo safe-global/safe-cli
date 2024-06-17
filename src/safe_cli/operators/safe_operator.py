@@ -67,7 +67,12 @@ from safe_cli.safe_addresses import (
     get_safe_contract_address,
     get_safe_l2_contract_address,
 )
-from safe_cli.utils import choose_option_from_list, get_erc_20_list, yes_or_no_question
+from safe_cli.utils import (
+    choose_option_from_list,
+    get_erc_20_list,
+    get_input,
+    yes_or_no_question,
+)
 
 from ..contracts import safe_to_l2_migration
 from .hw_wallets.hw_wallet import HwWallet
@@ -451,7 +456,7 @@ class SafeOperator:
 
     def sign_message(
         self,
-        eip191_message: Optional[str] = None,
+        eip191_message: Optional[bool] = False,
         eip712_message_path: Optional[str] = None,
     ) -> bool:
         if eip712_message_path:
@@ -461,7 +466,8 @@ class SafeOperator:
             except ValueError:
                 raise ValueError
         else:
-            message = eip191_message
+            print_formatted_text("EIP191 message to sign:")
+            message = get_input()
             message_bytes = eip191_message.encode("UTF-8")
 
         safe_message_hash = self.safe.get_message_hash(message_bytes)

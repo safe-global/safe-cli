@@ -36,7 +36,7 @@ safe_commands_arguments = {
     "send_erc721": "<address> <token-address> <token-id> [--safe-nonce <int>]",
     "send_ether": "<address> <value-wei> [--safe-nonce <int>]",
     "show_cli_owners": "(read-only)",
-    "sign_message": "[--eip191_message <str>] [--eip712_path <file-path>]",
+    "sign_message": "[--eip191_message] [--eip712_path <file-path>]",
     "sign-tx": "<safe-tx-hash>",
     "unload_cli_owners": "<address> [<address>...]",
     "update": "",

@@ -400,7 +400,7 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     # Sign message
     parser_sign_message = subparsers.add_parser("sign_message")
     group = parser_sign_message.add_mutually_exclusive_group(required=True)
-    group.add_argument("--eip191_message", type=str)
+    group.add_argument("--eip191_message", action="store_true")
     group.add_argument("--eip712_path", type=str)
     parser_sign_message.set_defaults(func=sign_message)
 
