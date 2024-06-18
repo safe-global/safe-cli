@@ -124,20 +124,19 @@ class SafeTxServiceOperator(SafeOperator):
             )
             return False
 
-        if self.safe_tx_service.post_message_signature(safe_message_hash, signature):
+        try:
+            self.safe_tx_service.post_message_signature(safe_message_hash, signature)
+        except SafeAPIException as e:
             print_formatted_text(
-                HTML(
-                    "<ansigreen>Message was correctly confirmed on Safe Transaction Service</ansigreen>"
-                )
-            )
-            return True
-        else:
-            print_formatted_text(
-                HTML(
-                    "<ansired>Something went wrong confirming message on Safe Transaction Service</ansired>"
-                )
+                HTML(f"<ansired>Message wasn't confirmed due an error: {e}</ansired>")
             )
             return False
+        print_formatted_text(
+            HTML(
+                "<ansigreen>Message was correctly confirmed on Safe Transaction Service</ansigreen>"
+            )
+        )
+        return True
 
     def get_delegates(self):
         delegates = self.safe_tx_service.get_delegates(self.address)
