@@ -145,10 +145,10 @@ class SafeOperator:
     executed_transactions: List[str]
     _safe_cli_info: Optional[SafeCliInfo]
     require_all_signatures: bool
-    batch_mode: bool
+    script_mode: bool
 
     def __init__(
-        self, address: ChecksumAddress, node_url: str, batch_mode: bool = False
+        self, address: ChecksumAddress, node_url: str, script_mode: bool = False
     ):
         self.address = address
         self.node_url = node_url
@@ -180,7 +180,7 @@ class SafeOperator:
             True  # Require all signatures to be present to send a tx
         )
         self.hw_wallet_manager = get_hw_wallet_manager()
-        self.batch_mode = batch_mode  # Disable prompt dialogs
+        self.script_mode = script_mode  # Disable prompt dialogs
 
     @cached_property
     def last_default_fallback_handler_address(self) -> ChecksumAddress:
@@ -932,9 +932,7 @@ class SafeOperator:
             else:
                 call_result = safe_tx.call(self.hw_wallet_manager.sender.address)
             print_formatted_text(HTML(f"Result: <ansigreen>{call_result}</ansigreen>"))
-            if self.batch_mode or yes_or_no_question(
-                "Do you want to execute tx " + str(safe_tx)
-            ):
+            if self._is_confirmed_transaction_execution(safe_tx):
                 if self.default_sender:
                     tx_hash, tx = safe_tx.execute(
                         self.default_sender.key, eip1559_speed=TxSpeed.NORMAL
@@ -1097,6 +1095,11 @@ class SafeOperator:
             HTML(
                 "<ansired>First enter tx-service mode using <b>tx-service</b> command</ansired>"
             )
+        )
+
+    def _is_confirmed_transaction_execution(self, safe_tx: SafeTx) -> bool:
+        return self.script_mode or yes_or_no_question(
+            "Do you want to execute tx " + str(safe_tx)
         )
 
     def get_delegates(self):
