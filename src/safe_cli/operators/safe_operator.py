@@ -492,6 +492,9 @@ class SafeOperator:
                 HTML(f"Message was signed correctly: {safe_message_hash.hex()}")
             )
 
+    def confirm_message(self, safe_message_hash: bytes, sender: ChecksumAddress):
+        return self._require_tx_service_mode()
+
     def add_owner(self, new_owner: str, threshold: Optional[int] = None) -> bool:
         threshold = threshold if threshold is not None else self.safe_cli_info.threshold
         if new_owner in self.safe_cli_info.owners:

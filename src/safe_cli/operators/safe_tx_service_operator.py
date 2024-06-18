@@ -21,8 +21,7 @@ from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 from gnosis.safe.safe_signature import SafeSignature, SafeSignatureEOA
 from gnosis.safe.signatures import signature_to_bytes
 
-from safe_cli.utils import get_input, yes_or_no_question
-
+from ..utils import get_input, yes_or_no_question
 from . import SafeServiceNotAvailable
 from .exceptions import AccountNotLoadedException, NonExistingOwnerException
 from .hw_wallets.hw_wallet import HwWallet
@@ -94,6 +93,52 @@ class SafeTxServiceOperator(SafeOperator):
             )
             return False
 
+    def confirm_message(self, safe_message_hash: bytes, sender: ChecksumAddress):
+        # GET message
+        try:
+            safe_message = self.safe_tx_service.get_message(safe_message_hash)
+        except SafeAPIException:
+            print_formatted_text(
+                HTML(
+                    f"<ansired>Message with hash {safe_message_hash} does not exist</ansired>"
+                )
+            )
+        if not yes_or_no_question(
+            f"Message: {safe_message['message']} \n Do you want to sign the following message?:"
+        ):
+            return False
+
+        signer = self.search_account(sender)
+        if not signer:
+            print_formatted_text(
+                HTML(f"<ansired>Owner with address {sender} was not loaded</ansired>")
+            )
+
+        if isinstance(signer, LocalAccount):
+            signature = signer.signHash(safe_message_hash).signature
+        else:
+            print_formatted_text(
+                HTML(
+                    "<ansired>Signing messages is not currently supported by hardware wallets</ansired>"
+                )
+            )
+            return False
+
+        if self.safe_tx_service.post_message_signature(safe_message_hash, signature):
+            print_formatted_text(
+                HTML(
+                    "<ansigreen>Message was correctly confirmed on Safe Transaction Service</ansigreen>"
+                )
+            )
+            return True
+        else:
+            print_formatted_text(
+                HTML(
+                    "<ansired>Something went wrong confirming message on Safe Transaction Service</ansired>"
+                )
+            )
+            return False
+
     def get_delegates(self):
         delegates = self.safe_tx_service.get_delegates(self.address)
         headers = ["delegate", "delegator", "label"]
@@ -157,21 +202,7 @@ class SafeTxServiceOperator(SafeOperator):
                 )
             )
         else:
-            owners = self.get_permitted_signers()
-            for account in self.accounts:
-                if account.address in owners:
-                    safe_tx.sign(account.key)
-            # Check if there are ledger signers
-            if self.hw_wallet_manager.wallets:
-                selected_ledger_accounts = []
-                for ledger_account in self.hw_wallet_manager.wallets:
-                    if ledger_account.address in owners:
-                        selected_ledger_accounts.append(ledger_account)
-                if len(selected_ledger_accounts) > 0:
-                    safe_tx = self.hw_wallet_manager.sign_safe_tx(
-                        safe_tx, selected_ledger_accounts
-                    )
-
+            safe_tx = self.sign_transaction(safe_tx)
             if safe_tx.signers:
                 self.safe_tx_service.post_signatures(safe_tx_hash, safe_tx.signatures)
                 print_formatted_text(
