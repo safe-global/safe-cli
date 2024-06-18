@@ -468,7 +468,7 @@ class SafeOperator:
         else:
             print_formatted_text("EIP191 message to sign:")
             message = get_input()
-            message_bytes = eip191_message.encode("UTF-8")
+            message_bytes = message.encode("UTF-8")
 
         safe_message_hash = self.safe.get_message_hash(message_bytes)
 
