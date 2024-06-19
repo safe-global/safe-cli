@@ -53,6 +53,7 @@ from safe_cli.operators.exceptions import (
     NotEnoughEtherToSend,
     NotEnoughSignatures,
     SafeAlreadyUpdatedException,
+    SafeOperatorException,
     SafeVersionNotSupportedException,
     SameFallbackHandlerException,
     SameGuardException,
@@ -991,6 +992,10 @@ class SafeOperator:
         try:
             multisend = MultiSend(ethereum_client=self.ethereum_client)
         except ValueError:
+            if self.script_mode:
+                raise SafeOperatorException(
+                    "Multisend contract is not deployed on this network and it's required for batching txs"
+                )
             multisend = None
             print_formatted_text(
                 HTML(
