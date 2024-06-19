@@ -284,6 +284,8 @@ class SafeOperator:
                     )
                     self.default_sender = account
             except ValueError:
+                if self.script_mode:
+                    raise SafeOperatorException(f"Cannot load key={key}")
                 print_formatted_text(HTML(f"<ansired>Cannot load key={key}</ansired>"))
 
     def load_hw_wallet(

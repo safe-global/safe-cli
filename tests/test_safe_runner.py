@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from eth_account import Account
@@ -60,6 +61,22 @@ class TestSafeRunner(SafeCliTestCaseMixin, unittest.TestCase):
                 "20",
                 "--private-key",
                 safe_owner.key.hex(),
+            ],
+        )
+        self.assertEqual(result.exit_code, 0)
+
+        # Test key from env
+        os.environ["random_key"] = safe_owner.key.hex()
+        result = runner.invoke(
+            app,
+            [
+                "send-ether",
+                safe_operator.safe.address,
+                "http://localhost:8545",
+                random_address,
+                "20",
+                "--private-key",
+                "random_key",
             ],
         )
         self.assertEqual(result.exit_code, 0)

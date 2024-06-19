@@ -1,3 +1,4 @@
+import os
 from binascii import Error
 from typing import List
 
@@ -32,7 +33,7 @@ def check_private_keys(private_keys: List[str]) -> List[str]:
         raise typer.BadParameter("At least one private key is required")
     for private_key in private_keys:
         try:
-            Account.from_key(private_key)
+            Account.from_key(os.environ.get(private_key, default=private_key))
         except (ValueError, Error):
             raise typer.BadParameter(f"{private_key} is not a valid private key")
     return private_keys
@@ -40,7 +41,7 @@ def check_private_keys(private_keys: List[str]) -> List[str]:
 
 def check_hex_str(hex_str: str) -> HexBytes:
     """
-    Hexadecimal string validator for Argparse
+    Hexadecimal string validator
     """
     try:
         return HexBytes(hex_str)

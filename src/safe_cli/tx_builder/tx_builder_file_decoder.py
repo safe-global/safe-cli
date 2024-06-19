@@ -69,7 +69,7 @@ def parse_int_value(value) -> int:
     trimmed_value = value.replace('"', "").replace("'", "").strip()
 
     if trimmed_value == "":
-        raise SoliditySyntaxError("invalid empty strings for integers")
+        raise SoliditySyntaxError("Invalid empty strings for integers")
 
     if not trimmed_value.isdigit() and bool(
         re.fullmatch(r"0[xX][0-9a-fA-F]+|[0-9a-fA-F]+$", trimmed_value)
