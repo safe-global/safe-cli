@@ -80,7 +80,7 @@ class SafeTxServiceOperator(SafeOperator):
         if self.safe_tx_service.post_message(self.address, message, signatures):
             print_formatted_text(
                 HTML(
-                    f"<ansigreen>Message  with safe-message-hash {safe_message_hash} was correctly created on Safe Transaction Service</ansigreen>"
+                    f"<ansigreen>Message  with safe-message-hash {safe_message_hash.hex()} was correctly created on Safe Transaction Service</ansigreen>"
                 )
             )
             return True
@@ -99,7 +99,7 @@ class SafeTxServiceOperator(SafeOperator):
         except SafeAPIException:
             print_formatted_text(
                 HTML(
-                    f"<ansired>Message with hash {safe_message_hash} does not exist</ansired>"
+                    f"<ansired>Message with hash {safe_message_hash.hex()} does not exist</ansired>"
                 )
             )
         if not yes_or_no_question(
@@ -132,7 +132,7 @@ class SafeTxServiceOperator(SafeOperator):
             return False
         print_formatted_text(
             HTML(
-                f"<ansigreen>Message with safe-message-hash {safe_message_hash} was correctly confirmed on Safe Transaction Service</ansigreen>"
+                f"<ansigreen>Message with safe-message-hash {safe_message_hash.hex()} was correctly confirmed on Safe Transaction Service</ansigreen>"
             )
         )
         return True
