@@ -185,7 +185,9 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         safe_operator.accounts.add(self.ethereum_test_account)
         safe_operator.default_sender = self.ethereum_test_account
         message_hash = safe_operator.safe.get_message_hash(bytes(message, "utf-8"))
-        safe_operator.sign_message(eip191_message=message)
+        with mock.patch("builtins.input", return_value=message):
+            safe_operator.sign_message()
+
         self.assertTrue(safe_operator.safe.retrieve_is_message_signed(message_hash))
         eip712_path = "tests/mocks/mock_eip712.json"
         message = json.load(open(eip712_path, "r"))

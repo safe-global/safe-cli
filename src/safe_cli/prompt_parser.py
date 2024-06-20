@@ -194,7 +194,11 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
 
     @safe_exception
     def sign_message(args):
-        safe_operator.sign_message(args.eip191_message, args.eip712_path)
+        safe_operator.sign_message(args.eip712_path)
+
+    @safe_exception
+    def confirm_message(args):
+        safe_operator.confirm_message(args.safe_message_hash, args.sender)
 
     @safe_exception
     def add_owner(args):
@@ -400,9 +404,15 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
     # Sign message
     parser_sign_message = subparsers.add_parser("sign_message")
     group = parser_sign_message.add_mutually_exclusive_group(required=True)
-    group.add_argument("--eip191_message", type=str)
+    group.add_argument("--eip191_message", action="store_true")
     group.add_argument("--eip712_path", type=str)
     parser_sign_message.set_defaults(func=sign_message)
+
+    # Confirm message
+    parser_confirm_message = subparsers.add_parser("confirm_message")
+    parser_confirm_message.add_argument("safe_message_hash", type=check_keccak256_hash)
+    parser_confirm_message.add_argument("sender", type=check_ethereum_address)
+    parser_confirm_message.set_defaults(func=confirm_message)
 
     # Add owner
     parser_add_owner = subparsers.add_parser("add_owner")

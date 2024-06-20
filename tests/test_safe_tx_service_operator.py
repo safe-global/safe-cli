@@ -9,7 +9,7 @@ from web3 import Web3
 
 from gnosis.eth import EthereumClient
 from gnosis.safe import SafeTx
-from gnosis.safe.api import TransactionServiceApi
+from gnosis.safe.api import SafeAPIException, TransactionServiceApi
 
 from safe_cli.operators import SafeOperatorMode, SafeTxServiceOperator
 
@@ -549,6 +549,37 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         self.assertIn(
             "- setFallbackHandler: 0xd5D82B6aDDc9027B22dCA772Aa68D5d74cdBdF44",
             decoded_data_text,
+        )
+
+    @mock.patch.object(
+        TransactionServiceApi, "post_message_signature", return_value=True
+    )
+    @mock.patch.object(TransactionServiceApi, "get_message", return_value=None)
+    def test_confirm_message(
+        self, get_message: MagicMock, post_message_signature: MagicMock
+    ):
+        safe_operator = self.setup_operator(
+            number_owners=1, mode=SafeOperatorMode.TX_SERVICE
+        )
+        # confirm_message just need the raw message to print
+        get_message.return_value = {"message": "We just need a message"}
+        safe_message_hash = HexBytes(
+            "0xfbf5d6f7faaec8fd7770cb532f87e38fb82ecb47f58474cbeb29a174f1afd829"
+        )
+        expected_signature = HexBytes(
+            "0x82484cd1f17430915f940d7c589e1687253de7f4062748b6807d29c67af52e3957b90427a9202ba4bc2104a129183387d994be2e4a8623a1f1ba2bad75d3546d1b"
+        )
+        sender = list(safe_operator.accounts)[0]
+        self.assertTrue(
+            safe_operator.confirm_message(safe_message_hash, sender.address)
+        )
+        post_message_signature.assert_called_with(safe_message_hash, expected_signature)
+
+        post_message_signature.side_effect = SafeAPIException(
+            "Error posting message signature"
+        )
+        self.assertFalse(
+            safe_operator.confirm_message(safe_message_hash, sender.address)
         )
 
     def test_drain(self):
