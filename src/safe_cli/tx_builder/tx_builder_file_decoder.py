@@ -16,8 +16,23 @@ from safe_cli.tx_builder.exceptions import (
 NON_VALID_CONTRACT_METHODS = ["receive", "fallback"]
 
 
+def _parse_types_to_encoding_types(contract_fields: List[Dict[str, Any]]) -> List[Any]:
+    types = []
+
+    for field in contract_fields:
+        if is_tuple_field_type(field["type"]):
+            component_types = ",".join(
+                component["type"] for component in field["components"]
+            )
+            types.append(f"({component_types})")
+        else:
+            types.append(field["type"])
+
+    return types
+
+
 def encode_contract_method_to_hex_data(
-    contract_method, contract_fields_values
+    contract_method: Dict[str, Any], contract_fields_values: Dict[str, Any]
 ) -> HexBytes:
     contract_method_name = contract_method.get("name") if contract_method else None
     contract_fields = contract_method.get("inputs", []) if contract_method else []
@@ -29,7 +44,7 @@ def encode_contract_method_to_hex_data(
     if is_valid_contract_method:
         try:
             method_types = [field["type"] for field in contract_fields]
-            encoding_types = parse_type_values(contract_fields)
+            encoding_types = _parse_types_to_encoding_types(contract_fields)
             values = [
                 parse_input_value(
                     field["type"], contract_fields_values.get(field["name"], "")
@@ -52,7 +67,7 @@ def encode_contract_method_to_hex_data(
         )
 
 
-def parse_boolean_value(value) -> bool:
+def parse_boolean_value(value: str) -> bool:
     if isinstance(value, str):
         if value.strip().lower() in ["true", "1"]:
             return True
@@ -65,21 +80,23 @@ def parse_boolean_value(value) -> bool:
     return bool(value)
 
 
-def parse_int_value(value) -> int:
+def parse_int_value(value: str) -> int:
     trimmed_value = value.replace('"', "").replace("'", "").strip()
 
     if trimmed_value == "":
         raise SoliditySyntaxError("Invalid empty strings for integers")
+    try:
+        if not trimmed_value.isdigit() and bool(
+            re.fullmatch(r"0[xX][0-9a-fA-F]+|[0-9a-fA-F]+$", trimmed_value)
+        ):
+            return int(trimmed_value, 16)
 
-    if not trimmed_value.isdigit() and bool(
-        re.fullmatch(r"0[xX][0-9a-fA-F]+|[0-9a-fA-F]+$", trimmed_value)
-    ):
-        return int(trimmed_value, 16)
-
-    return int(trimmed_value)
+        return int(trimmed_value)
+    except ValueError:
+        raise SoliditySyntaxError("Invalid integer value")
 
 
-def parse_string_to_array(value) -> List[Any]:
+def parse_string_to_array(value: str) -> List[Any]:
     number_of_items = 0
     number_of_other_arrays = 0
     result = []
@@ -103,87 +120,70 @@ def parse_string_to_array(value) -> List[Any]:
     return result
 
 
-def get_base_field_type(field_type) -> str:
+def _get_base_field_type(field_type: str) -> str:
+    trimmed_value = field_type.strip()
+    if not trimmed_value:
+        raise SoliditySyntaxError("Empty base field type for")
+
     base_field_type_regex = re.compile(
         r"^([a-zA-Z0-9]*)(((\[\])|(\[[1-9]+[0-9]*\]))*)?$"
     )
-    match = base_field_type_regex.match(field_type)
-    base_field_type = match.group(1)
-
-    if not base_field_type:
-        raise SoliditySyntaxError(
-            f"Unknown base field type {base_field_type} from {field_type}"
-        )
-
-    return base_field_type
+    match = base_field_type_regex.match(trimmed_value)
+    if not match:
+        raise SoliditySyntaxError(f"Unknown base field type from {trimmed_value}")
+    return match.group(1)
 
 
-def is_array(values) -> bool:
+def _is_array(values: str) -> bool:
     trimmed_value = values.strip()
-
     return trimmed_value.startswith("[") and trimmed_value.endswith("]")
 
 
-def parse_array_of_values(values, field_type) -> List[Any]:
-    if not is_array(values):
+def parse_array_of_values(values: str, field_type: str) -> List[Any]:
+    if not _is_array(values):
         raise SoliditySyntaxError("Invalid Array value")
 
     parsed_values = parse_string_to_array(values)
     return [
         (
             parse_array_of_values(item_value, field_type)
-            if is_array(item_value)
-            else parse_input_value(get_base_field_type(field_type), item_value)
+            if _is_array(item_value)
+            else parse_input_value(_get_base_field_type(field_type), item_value)
         )
         for item_value in parsed_values
     ]
 
 
-def is_boolean_field_type(field_type) -> bool:
+def is_boolean_field_type(field_type: str) -> bool:
     return field_type == "bool"
 
 
-def is_int_field_type(field_type) -> bool:
+def is_int_field_type(field_type: str) -> bool:
     return field_type.startswith("uint") or field_type.startswith("int")
 
 
-def is_tuple_field_type(field_type) -> bool:
+def is_tuple_field_type(field_type: str) -> bool:
     return field_type.startswith("tuple")
 
 
-def is_bytes_field_type(field_type) -> bool:
+def is_bytes_field_type(field_type: str) -> bool:
     return field_type.startswith("bytes")
 
 
-def is_array_of_strings_field_type(field_type) -> bool:
+def is_array_of_strings_field_type(field_type: str) -> bool:
     return field_type.startswith("string[")
 
 
-def is_array_field_type(field_type) -> bool:
+def is_array_field_type(field_type: str) -> bool:
     pattern = re.compile(r"\[\d*\]$")
     return bool(pattern.search(field_type))
 
 
-def is_multi_dimensional_array_field_type(field_type) -> bool:
+def is_multi_dimensional_array_field_type(field_type: str) -> bool:
     return field_type.count("[") > 1
 
 
-def parse_type_values(contract_fields: List[Dict[str, Any]]) -> List[Any]:
-    types = []
-
-    for field in contract_fields:
-        if is_tuple_field_type(field["type"]):
-            component_types = ",".join(
-                component["type"] for component in field["components"]
-            )
-            types.append(f"({component_types})")
-        else:
-            types.append(field["type"])
-
-    return types
-
-
-def parse_input_value(field_type, value) -> Any:
+def parse_input_value(field_type: str, value: str) -> Any:
     trimmed_value = value.strip() if isinstance(value, str) else value
 
     if is_tuple_field_type(field_type):
@@ -217,7 +217,7 @@ class SafeProposedTx:
     data: str
 
     def __str__(self):
-        return f"id={self.id} to={self.to} value={self.value} data={self.data.hex()}"
+        return f"id={self.id} to={self.to} value={self.value} data={self.data}"
 
 
 def convert_to_proposed_transactions(
