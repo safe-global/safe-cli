@@ -194,7 +194,7 @@ def build_prompt_parser(safe_operator: SafeOperator) -> argparse.ArgumentParser:
 
     @safe_exception
     def sign_message(args):
-        safe_operator.sign_message(args.eip191_message, args.eip712_path)
+        safe_operator.sign_message(args.eip712_path)
 
     @safe_exception
     def confirm_message(args):

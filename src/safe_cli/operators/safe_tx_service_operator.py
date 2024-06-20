@@ -44,7 +44,6 @@ class SafeTxServiceOperator(SafeOperator):
 
     def sign_message(
         self,
-        eip191_message: Optional[bool] = False,
         eip712_message_path: Optional[str] = None,
     ) -> bool:
         if eip712_message_path:
