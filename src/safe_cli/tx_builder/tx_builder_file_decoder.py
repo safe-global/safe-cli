@@ -43,7 +43,6 @@ def encode_contract_method_to_hex_data(
 
     if is_valid_contract_method:
         try:
-            method_types = [field["type"] for field in contract_fields]
             encoding_types = _parse_types_to_encoding_types(contract_fields)
             values = [
                 parse_input_value(
@@ -52,7 +51,7 @@ def encode_contract_method_to_hex_data(
                 for field in contract_fields
             ]
 
-            function_signature = f"{contract_method_name}({','.join(method_types)})"
+            function_signature = f"{contract_method_name}({','.join(encoding_types)})"
             function_selector = Web3.keccak(text=function_signature)[:4]
             encoded_parameters = encode_abi(encoding_types, values)
             hex_encoded_data = HexBytes(function_selector + encoded_parameters)

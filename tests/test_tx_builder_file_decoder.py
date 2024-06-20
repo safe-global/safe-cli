@@ -152,7 +152,7 @@ class TestTxBuilderFileDecoder(SafeCliTestCaseMixin, unittest.TestCase):
             expected_hex,
         )
 
-        # Test tuple
+        # Test tuple type
         contract_method = {
             "name": "transfer",
             "inputs": [
@@ -174,7 +174,7 @@ class TestTxBuilderFileDecoder(SafeCliTestCaseMixin, unittest.TestCase):
             "contractOwnerNewValue": '["hola",12,"0x21C98F24ACC673b9e1Ad2C4191324701576CC2E5",true]',
         }
         expected_hex = HexBytes(
-            Web3.keccak(text="transfer(address,tuple)")[:4]
+            Web3.keccak(text="transfer(address,(string,uint8,address,bool))")[:4]
             + encode_abi(
                 ["address", "(string,uint8,address,bool)"],
                 [
