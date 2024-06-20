@@ -13,6 +13,7 @@ from trezorlib.ui import ClickUI
 
 from gnosis.eth.eip712 import eip712_encode
 from gnosis.safe import SafeTx
+from gnosis.safe.signatures import signature_split, signature_to_bytes
 from gnosis.safe.tests.safe_test_case import SafeTestCaseMixin
 
 from safe_cli.operators.exceptions import HardwareWalletException
@@ -251,3 +252,43 @@ class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
         )  # return raw signed transaction
         mock_sign_tx_eip1559.assert_called_once()
         self.assertEqual(signed_fields.rawTransaction, HexBytes(raw_signed_tx))
+
+    @mock.patch(
+        "safe_cli.operators.hw_wallets.trezor_wallet.sign_message",
+        autospec=True,
+    )
+    @mock.patch(
+        "safe_cli.operators.hw_wallets.trezor_wallet.get_address",
+        autospec=True,
+    )
+    @mock.patch(
+        "safe_cli.operators.hw_wallets.trezor_wallet.get_trezor_client",
+        autospec=True,
+    )
+    def test_get_sign_message(
+        self,
+        mock_trezor_client: MagicMock,
+        mock_get_address: MagicMock,
+        mock_sign_message: MagicMock,
+    ):
+        owner = Account.create()
+        transport_mock = MagicMock(auto_spec=True)
+        mock_trezor_client.return_value = TrezorClient(
+            transport_mock, ui=ClickUI(), _init_device=False
+        )
+        mock_trezor_client.return_value.is_outdated = MagicMock(return_value=False)
+        mock_get_address.return_value = owner.address
+        trezor_wallet = TrezorWallet("44'/60'/0'/0")
+        expected_signature = HexBytes(
+            "0xbc941061f14cfbf055332537a282834dd66f4e944b3b4608aea062e203c7fd505b5e74c0a984d62ec088cd1d82c00d7c6f5f71076d6bc536fcc02be463d9128820"
+        )
+        safe_message_hash = HexBytes(
+            "0x08a1b4472ed4f7f71ac2a8ec9978da670476b3675720b8c4e11fe71a75b56f38"
+        )
+        v, r, s = signature_split(expected_signature)
+        mock_trezor_signed = MagicMock()
+        # Checking that v is incremented by sign_message by 4
+        mock_trezor_signed.signature = signature_to_bytes(v - 4, r, s)
+        mock_sign_message.return_value = mock_trezor_signed
+        signature = trezor_wallet.sign_message(safe_message_hash)
+        self.assertEqual(HexBytes(signature), expected_signature)
