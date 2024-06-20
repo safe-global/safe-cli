@@ -28,6 +28,11 @@ You can also run the following command to run the Safe CLI with an existing Safe
 docker run -it safeglobal/safe-cli safe-cli <checksummed_safe_address> <ethereum_node_url>
 ```
 
+To execute transactions unattended, or execute transactions from a json exported from the tx_builder you can use:
+```bash
+docker run -it safeglobal/safe-cli safe-runner
+```
+
 ## Using Python PIP
 
 **Prerequisite:** [Python](https://www.python.org/downloads/) >= 3.9 (Python 3.12 is recommended).
@@ -39,19 +44,87 @@ pip3 install -U safe-cli
 
 ## Usage
 
+### Safe-Cli
+
 ```bash
-safe-cli [-h] [--history] [--get-safes-from-owner] address node_url
+usage:
+        safe-cli [-h] [--history] [--get-safes-from-owner] address node_url
+
+        Examples:
+            safe-cli 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
+            safe-cli --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
+
+            safe-cli --history 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
+            safe-cli --history --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
+
 
 positional arguments:
-  address                The address of the Safe, or an owner address if --get-safes-from-owner is specified.
-  node_url               Ethereum node url
+  address               The address of the Safe, or an owner address if --get-safes-from-owner is specified.
+  node_url              Ethereum node url
 
 options:
-  -h, --help             Show this help message and exit
-  --history              Enable history. By default it's disabled due to security reasons
-  --get-safes-from-owner Indicates that address is an owner (Safe Transaction Service is required for this feature)
+  -h, --help            show this help message and exit
+  -v, --version         Show program's version number and exit.
+  --history             Enable history. By default it's disabled due to security reasons
+  --get-safes-from-owner
+                        Indicates that address is an owner (Safe Transaction Service is required for this feature)
+
 ```
 
+### Safe-Creator
+
+```bash
+
+usage:
+        safe-creator [-h] [-v] [--threshold THRESHOLD] [--owners OWNERS [OWNERS ...]] [--safe-contract SAFE_CONTRACT] [--proxy-factory PROXY_FACTORY] [--callback-handler CALLBACK_HANDLER] [--salt-nonce SALT_NONCE] [--without-events] node_url private_key
+
+        Example:
+            safe-creator https://sepolia.drpc.org 0000000000000000000000000000000000000000000000000000000000000000
+
+
+positional arguments:
+  node_url              Ethereum node url
+  private_key           Deployer private_key
+
+options:
+  -h, --help            show this help message and exit
+  -v, --version         Show program's version number and exit.
+  --threshold THRESHOLD
+                        Number of owners required to execute transactions on the created Safe. It mustbe greater than 0 and less or equal than the number of owners
+  --owners OWNERS [OWNERS ...]
+                        Owners. By default it will be just the deployer
+  --safe-contract SAFE_CONTRACT
+                        Use a custom Safe master copy
+  --proxy-factory PROXY_FACTORY
+                        Use a custom proxy factory
+  --callback-handler CALLBACK_HANDLER
+                        Use a custom fallback handler. It is not required for Safe Master Copies with version < 1.1.0
+  --salt-nonce SALT_NONCE
+                        Use a custom nonce for the deployment. Same nonce with same deployment configuration will lead to the same Safe address
+  --without-events      Use non events deployment of the Safe instead of the regular one. Recommended for mainnet to save gas costs when using the Safe
+
+
+```
+
+### Safe-Runner
+
+```bash
+safe-runner send-ether 0xsafeaddress https://sepolia.drpc.org 0xtoaddress wei-amount --private-key key1 --private-key key1 --private-key keyN
+safe-runner send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN
+safe-runner send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN
+safe-runner send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN
+
+safe-runner tx-builder 0xsafeaddress https://sepolia.drpc.org  ./path/to/exported/tx-builder/file.json --private-key key1 --private-key keyN
+```
+It is possible to get help for each command separately using:
+
+```bash
+safe-runner command --help
+```
+Or list the available commands
+```bash
+safe-runner --help
+```
 
 ## Safe{Core} API/Protocol
 
@@ -70,6 +143,12 @@ cd safe-cli
 stat venv 2>/dev/null || python3 -m venv venv
 source venv/bin/activate && pip install -r requirements-dev.txt
 pre-commit install -f
+```
+
+To run the local version you can install it using:
+
+```bash
+pip install .
 ```
 
 ## Contributors
