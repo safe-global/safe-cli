@@ -37,6 +37,7 @@ safe_commands_arguments = {
     "send_ether": "<address> <value-wei> [--safe-nonce <int>]",
     "show_cli_owners": "(read-only)",
     "sign_message": "[--eip191_message] [--eip712_path <file-path>]",
+    "confirm_message": "<safe-message-hash> <signer-address>",
     "sign-tx": "<safe-tx-hash>",
     "unload_cli_owners": "<address> [<address>...]",
     "update": "",

@@ -81,7 +81,7 @@ class SafeTxServiceOperator(SafeOperator):
         if self.safe_tx_service.post_message(self.address, message, signatures):
             print_formatted_text(
                 HTML(
-                    "<ansigreen>Message was correctly created on Safe Transaction Service</ansigreen>"
+                    f"<ansigreen>Message  with safe-message-hash {safe_message_hash} was correctly created on Safe Transaction Service</ansigreen>"
                 )
             )
             return True
@@ -133,7 +133,7 @@ class SafeTxServiceOperator(SafeOperator):
             return False
         print_formatted_text(
             HTML(
-                "<ansigreen>Message was correctly confirmed on Safe Transaction Service</ansigreen>"
+                f"<ansigreen>Message with safe-message-hash {safe_message_hash} was correctly confirmed on Safe Transaction Service</ansigreen>"
             )
         )
         return True
