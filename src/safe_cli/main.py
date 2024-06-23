@@ -1,193 +1,405 @@
 #!/bin/env python3
-import argparse
-import os
+import json
 import sys
-from typing import Optional
+from pathlib import Path
+from typing import Annotated, List
 
-from art import text2art
+import typer
 from eth_typing import ChecksumAddress
-from prompt_toolkit import HTML, PromptSession, print_formatted_text
-from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
-from prompt_toolkit.history import FileHistory
-from prompt_toolkit.lexers import PygmentsLexer
+from hexbytes import HexBytes
+from typer.main import get_command, get_command_name
 
-from safe_cli.argparse_validators import check_ethereum_address
-from safe_cli.operators import (
-    SafeCliTerminationException,
-    SafeOperator,
-    SafeServiceNotAvailable,
-    SafeTxServiceOperator,
+from safe_cli import VERSION
+from safe_cli.argparse_validators import check_hex_str
+from safe_cli.operators import SafeOperator
+from safe_cli.safe_cli import SafeCli
+from safe_cli.tx_builder.tx_builder_file_decoder import convert_to_proposed_transactions
+from safe_cli.typer_validators import (
+    check_ethereum_address,
+    check_private_keys,
+    parse_checksum_address,
+    parse_hex_str,
 )
-from safe_cli.prompt_parser import PromptParser
-from safe_cli.safe_completer import SafeCompleter
-from safe_cli.safe_lexer import SafeLexer
 from safe_cli.utils import get_safe_from_owner
 
-from . import VERSION
+app = typer.Typer(name="Safe CLI")
 
 
-class SafeCli:
-    def __init__(self, safe_address: ChecksumAddress, node_url: str, history: bool):
-        """
-        :param safe_address: Safe address
-        :param node_url: Ethereum RPC url
-        :param history: If `True` keep command history, otherwise history is not kept after closing the CLI
-        """
-        self.safe_address = safe_address
-        self.node_url = node_url
-        if history:
-            self.session = PromptSession(
-                history=FileHistory(os.path.join(sys.path[0], ".history"))
-            )
-        else:
-            self.session = PromptSession()
-        self.safe_operator = SafeOperator(safe_address, node_url)
-        self.prompt_parser = PromptParser(self.safe_operator)
-
-    def print_startup_info(self):
-        print_formatted_text(text2art("Safe CLI"))  # Print fancy text
-        print_formatted_text(HTML(f"<b>Version: {VERSION}</b>"))
-        print_formatted_text(
-            HTML("<b><ansigreen>Loading Safe information...</ansigreen></b>")
-        )
-        self.safe_operator.print_info()
-
-        print_formatted_text(
-            HTML("\nUse the <b>tab key</b> to show options in interactive mode.")
-        )
-        print_formatted_text(
-            HTML(
-                "The <b>help</b> command displays all available options and the <b>exit</b> command terminates the safe-cli."
-            )
-        )
-
-    def get_prompt_text(self):
-        mode: Optional[str] = "blockchain"
-        if isinstance(self.prompt_parser.safe_operator, SafeTxServiceOperator):
-            mode = "tx-service"
-
-        return HTML(
-            f"<bold><ansiblue>{mode} > {self.safe_address}</ansiblue><ansired> > </ansired></bold>"
-        )
-
-    def get_bottom_toolbar(self):
-        return HTML(
-            f'<b><style fg="ansiyellow">network={self.safe_operator.network.name} '
-            f"{self.safe_operator.safe_cli_info}</style></b>"
-        )
-
-    def parse_operator_mode(self, command: str) -> Optional[SafeOperator]:
-        """
-        Parse operator mode to switch between blockchain (default) and tx-service
-        :param command:
-        :return: SafeOperator if detected
-        """
-        split_command = command.split()
-        try:
-            if (split_command[0]) == "tx-service":
-                print_formatted_text(
-                    HTML("<b><ansigreen>Sending txs to tx service</ansigreen></b>")
-                )
-                return SafeTxServiceOperator(self.safe_address, self.node_url)
-            elif split_command[0] == "blockchain":
-                print_formatted_text(
-                    HTML("<b><ansigreen>Sending txs to blockchain</ansigreen></b>")
-                )
-                return self.safe_operator
-        except SafeServiceNotAvailable:
-            print_formatted_text(
-                HTML("<b><ansired>Mode not supported on this network</ansired></b>")
-            )
-
-    def get_command(self) -> str:
-        return self.session.prompt(
-            self.get_prompt_text,
-            auto_suggest=AutoSuggestFromHistory(),
-            bottom_toolbar=self.get_bottom_toolbar,
-            lexer=PygmentsLexer(SafeLexer),
-            completer=SafeCompleter(),
-        )
-
-    def loop(self):
-        while True:
-            try:
-                command = self.get_command()
-                if not command.strip():
-                    continue
-
-                new_operator = self.parse_operator_mode(command)
-                if new_operator:
-                    self.prompt_parser = PromptParser(new_operator)
-                    new_operator.refresh_safe_cli_info()  # ClI info needs to be initialized
-                else:
-                    self.prompt_parser.process_command(command)
-            except SafeCliTerminationException:
-                break
-            except EOFError:
-                break
-            except KeyboardInterrupt:
-                continue
-            except (argparse.ArgumentError, argparse.ArgumentTypeError, SystemExit):
-                pass
+def _build_safe_operator_and_load_keys(
+    safe_address: ChecksumAddress, node_url: str, private_keys: List[str]
+) -> SafeOperator:
+    safe_operator = SafeOperator(safe_address, node_url, script_mode=True)
+    safe_operator.load_cli_owners(private_keys)
+    return safe_operator
 
 
-def get_usage_msg():
-    return """
-        safe-cli [-h] [--history] [--get-safes-from-owner] address node_url
+@app.command()
+def send_ether(
+    safe_address: Annotated[
+        ChecksumAddress,
+        typer.Argument(
+            help="The address of the Safe.",
+            callback=check_ethereum_address,
+            parser=parse_checksum_address,
+            show_default=False,
+        ),
+    ],
+    node_url: Annotated[
+        str, typer.Argument(help="Ethereum node url.", show_default=False)
+    ],
+    to: Annotated[
+        ChecksumAddress,
+        typer.Argument(
+            help="The address of destination.",
+            callback=check_ethereum_address,
+            parser=parse_checksum_address,
+            show_default=False,
+        ),
+    ],
+    value: Annotated[
+        int, typer.Argument(help="Amount of ether in wei to send.", show_default=False)
+    ],
+    private_key: Annotated[
+        List[str],
+        typer.Option(
+            help="List of private keys of signers.",
+            rich_help_panel="Optional Arguments",
+            show_default=False,
+            callback=check_private_keys,
+        ),
+    ] = None,
+    safe_nonce: Annotated[
+        int,
+        typer.Option(
+            help="Force nonce for tx_sender",
+            rich_help_panel="Optional Arguments",
+            show_default=False,
+        ),
+    ] = None,
+):
+    safe_operator = _build_safe_operator_and_load_keys(
+        safe_address, node_url, private_key
+    )
+    safe_operator.send_ether(to, value, safe_nonce=safe_nonce)
 
-        Examples:
-            safe-cli 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
-            safe-cli --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
 
-            safe-cli --history 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
-            safe-cli --history --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
-    """
+@app.command()
+def send_erc20(
+    safe_address: Annotated[
+        ChecksumAddress,
+        typer.Argument(
+            help="The address of the Safe.",
+            callback=check_ethereum_address,
+            parser=parse_checksum_address,
+            show_default=False,
+        ),
+    ],
+    node_url: Annotated[
+        str, typer.Argument(help="Ethereum node url.", show_default=False)
+    ],
+    to: Annotated[
+        ChecksumAddress,
+        typer.Argument(
+            help="The address of destination.",
+            callback=check_ethereum_address,
+            parser=parse_checksum_address,
+            show_default=False,
+        ),
+    ],
+    token_address: Annotated[
+        ChecksumAddress,
+        typer.Argument(
+            help="Erc20 token address.",
+            callback=check_ethereum_address,
+            parser=parse_checksum_address,
+            show_default=False,
+        ),
+    ],
+    amount: Annotated[
+        int,
+        typer.Argument(
+            help="Amount of erc20 tokens in wei to send.", show_default=False
+        ),
+    ],
+    private_key: Annotated[
+        List[str],
+        typer.Option(
+            help="List of private keys of signers.",
+            rich_help_panel="Optional Arguments",
+            show_default=False,
+            callback=check_private_keys,
+        ),
+    ] = None,
+    safe_nonce: Annotated[
+        int,
+        typer.Option(
+            help="Force nonce for tx_sender",
+            rich_help_panel="Optional Arguments",
+            show_default=False,
+        ),
+    ] = None,
+):
+    safe_operator = _build_safe_operator_and_load_keys(
+        safe_address, node_url, private_key
+    )
+    safe_operator.send_erc20(to, token_address, amount, safe_nonce=safe_nonce)
 
 
-def build_safe_cli() -> Optional[SafeCli]:
-    parser = argparse.ArgumentParser(usage=get_usage_msg())
-    parser.add_argument(
-        "-v",
-        "--version",
-        action="version",
-        version=f"Safe CLI v{VERSION}",
-        help="Show program's version number and exit.",
+@app.command()
+def send_erc721(
+    safe_address: Annotated[
+        ChecksumAddress,
+        typer.Argument(
+            help="The address of the Safe.",
+            callback=check_ethereum_address,
+            parser=parse_checksum_address,
+            show_default=False,
+        ),
+    ],
+    node_url: Annotated[
+        str, typer.Argument(help="Ethereum node url.", show_default=False)
+    ],
+    to: Annotated[
+        ChecksumAddress,
+        typer.Argument(
+            help="The address of destination.",
+            callback=check_ethereum_address,
+            parser=parse_checksum_address,
+            show_default=False,
+        ),
+    ],
+    token_address: Annotated[
+        ChecksumAddress,
+        typer.Argument(
+            help="Erc721 token address.",
+            callback=check_ethereum_address,
+            parser=parse_checksum_address,
+            show_default=False,
+        ),
+    ],
+    token_id: Annotated[
+        int, typer.Argument(help="Erc721 token id.", show_default=False)
+    ],
+    private_key: Annotated[
+        List[str],
+        typer.Option(
+            help="List of private keys of signers.",
+            rich_help_panel="Optional Arguments",
+            show_default=False,
+            callback=check_private_keys,
+        ),
+    ] = None,
+    safe_nonce: Annotated[
+        int,
+        typer.Option(
+            help="Force nonce for tx_sender",
+            rich_help_panel="Optional Arguments",
+            show_default=False,
+        ),
+    ] = None,
+):
+    safe_operator = _build_safe_operator_and_load_keys(
+        safe_address, node_url, private_key
+    )
+    safe_operator.send_erc721(to, token_address, token_id, safe_nonce=safe_nonce)
+
+
+@app.command()
+def send_custom(
+    safe_address: Annotated[
+        ChecksumAddress,
+        typer.Argument(
+            help="The address of the Safe.",
+            callback=check_ethereum_address,
+            parser=parse_checksum_address,
+            show_default=False,
+        ),
+    ],
+    node_url: Annotated[
+        str, typer.Argument(help="Ethereum node url.", show_default=False)
+    ],
+    to: Annotated[
+        ChecksumAddress,
+        typer.Argument(
+            help="The address of destination.",
+            callback=check_ethereum_address,
+            parser=parse_checksum_address,
+            show_default=False,
+        ),
+    ],
+    value: Annotated[int, typer.Argument(help="Value to send.", show_default=False)],
+    data: Annotated[
+        HexBytes,
+        typer.Argument(
+            help="HexBytes data to send.",
+            callback=check_hex_str,
+            parser=parse_hex_str,
+            show_default=False,
+        ),
+    ],
+    private_key: Annotated[
+        List[str],
+        typer.Option(
+            help="List of private keys of signers.",
+            rich_help_panel="Optional Arguments",
+            show_default=False,
+            callback=check_private_keys,
+        ),
+    ] = None,
+    safe_nonce: Annotated[
+        int,
+        typer.Option(
+            help="Force nonce for tx_sender",
+            rich_help_panel="Optional Arguments",
+            show_default=False,
+        ),
+    ] = None,
+    delegate: Annotated[
+        bool,
+        typer.Option(
+            help="Use DELEGATE_CALL. By default use CALL",
+            rich_help_panel="Optional Arguments",
+        ),
+    ] = False,
+):
+    safe_operator = _build_safe_operator_and_load_keys(
+        safe_address, node_url, private_key
+    )
+    safe_operator.send_custom(
+        to, value, data, safe_nonce=safe_nonce, delegate_call=delegate
     )
 
-    parser.add_argument(
-        "address",
-        help="The address of the Safe, or an owner address if --get-safes-from-owner is specified.",
-        type=check_ethereum_address,
-    )
-    parser.add_argument("node_url", help="Ethereum node url")
-    parser.add_argument(
-        "--history",
-        action="store_true",
-        help="Enable history. By default it's disabled due to security reasons",
-        default=False,
-    )
-    parser.add_argument(
-        "--get-safes-from-owner",
-        action="store_true",
-        help="Indicates that address is an owner (Safe Transaction Service is required for this feature)",
-        default=False,
-    )
 
-    args = parser.parse_args()
-    if args.get_safes_from_owner:
-        if (
-            safe_address := get_safe_from_owner(args.address, args.node_url)
-        ) is not None:
-            return SafeCli(safe_address, args.node_url, args.history)
+@app.command()
+def tx_builder(
+    safe_address: Annotated[
+        ChecksumAddress,
+        typer.Argument(
+            help="The address of the Safe.",
+            callback=check_ethereum_address,
+            parser=parse_checksum_address,
+            show_default=False,
+        ),
+    ],
+    node_url: Annotated[
+        str, typer.Argument(help="Ethereum node url.", show_default=False)
+    ],
+    file_path: Annotated[
+        Path,
+        typer.Argument(
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            writable=False,
+            readable=True,
+            resolve_path=True,
+            help="File path with tx_builder data.",
+            show_default=False,
+        ),
+    ],
+    private_key: Annotated[
+        List[str],
+        typer.Option(
+            help="List of private keys of signers.",
+            rich_help_panel="Optional Arguments",
+            show_default=False,
+            callback=check_private_keys,
+        ),
+    ] = None,
+):
+    safe_operator = _build_safe_operator_and_load_keys(
+        safe_address, node_url, private_key
+    )
+    data = json.loads(file_path.read_text())
+    safe_txs = []
+    for tx in convert_to_proposed_transactions(data):
+        safe_txs.append(
+            safe_operator.prepare_safe_transaction(tx.to, tx.value, tx.data)
+        )
+
+    if len(safe_txs) == 0:
+        raise typer.BadParameter("No transactions found.")
+
+    if len(safe_txs) == 1:
+        safe_operator.execute_safe_transaction(safe_txs[0])
+        return
+
+    multisend_tx = safe_operator.batch_safe_txs(safe_operator.get_nonce(), safe_txs)
+    if multisend_tx is not None:
+        safe_operator.execute_safe_transaction(multisend_tx)
+
+
+@app.command()
+def version():
+    print(f"Safe Cli v{VERSION}")
+
+
+@app.command(
+    hidden=True,
+    name="attended-mode",
+    help="""
+        safe-cli [--history] [--get-safes-from-owner] address node_url\n
+        Examples:\n
+            safe-cli 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org\n
+            safe-cli --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org\n\n\n\n
+            safe-cli --history 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org\n
+            safe-cli --history --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org\n\n\n\n
+            safe-cli send-ether 0xsafeaddress https://sepolia.drpc.org 0xtoaddress wei-amount --private-key key1 --private-key key1 --private-key keyN\n
+            safe-cli send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN\n
+            safe-cli send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN\n
+            safe-cli send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN\n\n\n\n
+            safe-cli tx-builder 0xsafeaddress https://sepolia.drpc.org  ./path/to/exported/tx-builder/file.json --private-key key1 --private-key keyN
+    """,
+    epilog="Commands available in unattended mode:\n\n\n\n"
+    + "\n\n".join(
+        [
+            f"  {get_command_name(command)}"
+            for command in get_command(app).commands.keys()
+        ]
+    )
+    + "\n\n\n\nUse the --help option of each command to see the usage options.",
+)
+def default_attended_mode(
+    address: Annotated[
+        ChecksumAddress,
+        typer.Argument(
+            help="The address of the Safe, or an owner address if --get-safes-from-owner is specified.",
+            callback=check_ethereum_address,
+            parser=parse_checksum_address,
+            show_default=False,
+        ),
+    ],
+    node_url: Annotated[
+        str, typer.Argument(help="Ethereum node url.", show_default=False)
+    ],
+    history: Annotated[
+        bool,
+        typer.Option(
+            help="Enable history. By default it's disabled due to security reasons",
+            rich_help_panel="Optional Arguments",
+        ),
+    ] = False,
+    get_safes_from_owner: Annotated[
+        bool,
+        typer.Option(
+            help="Indicates that address is an owner (Safe Transaction Service is required for this feature)",
+            rich_help_panel="Optional Arguments",
+        ),
+    ] = False,
+) -> None:
+    if get_safes_from_owner:
+        safe_address_listed = get_safe_from_owner(address, node_url)
+        safe_cli = SafeCli(safe_address_listed, node_url, history)
     else:
-        return SafeCli(args.address, args.node_url, args.history)
-
-
-def main(*args, **kwargs):
-    safe_cli = build_safe_cli()
+        safe_cli = SafeCli(address, node_url, history)
     safe_cli.print_startup_info()
     safe_cli.loop()
 
 
-if __name__ == "__main__":
-    main()
+def main():
+    # By default, the attended mode is initialised. Otherwise, the required command must be specified.
+    if len(sys.argv) == 1 or sys.argv[1] not in [
+        get_command_name(key) for key in get_command(app).commands.keys()
+    ]:
+        sys.argv.insert(1, "attended-mode")
+    app()

@@ -28,11 +28,6 @@ You can also run the following command to run the Safe CLI with an existing Safe
 docker run -it safeglobal/safe-cli safe-cli <checksummed_safe_address> <ethereum_node_url>
 ```
 
-To execute transactions unattended, or execute transactions from a json exported from the tx_builder you can use:
-```bash
-docker run -it safeglobal/safe-cli safe-runner
-```
-
 ## Using Python PIP
 
 **Prerequisite:** [Python](https://www.python.org/downloads/) >= 3.9 (Python 3.12 is recommended).
@@ -48,27 +43,55 @@ pip3 install -U safe-cli
 
 ```bash
 usage:
-        safe-cli [-h] [--history] [--get-safes-from-owner] address node_url
+ safe-cli [--history] [--get-safes-from-owner] address node_url
 
-        Examples:
-            safe-cli 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
-            safe-cli --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
+ Examples:
+ safe-cli 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
+ safe-cli --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
 
-            safe-cli --history 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
-            safe-cli --history --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
+ safe-cli --history 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
+ safe-cli --history --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
 
+ safe-cli send-ether 0xsafeaddress https://sepolia.drpc.org 0xtoaddress wei-amount --private-key key1 --private-key key1 --private-key keyN
+ safe-cli send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN
+ safe-cli send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN
+ safe-cli send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN
 
-positional arguments:
-  address               The address of the Safe, or an owner address if --get-safes-from-owner is specified.
-  node_url              Ethereum node url
+ safe-cli tx-builder 0xsafeaddress https://sepolia.drpc.org  ./path/to/exported/tx-builder/file.json --private-key key1 --private-key keyN
 
-options:
-  -h, --help            show this help message and exit
-  -v, --version         Show program's version number and exit.
-  --history             Enable history. By default it's disabled due to security reasons
-  --get-safes-from-owner
-                        Indicates that address is an owner (Safe Transaction Service is required for this feature)
+╭─ Arguments ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ *    address       PARSE_CHECKSUM_ADDRESS  The address of the Safe, or an owner address if --get-safes-from-owner is specified. [required]                                                                                                                                                                      │
+│ *    node_url      TEXT                    Ethereum node url. [required]                                                                                                                                                                                                                                        │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                                                                                                                                                                                                                                     │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Optional Arguments ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --history                 --no-history                   Enable history. By default it's disabled due to security reasons [default: no-history]                                                                                                                                                                 │
+│ --get-safes-from-owner    --no-get-safes-from-owner      Indicates that address is an owner (Safe Transaction Service is required for this feature) [default: no-get-safes-from-owner]                                                                                                                          │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 
+ Commands available in unattended mode:
+
+ send-ether
+ send-erc20
+ send-erc721
+ send-custom
+ tx-builder
+ version
+
+ Use the --help option of each command to see the usage options.
+```
+
+To execute transactions unattended, or execute transactions from a json exported from the tx_builder you can use:
+
+```bash
+safe-cli send-ether 0xsafeaddress https://sepolia.drpc.org 0xtoaddress wei-amount --private-key key1 --private-key key1 --private-key keyN
+safe-cli send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN
+safe-cli send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN
+safe-cli send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN
+
+safe-cli tx-builder 0xsafeaddress https://sepolia.drpc.org  ./path/to/exported/tx-builder/file.json --private-key key1 --private-key keyN
 ```
 
 ### Safe-Creator
@@ -104,26 +127,6 @@ options:
   --without-events      Use non events deployment of the Safe instead of the regular one. Recommended for mainnet to save gas costs when using the Safe
 
 
-```
-
-### Safe-Runner
-
-```bash
-safe-runner send-ether 0xsafeaddress https://sepolia.drpc.org 0xtoaddress wei-amount --private-key key1 --private-key key1 --private-key keyN
-safe-runner send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN
-safe-runner send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN
-safe-runner send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN
-
-safe-runner tx-builder 0xsafeaddress https://sepolia.drpc.org  ./path/to/exported/tx-builder/file.json --private-key key1 --private-key keyN
-```
-It is possible to get help for each command separately using:
-
-```bash
-safe-runner command --help
-```
-Or list the available commands
-```bash
-safe-runner --help
 ```
 
 ## Safe{Core} API/Protocol

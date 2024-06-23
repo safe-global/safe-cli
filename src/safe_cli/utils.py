@@ -82,9 +82,7 @@ def choose_option_from_list(
     return option
 
 
-def get_safe_from_owner(
-    owner: ChecksumAddress, node_url: str
-) -> Optional[ChecksumAddress]:
+def get_safe_from_owner(owner: ChecksumAddress, node_url: str) -> ChecksumAddress:
     """
     Show a list of Safe to chose between them and return the selected one.
     :param owner:
@@ -98,7 +96,8 @@ def get_safe_from_owner(
         option = choose_option_from_list(
             "Select the Safe to initialize the safe-cli", safes
         )
-        if option is not None:
-            return safes[option]
+        if option is None:
+            raise ValueError("Unable to load Safe to initialize the safe-cli")
+        return safes[option]
     else:
         raise ValueError(f"No safe was found for the specified owner {owner}")

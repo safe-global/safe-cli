@@ -37,7 +37,6 @@ trezor = ["trezor==0.13.8"]
 [project.scripts]
 safe-cli = "safe_cli.main:main"
 safe-creator = "safe_cli.safe_creator:main"
-safe-runner = "safe_cli.safe_runner:main"
 
 [project.urls]
 Download = "https://github.com/gnosis/safe-cli/releases"
