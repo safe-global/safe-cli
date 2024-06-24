@@ -33,7 +33,7 @@ def generate_transfers_erc20(
             account.address, block_identifier="pending"
         )
         # Execute one transfer per each token to send
-        for i in range(num_tokens_to_send):
+        for _ in range(num_tokens_to_send):
             transaction["nonce"] = nonce
             send_tx(w3, transaction, account)
             nonce += 1
