@@ -1,5 +1,5 @@
 -r requirements.txt
-coverage==7.5.3
+coverage==7.5.4
 flake8==7.1.0
 pytest==8.2.2
 pytest-sugar==1.0.0
