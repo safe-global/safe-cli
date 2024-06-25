@@ -3,8 +3,10 @@ import sys
 from typing import Annotated, List
 
 import typer
+from art import text2art
 from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
+from prompt_toolkit import HTML, print_formatted_text
 from typer.main import get_command, get_command_name
 
 from . import VERSION
@@ -324,6 +326,9 @@ def default_attended_mode(
         ),
     ] = False,
 ) -> None:
+    print_formatted_text(text2art("Safe CLI"))  # Print fancy text
+    print_formatted_text(HTML(f"<b>Version: {VERSION}</b>"))
+
     if get_safes_from_owner:
         safe_address_listed = get_safe_from_owner(address, node_url)
         safe_cli = SafeCli(safe_address_listed, node_url, history)

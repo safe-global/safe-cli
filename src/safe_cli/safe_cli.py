@@ -3,14 +3,12 @@ import os
 import sys
 from typing import Optional
 
-from art import text2art
 from eth_typing import ChecksumAddress
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.lexers import PygmentsLexer
 
-from . import VERSION
 from .operators import (
     SafeCliTerminationException,
     SafeOperator,
@@ -41,8 +39,6 @@ class SafeCli:
         self.prompt_parser = PromptParser(self.safe_operator)
 
     def print_startup_info(self):
-        print_formatted_text(text2art("Safe CLI"))  # Print fancy text
-        print_formatted_text(HTML(f"<b>Version: {VERSION}</b>"))
         print_formatted_text(
             HTML("<b><ansigreen>Loading Safe information...</ansigreen></b>")
         )

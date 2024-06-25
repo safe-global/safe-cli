@@ -89,6 +89,9 @@ def get_safe_from_owner(owner: ChecksumAddress, node_url: str) -> ChecksumAddres
     :param node_url:
     :return: Safe address of a selected Safe
     """
+    print_formatted_text(
+        HTML(f"<b><ansigreen>Loading Safes for {owner}...</ansigreen></b>")
+    )
     ethereum_client = EthereumClient(node_url)
     safe_tx_service = TransactionServiceApi.from_ethereum_client(ethereum_client)
     safes = safe_tx_service.get_safes_for_owner(owner)
