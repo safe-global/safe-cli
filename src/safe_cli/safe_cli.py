@@ -10,17 +10,16 @@ from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.lexers import PygmentsLexer
 
-from safe_cli.operators import (
+from . import VERSION
+from .operators import (
     SafeCliTerminationException,
     SafeOperator,
     SafeServiceNotAvailable,
     SafeTxServiceOperator,
 )
-from safe_cli.prompt_parser import PromptParser
-from safe_cli.safe_completer import SafeCompleter
-from safe_cli.safe_lexer import SafeLexer
-
-from . import VERSION
+from .prompt_parser import PromptParser
+from .safe_completer import SafeCompleter
+from .safe_lexer import SafeLexer
 
 
 class SafeCli:

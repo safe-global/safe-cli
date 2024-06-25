@@ -9,18 +9,18 @@ from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
 from typer.main import get_command, get_command_name
 
-from safe_cli import VERSION
-from safe_cli.argparse_validators import check_hex_str
-from safe_cli.operators import SafeOperator
-from safe_cli.safe_cli import SafeCli
-from safe_cli.tx_builder.tx_builder_file_decoder import convert_to_proposed_transactions
-from safe_cli.typer_validators import (
+from . import VERSION
+from .argparse_validators import check_hex_str
+from .operators import SafeOperator
+from .safe_cli import SafeCli
+from .tx_builder.tx_builder_file_decoder import convert_to_proposed_transactions
+from .typer_validators import (
+    ChecksumAddressParser,
+    HexBytesParser,
     check_ethereum_address,
     check_private_keys,
-    parse_checksum_address,
-    parse_hex_str,
 )
-from safe_cli.utils import get_safe_from_owner
+from .utils import get_safe_from_owner
 
 app = typer.Typer(name="Safe CLI")
 
@@ -28,7 +28,7 @@ app = typer.Typer(name="Safe CLI")
 def _build_safe_operator_and_load_keys(
     safe_address: ChecksumAddress, node_url: str, private_keys: List[str]
 ) -> SafeOperator:
-    safe_operator = SafeOperator(safe_address, node_url, script_mode=True)
+    safe_operator = SafeOperator(safe_address, node_url, no_input=True)
     safe_operator.load_cli_owners(private_keys)
     return safe_operator
 
@@ -40,7 +40,7 @@ def send_ether(
         typer.Argument(
             help="The address of the Safe.",
             callback=check_ethereum_address,
-            parser=parse_checksum_address,
+            click_type=ChecksumAddressParser(),
             show_default=False,
         ),
     ],
@@ -52,7 +52,7 @@ def send_ether(
         typer.Argument(
             help="The address of destination.",
             callback=check_ethereum_address,
-            parser=parse_checksum_address,
+            click_type=ChecksumAddressParser(),
             show_default=False,
         ),
     ],
@@ -90,7 +90,7 @@ def send_erc20(
         typer.Argument(
             help="The address of the Safe.",
             callback=check_ethereum_address,
-            parser=parse_checksum_address,
+            click_type=ChecksumAddressParser(),
             show_default=False,
         ),
     ],
@@ -102,7 +102,7 @@ def send_erc20(
         typer.Argument(
             help="The address of destination.",
             callback=check_ethereum_address,
-            parser=parse_checksum_address,
+            click_type=ChecksumAddressParser(),
             show_default=False,
         ),
     ],
@@ -111,7 +111,7 @@ def send_erc20(
         typer.Argument(
             help="Erc20 token address.",
             callback=check_ethereum_address,
-            parser=parse_checksum_address,
+            click_type=ChecksumAddressParser(),
             show_default=False,
         ),
     ],
@@ -152,7 +152,7 @@ def send_erc721(
         typer.Argument(
             help="The address of the Safe.",
             callback=check_ethereum_address,
-            parser=parse_checksum_address,
+            click_type=ChecksumAddressParser(),
             show_default=False,
         ),
     ],
@@ -164,7 +164,7 @@ def send_erc721(
         typer.Argument(
             help="The address of destination.",
             callback=check_ethereum_address,
-            parser=parse_checksum_address,
+            click_type=ChecksumAddressParser(),
             show_default=False,
         ),
     ],
@@ -173,7 +173,7 @@ def send_erc721(
         typer.Argument(
             help="Erc721 token address.",
             callback=check_ethereum_address,
-            parser=parse_checksum_address,
+            click_type=ChecksumAddressParser(),
             show_default=False,
         ),
     ],
@@ -211,7 +211,7 @@ def send_custom(
         typer.Argument(
             help="The address of the Safe.",
             callback=check_ethereum_address,
-            parser=parse_checksum_address,
+            click_type=ChecksumAddressParser(),
             show_default=False,
         ),
     ],
@@ -223,7 +223,7 @@ def send_custom(
         typer.Argument(
             help="The address of destination.",
             callback=check_ethereum_address,
-            parser=parse_checksum_address,
+            click_type=ChecksumAddressParser(),
             show_default=False,
         ),
     ],
@@ -233,7 +233,7 @@ def send_custom(
         typer.Argument(
             help="HexBytes data to send.",
             callback=check_hex_str,
-            parser=parse_hex_str,
+            click_type=HexBytesParser(),
             show_default=False,
         ),
     ],
@@ -277,7 +277,7 @@ def tx_builder(
         typer.Argument(
             help="The address of the Safe.",
             callback=check_ethereum_address,
-            parser=parse_checksum_address,
+            click_type=ChecksumAddressParser(),
             show_default=False,
         ),
     ],
@@ -365,7 +365,7 @@ def default_attended_mode(
         typer.Argument(
             help="The address of the Safe, or an owner address if --get-safes-from-owner is specified.",
             callback=check_ethereum_address,
-            parser=parse_checksum_address,
+            click_type=ChecksumAddressParser(),
             show_default=False,
         ),
     ],

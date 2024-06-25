@@ -2,6 +2,7 @@ import os
 from binascii import Error
 from typing import List
 
+import click
 import typer
 from eth_account import Account
 from eth_typing import ChecksumAddress
@@ -18,11 +19,14 @@ def check_ethereum_address(address: str) -> ChecksumAddress:
     return ChecksumAddress(address)
 
 
-def parse_checksum_address(address: str) -> ChecksumAddress:
-    """
-    ChecksumAddress parser from str
-    """
-    return ChecksumAddress(address)
+class ChecksumAddressParser(click.ParamType):
+    name = "ChecksumAddress"
+
+    def convert(self, value, param, ctx):
+        """
+        ChecksumAddress parser from str
+        """
+        return ChecksumAddress(value)
 
 
 def check_private_keys(private_keys: List[str]) -> List[str]:
@@ -41,7 +45,7 @@ def check_private_keys(private_keys: List[str]) -> List[str]:
 
 def check_hex_str(hex_str: str) -> HexBytes:
     """
-    Hexadecimal string validator
+    HexBytes string validator
     """
     try:
         return HexBytes(hex_str)
@@ -49,8 +53,11 @@ def check_hex_str(hex_str: str) -> HexBytes:
         raise typer.BadParameter(f"{hex_str} is not a valid hexadecimal string")
 
 
-def parse_hex_str(data: str) -> HexBytes:
-    """
-    Hexadecimal string parser from str
-    """
-    return HexBytes(data)
+class HexBytesParser(click.ParamType):
+    name = "HexBytes"
+
+    def convert(self, value, param, ctx):
+        """
+        HexBytes string parser from str
+        """
+        return HexBytes(value)

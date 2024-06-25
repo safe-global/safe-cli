@@ -6,11 +6,11 @@ from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
 
 from safe_cli.typer_validators import (
+    ChecksumAddressParser,
+    HexBytesParser,
     check_ethereum_address,
     check_hex_str,
     check_private_keys,
-    parse_checksum_address,
-    parse_hex_str,
 )
 
 
@@ -40,10 +40,13 @@ class TestTyperValidators(unittest.TestCase):
 
     def test_parse_checksum_address(self):
         address = "0x4127839cdf4F73d9fC9a2C2861d8d1799e9DF40C"
-        self.assertEqual(parse_checksum_address(address), ChecksumAddress(address))
+        self.assertEqual(
+            ChecksumAddressParser().convert(address, None, None),
+            ChecksumAddress(address),
+        )
 
     def test_parse_hex_str(self):
-        self.assertEqual(parse_hex_str("0x12"), HexBytes("0x12"))
+        self.assertEqual(HexBytesParser().convert("0x12", None, None), HexBytes("0x12"))
 
 
 if __name__ == "__main__":
