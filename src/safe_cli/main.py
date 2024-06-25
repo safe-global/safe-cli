@@ -1,4 +1,5 @@
 #!/bin/env python3
+import os
 import sys
 from typing import Annotated, List
 
@@ -26,11 +27,27 @@ app = typer.Typer(name="Safe CLI")
 
 
 def _build_safe_operator_and_load_keys(
-    safe_address: ChecksumAddress, node_url: str, private_keys: List[str]
+    safe_address: ChecksumAddress,
+    node_url: str,
+    private_keys: List[str],
+    interactive: bool,
 ) -> SafeOperator:
-    safe_operator = SafeOperator(safe_address, node_url, no_input=True)
+    safe_operator = SafeOperator(safe_address, node_url, interactive=interactive)
     safe_operator.load_cli_owners(private_keys)
     return safe_operator
+
+
+def _check_interactive_mode(interactive_mode: bool) -> bool:
+    print(interactive_mode, os.getenv("SAFE_CLI_INTERACTIVE"))
+    if not interactive_mode:
+        return False
+
+    # --no-interactive arg > env var.
+    env_var = os.getenv("SAFE_CLI_INTERACTIVE")
+    if env_var:
+        return env_var.lower() in ("true", "1", "yes")
+
+    return True
 
 
 @app.command()
@@ -76,9 +93,17 @@ def send_ether(
             show_default=False,
         ),
     ] = None,
+    interactive: Annotated[
+        bool,
+        typer.Option(
+            help="Request iteration from the user. Use --non-interactive for unattended execution.",
+            rich_help_panel="Optional Arguments",
+            callback=_check_interactive_mode,
+        ),
+    ] = True,
 ):
     safe_operator = _build_safe_operator_and_load_keys(
-        safe_address, node_url, private_key
+        safe_address, node_url, private_key, interactive
     )
     safe_operator.send_ether(to, value, safe_nonce=safe_nonce)
 
@@ -138,9 +163,17 @@ def send_erc20(
             show_default=False,
         ),
     ] = None,
+    interactive: Annotated[
+        bool,
+        typer.Option(
+            help="Request iteration from the user. Use --non-interactive for unattended execution.",
+            rich_help_panel="Optional Arguments",
+            callback=_check_interactive_mode,
+        ),
+    ] = True,
 ):
     safe_operator = _build_safe_operator_and_load_keys(
-        safe_address, node_url, private_key
+        safe_address, node_url, private_key, interactive
     )
     safe_operator.send_erc20(to, token_address, amount, safe_nonce=safe_nonce)
 
@@ -197,9 +230,17 @@ def send_erc721(
             show_default=False,
         ),
     ] = None,
+    interactive: Annotated[
+        bool,
+        typer.Option(
+            help="Request iteration from the user. Use --non-interactive for unattended execution.",
+            rich_help_panel="Optional Arguments",
+            callback=_check_interactive_mode,
+        ),
+    ] = True,
 ):
     safe_operator = _build_safe_operator_and_load_keys(
-        safe_address, node_url, private_key
+        safe_address, node_url, private_key, interactive
     )
     safe_operator.send_erc721(to, token_address, token_id, safe_nonce=safe_nonce)
 
@@ -261,9 +302,17 @@ def send_custom(
             rich_help_panel="Optional Arguments",
         ),
     ] = False,
+    interactive: Annotated[
+        bool,
+        typer.Option(
+            help="Request iteration from the user. Use --non-interactive for unattended execution.",
+            rich_help_panel="Optional Arguments",
+            callback=_check_interactive_mode,
+        ),
+    ] = True,
 ):
     safe_operator = _build_safe_operator_and_load_keys(
-        safe_address, node_url, private_key
+        safe_address, node_url, private_key, interactive
     )
     safe_operator.send_custom(
         to, value, data, safe_nonce=safe_nonce, delegate_call=delegate
@@ -285,10 +334,10 @@ def version():
             safe-cli --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org\n\n\n\n
             safe-cli --history 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org\n
             safe-cli --history --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org\n\n\n\n
-            safe-cli send-ether 0xsafeaddress https://sepolia.drpc.org 0xtoaddress wei-amount --private-key key1 --private-key key1 --private-key keyN\n
-            safe-cli send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN\n
-            safe-cli send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN\n
-            safe-cli send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN\n\n\n\n
+            safe-cli send-ether 0xsafeaddress https://sepolia.drpc.org 0xtoaddress wei-amount --private-key key1 --private-key key1 --private-key keyN [--no-interactive]\n
+            safe-cli send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN [--no-interactive]\n
+            safe-cli send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN [--no-interactive]\n
+            safe-cli send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN [--no-interactive]\n\n\n\n
     """,
     epilog="Commands available in unattended mode:\n\n\n\n"
     + "\n\n".join(
