@@ -8,6 +8,7 @@ from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
 from typer.main import get_command, get_command_name
+from web3 import Web3
 
 from . import VERSION
 from .argparse_validators import check_hex_str
@@ -338,10 +339,25 @@ def default_attended_mode(
     safe_cli.loop()
 
 
+def _is_safe_cli_default_command(arguments: List[str]) -> bool:
+    # safe-cli
+    if len(sys.argv) == 1:
+        return True
+
+    if sys.argv[1] == "--help":
+        return True
+
+    # Only added if is not a valid command, and it is an address. safe-cli 0xaddress http://url
+    if sys.argv[1] not in [
+        get_command_name(key) for key in get_command(app).commands.keys()
+    ] and Web3.is_checksum_address(sys.argv[1]):
+        return True
+
+    return False
+
+
 def main():
     # By default, the attended mode is initialised. Otherwise, the required command must be specified.
-    if len(sys.argv) == 1 or sys.argv[1] not in [
-        get_command_name(key) for key in get_command(app).commands.keys()
-    ]:
+    if _is_safe_cli_default_command(sys.argv):
         sys.argv.insert(1, "attended-mode")
     app()
