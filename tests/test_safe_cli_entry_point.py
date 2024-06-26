@@ -301,6 +301,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 "tests/mocks/tx_builder/batch_txs.json",
                 "--private-key",
                 safe_owner.key.hex(),
+                "--non-interactive",
             ],
         )
         exception, _, _ = result.exc_info

@@ -260,18 +260,8 @@ def send_custom(
 
 @app.command()
 def tx_builder(
-    safe_address: Annotated[
-        ChecksumAddress,
-        typer.Argument(
-            help="The address of the Safe.",
-            callback=check_ethereum_address,
-            click_type=ChecksumAddressParser(),
-            show_default=False,
-        ),
-    ],
-    node_url: Annotated[
-        str, typer.Argument(help="Ethereum node url.", show_default=False)
-    ],
+    safe_address: safe_address_option,
+    node_url: node_url_option,
     file_path: Annotated[
         Path,
         typer.Argument(
@@ -294,9 +284,10 @@ def tx_builder(
             callback=check_private_keys,
         ),
     ] = None,
+    interactive: interactive_option = True,
 ):
     safe_operator = _build_safe_operator_and_load_keys(
-        safe_address, node_url, private_key
+        safe_address, node_url, private_key, interactive
     )
     data = json.loads(file_path.read_text())
     safe_txs = []
@@ -336,7 +327,7 @@ def version():
             safe-cli send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN [--non-interactive]\n
             safe-cli send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN [--non-interactive]\n
             safe-cli send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN [--non-interactive]\n\n\n\n
-            safe-cli tx-builder 0xsafeaddress https://sepolia.drpc.org  ./path/to/exported/tx-builder/file.json --private-key key1 --private-key keyN
+            safe-cli tx-builder 0xsafeaddress https://sepolia.drpc.org  ./path/to/exported/tx-builder/file.json --private-key key1 --private-key keyN [--non-interactive]
     """,
     epilog="Commands available in unattended mode:\n\n\n\n"
     + "\n\n".join(
