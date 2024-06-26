@@ -39,19 +39,92 @@ pip3 install -U safe-cli
 
 ## Usage
 
+### Safe-Cli
+
 ```bash
-safe-cli [-h] [--history] [--get-safes-from-owner] address node_url
+usage:
+ safe-cli [--history] [--get-safes-from-owner] address node_url
 
-positional arguments:
-  address                The address of the Safe, or an owner address if --get-safes-from-owner is specified.
-  node_url               Ethereum node url
+ Examples:
+ safe-cli 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
+ safe-cli --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
 
-options:
-  -h, --help             Show this help message and exit
-  --history              Enable history. By default it's disabled due to security reasons
-  --get-safes-from-owner Indicates that address is an owner (Safe Transaction Service is required for this feature)
+ safe-cli --history 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
+ safe-cli --history --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
+
+ safe-cli send-ether 0xsafeaddress https://sepolia.drpc.org 0xtoaddress wei-amount --private-key key1 --private-key key1 --private-key keyN
+ safe-cli send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN
+ safe-cli send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN
+ safe-cli send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN
+
+╭─ Arguments ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ *    address       CHECKSUMADDRESS  The address of the Safe, or an owner address if --get-safes-from-owner is specified. [required]                                                                                                                                                                             │
+│ *    node_url      TEXT             Ethereum node url. [required]                                                                                                                                                                                                                                               │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                                                                                                                                                                                                                                     │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Optional Arguments ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ --history                 --no-history                   Enable history. By default it's disabled due to security reasons [default: no-history]                                                                                                                                                                 │
+│ --get-safes-from-owner    --no-get-safes-from-owner      Indicates that address is an owner (Safe Transaction Service is required for this feature) [default: no-get-safes-from-owner]                                                                                                                          │
+╰─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+ Commands available in unattended mode:
+
+ send-ether
+ send-erc20
+ send-erc721
+ send-custom
+ version
+
+ Use the --help option of each command to see the usage options.
 ```
 
+To execute transactions unattended you can use:
+
+```bash
+safe-cli send-ether 0xsafeaddress https://sepolia.drpc.org 0xtoaddress wei-amount --private-key key1 --private-key key1 --private-key keyN --non-interactive
+safe-cli send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN --non-interactive
+safe-cli send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN --non-interactive
+safe-cli send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN --non-interactive
+```
+
+It is possible to use the environment variable `SAFE_CLI_INTERACTIVE=0` to avoid user interactions. The `--non-interactive` option have more priority than environment variable.
+
+### Safe-Creator
+
+```bash
+
+usage:
+        safe-creator [-h] [-v] [--threshold THRESHOLD] [--owners OWNERS [OWNERS ...]] [--safe-contract SAFE_CONTRACT] [--proxy-factory PROXY_FACTORY] [--callback-handler CALLBACK_HANDLER] [--salt-nonce SALT_NONCE] [--without-events] node_url private_key
+
+        Example:
+            safe-creator https://sepolia.drpc.org 0000000000000000000000000000000000000000000000000000000000000000
+
+
+positional arguments:
+  node_url              Ethereum node url
+  private_key           Deployer private_key
+
+options:
+  -h, --help            show this help message and exit
+  -v, --version         Show program's version number and exit.
+  --threshold THRESHOLD
+                        Number of owners required to execute transactions on the created Safe. It mustbe greater than 0 and less or equal than the number of owners
+  --owners OWNERS [OWNERS ...]
+                        Owners. By default it will be just the deployer
+  --safe-contract SAFE_CONTRACT
+                        Use a custom Safe master copy
+  --proxy-factory PROXY_FACTORY
+                        Use a custom proxy factory
+  --callback-handler CALLBACK_HANDLER
+                        Use a custom fallback handler. It is not required for Safe Master Copies with version < 1.1.0
+  --salt-nonce SALT_NONCE
+                        Use a custom nonce for the deployment. Same nonce with same deployment configuration will lead to the same Safe address
+  --without-events      Use non events deployment of the Safe instead of the regular one. Recommended for mainnet to save gas costs when using the Safe
+
+
+```
 
 ## Safe{Core} API/Protocol
 
@@ -70,6 +143,12 @@ cd safe-cli
 stat venv 2>/dev/null || python3 -m venv venv
 source venv/bin/activate && pip install -r requirements-dev.txt
 pre-commit install -f
+```
+
+To run the local version you can install it using:
+
+```bash
+pip install .
 ```
 
 ## Contributors

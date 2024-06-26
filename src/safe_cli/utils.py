@@ -82,15 +82,16 @@ def choose_option_from_list(
     return option
 
 
-def get_safe_from_owner(
-    owner: ChecksumAddress, node_url: str
-) -> Optional[ChecksumAddress]:
+def get_safe_from_owner(owner: ChecksumAddress, node_url: str) -> ChecksumAddress:
     """
     Show a list of Safe to chose between them and return the selected one.
     :param owner:
     :param node_url:
     :return: Safe address of a selected Safe
     """
+    print_formatted_text(
+        HTML(f"<b><ansigreen>Loading Safes for {owner}...</ansigreen></b>")
+    )
     ethereum_client = EthereumClient(node_url)
     safe_tx_service = TransactionServiceApi.from_ethereum_client(ethereum_client)
     safes = safe_tx_service.get_safes_for_owner(owner)
@@ -98,7 +99,8 @@ def get_safe_from_owner(
         option = choose_option_from_list(
             "Select the Safe to initialize the safe-cli", safes
         )
-        if option is not None:
-            return safes[option]
+        if option is None:
+            raise ValueError("Unable to load Safe to initialize the safe-cli")
+        return safes[option]
     else:
         raise ValueError(f"No safe was found for the specified owner {owner}")
