@@ -92,6 +92,37 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
+        # Test interactive/non-interactive mode
+        del os.environ["PYTEST_CURRENT_TEST"]  # To avoid skip yes/no question
+        result = runner.invoke(
+            app,
+            [
+                "send-ether",
+                safe_operator.safe.address,
+                "http://localhost:8545",
+                random_address,
+                "20",
+                "--private-key",
+                safe_owner.key.hex(),
+            ],
+        )
+        self.assertEqual(result.exit_code, 1)
+
+        result = runner.invoke(
+            app,
+            [
+                "send-ether",
+                safe_operator.safe.address,
+                "http://localhost:8545",
+                random_address,
+                "20",
+                "--private-key",
+                safe_owner.key.hex(),
+                "--non-interactive",
+            ],
+        )
+        self.assertEqual(result.exit_code, 0)
+
     def test_send_erc20(self):
         safe_operator = self.setup_operator()
         safe_owner = Account.create()

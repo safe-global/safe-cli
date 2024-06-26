@@ -151,9 +151,11 @@ class SafeOperator:
     executed_transactions: List[str]
     _safe_cli_info: Optional[SafeCliInfo]
     require_all_signatures: bool
-    no_input: bool
+    interactive: bool
 
-    def __init__(self, address: ChecksumAddress, node_url: str, no_input: bool = False):
+    def __init__(
+        self, address: ChecksumAddress, node_url: str, interactive: bool = True
+    ):
         self.address = address
         self.node_url = node_url
         self.ethereum_client = EthereumClient(self.node_url)
@@ -184,7 +186,7 @@ class SafeOperator:
             True  # Require all signatures to be present to send a tx
         )
         self.hw_wallet_manager = get_hw_wallet_manager()
-        self.no_input = no_input  # Disable prompt dialogs
+        self.interactive = interactive  # Disable prompt dialogs
 
     @cached_property
     def last_default_fallback_handler_address(self) -> ChecksumAddress:
@@ -287,7 +289,7 @@ class SafeOperator:
                     )
                     self.default_sender = account
             except ValueError:
-                if self.no_input:
+                if not self.interactive:
                     raise SafeOperatorException(f"Cannot load key={key}")
                 print_formatted_text(HTML(f"<ansired>Cannot load key={key}</ansired>"))
 
@@ -941,7 +943,7 @@ class SafeOperator:
             else:
                 call_result = safe_tx.call(self.hw_wallet_manager.sender.address)
             print_formatted_text(HTML(f"Result: <ansigreen>{call_result}</ansigreen>"))
-            if self.no_input or yes_or_no_question(
+            if not self.interactive or yes_or_no_question(
                 "Do you want to execute tx " + str(safe_tx)
             ):
                 if self.default_sender:
@@ -1002,7 +1004,7 @@ class SafeOperator:
         try:
             multisend = MultiSend(ethereum_client=self.ethereum_client)
         except ValueError:
-            if self.no_input:
+            if not self.interactive:
                 raise SafeOperatorException(
                     "Multisend contract is not deployed on this network and it's required for batching txs"
                 )

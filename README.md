@@ -86,13 +86,15 @@ usage:
 To execute transactions unattended, or execute transactions from a json exported from the tx_builder you can use:
 
 ```bash
-safe-cli send-ether 0xsafeaddress https://sepolia.drpc.org 0xtoaddress wei-amount --private-key key1 --private-key key1 --private-key keyN
-safe-cli send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN
-safe-cli send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN
-safe-cli send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN
+safe-cli send-ether 0xsafeaddress https://sepolia.drpc.org 0xtoaddress wei-amount --private-key key1 --private-key key1 --private-key keyN --non-interactive
+safe-cli send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN --non-interactive
+safe-cli send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN --non-interactive
+safe-cli send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN --non-interactive
 
-safe-cli tx-builder 0xsafeaddress https://sepolia.drpc.org  ./path/to/exported/tx-builder/file.json --private-key key1 --private-key keyN
+safe-cli tx-builder 0xsafeaddress https://sepolia.drpc.org  ./path/to/exported/tx-builder/file.json --private-key key1 --private-key keyN --non-interactive
 ```
+
+It is possible to use the environment variable `SAFE_CLI_INTERACTIVE=0` to avoid user interactions. The `--non-interactive` option have more priority than environment variable.
 
 ### Safe-Creator
 
