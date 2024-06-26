@@ -38,11 +38,10 @@ def _build_safe_operator_and_load_keys(
 
 
 def _check_interactive_mode(interactive_mode: bool) -> bool:
-    print(interactive_mode, os.getenv("SAFE_CLI_INTERACTIVE"))
     if not interactive_mode:
         return False
 
-    # --no-interactive arg > env var.
+    # --non-interactive arg > env var.
     env_var = os.getenv("SAFE_CLI_INTERACTIVE")
     if env_var:
         return env_var.lower() in ("true", "1", "yes")
@@ -50,29 +49,48 @@ def _check_interactive_mode(interactive_mode: bool) -> bool:
     return True
 
 
+# Common Options
+safe_address_option = Annotated[
+    ChecksumAddress,
+    typer.Argument(
+        help="The address of the Safe.",
+        callback=check_ethereum_address,
+        click_type=ChecksumAddressParser(),
+        show_default=False,
+    ),
+]
+node_url_option = Annotated[
+    str, typer.Argument(help="Ethereum node url.", show_default=False)
+]
+to_option = Annotated[
+    ChecksumAddress,
+    typer.Argument(
+        help="The address of destination.",
+        callback=check_ethereum_address,
+        click_type=ChecksumAddressParser(),
+        show_default=False,
+    ),
+]
+interactive_option = Annotated[
+    bool,
+    typer.Option(
+        "--interactive/--non-interactive",
+        help=(
+            "Enable interactive mode to allow user input during execution. "
+            "Use --non-interactive to disable prompts and run unattended. "
+            "This is useful for scripting and automation where no user intervention is required."
+        ),
+        rich_help_panel="Optional Arguments",
+        callback=_check_interactive_mode,
+    ),
+]
+
+
 @app.command()
 def send_ether(
-    safe_address: Annotated[
-        ChecksumAddress,
-        typer.Argument(
-            help="The address of the Safe.",
-            callback=check_ethereum_address,
-            click_type=ChecksumAddressParser(),
-            show_default=False,
-        ),
-    ],
-    node_url: Annotated[
-        str, typer.Argument(help="Ethereum node url.", show_default=False)
-    ],
-    to: Annotated[
-        ChecksumAddress,
-        typer.Argument(
-            help="The address of destination.",
-            callback=check_ethereum_address,
-            click_type=ChecksumAddressParser(),
-            show_default=False,
-        ),
-    ],
+    safe_address: safe_address_option,
+    node_url: node_url_option,
+    to: to_option,
     value: Annotated[
         int, typer.Argument(help="Amount of ether in wei to send.", show_default=False)
     ],
@@ -93,14 +111,7 @@ def send_ether(
             show_default=False,
         ),
     ] = None,
-    interactive: Annotated[
-        bool,
-        typer.Option(
-            help="Request iteration from the user. Use --non-interactive for unattended execution.",
-            rich_help_panel="Optional Arguments",
-            callback=_check_interactive_mode,
-        ),
-    ] = True,
+    interactive: interactive_option = True,
 ):
     safe_operator = _build_safe_operator_and_load_keys(
         safe_address, node_url, private_key, interactive
@@ -110,27 +121,9 @@ def send_ether(
 
 @app.command()
 def send_erc20(
-    safe_address: Annotated[
-        ChecksumAddress,
-        typer.Argument(
-            help="The address of the Safe.",
-            callback=check_ethereum_address,
-            click_type=ChecksumAddressParser(),
-            show_default=False,
-        ),
-    ],
-    node_url: Annotated[
-        str, typer.Argument(help="Ethereum node url.", show_default=False)
-    ],
-    to: Annotated[
-        ChecksumAddress,
-        typer.Argument(
-            help="The address of destination.",
-            callback=check_ethereum_address,
-            click_type=ChecksumAddressParser(),
-            show_default=False,
-        ),
-    ],
+    safe_address: safe_address_option,
+    node_url: node_url_option,
+    to: to_option,
     token_address: Annotated[
         ChecksumAddress,
         typer.Argument(
@@ -163,14 +156,7 @@ def send_erc20(
             show_default=False,
         ),
     ] = None,
-    interactive: Annotated[
-        bool,
-        typer.Option(
-            help="Request iteration from the user. Use --non-interactive for unattended execution.",
-            rich_help_panel="Optional Arguments",
-            callback=_check_interactive_mode,
-        ),
-    ] = True,
+    interactive: interactive_option = True,
 ):
     safe_operator = _build_safe_operator_and_load_keys(
         safe_address, node_url, private_key, interactive
@@ -180,27 +166,9 @@ def send_erc20(
 
 @app.command()
 def send_erc721(
-    safe_address: Annotated[
-        ChecksumAddress,
-        typer.Argument(
-            help="The address of the Safe.",
-            callback=check_ethereum_address,
-            click_type=ChecksumAddressParser(),
-            show_default=False,
-        ),
-    ],
-    node_url: Annotated[
-        str, typer.Argument(help="Ethereum node url.", show_default=False)
-    ],
-    to: Annotated[
-        ChecksumAddress,
-        typer.Argument(
-            help="The address of destination.",
-            callback=check_ethereum_address,
-            click_type=ChecksumAddressParser(),
-            show_default=False,
-        ),
-    ],
+    safe_address: safe_address_option,
+    node_url: node_url_option,
+    to: to_option,
     token_address: Annotated[
         ChecksumAddress,
         typer.Argument(
@@ -230,14 +198,7 @@ def send_erc721(
             show_default=False,
         ),
     ] = None,
-    interactive: Annotated[
-        bool,
-        typer.Option(
-            help="Request iteration from the user. Use --non-interactive for unattended execution.",
-            rich_help_panel="Optional Arguments",
-            callback=_check_interactive_mode,
-        ),
-    ] = True,
+    interactive: interactive_option = True,
 ):
     safe_operator = _build_safe_operator_and_load_keys(
         safe_address, node_url, private_key, interactive
@@ -247,27 +208,9 @@ def send_erc721(
 
 @app.command()
 def send_custom(
-    safe_address: Annotated[
-        ChecksumAddress,
-        typer.Argument(
-            help="The address of the Safe.",
-            callback=check_ethereum_address,
-            click_type=ChecksumAddressParser(),
-            show_default=False,
-        ),
-    ],
-    node_url: Annotated[
-        str, typer.Argument(help="Ethereum node url.", show_default=False)
-    ],
-    to: Annotated[
-        ChecksumAddress,
-        typer.Argument(
-            help="The address of destination.",
-            callback=check_ethereum_address,
-            click_type=ChecksumAddressParser(),
-            show_default=False,
-        ),
-    ],
+    safe_address: safe_address_option,
+    node_url: node_url_option,
+    to: to_option,
     value: Annotated[int, typer.Argument(help="Value to send.", show_default=False)],
     data: Annotated[
         HexBytes,
@@ -302,14 +245,7 @@ def send_custom(
             rich_help_panel="Optional Arguments",
         ),
     ] = False,
-    interactive: Annotated[
-        bool,
-        typer.Option(
-            help="Request iteration from the user. Use --non-interactive for unattended execution.",
-            rich_help_panel="Optional Arguments",
-            callback=_check_interactive_mode,
-        ),
-    ] = True,
+    interactive: interactive_option = True,
 ):
     safe_operator = _build_safe_operator_and_load_keys(
         safe_address, node_url, private_key, interactive
@@ -334,10 +270,10 @@ def version():
             safe-cli --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org\n\n\n\n
             safe-cli --history 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org\n
             safe-cli --history --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org\n\n\n\n
-            safe-cli send-ether 0xsafeaddress https://sepolia.drpc.org 0xtoaddress wei-amount --private-key key1 --private-key key1 --private-key keyN [--no-interactive]\n
-            safe-cli send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN [--no-interactive]\n
-            safe-cli send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN [--no-interactive]\n
-            safe-cli send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN [--no-interactive]\n\n\n\n
+            safe-cli send-ether 0xsafeaddress https://sepolia.drpc.org 0xtoaddress wei-amount --private-key key1 --private-key key1 --private-key keyN [--non-interactive]\n
+            safe-cli send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN [--non-interactive]\n
+            safe-cli send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN [--non-interactive]\n
+            safe-cli send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN [--non-interactive]\n\n\n\n
     """,
     epilog="Commands available in unattended mode:\n\n\n\n"
     + "\n\n".join(
@@ -358,9 +294,7 @@ def default_attended_mode(
             show_default=False,
         ),
     ],
-    node_url: Annotated[
-        str, typer.Argument(help="Ethereum node url.", show_default=False)
-    ],
+    node_url: node_url_option,
     history: Annotated[
         bool,
         typer.Option(

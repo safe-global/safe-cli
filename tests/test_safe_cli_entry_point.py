@@ -114,7 +114,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 "20",
                 "--private-key",
                 safe_owner.key.hex(),
-                "--no-interactive",
+                "--non-interactive",
             ],
         )
         self.assertEqual(result.exit_code, 0)
