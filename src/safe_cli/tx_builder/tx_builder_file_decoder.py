@@ -125,7 +125,7 @@ def _get_base_field_type(field_type: str) -> str:
         raise SoliditySyntaxError("Empty base field type for")
 
     base_field_type_regex = re.compile(
-        r"^([a-zA-Z0-9]*)(((\[\])|(\[[1-9]+[0-9]*\]))*)?$"
+        r"^([a-zA-Z0-9]*)(((\[])|(\[[1-9]+[0-9]*]))*)?$"
     )
     match = base_field_type_regex.match(trimmed_value)
     if not match:
