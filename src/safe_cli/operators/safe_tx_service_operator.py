@@ -1,6 +1,6 @@
 import json
 from itertools import chain
-from typing import Any, Dict, List, Optional, Sequence, Set, Union
+from typing import Any, Dict, Optional, Sequence, Set, Union
 
 from colorama import Fore, Style
 from eth_account.messages import defunct_hash_message
@@ -18,7 +18,7 @@ from gnosis.safe.api.transaction_service_api.transaction_service_messages import
     get_remove_transaction_message,
 )
 from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
-from gnosis.safe.safe_signature import SafeSignature, SafeSignatureEOA
+from gnosis.safe.safe_signature import SafeSignature
 from gnosis.safe.signatures import signature_to_bytes
 
 from ..utils import get_input, yes_or_no_question
@@ -59,25 +59,26 @@ class SafeTxServiceOperator(SafeOperator):
 
         safe_message_hash = self.safe.get_message_hash(message_hash)
         eoa_signers, hw_wallet_signers = self.get_signers()
-        safe_signatures: List[SafeSignature] = []
-        for eoa_signer in eoa_signers:
-            signature_dict = eoa_signer.signHash(safe_message_hash)
+        # Safe transaction service just accept one signer to create a message
+        signature = b""
+        if eoa_signers:
+            signature_dict = eoa_signers[0].signHash(safe_message_hash)
             signature = signature_to_bytes(
                 signature_dict["v"], signature_dict["r"], signature_dict["s"]
             )
-            safe_signatures.append(SafeSignatureEOA(signature, safe_message_hash))
 
-        signatures = SafeSignature.export_signatures(safe_signatures)
-
-        if hw_wallet_signers:
-            print_formatted_text(
-                HTML(
-                    "<ansired>Signing messages is not currently supported by hardware wallets</ansired>"
+        elif hw_wallet_signers:
+            signature = SafeSignature.export_signatures(
+                self.hw_wallet_manager.sign_message(
+                    safe_message_hash, [hw_wallet_signers[0]]
                 )
             )
-            return False
+        else:
+            print_formatted_text(
+                HTML("<ansired>At least one owner must be loaded</ansired>")
+            )
 
-        if self.safe_tx_service.post_message(self.address, message, signatures):
+        if self.safe_tx_service.post_message(self.address, message, signature):
             print_formatted_text(
                 HTML(
                     f"<ansigreen>Message  with safe-message-hash {safe_message_hash.hex()} was correctly created on Safe Transaction Service</ansigreen>"
@@ -116,12 +117,9 @@ class SafeTxServiceOperator(SafeOperator):
         if isinstance(signer, LocalAccount):
             signature = signer.signHash(safe_message_hash).signature
         else:
-            print_formatted_text(
-                HTML(
-                    "<ansired>Signing messages is not currently supported by hardware wallets</ansired>"
-                )
+            signature = SafeSignature.export_signatures(
+                self.hw_wallet_manager.sign_message(safe_message_hash, [signer])
             )
-            return False
 
         try:
             self.safe_tx_service.post_message_signature(safe_message_hash, signature)

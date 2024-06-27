@@ -3,7 +3,7 @@ from typing import Optional
 from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
 from ledgerblue.Dongle import Dongle
-from ledgereth import create_transaction, sign_typed_data_draft
+from ledgereth import create_transaction, sign_message, sign_typed_data_draft
 from ledgereth.accounts import get_account_by_path
 from ledgereth.comms import init_dongle
 from web3.types import TxParams
@@ -75,3 +75,15 @@ class LedgerWallet(HwWallet):
             dongle=self.dongle,
         )
         return HexBytes(signed_transaction.raw_transaction())
+
+    @raise_ledger_exception_as_hw_wallet_exception
+    def sign_message(self, message: bytes) -> bytes:
+        """
+        Call sign message of Ledger wallet
+
+        :param message:
+        :return: bytes signature
+        """
+        signed = sign_message(message, self.derivation_path, self.dongle)
+        # V field must be greater than 30 for signed messages. https://github.com/safe-global/safe-smart-account/blob/main/contracts/Safe.sol#L309
+        return signature_to_bytes(signed.v + 4, signed.r, signed.s)

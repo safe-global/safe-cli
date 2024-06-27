@@ -1,6 +1,8 @@
 #!/bin/env python3
+import json
 import os
 import sys
+from pathlib import Path
 from typing import Annotated, List
 
 import typer
@@ -15,6 +17,7 @@ from . import VERSION
 from .argparse_validators import check_hex_str
 from .operators import SafeOperator
 from .safe_cli import SafeCli
+from .tx_builder.tx_builder_file_decoder import convert_to_proposed_transactions
 from .typer_validators import (
     ChecksumAddressParser,
     HexBytesParser,
@@ -256,6 +259,54 @@ def send_custom(
 
 
 @app.command()
+def tx_builder(
+    safe_address: safe_address_option,
+    node_url: node_url_option,
+    file_path: Annotated[
+        Path,
+        typer.Argument(
+            exists=True,
+            file_okay=True,
+            dir_okay=False,
+            writable=False,
+            readable=True,
+            resolve_path=True,
+            help="File path with tx_builder data.",
+            show_default=False,
+        ),
+    ],
+    private_key: Annotated[
+        List[str],
+        typer.Option(
+            help="List of private keys of signers.",
+            rich_help_panel="Optional Arguments",
+            show_default=False,
+            callback=check_private_keys,
+        ),
+    ] = None,
+    interactive: interactive_option = True,
+):
+    safe_operator = _build_safe_operator_and_load_keys(
+        safe_address, node_url, private_key, interactive
+    )
+    data = json.loads(file_path.read_text())
+    safe_txs = [
+        safe_operator.prepare_safe_transaction(tx.to, tx.value, tx.data)
+        for tx in convert_to_proposed_transactions(data)
+    ]
+
+    if len(safe_txs) == 0:
+        raise typer.BadParameter("No transactions found.")
+
+    if len(safe_txs) == 1:
+        safe_operator.execute_safe_transaction(safe_txs[0])
+    else:
+        multisend_tx = safe_operator.batch_safe_txs(safe_operator.get_nonce(), safe_txs)
+        if multisend_tx is not None:
+            safe_operator.execute_safe_transaction(multisend_tx)
+
+
+@app.command()
 def version():
     print(f"Safe Cli v{VERSION}")
 
@@ -274,6 +325,7 @@ def version():
             safe-cli send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN [--non-interactive]\n
             safe-cli send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN [--non-interactive]\n
             safe-cli send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN [--non-interactive]\n\n\n\n
+            safe-cli tx-builder 0xsafeaddress https://sepolia.drpc.org  ./path/to/exported/tx-builder/file.json --private-key key1 --private-key keyN [--non-interactive]
     """,
     epilog="Commands available in unattended mode:\n\n\n\n"
     + "\n\n".join(

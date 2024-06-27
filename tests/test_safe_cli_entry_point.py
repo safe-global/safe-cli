@@ -16,7 +16,11 @@ from gnosis.safe.safe import SafeInfo
 
 from safe_cli import VERSION
 from safe_cli.main import app
-from safe_cli.operators.exceptions import NotEnoughEtherToSend, SenderRequiredException
+from safe_cli.operators.exceptions import (
+    NotEnoughEtherToSend,
+    SafeOperatorException,
+    SenderRequiredException,
+)
 from safe_cli.safe_cli import SafeCli
 
 from .safe_cli_test_case_mixin import SafeCliTestCaseMixin
@@ -252,6 +256,57 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             ],
         )
         self.assertEqual(result.exit_code, 0)
+
+    def test_tx_builder(self):
+        safe_operator = self.setup_operator()
+        safe_owner = Account.create()
+        safe_operator.add_owner(safe_owner.address, 1)
+        self._send_eth_to(safe_owner.address, 1000000000000000000)
+
+        # Test exit code 1 with empty file
+        result = runner.invoke(
+            app,
+            [
+                "tx-builder",
+                safe_operator.safe.address,
+                "http://localhost:8545",
+                "tests/mocks/tx_builder/empty_txs.json",
+                "--private-key",
+                safe_owner.key.hex(),
+            ],
+        )
+        self.assertEqual(result.exit_code, 2)
+
+        # Test single tx exit 0
+        result = runner.invoke(
+            app,
+            [
+                "tx-builder",
+                safe_operator.safe.address,
+                "http://localhost:8545",
+                "tests/mocks/tx_builder/single_tx.json",
+                "--private-key",
+                safe_owner.key.hex(),
+            ],
+        )
+        self.assertEqual(result.exit_code, 0)
+
+        # Test batch txs (Ends with exception because the multisend contract is not deployed.)
+        result = runner.invoke(
+            app,
+            [
+                "tx-builder",
+                safe_operator.safe.address,
+                "http://localhost:8545",
+                "tests/mocks/tx_builder/batch_txs.json",
+                "--private-key",
+                safe_owner.key.hex(),
+                "--non-interactive",
+            ],
+        )
+        exception, _, _ = result.exc_info
+        self.assertEqual(exception, SafeOperatorException)
+        self.assertEqual(result.exit_code, 1)
 
     def _send_eth_to(self, address: str, value: int) -> None:
         self.ethereum_client.send_eth_to(
