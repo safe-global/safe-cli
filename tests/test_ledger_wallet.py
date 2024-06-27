@@ -12,7 +12,7 @@ from ledgereth.exceptions import (
     LedgerLocked,
     LedgerNotFound,
 )
-from ledgereth.objects import LedgerAccount, SignedTransaction
+from ledgereth.objects import LedgerAccount, SignedMessage, SignedTransaction
 
 from gnosis.eth.eip712 import eip712_encode
 from gnosis.safe import SafeTx
@@ -244,3 +244,44 @@ class Testledger_wallet(SafeTestCaseMixin, unittest.TestCase):
             safe_tx.tx, safe_tx.ethereum_client.get_chain_id()
         )  # return raw signed transaction
         self.assertEqual(signed_fields.rawTransaction, HexBytes(raw_signed_tx))
+
+    @mock.patch(
+        "safe_cli.operators.hw_wallets.ledger_wallet.sign_message",
+        autospec=True,
+        return_value=Dongle(),
+    )
+    @mock.patch(
+        "safe_cli.operators.hw_wallets.ledger_wallet.get_account_by_path",
+        autospec=True,
+    )
+    @mock.patch(
+        "safe_cli.operators.hw_wallets.ledger_wallet.init_dongle",
+        autospec=True,
+        return_value=Dongle(),
+    )
+    def test_sign_message(
+        self,
+        mock_init_dongle: MagicMock,
+        mock_get_account_by_path: MagicMock,
+        mock_ledger_sign_message: MagicMock,
+    ):
+        owner = Account.create()
+        derivation_path = "44'/60'/0'/0"
+        mock_get_account_by_path.return_value = LedgerAccount(
+            derivation_path, owner.address
+        )
+        ledger_wallet = LedgerWallet(derivation_path)
+        expected_signature = HexBytes(
+            "0xbc941061f14cfbf055332537a282834dd66f4e944b3b4608aea062e203c7fd505b5e74c0a984d62ec088cd1d82c00d7c6f5f71076d6bc536fcc02be463d9128820"
+        )
+        safe_message_hash = HexBytes(
+            "0x08a1b4472ed4f7f71ac2a8ec9978da670476b3675720b8c4e11fe71a75b56f38"
+        )
+        v, r, s = signature_split(expected_signature)
+        # Checking that v is incremented by sign_message by 4
+        mock_ledger_sign_message.return_value = SignedMessage(
+            safe_message_hash, v - 4, r, s
+        )
+
+        signature = ledger_wallet.sign_message(safe_message_hash)
+        self.assertEqual(signature, expected_signature)

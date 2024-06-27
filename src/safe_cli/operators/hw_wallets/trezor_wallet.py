@@ -7,12 +7,15 @@ from trezorlib import tools
 from trezorlib.client import TrezorClient, get_default_client
 from trezorlib.ethereum import (
     get_address,
+    sign_message,
     sign_tx,
     sign_tx_eip1559,
     sign_typed_data_hash,
 )
 from trezorlib.ui import ClickUI
 from web3.types import TxParams
+
+from gnosis.safe.signatures import signature_split, signature_to_bytes
 
 from .hw_wallet import HwWallet
 from .trezor_exceptions import raise_trezor_exception_as_hw_wallet_exception
@@ -34,6 +37,7 @@ def get_trezor_client() -> TrezorClient:
 class TrezorWallet(HwWallet):
     def __init__(self, derivation_path: str):
         self.client: TrezorClient = get_trezor_client()
+        self.address_n = tools.parse_path(derivation_path)
         super().__init__(derivation_path)
 
     @raise_trezor_exception_as_hw_wallet_exception
@@ -41,8 +45,7 @@ class TrezorWallet(HwWallet):
         """
         :return: public address for derivation_path
         """
-        address_n = tools.parse_path(self.derivation_path)
-        return get_address(client=self.client, n=address_n)
+        return get_address(client=self.client, n=self.address_n)
 
     @raise_trezor_exception_as_hw_wallet_exception
     def sign_typed_hash(self, domain_hash: bytes, message_hash: bytes) -> bytes:
@@ -52,9 +55,11 @@ class TrezorWallet(HwWallet):
         :param message_hash:
         :return: signature bytes
         """
-        address_n = tools.parse_path(self.derivation_path)
         signed = sign_typed_data_hash(
-            self.client, n=address_n, domain_hash=domain_hash, message_hash=message_hash
+            self.client,
+            n=self.address_n,
+            domain_hash=domain_hash,
+            message_hash=message_hash,
         )
         return signed.signature
 
@@ -68,12 +73,11 @@ class TrezorWallet(HwWallet):
         :param tx_parameters:
         :return: raw transaction signed
         """
-        address_n = tools.parse_path(self.derivation_path)
         if tx_parameters.get("maxPriorityFeePerGas"):
             # EIP1559
             v, r, s = sign_tx_eip1559(
                 self.client,
-                n=address_n,
+                n=self.address_n,
                 nonce=tx_parameters["nonce"],
                 gas_limit=tx_parameters["gas"],
                 to=tx_parameters["to"],
@@ -107,7 +111,7 @@ class TrezorWallet(HwWallet):
             # Legacy transaction
             v, r, s = sign_tx(
                 self.client,
-                n=address_n,
+                n=self.address_n,
                 nonce=tx_parameters["nonce"],
                 gas_price=tx_parameters["gasPrice"],
                 gas_limit=tx_parameters["gas"],
@@ -132,3 +136,16 @@ class TrezorWallet(HwWallet):
             ).hex()
 
         return HexBytes(encoded_transaction)
+
+    @raise_trezor_exception_as_hw_wallet_exception
+    def sign_message(self, message: bytes) -> bytes:
+        """
+        Call sign message of Trezor wallet
+
+        :param message:
+        :return: bytes signature
+        """
+        signed = sign_message(self.client, self.address_n, message)
+        # V field must be greater than 30 for signed messages. https://github.com/safe-global/safe-smart-account/blob/main/contracts/Safe.sol#L309
+        v, r, s = signature_split(signed.signature)
+        return signature_to_bytes(v + 4, r, s)
