@@ -58,6 +58,15 @@ class HwWallet(ABC):
         :return: raw transaction signed
         """
 
+    @abstractmethod
+    def sign_message(self, message: bytes) -> bytes:
+        """
+        Call sign message of hw wallet
+
+        :param message:
+        :return: bytes signature
+        """
+
     def __str__(self):
         return f"{self.__class__.__name__} device with address {self.address}"
 
