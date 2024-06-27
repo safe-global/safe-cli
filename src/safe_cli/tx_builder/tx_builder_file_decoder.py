@@ -174,7 +174,7 @@ def is_array_of_strings_field_type(field_type: str) -> bool:
 
 
 def is_array_field_type(field_type: str) -> bool:
-    pattern = re.compile(r"\[\d*\]$")
+    pattern = re.compile(r"\[\d*]$")
     return bool(pattern.search(field_type))
 
 
