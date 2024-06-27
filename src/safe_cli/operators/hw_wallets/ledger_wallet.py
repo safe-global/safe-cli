@@ -78,6 +78,12 @@ class LedgerWallet(HwWallet):
 
     @raise_ledger_exception_as_hw_wallet_exception
     def sign_message(self, message: bytes) -> bytes:
+        """
+        Call sign message of Ledger wallet
+
+        :param message:
+        :return: bytes signature
+        """
         signed = sign_message(message, self.derivation_path, self.dongle)
         # V field must be greater than 30 for signed messages. https://github.com/safe-global/safe-smart-account/blob/main/contracts/Safe.sol#L309
         return signature_to_bytes(signed.v + 4, signed.r, signed.s)

@@ -222,6 +222,7 @@ class HwWalletManager:
         self, message: bytes, wallets: List[HwWallet]
     ) -> List[SafeSignature]:
         """
+        Sign a message for all the provided wallets
 
         :param message:
         :param wallets:

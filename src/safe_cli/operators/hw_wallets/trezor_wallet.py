@@ -139,6 +139,12 @@ class TrezorWallet(HwWallet):
 
     @raise_trezor_exception_as_hw_wallet_exception
     def sign_message(self, message: bytes) -> bytes:
+        """
+        Call sign message of Trezor wallet
+
+        :param message:
+        :return: bytes signature
+        """
         signed = sign_message(self.client, self.address_n, message)
         # V field must be greater than 30 for signed messages. https://github.com/safe-global/safe-smart-account/blob/main/contracts/Safe.sol#L309
         v, r, s = signature_split(signed.signature)
