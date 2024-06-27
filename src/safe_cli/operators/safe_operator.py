@@ -1065,6 +1065,7 @@ class SafeOperator:
 
     def get_signers(self) -> Tuple[List[LocalAccount], List[HwWallet]]:
         """
+        Get the signers necessary to sign a transaction, raise an exception if was not uploaded enough signers.
 
         :return: Tuple with eoa signers and hw_wallet signers
         """

@@ -10,7 +10,11 @@ from web3.types import TxParams, Wei
 from gnosis.eth import TxSpeed
 from gnosis.eth.eip712 import eip712_encode, eip712_encode_hash
 from gnosis.safe import SafeTx
-from gnosis.safe.safe_signature import SafeSignature, SafeSignatureEOA
+from gnosis.safe.safe_signature import (
+    SafeSignature,
+    SafeSignatureEOA,
+    SafeSignatureEthSign,
+)
 
 from .hw_wallet import HwWallet
 
@@ -213,3 +217,25 @@ class HwWalletManager:
         # so signatures are not valid anymore
         safe_tx.signatures = b""
         return safe_tx.tx_hash, safe_tx.tx
+
+    def sign_message(
+        self, message: bytes, wallets: List[HwWallet]
+    ) -> List[SafeSignature]:
+        """
+
+        :param message:
+        :param wallets:
+        :return:
+        """
+        signatures: List[SafeSignature] = []
+        for wallet in wallets:
+            print_formatted_text(
+                HTML(
+                    f"<ansired>Make sure before signing in your {wallet} that the message is correct</ansired>"
+                )
+            )
+            signatures.append(
+                SafeSignatureEthSign(wallet.sign_message(message), message)
+            )
+
+        return signatures
