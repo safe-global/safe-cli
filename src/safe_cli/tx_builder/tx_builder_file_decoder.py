@@ -7,7 +7,7 @@ from eth_abi import encode as encode_abi
 from hexbytes import HexBytes
 from web3 import Web3
 
-from safe_cli.tx_builder.exceptions import (
+from .exceptions import (
     InvalidContratMethodError,
     SoliditySyntaxError,
     TxBuilderEncodingError,
@@ -38,31 +38,32 @@ def encode_contract_method_to_hex_data(
     contract_fields = contract_method.get("inputs", []) if contract_method else []
 
     is_valid_contract_method = (
-        contract_method_name and contract_method_name not in NON_VALID_CONTRACT_METHODS
+        contract_method_name is not None
+        and contract_method_name not in NON_VALID_CONTRACT_METHODS
     )
 
-    if is_valid_contract_method:
-        try:
-            encoding_types = _parse_types_to_encoding_types(contract_fields)
-            values = [
-                parse_input_value(
-                    field["type"], contract_fields_values.get(field["name"], "")
-                )
-                for field in contract_fields
-            ]
-
-            function_signature = f"{contract_method_name}({','.join(encoding_types)})"
-            function_selector = Web3.keccak(text=function_signature)[:4]
-            encoded_parameters = encode_abi(encoding_types, values)
-            hex_encoded_data = HexBytes(function_selector + encoded_parameters)
-            return hex_encoded_data
-        except Exception as error:
-            raise TxBuilderEncodingError(
-                "Error encoding current form values to hex data:", error
-            )
-    else:
+    if not is_valid_contract_method:
         raise InvalidContratMethodError(
             f"Invalid contract method {contract_method_name}"
+        )
+
+    try:
+        encoding_types = _parse_types_to_encoding_types(contract_fields)
+        values = [
+            parse_input_value(
+                field["type"], contract_fields_values.get(field["name"], "")
+            )
+            for field in contract_fields
+        ]
+
+        function_signature = f"{contract_method_name}({','.join(encoding_types)})"
+        function_selector = Web3.keccak(text=function_signature)[:4]
+        encoded_parameters = encode_abi(encoding_types, values)
+        hex_encoded_data = HexBytes(function_selector + encoded_parameters)
+        return hex_encoded_data
+    except Exception as error:
+        raise TxBuilderEncodingError(
+            "Error encoding current form values to hex data:", error
         )
 
 
@@ -124,9 +125,7 @@ def _get_base_field_type(field_type: str) -> str:
     if not trimmed_value:
         raise SoliditySyntaxError("Empty base field type for")
 
-    base_field_type_regex = re.compile(
-        r"^([a-zA-Z0-9]*)(((\[])|(\[[1-9]+[0-9]*]))*)?$"
-    )
+    base_field_type_regex = re.compile(r"^([a-zA-Z0-9]*)(((\[])|(\[[1-9]+[0-9]*]))*)?$")
     match = base_field_type_regex.match(trimmed_value)
     if not match:
         raise SoliditySyntaxError(f"Unknown base field type from {trimmed_value}")

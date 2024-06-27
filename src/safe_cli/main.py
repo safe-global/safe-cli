@@ -290,22 +290,20 @@ def tx_builder(
         safe_address, node_url, private_key, interactive
     )
     data = json.loads(file_path.read_text())
-    safe_txs = []
-    for tx in convert_to_proposed_transactions(data):
-        safe_txs.append(
-            safe_operator.prepare_safe_transaction(tx.to, tx.value, tx.data)
-        )
+    safe_txs = [
+        safe_operator.prepare_safe_transaction(tx.to, tx.value, tx.data)
+        for tx in convert_to_proposed_transactions(data)
+    ]
 
     if len(safe_txs) == 0:
         raise typer.BadParameter("No transactions found.")
 
     if len(safe_txs) == 1:
         safe_operator.execute_safe_transaction(safe_txs[0])
-        return
-
-    multisend_tx = safe_operator.batch_safe_txs(safe_operator.get_nonce(), safe_txs)
-    if multisend_tx is not None:
-        safe_operator.execute_safe_transaction(multisend_tx)
+    else:
+        multisend_tx = safe_operator.batch_safe_txs(safe_operator.get_nonce(), safe_txs)
+        if multisend_tx is not None:
+            safe_operator.execute_safe_transaction(multisend_tx)
 
 
 @app.command()
