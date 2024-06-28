@@ -4,11 +4,7 @@ from eth_abi import encode as encode_abi
 from hexbytes import HexBytes
 from web3 import Web3
 
-from safe_cli.tx_builder.exceptions import (
-    InvalidContratMethodError,
-    SoliditySyntaxError,
-    TxBuilderEncodingError,
-)
+from safe_cli.tx_builder.exceptions import SoliditySyntaxError, TxBuilderEncodingError
 from safe_cli.tx_builder.tx_builder_file_decoder import (
     SafeProposedTx,
     _get_base_field_type,
@@ -191,8 +187,9 @@ class TestTxBuilderFileDecoder(SafeCliTestCaseMixin, unittest.TestCase):
         # Test invalid contrat method
         contract_method = {"name": "receive", "inputs": []}
         contract_fields_values = {}
-        with self.assertRaises(InvalidContratMethodError):
+        self.assertIsNone(
             encode_contract_method_to_hex_data(contract_method, contract_fields_values)
+        )
 
         # Test invalid value
         contract_method = {
