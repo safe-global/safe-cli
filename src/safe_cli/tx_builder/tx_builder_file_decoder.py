@@ -1,17 +1,13 @@
 import dataclasses
 import json
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from eth_abi import encode as encode_abi
 from hexbytes import HexBytes
 from web3 import Web3
 
-from .exceptions import (
-    InvalidContratMethodError,
-    SoliditySyntaxError,
-    TxBuilderEncodingError,
-)
+from .exceptions import SoliditySyntaxError, TxBuilderEncodingError
 
 NON_VALID_CONTRACT_METHODS = ["receive", "fallback"]
 
@@ -33,7 +29,7 @@ def _parse_types_to_encoding_types(contract_fields: List[Dict[str, Any]]) -> Lis
 
 def encode_contract_method_to_hex_data(
     contract_method: Dict[str, Any], contract_fields_values: Dict[str, Any]
-) -> HexBytes:
+) -> Optional[HexBytes]:
     contract_method_name = contract_method.get("name") if contract_method else None
     contract_fields = contract_method.get("inputs", []) if contract_method else []
 
@@ -43,9 +39,7 @@ def encode_contract_method_to_hex_data(
     )
 
     if not is_valid_contract_method:
-        raise InvalidContratMethodError(
-            f"Invalid contract method {contract_method_name}"
-        )
+        return None
 
     try:
         encoding_types = _parse_types_to_encoding_types(contract_fields)
@@ -223,17 +217,20 @@ def convert_to_proposed_transactions(
 ) -> List[SafeProposedTx]:
     proposed_transactions = []
     for index, transaction in enumerate(batch_file["transactions"]):
+        data_value = transaction.get("data")
+        if data_value is None:
+            encoded_data = encode_contract_method_to_hex_data(
+                transaction.get("contractMethod"),
+                transaction.get("contractInputsValues"),
+            )
+            data_value = encoded_data.hex() if encoded_data is not None else "0x"
+
         proposed_transactions.append(
             SafeProposedTx(
                 id=index,
                 to=transaction.get("to"),
                 value=transaction.get("value"),
-                data=transaction.get("data")
-                or encode_contract_method_to_hex_data(
-                    transaction.get("contractMethod"),
-                    transaction.get("contractInputsValues"),
-                ).hex()
-                or "0x",
+                data=data_value,
             )
         )
     return proposed_transactions
