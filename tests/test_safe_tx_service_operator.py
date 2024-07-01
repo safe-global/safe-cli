@@ -81,7 +81,7 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         label = "Test"
         signer = list(safe_operator.accounts)[0]
 
-        expected_signature = safe_operator.safe_tx_service.create_delegate_message_hash(
+        expected_hash = safe_operator.safe_tx_service.create_delegate_message_hash(
             delegate_address
         )
         expected_signature_signed = signer.signHash(expected_signature)
