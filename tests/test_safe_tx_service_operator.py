@@ -84,7 +84,7 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         expected_hash = safe_operator.safe_tx_service.create_delegate_message_hash(
             delegate_address
         )
-        expected_signature_signed = signer.signHash(expected_hash)
+        expected_signature = signer.signHash(expected_hash)
 
         self.assertTrue(
             safe_operator.add_delegate(delegate_address, label, signer.address)
@@ -93,7 +93,7 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
             delegate_address,
             signer.address,
             label,
-            expected_signature_signed,
+            expected_signature,
             safe_address=safe_operator.address,
         )
 
@@ -108,14 +108,14 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         expected_hash = safe_operator.safe_tx_service.create_delegate_message_hash(
             delegate_address
         )
-        expected_signature_signed = signer.signHash(expected_hash)
+        expected_signature = signer.signHash(expected_hash)
 
         self.assertTrue(safe_operator.remove_delegate(delegate_address, signer.address))
 
         remove_delegate_mock.assert_called_with(
             delegate_address,
             signer.address,
-            expected_signature_signed,
+            expected_signature,
             safe_address=safe_operator.address,
         )
 
