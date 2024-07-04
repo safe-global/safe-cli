@@ -156,8 +156,16 @@ class SafeTxServiceOperator(SafeOperator):
         else:
             signer_account = signer_account[0]
             try:
+                hash_to_sign = self.safe_tx_service.create_delegate_message_hash(
+                    delegate_address
+                )
+                signature = signer_account.signHash(hash_to_sign)
                 self.safe_tx_service.add_delegate(
-                    self.address, delegate_address, label, signer_account
+                    delegate_address,
+                    signer_account.address,
+                    label,
+                    signature.signature,
+                    safe_address=self.address,
                 )
                 return True
             except SafeAPIException:
@@ -174,8 +182,15 @@ class SafeTxServiceOperator(SafeOperator):
         else:
             signer_account = signer_account[0]
             try:
+                hash_to_sign = self.safe_tx_service.create_delegate_message_hash(
+                    delegate_address
+                )
+                signature = signer_account.signHash(hash_to_sign)
                 self.safe_tx_service.remove_delegate(
-                    self.address, delegate_address, signer_account
+                    delegate_address,
+                    signer_account.address,
+                    signature.signature,
+                    safe_address=self.address,
                 )
                 return True
             except SafeAPIException:

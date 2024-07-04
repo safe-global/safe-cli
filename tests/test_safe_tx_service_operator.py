@@ -80,11 +80,21 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         delegate_address = Account.create().address
         label = "Test"
         signer = list(safe_operator.accounts)[0]
+
+        expected_hash = safe_operator.safe_tx_service.create_delegate_message_hash(
+            delegate_address
+        )
+        expected_signature = signer.signHash(expected_hash)
+
         self.assertTrue(
             safe_operator.add_delegate(delegate_address, label, signer.address)
         )
         add_delegate_mock.assert_called_with(
-            safe_operator.address, delegate_address, label, signer
+            delegate_address,
+            signer.address,
+            label,
+            expected_signature.signature,
+            safe_address=safe_operator.address,
         )
 
     @mock.patch.object(TransactionServiceApi, "remove_delegate", return_value=None)
@@ -94,9 +104,19 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         )
         delegate_address = Account.create().address
         signer = list(safe_operator.accounts)[0]
+
+        expected_hash = safe_operator.safe_tx_service.create_delegate_message_hash(
+            delegate_address
+        )
+        expected_signature = signer.signHash(expected_hash)
+
         self.assertTrue(safe_operator.remove_delegate(delegate_address, signer.address))
+
         remove_delegate_mock.assert_called_with(
-            safe_operator.address, delegate_address, signer
+            delegate_address,
+            signer.address,
+            expected_signature.signature,
+            safe_address=safe_operator.address,
         )
 
     @mock.patch.object(TransactionServiceApi, "delete_transaction", return_value=None)
