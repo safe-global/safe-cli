@@ -93,7 +93,7 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
             delegate_address,
             signer.address,
             label,
-            expected_signature,
+            expected_signature.signature,
             safe_address=safe_operator.address,
         )
 
@@ -115,7 +115,7 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         remove_delegate_mock.assert_called_with(
             delegate_address,
             signer.address,
-            expected_signature,
+            expected_signature.signature,
             safe_address=safe_operator.address,
         )
 
