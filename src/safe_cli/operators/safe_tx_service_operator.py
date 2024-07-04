@@ -164,7 +164,7 @@ class SafeTxServiceOperator(SafeOperator):
                     delegate_address,
                     signer_account.address,
                     label,
-                    signature,
+                    signature.signature,
                     safe_address=self.address,
                 )
                 return True
@@ -189,7 +189,7 @@ class SafeTxServiceOperator(SafeOperator):
                 self.safe_tx_service.remove_delegate(
                     delegate_address,
                     signer_account.address,
-                    signature,
+                    signature.signature,
                     safe_address=self.address,
                 )
                 return True
