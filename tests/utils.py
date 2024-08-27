@@ -1,6 +1,5 @@
 from eth_account.signers.local import LocalAccount
-
-from gnosis.eth.tests.utils import deploy_erc20, send_tx
+from safe_eth.eth.tests.utils import deploy_erc20, send_tx
 
 from safe_cli.operators import SafeOperator
 

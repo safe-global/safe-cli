@@ -1,9 +1,8 @@
 import unittest
 
 from eth_account import Account
+from safe_eth.safe import Safe
 from web3 import Web3
-
-from gnosis.safe import Safe
 
 from safe_cli.operators import SafeCliTerminationException
 from safe_cli.operators.safe_operator import SafeOperator
