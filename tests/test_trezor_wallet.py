@@ -5,16 +5,15 @@ from unittest.mock import MagicMock
 
 from eth_account import Account
 from hexbytes import HexBytes
+from safe_eth.eth.eip712 import eip712_encode
+from safe_eth.safe import SafeTx
+from safe_eth.safe.signatures import signature_split, signature_to_bytes
+from safe_eth.safe.tests.safe_test_case import SafeTestCaseMixin
 from trezorlib.client import TrezorClient
 from trezorlib.exceptions import Cancelled, OutdatedFirmwareError, PinException
 from trezorlib.messages import EthereumTypedDataSignature
 from trezorlib.transport import TransportException
 from trezorlib.ui import ClickUI
-
-from gnosis.eth.eip712 import eip712_encode
-from gnosis.safe import SafeTx
-from gnosis.safe.signatures import signature_split, signature_to_bytes
-from gnosis.safe.tests.safe_test_case import SafeTestCaseMixin
 
 from safe_cli.operators.exceptions import HardwareWalletException
 from safe_cli.operators.hw_wallets.trezor_wallet import TrezorWallet

@@ -5,11 +5,10 @@ from unittest.mock import MagicMock
 from eth_account import Account
 from hexbytes import HexBytes
 from ledgereth.objects import LedgerAccount
+from safe_eth.eth import EthereumClient
+from safe_eth.safe import SafeTx
+from safe_eth.safe.api import SafeAPIException, TransactionServiceApi
 from web3 import Web3
-
-from gnosis.eth import EthereumClient
-from gnosis.safe import SafeTx
-from gnosis.safe.api import SafeAPIException, TransactionServiceApi
 
 from safe_cli.operators import SafeOperatorMode, SafeTxServiceOperator
 
@@ -122,7 +121,7 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
     @mock.patch.object(TransactionServiceApi, "delete_transaction", return_value=None)
     @mock.patch.object(TransactionServiceApi, "get_safe_transaction")
     @mock.patch(
-        "gnosis.safe.api.transaction_service_api.transaction_service_messages.get_totp",
+        "safe_eth.safe.api.transaction_service_api.transaction_service_messages.get_totp",
         return_value=8365,
     )
     def test_remove_transaction(
