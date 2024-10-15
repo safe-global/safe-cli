@@ -4,8 +4,7 @@ from unittest import mock
 from unittest.mock import MagicMock
 
 from eth_account import Account
-
-from gnosis.safe import Safe
+from safe_eth.safe import Safe
 
 from safe_cli.safe_creator import main
 

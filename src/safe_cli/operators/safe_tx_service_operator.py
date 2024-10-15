@@ -8,18 +8,17 @@ from eth_account.signers.local import LocalAccount
 from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
-from tabulate import tabulate
-
-from gnosis.eth.contracts import get_erc20_contract
-from gnosis.eth.eip712 import eip712_encode_hash
-from gnosis.safe import SafeOperationEnum, SafeTx
-from gnosis.safe.api import SafeAPIException
-from gnosis.safe.api.transaction_service_api.transaction_service_messages import (
+from safe_eth.eth.contracts import get_erc20_contract
+from safe_eth.eth.eip712 import eip712_encode_hash
+from safe_eth.safe import SafeOperationEnum, SafeTx
+from safe_eth.safe.api import SafeAPIException
+from safe_eth.safe.api.transaction_service_api.transaction_service_messages import (
     get_remove_transaction_message,
 )
-from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
-from gnosis.safe.safe_signature import SafeSignature
-from gnosis.safe.signatures import signature_to_bytes
+from safe_eth.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
+from safe_eth.safe.safe_signature import SafeSignature
+from safe_eth.safe.signatures import signature_to_bytes
+from tabulate import tabulate
 
 from ..utils import get_input, yes_or_no_question
 from . import SafeServiceNotAvailable

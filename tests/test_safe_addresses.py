@@ -1,9 +1,8 @@
 import unittest
 
 from eth_account import Account
-
-from gnosis.eth import EthereumClient
-from gnosis.eth.tests.utils import just_test_if_mainnet_node
+from safe_eth.eth import EthereumClient
+from safe_eth.eth.tests.utils import just_test_if_mainnet_node
 
 from safe_cli.safe_addresses import (
     _get_valid_contract,

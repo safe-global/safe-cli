@@ -6,9 +6,8 @@ from eth_account import Account
 from hexbytes import HexBytes
 from ledgerblue.Dongle import Dongle
 from ledgereth import SignedTransaction
-
-from gnosis.safe import SafeTx
-from gnosis.safe.tests.safe_test_case import SafeTestCaseMixin
+from safe_eth.safe import SafeTx
+from safe_eth.safe.tests.safe_test_case import SafeTestCaseMixin
 
 from safe_cli.operators.hw_wallets.hw_wallet_manager import (
     HwWalletManager,

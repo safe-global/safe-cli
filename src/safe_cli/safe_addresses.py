@@ -8,8 +8,7 @@ https://github.com/gnosis/safe-deployments/tree/main/src/assets/v1.3.0
 from typing import Sequence
 
 from eth_typing import ChecksumAddress
-
-from gnosis.eth import EthereumClient
+from safe_eth.eth import EthereumClient
 
 
 def _get_valid_contract(
