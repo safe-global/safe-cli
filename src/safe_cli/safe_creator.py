@@ -10,11 +10,10 @@ from eth_account.signers.local import LocalAccount
 from eth_typing import URI
 from hexbytes import HexBytes
 from prompt_toolkit import print_formatted_text
-
-from gnosis.eth import EthereumClient, EthereumTxSent
-from gnosis.eth.constants import NULL_ADDRESS
-from gnosis.eth.contracts import get_safe_V1_4_1_contract
-from gnosis.safe import ProxyFactory, Safe
+from safe_eth.eth import EthereumClient, EthereumTxSent
+from safe_eth.eth.constants import NULL_ADDRESS
+from safe_eth.eth.contracts import get_safe_V1_4_1_contract
+from safe_eth.safe import ProxyFactory, Safe
 
 from safe_cli.safe_addresses import (
     get_default_fallback_handler_address,

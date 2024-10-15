@@ -3,8 +3,7 @@ import functools
 
 from prompt_toolkit import HTML, print_formatted_text
 from prompt_toolkit.formatted_text import html
-
-from gnosis.safe.api import SafeAPIException
+from safe_eth.safe.api import SafeAPIException
 
 from .argparse_validators import (
     check_ethereum_address,

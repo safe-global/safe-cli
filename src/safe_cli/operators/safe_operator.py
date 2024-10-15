@@ -12,30 +12,29 @@ from eth_utils import ValidationError
 from hexbytes import HexBytes
 from packaging import version as semantic_version
 from prompt_toolkit import HTML, print_formatted_text
-from web3 import Web3
-from web3.contract import Contract
-from web3.exceptions import BadFunctionCallOutput
-
-from gnosis.eth import (
+from safe_eth.eth import (
     EthereumClient,
     EthereumNetwork,
     EthereumNetworkNotSupported,
     TxSpeed,
 )
-from gnosis.eth.clients import EtherscanClient, EtherscanClientConfigurationProblem
-from gnosis.eth.constants import NULL_ADDRESS, SENTINEL_ADDRESS
-from gnosis.eth.contracts import (
+from safe_eth.eth.clients import EtherscanClient, EtherscanClientConfigurationProblem
+from safe_eth.eth.constants import NULL_ADDRESS, SENTINEL_ADDRESS
+from safe_eth.eth.contracts import (
     get_erc20_contract,
     get_erc721_contract,
     get_safe_V1_1_1_contract,
     get_sign_message_lib_contract,
 )
-from gnosis.eth.eip712 import eip712_encode
-from gnosis.eth.utils import get_empty_tx_params
-from gnosis.safe import InvalidInternalTx, Safe, SafeOperationEnum, SafeTx
-from gnosis.safe.api import TransactionServiceApi
-from gnosis.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
-from gnosis.safe.safe_deployments import safe_deployments
+from safe_eth.eth.eip712 import eip712_encode
+from safe_eth.eth.utils import get_empty_tx_params
+from safe_eth.safe import InvalidInternalTx, Safe, SafeOperationEnum, SafeTx
+from safe_eth.safe.api import TransactionServiceApi
+from safe_eth.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
+from safe_eth.safe.safe_deployments import safe_deployments
+from web3 import Web3
+from web3.contract import Contract
+from web3.exceptions import BadFunctionCallOutput
 
 from safe_cli.ethereum_hd_wallet import get_account_from_words
 from safe_cli.operators.exceptions import (

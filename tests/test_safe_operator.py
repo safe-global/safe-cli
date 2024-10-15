@@ -8,13 +8,12 @@ from eth_account import Account
 from eth_typing import ChecksumAddress
 from ledgerblue.Dongle import Dongle
 from ledgereth.objects import LedgerAccount
+from safe_eth.eth import EthereumClient
+from safe_eth.eth.eip712 import eip712_encode
+from safe_eth.safe import Safe
+from safe_eth.safe.multi_send import MultiSend
 from web3 import Web3
 from web3.types import Wei
-
-from gnosis.eth import EthereumClient
-from gnosis.eth.eip712 import eip712_encode
-from gnosis.safe import Safe
-from gnosis.safe.multi_send import MultiSend
 
 from safe_cli.contracts import safe_to_l2_migration
 from safe_cli.operators.exceptions import (
@@ -64,7 +63,7 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
             self.assertEqual(len(safe.retrieve_owners()), number_owners)
 
     @mock.patch(
-        "gnosis.safe.Safe.contract", new_callable=mock.PropertyMock, return_value=None
+        "safe_eth.safe.Safe.contract", new_callable=mock.PropertyMock, return_value=None
     )
     def test_load_cli_owner(self, get_contract_mock: MagicMock):
         random_address = Account.create().address
