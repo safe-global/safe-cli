@@ -1,4 +1,4 @@
-art==6.2
+art==6.3
 colorama==0.4.6
 hexbytes==0.3.1
 ledgereth==0.9.1
