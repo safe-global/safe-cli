@@ -6,13 +6,12 @@ from unittest.mock import MagicMock
 import pytest
 from eth_account import Account
 from eth_typing import HexStr
+from safe_eth.eth import EthereumClient
+from safe_eth.eth.constants import NULL_ADDRESS
+from safe_eth.safe import Safe
+from safe_eth.safe.api import TransactionServiceApi
+from safe_eth.safe.safe import SafeInfo
 from typer.testing import CliRunner
-
-from gnosis.eth import EthereumClient
-from gnosis.eth.constants import NULL_ADDRESS
-from gnosis.safe import Safe
-from gnosis.safe.api import TransactionServiceApi
-from gnosis.safe.safe import SafeInfo
 
 from safe_cli import VERSION
 from safe_cli.main import app

@@ -3,6 +3,7 @@ from functools import lru_cache
 import rlp
 from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
+from safe_eth.safe.signatures import signature_split, signature_to_bytes
 from trezorlib import tools
 from trezorlib.client import TrezorClient, get_default_client
 from trezorlib.ethereum import (
@@ -14,8 +15,6 @@ from trezorlib.ethereum import (
 )
 from trezorlib.ui import ClickUI
 from web3.types import TxParams
-
-from gnosis.safe.signatures import signature_split, signature_to_bytes
 
 from .hw_wallet import HwWallet
 from .trezor_exceptions import raise_trezor_exception_as_hw_wallet_exception
