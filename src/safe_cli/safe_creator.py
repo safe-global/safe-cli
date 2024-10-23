@@ -34,7 +34,7 @@ from .argparse_validators import (
 
 def get_usage_msg():
     return """
-        safe-creator [-h] [-v] [--threshold THRESHOLD] [--owners OWNERS [OWNERS ...]] [--safe-contract SAFE_CONTRACT] [--proxy-factory PROXY_FACTORY] [--callback-handler CALLBACK_HANDLER] [--salt-nonce SALT_NONCE] [--without-events] node_url private_key
+        safe-creator [-h] [-v] [--quiet] [--threshold THRESHOLD] [--owners OWNERS [OWNERS ...]] [--safe-contract SAFE_CONTRACT] [--proxy-factory PROXY_FACTORY] [--callback-handler CALLBACK_HANDLER] [--salt-nonce SALT_NONCE] [--without-events] [--only-generate] node_url private_key
 
         Example:
             safe-creator https://sepolia.drpc.org 0000000000000000000000000000000000000000000000000000000000000000
@@ -53,6 +53,12 @@ def setup_argument_parser():
     parser.add_argument("node_url", help="Ethereum node url")
     parser.add_argument(
         "private_key", help="Deployer private_key", type=check_private_key
+    )
+    parser.add_argument(
+        "--quiet",
+        help="Limit output to only prompts, errors, and the address of the created Safe",
+        default=False,
+        action="store_true",
     )
     parser.add_argument(
         "--threshold",
@@ -93,10 +99,15 @@ def setup_argument_parser():
         default=secrets.randbits(256),
         type=int,
     )
-
     parser.add_argument(
         "--without-events",
         help="Use non events deployment of the Safe instead of the regular one. Recommended for mainnet to save gas costs when using the Safe",
+        default=False,
+        action="store_true",
+    )
+    parser.add_argument(
+        "--only-generate",
+        help="Only generate the projected Safe address, do not actually create it",
         default=False,
         action="store_true",
     )
@@ -106,7 +117,6 @@ def setup_argument_parser():
 def main(*args, **kwargs) -> EthereumTxSent:
     parser = setup_argument_parser()
     args = parser.parse_args()
-    print_formatted_text(text2art("Safe Creator"))  # Print fancy text
     node_url: URI = args.node_url
     account: LocalAccount = Account.from_key(args.private_key)
     owners: List[str] = args.owners if args.owners else [account.address]
@@ -118,9 +128,12 @@ def main(*args, **kwargs) -> EthereumTxSent:
     payment = 0
     payment_receiver = NULL_ADDRESS
 
+    if not args.quiet:
+        print_formatted_text(text2art("Safe Creator"))  # Print fancy text
+
     if len(owners) < threshold:
         print_formatted_text(
-            "Threshold cannot be bigger than the number of unique owners"
+            f"Threshold cannot be bigger than the number of unique owners ({len(owners)})"
         )
         sys.exit(1)
 
@@ -169,10 +182,11 @@ def main(*args, **kwargs) -> EthereumTxSent:
         ether_account_balance = round(
             ethereum_client.w3.from_wei(account_balance, "ether"), 6
         )
-        print_formatted_text(
-            f"Network {ethereum_client.get_network().name} - Sender {account.address} - "
-            f"Balance: {ether_account_balance}Ξ"
-        )
+        if not args.quiet:
+            print_formatted_text(
+                f"Network {ethereum_client.get_network().name} - Sender {account.address} - "
+                f"Balance: {ether_account_balance}Ξ"
+            )
 
     if not ethereum_client.w3.eth.get_code(
         safe_contract_address
@@ -180,16 +194,18 @@ def main(*args, **kwargs) -> EthereumTxSent:
         print_formatted_text("Network not supported")
         sys.exit(1)
 
-    print_formatted_text(
-        f"Creating new Safe with owners={owners} threshold={threshold} salt-nonce={salt_nonce}"
-    )
+    if not args.quiet:
+        print_formatted_text(
+            f"Creating new Safe with owners={owners} threshold={threshold} salt-nonce={salt_nonce}"
+        )
     safe_version = Safe(safe_contract_address, ethereum_client).retrieve_version()
-    print_formatted_text(
-        f"Safe-master-copy={safe_contract_address} version={safe_version}\n"
-        f"Fallback-handler={fallback_handler}\n"
-        f"Proxy factory={proxy_factory_address}"
-    )
-    if yes_or_no_question("Do you want to continue?"):
+    if not args.quiet:
+        print_formatted_text(
+            f"Safe-master-copy={safe_contract_address} version={safe_version}\n"
+            f"Fallback-handler={fallback_handler}\n"
+            f"Proxy factory={proxy_factory_address}"
+        )
+    if args.only_generate or yes_or_no_question("Do you want to continue?"):
         safe_contract = get_safe_V1_4_1_contract(
             ethereum_client.w3, safe_contract_address
         )
@@ -214,7 +230,13 @@ def main(*args, **kwargs) -> EthereumTxSent:
             print_formatted_text(f"Safe on {expected_safe_address} is already deployed")
             sys.exit(1)
 
-        if yes_or_no_question(
+        if args.only_generate:
+            if args.quiet:
+                print_formatted_text(expected_safe_address)
+            else:
+                print_formatted_text(f"Safe will be deployed on {expected_safe_address}")
+            sys.exit(0)
+        elif yes_or_no_question(
             f"Safe will be deployed on {expected_safe_address}, looks good?"
         ):
             ethereum_tx_sent = proxy_factory.deploy_proxy_contract_with_nonce(
