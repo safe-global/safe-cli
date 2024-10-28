@@ -1,9 +1,8 @@
 from unittest import mock
 
 from eth_account import Account
-
-from gnosis.eth import EthereumClient, EthereumNetwork
-from gnosis.safe.tests.safe_test_case import SafeTestCaseMixin
+from safe_eth.eth import EthereumClient, EthereumNetwork
+from safe_eth.safe.tests.safe_test_case import SafeTestCaseMixin
 
 from safe_cli.operators import SafeOperator, SafeOperatorMode, SafeTxServiceOperator
 

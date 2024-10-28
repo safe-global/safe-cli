@@ -13,11 +13,10 @@ from ledgereth.exceptions import (
     LedgerNotFound,
 )
 from ledgereth.objects import LedgerAccount, SignedMessage, SignedTransaction
-
-from gnosis.eth.eip712 import eip712_encode
-from gnosis.safe import SafeTx
-from gnosis.safe.signatures import signature_split
-from gnosis.safe.tests.safe_test_case import SafeTestCaseMixin
+from safe_eth.eth.eip712 import eip712_encode
+from safe_eth.safe import SafeTx
+from safe_eth.safe.signatures import signature_split
+from safe_eth.safe.tests.safe_test_case import SafeTestCaseMixin
 
 from safe_cli.operators.exceptions import HardwareWalletException
 from safe_cli.operators.hw_wallets.ledger_wallet import LedgerWallet

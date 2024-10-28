@@ -3,9 +3,8 @@ from typing import List, Optional
 
 from eth_typing import ChecksumAddress
 from prompt_toolkit import HTML, print_formatted_text
-
-from gnosis.eth import EthereumClient
-from gnosis.safe.api import TransactionServiceApi
+from safe_eth.eth import EthereumClient
+from safe_eth.safe.api import TransactionServiceApi
 
 
 def get_erc_20_list(
