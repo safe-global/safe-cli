@@ -1,7 +1,6 @@
 [![PyPI version](https://badge.fury.io/py/safe-cli.svg)](https://badge.fury.io/py/safe-cli)
 [![Build Status](https://github.com/safe-global/safe-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/safe-global/safe-cli/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/safe-global/safe-cli/badge.svg?branch=main)](https://coveralls.io/github/safe-global/safe-cli?branch=main)
-![Python 3.9](https://img.shields.io/badge/Python-3.9-blue.svg)
 ![Python 3.10](https://img.shields.io/badge/Python-3.10-blue.svg)
 ![Python 3.11](https://img.shields.io/badge/Python-3.11-blue.svg)
 ![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)
@@ -30,7 +29,7 @@ docker run -it safeglobal/safe-cli safe-cli <checksummed_safe_address> <ethereum
 
 ## Using Python PIP
 
-**Prerequisite:** [Python](https://www.python.org/downloads/) >= 3.9 (Python 3.12 is recommended).
+**Prerequisite:** [Python](https://www.python.org/downloads/) >= 3.10 (Python 3.12 is recommended).
 
 Once Python is installed on your system, run the following command to install Safe CLI:
 ```bash
