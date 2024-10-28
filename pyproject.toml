@@ -27,7 +27,7 @@ dependencies = [
     "prompt_toolkit>=3",
     "pygments>=2",
     "requests>=2",
-    "safe-eth-py==6.0.0b40",
+    "safe-eth-py>=6.0.0b41",
     "tabulate>=0.8",
     "typer==0.12.3",
 ]
