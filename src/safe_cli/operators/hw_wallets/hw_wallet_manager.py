@@ -5,16 +5,15 @@ from typing import Dict, List, Optional, Set, Tuple
 from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text
-from web3.types import TxParams, Wei
-
-from gnosis.eth import TxSpeed
-from gnosis.eth.eip712 import eip712_encode, eip712_encode_hash
-from gnosis.safe import SafeTx
-from gnosis.safe.safe_signature import (
+from safe_eth.eth import TxSpeed
+from safe_eth.eth.eip712 import eip712_encode, eip712_encode_hash
+from safe_eth.safe import SafeTx
+from safe_eth.safe.safe_signature import (
     SafeSignature,
     SafeSignatureEOA,
     SafeSignatureEthSign,
 )
+from web3.types import TxParams, Wei
 
 from .hw_wallet import HwWallet
 

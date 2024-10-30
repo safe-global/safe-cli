@@ -3,10 +3,10 @@ colorama==0.4.6
 hexbytes==0.3.1
 ledgereth==0.9.1
 packaging>=23.1
-prompt_toolkit==3.0.47
+prompt_toolkit==3.0.48
 pygments==2.18.0
 requests==2.32.3
-safe-eth-py==6.0.0b35
+safe-eth-py==6.0.0b41
 tabulate==0.9.0
 trezor==0.13.9
 typer==0.12.5

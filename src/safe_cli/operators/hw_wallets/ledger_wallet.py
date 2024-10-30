@@ -6,9 +6,8 @@ from ledgerblue.Dongle import Dongle
 from ledgereth import create_transaction, sign_message, sign_typed_data_draft
 from ledgereth.accounts import get_account_by_path
 from ledgereth.comms import init_dongle
+from safe_eth.safe.signatures import signature_to_bytes
 from web3.types import TxParams
-
-from gnosis.safe.signatures import signature_to_bytes
 
 from .hw_wallet import HwWallet
 from .ledger_exceptions import raise_ledger_exception_as_hw_wallet_exception
