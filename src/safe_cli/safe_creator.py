@@ -106,7 +106,7 @@ def setup_argument_parser():
         action="store_true",
     )
     parser.add_argument(
-        "--only-generate",
+        "--dry-run",
         help="Only generate the projected Safe address, do not actually create it",
         default=False,
         action="store_true",
@@ -173,20 +173,21 @@ def main(*args, **kwargs) -> EthereumTxSent:
         )
         sys.exit(1)
 
-    account_balance: int = ethereum_client.get_balance(account.address)
-    if not account_balance:
-        print_formatted_text(
-            "Client does not have any funds. Let's try anyway in case it's a network without gas costs"
-        )
-    else:
-        ether_account_balance = round(
-            ethereum_client.w3.from_wei(account_balance, "ether"), 6
-        )
-        if not args.quiet:
+    if not args.dry_run:
+        account_balance: int = ethereum_client.get_balance(account.address)
+        if not account_balance:
             print_formatted_text(
-                f"Network {ethereum_client.get_network().name} - Sender {account.address} - "
-                f"Balance: {ether_account_balance}Ξ"
+                "Client does not have any funds. Let's try anyway in case it's a network without gas costs"
             )
+        else:
+            ether_account_balance = round(
+                ethereum_client.w3.from_wei(account_balance, "ether"), 6
+            )
+            if not args.quiet:
+                print_formatted_text(
+                    f"Network {ethereum_client.get_network().name} - Sender {account.address} - "
+                    f"Balance: {ether_account_balance}Ξ"
+                )
 
     if not ethereum_client.w3.eth.get_code(
         safe_contract_address
@@ -205,7 +206,7 @@ def main(*args, **kwargs) -> EthereumTxSent:
             f"Fallback-handler={fallback_handler}\n"
             f"Proxy factory={proxy_factory_address}"
         )
-    if args.only_generate or yes_or_no_question("Do you want to continue?"):
+    if args.dry_run or yes_or_no_question("Do you want to continue?"):
         safe_contract = get_safe_V1_4_1_contract(
             ethereum_client.w3, safe_contract_address
         )
@@ -230,7 +231,7 @@ def main(*args, **kwargs) -> EthereumTxSent:
             print_formatted_text(f"Safe on {expected_safe_address} is already deployed")
             sys.exit(1)
 
-        if args.only_generate:
+        if args.dry_run:
             if args.quiet:
                 print_formatted_text(expected_safe_address)
             else:
