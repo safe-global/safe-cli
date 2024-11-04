@@ -31,7 +31,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-ledger = ["ledgereth==0.9.1"]
+ledger = ["ledgereth==0.10.0"]
 trezor = ["trezor==0.13.9"]
 
 [project.scripts]
