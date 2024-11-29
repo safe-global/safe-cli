@@ -726,9 +726,10 @@ class SafeOperator:
             fallback_handler = safe_deployments["1.3.0"][
                 "CompatibilityFallbackHandler"
             ][str(chain_id)]
+            # Assuming first element of the array is the `canonical` address
             data = HexBytes(
                 l2_migration_contract.functions.migrateFromV111(
-                    safe_l2_singleton, fallback_handler
+                    safe_l2_singleton[0], fallback_handler[0]
                 ).build_transaction(get_empty_tx_params())["data"]
             )
         elif safe_version in ("1.3.0", "1.4.1"):
@@ -738,7 +739,7 @@ class SafeOperator:
             fallback_handler = self.safe_cli_info.fallback_handler
             data = HexBytes(
                 l2_migration_contract.functions.migrateToL2(
-                    safe_l2_singleton
+                    safe_l2_singleton[0]
                 ).build_transaction(get_empty_tx_params())["data"]
             )
         else:
