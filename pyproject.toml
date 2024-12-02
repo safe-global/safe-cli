@@ -27,7 +27,7 @@ dependencies = [
     "requests>=2",
     "safe-eth-py>=6.0.0b41",
     "tabulate>=0.8",
-    "typer==0.13.1",
+    "typer==0.14.0",
 ]
 
 [project.optional-dependencies]
