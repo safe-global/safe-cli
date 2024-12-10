@@ -371,9 +371,9 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
             "safe_cli.operators.safe_operator.safe_deployments",
             {
                 "1.3.0": {
-                    "GnosisSafeL2": {"1337": self.safe_contract_V1_3_0.address},
+                    "GnosisSafeL2": {"1337": [self.safe_contract_V1_3_0.address]},
                     "CompatibilityFallbackHandler": {
-                        "1337": self.compatibility_fallback_handler.address
+                        "1337": [self.compatibility_fallback_handler.address]
                     },
                 }
             },
@@ -404,7 +404,7 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
             "safe_cli.operators.safe_operator.safe_deployments",
             {
                 "1.3.0": {
-                    "GnosisSafeL2": {"1337": safe_contract_l2_130_address},
+                    "GnosisSafeL2": {"1337": [safe_contract_l2_130_address]},
                 }
             },
         ):
