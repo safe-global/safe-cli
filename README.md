@@ -51,7 +51,7 @@ usage:
  safe-cli --history 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
  safe-cli --history --get-safes-from-owner 0x0000000000000000000000000000000000000000 https://sepolia.drpc.org
 
- safe-cli send-ether 0xsafeaddress https://sepolia.drpc.org 0xtoaddress wei-amount --private-key key1 --private-key key1 --private-key keyN [--non-interactive]
+ safe-cli send-ether 0xsafeaddress https://sepolia.drpc.org 0xtoaddress wei-amount --private-key key1 --private-key key2 --private-key keyN [--non-interactive]
  safe-cli send-erc721 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres id --private-key key1 --private-key key2 --private-key keyN [--non-interactive]
  safe-cli send-erc20 0xsafeaddress https://sepolia.drpc.org 0xtoaddress 0xtokenaddres wei-amount --private-key key1 --private-key key2 --private-key keyN [--non-interactive]
  safe-cli send-custom 0xsafeaddress https://sepolia.drpc.org 0xtoaddress value 0xtxdata --private-key key1 --private-key key2 --private-key keyN [--non-interactive]
@@ -135,7 +135,7 @@ options:
 - [Safe Infrastructure](https://github.com/safe-global/safe-infrastructure)
 - [Safe Transaction Service](https://github.com/safe-global/safe-transaction-service)
 - [Safe Smart Account](https://github.com/safe-global/safe-smart-account)
-- [Safe Smart Account deployment info and addreses](https://github.com/safe-global/safe-deployments/tree/main/src/assets)
+- [Safe Smart Account deployment info and addresses](https://github.com/safe-global/safe-deployments/tree/main/src/assets)
 
 ## Setting up for developing
 
