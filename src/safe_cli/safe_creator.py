@@ -33,7 +33,7 @@ from .argparse_validators import (
 
 def get_usage_msg():
     return """
-        safe-creator [-h] [-v] [--threshold THRESHOLD] [--owners OWNERS [OWNERS ...]] [--safe-contract SAFE_CONTRACT] [--proxy-factory PROXY_FACTORY] [--callback-handler CALLBACK_HANDLER] [--salt-nonce SALT_NONCE] [--without-events] node_url private_key
+        safe-creator [-h] [-v] [--threshold THRESHOLD] [--owners OWNERS [OWNERS ...]] [--safe-contract SAFE_CONTRACT] [--proxy-factory PROXY_FACTORY] [--callback-handler CALLBACK_HANDLER] [--salt-nonce SALT_NONCE] [--without-events] [--generate-vanity-addresses] node_url private_key
 
         Example:
             safe-creator https://sepolia.drpc.org 0000000000000000000000000000000000000000000000000000000000000000
@@ -99,13 +99,22 @@ def setup_argument_parser():
         default=False,
         action="store_true",
     )
+
+    parser.add_argument(
+        "--generate-vanity-addresses",
+        help="Don't deploy the Safe, only generate addresses",
+        default=False,
+        action="store_true",
+    )
+
     return parser
 
 
 def main(*args, **kwargs) -> EthereumTxSent:
+    print_formatted_text(text2art("Safe Creator"))  # Print fancy text
+
     parser = setup_argument_parser()
     args = parser.parse_args()
-    print_formatted_text(text2art("Safe Creator"))  # Print fancy text
     node_url: URI = args.node_url
     account: LocalAccount = Account.from_key(args.private_key)
     owners: List[str] = args.owners if args.owners else [account.address]
