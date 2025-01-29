@@ -40,7 +40,6 @@ def get_epilog_msg():
 
 def setup_argument_parser():
     parser = argparse.ArgumentParser(description=get_epilog_msg())
-    # parser = argparse.ArgumentParser(usage=get_usage_msg())
     parser.add_argument(
         "-v",
         "--version",
@@ -243,7 +242,7 @@ def main(*args, **kwargs) -> EthereumTxSent | None:
                 sys.exit(1)
 
             if yes_or_no(
-                f"Safe will be deployed on {expected_safe_address}, looks good?"
+                f"Safe will be deployed on {expected_safe_address}, would you like to proceed?"
             ):
                 ethereum_tx_sent = proxy_factory.deploy_proxy_contract_with_nonce(
                     account, safe_contract_address, safe_creation_tx_data, salt_nonce
