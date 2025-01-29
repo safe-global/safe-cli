@@ -20,14 +20,17 @@ class TestSafeCreator(SafeCliTestCaseMixin, unittest.TestCase):
         owners = [Account.create().address]
         threshold = 1
         mock_parse_args.return_value = argparse.Namespace(
+            node_url=self.ethereum_node_url,
+            private_key=owner_account.key.hex(),
+            no_confirm=False,
             owners=owners,
             threshold=threshold,
             salt_nonce=4815,
-            node_url=self.ethereum_node_url,
-            private_key=owner_account.key.hex(),
             safe_contract=self.safe_contract.address,
             proxy_factory=self.proxy_factory_contract.address,
             callback_handler=self.compatibility_fallback_handler.address,
+            without_events=False,
+            generate_vanity_addresses=False,
         )
 
         safe_address = main().contract_address

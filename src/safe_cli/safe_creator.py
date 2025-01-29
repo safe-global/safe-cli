@@ -31,17 +31,16 @@ from .argparse_validators import (
 )
 
 
-def get_usage_msg():
+def get_epilog_msg():
     return """
-        safe-creator [-h] [-v] [--threshold THRESHOLD] [--owners OWNERS [OWNERS ...]] [--safe-contract SAFE_CONTRACT] [--proxy-factory PROXY_FACTORY] [--callback-handler CALLBACK_HANDLER] [--salt-nonce SALT_NONCE] [--without-events] [--generate-vanity-addresses] node_url private_key
-
         Example:
             safe-creator https://sepolia.drpc.org 0000000000000000000000000000000000000000000000000000000000000000
     """
 
 
 def setup_argument_parser():
-    parser = argparse.ArgumentParser(usage=get_usage_msg())
+    parser = argparse.ArgumentParser(description=get_epilog_msg())
+    # parser = argparse.ArgumentParser(usage=get_usage_msg())
     parser.add_argument(
         "-v",
         "--version",
@@ -52,6 +51,12 @@ def setup_argument_parser():
     parser.add_argument("node_url", help="Ethereum node url")
     parser.add_argument(
         "private_key", help="Deployer private_key", type=check_private_key
+    )
+    parser.add_argument(
+        "--no-confirm",
+        help="Bypass any and all “Yes or no?” messages",
+        default=False,
+        action="store_true",
     )
     parser.add_argument(
         "--threshold",
@@ -92,14 +97,12 @@ def setup_argument_parser():
         default=secrets.randbits(256),
         type=int,
     )
-
     parser.add_argument(
         "--without-events",
         help="Use non events deployment of the Safe instead of the regular one. Recommended for mainnet to save gas costs when using the Safe",
         default=False,
         action="store_true",
     )
-
     parser.add_argument(
         "--generate-vanity-addresses",
         help="Don't deploy the Safe, only generate addresses",
@@ -110,16 +113,19 @@ def setup_argument_parser():
     return parser
 
 
-def main(*args, **kwargs) -> EthereumTxSent:
+def main(*args, **kwargs) -> EthereumTxSent | None:
     print_formatted_text(text2art("Safe Creator"))  # Print fancy text
 
     parser = setup_argument_parser()
     args = parser.parse_args()
     node_url: URI = args.node_url
     account: LocalAccount = Account.from_key(args.private_key)
+    no_confirm: bool = args.no_confirm
     owners: List[str] = args.owners if args.owners else [account.address]
     threshold: int = args.threshold
     salt_nonce: int = args.salt_nonce
+    without_events: bool = args.without_events
+    generate_vanity_addresses: bool = args.generate_vanity_addresses
     to = NULL_ADDRESS
     data = b""
     payment_token = NULL_ADDRESS
@@ -132,12 +138,17 @@ def main(*args, **kwargs) -> EthereumTxSent:
         )
         sys.exit(1)
 
+    def yes_or_no(prompt: str) -> bool:
+        if no_confirm:
+            return True
+        return yes_or_no_question(prompt)
+
     ethereum_client = EthereumClient(node_url)
     ethereum_network = ethereum_client.get_network()
 
     safe_contract_address = args.safe_contract or (
         get_safe_contract_address(ethereum_client)
-        if args.without_events
+        if without_events
         else get_safe_l2_contract_address(ethereum_client)
     )
     proxy_factory_address = args.proxy_factory or get_proxy_factory_address(
@@ -197,7 +208,7 @@ def main(*args, **kwargs) -> EthereumTxSent:
         f"Fallback-handler={fallback_handler}\n"
         f"Proxy factory={proxy_factory_address}"
     )
-    if yes_or_no_question("Do you want to continue?"):
+    if yes_or_no("Do you want to continue?"):
         safe_contract = get_safe_V1_4_1_contract(
             ethereum_client.w3, safe_contract_address
         )
@@ -215,22 +226,31 @@ def main(*args, **kwargs) -> EthereumTxSent:
         )
 
         proxy_factory = ProxyFactory(proxy_factory_address, ethereum_client)
-        expected_safe_address = proxy_factory.calculate_proxy_address(
-            safe_contract_address, safe_creation_tx_data, salt_nonce
-        )
-        if ethereum_client.is_contract(expected_safe_address):
-            print_formatted_text(f"Safe on {expected_safe_address} is already deployed")
-            sys.exit(1)
+        if generate_vanity_addresses:
+            for vanity_salt_nonce in range(2**256):
+                expected_safe_address = proxy_factory.calculate_proxy_address(
+                    safe_contract_address, safe_creation_tx_data, vanity_salt_nonce
+                )
+                print_formatted_text(f"{expected_safe_address} {vanity_salt_nonce}")
+        else:
+            expected_safe_address = proxy_factory.calculate_proxy_address(
+                safe_contract_address, safe_creation_tx_data, salt_nonce
+            )
+            if ethereum_client.is_contract(expected_safe_address):
+                print_formatted_text(
+                    f"Safe on {expected_safe_address} is already deployed"
+                )
+                sys.exit(1)
 
-        if yes_or_no_question(
-            f"Safe will be deployed on {expected_safe_address}, looks good?"
-        ):
-            ethereum_tx_sent = proxy_factory.deploy_proxy_contract_with_nonce(
-                account, safe_contract_address, safe_creation_tx_data, salt_nonce
-            )
-            print_formatted_text(
-                f"Sent tx with tx-hash={ethereum_tx_sent.tx_hash.hex()} "
-                f"Safe={ethereum_tx_sent.contract_address} is being created"
-            )
-            print_formatted_text(f"Tx parameters={ethereum_tx_sent.tx}")
-            return ethereum_tx_sent
+            if yes_or_no(
+                f"Safe will be deployed on {expected_safe_address}, looks good?"
+            ):
+                ethereum_tx_sent = proxy_factory.deploy_proxy_contract_with_nonce(
+                    account, safe_contract_address, safe_creation_tx_data, salt_nonce
+                )
+                print_formatted_text(
+                    f"Sent tx with tx-hash={ethereum_tx_sent.tx_hash.hex()} "
+                    f"Safe={ethereum_tx_sent.contract_address} is being created"
+                )
+                print_formatted_text(f"Tx parameters={ethereum_tx_sent.tx}")
+                return ethereum_tx_sent
