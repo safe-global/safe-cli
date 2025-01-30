@@ -98,13 +98,9 @@ It is possible to use the environment variable `SAFE_CLI_INTERACTIVE=0` to avoid
 ### Safe-Creator
 
 ```bash
+usage: safe-creator [-h] [-v] [--no-confirm] [--threshold THRESHOLD] [--owners OWNERS [OWNERS ...]] [--safe-contract SAFE_CONTRACT] [--proxy-factory PROXY_FACTORY] [--callback-handler CALLBACK_HANDLER] [--salt-nonce SALT_NONCE] [--without-events] [--generate-vanity-addresses] node_url private_key
 
-usage:
-        safe-creator [-h] [-v] [--threshold THRESHOLD] [--owners OWNERS [OWNERS ...]] [--safe-contract SAFE_CONTRACT] [--proxy-factory PROXY_FACTORY] [--callback-handler CALLBACK_HANDLER] [--salt-nonce SALT_NONCE] [--without-events] node_url private_key
-
-        Example:
-            safe-creator https://sepolia.drpc.org 0000000000000000000000000000000000000000000000000000000000000000
-
+Example: safe-creator https://sepolia.drpc.org 0000000000000000000000000000000000000000000000000000000000000000
 
 positional arguments:
   node_url              Ethereum node url
@@ -113,6 +109,7 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   -v, --version         Show program's version number and exit.
+  --no-confirm          Bypass any and all “Yes or no?” messages
   --threshold THRESHOLD
                         Number of owners required to execute transactions on the created Safe. It mustbe greater than 0 and less or equal than the number of owners
   --owners OWNERS [OWNERS ...]
@@ -126,8 +123,13 @@ options:
   --salt-nonce SALT_NONCE
                         Use a custom nonce for the deployment. Same nonce with same deployment configuration will lead to the same Safe address
   --without-events      Use non events deployment of the Safe instead of the regular one. Recommended for mainnet to save gas costs when using the Safe
+  --generate-vanity-addresses
+                        Don't deploy the Safe, only generate addresses
+```
 
-
+#### Generate vanity addresses
+```bash
+safe-creator https://sepolia.drpc.org $PRIVATE_KEY --generate-vanity-addresses --no-confirm
 ```
 
 ## Safe{Core} API/Protocol
