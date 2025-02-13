@@ -92,7 +92,7 @@ class HwWalletManager:
 
     def set_sender(self, hw_wallet_type: HwWalletType, derivation_path: str):
         """
-        Set a harware wallet as a sender to enable execute transaction from it.
+        Set a hardware wallet as a sender to enable execute transaction from it.
         :param hw_wallet_type:
         :param derivation_path:
         :return:

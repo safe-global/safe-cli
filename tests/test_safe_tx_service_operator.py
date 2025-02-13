@@ -179,7 +179,7 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         get_permitted_signers_mock.return_value = {
             list(safe_operator.accounts)[0].address
         }
-        # Now signatures must be submited
+        # Now signatures must be submitted
         self.assertTrue(safe_operator.submit_signatures(safe_tx_hash))
 
         # Cannot sign executed transactions
