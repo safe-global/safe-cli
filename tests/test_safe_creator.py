@@ -5,6 +5,7 @@ from unittest.mock import MagicMock
 
 from eth_account import Account
 from safe_eth.safe import Safe
+from safe_eth.util.util import to_0x_hex_str
 
 from safe_cli.safe_creator import main
 
@@ -21,7 +22,7 @@ class TestSafeCreator(SafeCliTestCaseMixin, unittest.TestCase):
         threshold = 1
         mock_parse_args.return_value = argparse.Namespace(
             node_url=self.ethereum_node_url,
-            private_key=owner_account.key.hex(),
+            private_key=to_0x_hex_str(owner_account.key),
             no_confirm=False,
             owners=owners,
             threshold=threshold,

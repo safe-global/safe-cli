@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 
 from eth_abi import encode as encode_abi
 from hexbytes import HexBytes
+from safe_eth.util.util import to_0x_hex_str
 from web3 import Web3
 
 from .exceptions import SoliditySyntaxError, TxBuilderEncodingError
@@ -223,7 +224,9 @@ def convert_to_proposed_transactions(
                 transaction.get("contractMethod"),
                 transaction.get("contractInputsValues"),
             )
-            data_value = encoded_data.hex() if encoded_data is not None else "0x"
+            data_value = (
+                to_0x_hex_str(encoded_data) if encoded_data is not None else "0x"
+            )
 
         proposed_transactions.append(
             SafeProposedTx(

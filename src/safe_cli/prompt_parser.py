@@ -4,6 +4,7 @@ import functools
 from prompt_toolkit import HTML, print_formatted_text
 from prompt_toolkit.formatted_text import html
 from safe_eth.safe.api import SafeAPIException
+from safe_eth.util.util import to_0x_hex_str
 
 from .argparse_validators import (
     check_ethereum_address,
@@ -76,7 +77,7 @@ def safe_exception(function):
         except HashAlreadyApproved as e:
             print_formatted_text(
                 HTML(
-                    f"<ansired>Transaction with safe-tx-hash {e.args[0].hex()} has already been approved by "
+                    f"<ansired>Transaction with safe-tx-hash {to_0x_hex_str(e.args[0])} has already been approved by "
                     f"owner {e.args[1]}</ansired>"
                 )
             )

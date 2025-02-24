@@ -8,6 +8,7 @@ from ledgereth.objects import LedgerAccount
 from safe_eth.eth import EthereumClient
 from safe_eth.safe import SafeTx
 from safe_eth.safe.api import SafeAPIException, TransactionServiceApi
+from safe_eth.util.util import to_0x_hex_str
 from web3 import Web3
 
 from safe_cli.operators import SafeOperatorMode, SafeTxServiceOperator
@@ -83,7 +84,7 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         expected_hash = safe_operator.safe_tx_service.create_delegate_message_hash(
             delegate_address
         )
-        expected_signature = signer.signHash(expected_hash)
+        expected_signature = signer.unsafe_sign_hash(expected_hash)
 
         self.assertTrue(
             safe_operator.add_delegate(delegate_address, label, signer.address)
@@ -107,7 +108,7 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         expected_hash = safe_operator.safe_tx_service.create_delegate_message_hash(
             delegate_address
         )
-        expected_signature = signer.signHash(expected_hash)
+        expected_signature = signer.unsafe_sign_hash(expected_hash)
 
         self.assertTrue(safe_operator.remove_delegate(delegate_address, signer.address))
 
@@ -144,7 +145,7 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         safe_tx_mock.proposer = signer.address
         self.assertTrue(safe_operator.remove_proposed_transaction(safe_tx_hash))
         remove_transaction_mock.assert_called_with(
-            safe_tx_hash.hex(), expected_signature
+            to_0x_hex_str(safe_tx_hash), expected_signature
         )
         # Different proposer should return False
         safe_tx_mock.proposer = Account.create().address

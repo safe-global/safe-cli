@@ -3,6 +3,7 @@ from unittest import mock
 from eth_account import Account
 from safe_eth.eth import EthereumClient, EthereumNetwork
 from safe_eth.safe.tests.safe_test_case import SafeTestCaseMixin
+from safe_eth.util.util import to_0x_hex_str
 
 from safe_cli.operators import SafeOperator, SafeOperatorMode, SafeTxServiceOperator
 
@@ -42,9 +43,9 @@ class SafeCliTestCaseMixin(SafeTestCaseMixin):
                 safe_operator = SafeTxServiceOperator(
                     safe.address, self.ethereum_node_url
                 )
-        safe_operator.load_cli_owners([self.ethereum_test_account.key.hex()])
+        safe_operator.load_cli_owners([to_0x_hex_str(self.ethereum_test_account.key)])
         for _ in range(number_owners - 1):
             account = Account.create()
             safe_operator.add_owner(account.address)
-            safe_operator.load_cli_owners([account.key.hex()])
+            safe_operator.load_cli_owners([to_0x_hex_str(account.key)])
         return safe_operator

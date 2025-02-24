@@ -87,7 +87,7 @@ class TrezorWallet(HwWallet):
                 max_priority_fee=tx_parameters.get("maxPriorityFeePerGas"),
             )
 
-            encoded_transaction = (
+            encoded_transaction = HexBytes(
                 "0x02"
                 + rlp.encode(
                     [
@@ -132,9 +132,9 @@ class TrezorWallet(HwWallet):
                     HexBytes(r),
                     HexBytes(s),
                 ]
-            ).hex()
+            )
 
-        return HexBytes(encoded_transaction)
+        return encoded_transaction
 
     @raise_trezor_exception_as_hw_wallet_exception
     def sign_message(self, message: bytes) -> bytes:

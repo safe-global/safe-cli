@@ -18,6 +18,7 @@ from safe_eth.safe.api.transaction_service_api.transaction_service_messages impo
 from safe_eth.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 from safe_eth.safe.safe_signature import SafeSignature
 from safe_eth.safe.signatures import signature_to_bytes
+from safe_eth.util.util import to_0x_hex_str
 from tabulate import tabulate
 
 from ..utils import get_input, yes_or_no_question
@@ -61,7 +62,7 @@ class SafeTxServiceOperator(SafeOperator):
         # Safe transaction service just accept one signer to create a message
         signature = b""
         if eoa_signers:
-            signature_dict = eoa_signers[0].signHash(safe_message_hash)
+            signature_dict = eoa_signers[0].unsafe_sign_hash(safe_message_hash)
             signature = signature_to_bytes(
                 signature_dict["v"], signature_dict["r"], signature_dict["s"]
             )
@@ -80,7 +81,7 @@ class SafeTxServiceOperator(SafeOperator):
         if self.safe_tx_service.post_message(self.address, message, signature):
             print_formatted_text(
                 HTML(
-                    f"<ansigreen>Message  with safe-message-hash {safe_message_hash.hex()} was correctly created on Safe Transaction Service</ansigreen>"
+                    f"<ansigreen>Message  with safe-message-hash {to_0x_hex_str(safe_message_hash)} was correctly created on Safe Transaction Service</ansigreen>"
                 )
             )
             return True
@@ -99,7 +100,7 @@ class SafeTxServiceOperator(SafeOperator):
         except SafeAPIException:
             print_formatted_text(
                 HTML(
-                    f"<ansired>Message with hash {safe_message_hash.hex()} does not exist</ansired>"
+                    f"<ansired>Message with hash {to_0x_hex_str(safe_message_hash)} does not exist</ansired>"
                 )
             )
         if not yes_or_no_question(
@@ -114,7 +115,7 @@ class SafeTxServiceOperator(SafeOperator):
             )
 
         if isinstance(signer, LocalAccount):
-            signature = signer.signHash(safe_message_hash).signature
+            signature = signer.unsafe_sign_hash(safe_message_hash).signature
         else:
             signature = SafeSignature.export_signatures(
                 self.hw_wallet_manager.sign_message(safe_message_hash, [signer])
@@ -129,7 +130,7 @@ class SafeTxServiceOperator(SafeOperator):
             return False
         print_formatted_text(
             HTML(
-                f"<ansigreen>Message with safe-message-hash {safe_message_hash.hex()} was correctly confirmed on Safe Transaction Service</ansigreen>"
+                f"<ansigreen>Message with safe-message-hash {to_0x_hex_str(safe_message_hash)} was correctly confirmed on Safe Transaction Service</ansigreen>"
             )
         )
         return True
@@ -158,7 +159,7 @@ class SafeTxServiceOperator(SafeOperator):
                 hash_to_sign = self.safe_tx_service.create_delegate_message_hash(
                     delegate_address
                 )
-                signature = signer_account.signHash(hash_to_sign)
+                signature = signer_account.unsafe_sign_hash(hash_to_sign)
                 self.safe_tx_service.add_delegate(
                     delegate_address,
                     signer_account.address,
@@ -184,7 +185,7 @@ class SafeTxServiceOperator(SafeOperator):
                 hash_to_sign = self.safe_tx_service.create_delegate_message_hash(
                     delegate_address
                 )
-                signature = signer_account.signHash(hash_to_sign)
+                signature = signer_account.unsafe_sign_hash(hash_to_sign)
                 self.safe_tx_service.remove_delegate(
                     delegate_address,
                     signer_account.address,
@@ -207,8 +208,8 @@ class SafeTxServiceOperator(SafeOperator):
         if tx_hash:
             print_formatted_text(
                 HTML(
-                    f"<ansired>Tx with safe-tx-hash {safe_tx_hash.hex()} "
-                    f"has already been executed on {tx_hash.hex()}</ansired>"
+                    f"<ansired>Tx with safe-tx-hash {to_0x_hex_str(safe_tx_hash)} "
+                    f"has already been executed on {to_0x_hex_str(tx_hash)}</ansired>"
                 )
             )
         else:
@@ -301,8 +302,8 @@ class SafeTxServiceOperator(SafeOperator):
         if tx_hash:
             print_formatted_text(
                 HTML(
-                    f"<ansired>Tx with safe-tx-hash {safe_tx_hash.hex()} "
-                    f"has already been executed on {tx_hash.hex()}</ansired>"
+                    f"<ansired>Tx with safe-tx-hash {to_0x_hex_str(safe_tx_hash)} "
+                    f"has already been executed on {to_0x_hex_str(tx_hash)}</ansired>"
                 )
             )
         elif len(safe_tx.signers) < self.safe_cli_info.threshold:
@@ -391,7 +392,7 @@ class SafeTxServiceOperator(SafeOperator):
 
     def post_transaction_to_tx_service(self, safe_tx: SafeTx) -> bool:
         if not yes_or_no_question(
-            f"Do you want to send the tx with safe-tx-hash={safe_tx.safe_tx_hash.hex()} to Safe Transaction Service (it will not be executed) "
+            f"Do you want to send the tx with safe-tx-hash={to_0x_hex_str(safe_tx.safe_tx_hash)} to Safe Transaction Service (it will not be executed) "
             + str(safe_tx)
         ):
             return False
@@ -399,7 +400,7 @@ class SafeTxServiceOperator(SafeOperator):
         self.safe_tx_service.post_transaction(safe_tx)
         print_formatted_text(
             HTML(
-                f"<ansigreen>Tx with safe-tx-hash={safe_tx.safe_tx_hash.hex()} was sent to Safe Transaction service</ansigreen>"
+                f"<ansigreen>Tx with safe-tx-hash={to_0x_hex_str(safe_tx.safe_tx_hash)} was sent to Safe Transaction service</ansigreen>"
             )
         )
         return True
@@ -492,7 +493,7 @@ class SafeTxServiceOperator(SafeOperator):
                 return False
 
             if isinstance(signer, LocalAccount):
-                signature = signer.signHash(message_hash).signature
+                signature = signer.unsafe_sign_hash(message_hash).signature
             else:
                 signature = self.hw_wallet_manager.sign_eip712(
                     eip712_message, [signer]
@@ -509,14 +510,16 @@ class SafeTxServiceOperator(SafeOperator):
                 )
 
             if not yes_or_no_question(
-                f"Do you want to remove the tx with safe-tx-hash={safe_tx.safe_tx_hash.hex()}"
+                f"Do you want to remove the tx with safe-tx-hash={to_0x_hex_str(safe_tx.safe_tx_hash)}"
             ):
                 return False
 
-            self.safe_tx_service.delete_transaction(safe_tx_hash.hex(), signature.hex())
+            self.safe_tx_service.delete_transaction(
+                to_0x_hex_str(safe_tx_hash), to_0x_hex_str(signature)
+            )
             print_formatted_text(
                 HTML(
-                    f"<ansigreen>Transaction {safe_tx_hash.hex()} was removed correctly</ansigreen>"
+                    f"<ansigreen>Transaction {to_0x_hex_str(safe_tx_hash)} was removed correctly</ansigreen>"
                 )
             )
             return True

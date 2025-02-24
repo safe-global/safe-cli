@@ -17,15 +17,16 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 dependencies = [
     "art>=6",
     "colorama>=0.4",
-    "hexbytes>=0.2.3,<0.4.0",
+    "hexbytes>1",
     "prompt_toolkit>=3",
     "pygments>=2",
     "requests>=2",
-    "safe-eth-py>=6.0.0b43",
+    "safe-eth-py>=7",
     "tabulate>=0.8",
     "typer>=0.14.0",
 ]

@@ -242,7 +242,7 @@ class Testledger_wallet(SafeTestCaseMixin, unittest.TestCase):
         raw_signed_tx = ledger_wallet.get_signed_raw_transaction(
             safe_tx.tx, safe_tx.ethereum_client.get_chain_id()
         )  # return raw signed transaction
-        self.assertEqual(signed_fields.rawTransaction, HexBytes(raw_signed_tx))
+        self.assertEqual(signed_fields.raw_transaction, HexBytes(raw_signed_tx))
 
     @mock.patch(
         "safe_cli.operators.hw_wallets.ledger_wallet.sign_message",

@@ -14,6 +14,7 @@ from safe_eth.eth import EthereumClient, EthereumTxSent
 from safe_eth.eth.constants import NULL_ADDRESS
 from safe_eth.eth.contracts import get_safe_V1_4_1_contract
 from safe_eth.safe import ProxyFactory, Safe
+from safe_eth.util.util import to_0x_hex_str
 
 from safe_cli.safe_addresses import (
     get_default_fallback_handler_address,
@@ -248,7 +249,7 @@ def main(*args, **kwargs) -> EthereumTxSent | None:
                     account, safe_contract_address, safe_creation_tx_data, salt_nonce
                 )
                 print_formatted_text(
-                    f"Sent tx with tx-hash={ethereum_tx_sent.tx_hash.hex()} "
+                    f"Sent tx with tx-hash={to_0x_hex_str(ethereum_tx_sent.tx_hash)} "
                     f"Safe={ethereum_tx_sent.contract_address} is being created"
                 )
                 print_formatted_text(f"Tx parameters={ethereum_tx_sent.tx}")
