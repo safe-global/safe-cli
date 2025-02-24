@@ -2,6 +2,7 @@ import unittest
 
 from eth_account import Account
 from safe_eth.safe import Safe
+from safe_eth.util.util import to_0x_hex_str
 from web3 import Web3
 
 from safe_cli.operators import SafeCliTerminationException
@@ -27,7 +28,7 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
 
         self.assertEqual(safe_operator.accounts, set())
         prompt_parser.process_command(
-            f"load_cli_owners {self.ethereum_test_account.key.hex()}"
+            f"load_cli_owners {to_0x_hex_str(self.ethereum_test_account.key)}"
         )
         self.assertEqual(safe_operator.default_sender, self.ethereum_test_account)
         self.assertEqual(safe_operator.accounts, {self.ethereum_test_account})
@@ -38,7 +39,9 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         self.assertEqual(self.ethereum_client.get_balance(random_address), 0)
 
         value = 123
-        prompt_parser.process_command(f"load_cli_owners {accounts[1].key.hex()}")
+        prompt_parser.process_command(
+            f"load_cli_owners {to_0x_hex_str(accounts[1].key)}"
+        )
         prompt_parser.process_command(f"send_ether {random_address} {value}")
         self.assertEqual(self.ethereum_client.get_balance(random_address), value)
 
@@ -57,7 +60,7 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
             )
         )
         prompt_parser.process_command(
-            f"approve_hash {safe_tx_hash.hex()} {accounts[0].address}"
+            f"approve_hash {to_0x_hex_str(safe_tx_hash)} {accounts[0].address}"
         )
         self.assertTrue(
             safe_operator.safe.retrieve_is_hash_approved(

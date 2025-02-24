@@ -13,6 +13,7 @@ from safe_eth.safe.safe_signature import (
     SafeSignatureEOA,
     SafeSignatureEthSign,
 )
+from safe_eth.util.util import to_0x_hex_str
 from web3.types import TxParams, Wei
 
 from .hw_wallet import HwWallet
@@ -136,8 +137,12 @@ class HwWalletManager:
                     f"<ansired>Make sure before signing in your {wallet} that the domain_hash and message_hash are both correct</ansired>"
                 )
             )
-            print_formatted_text(HTML(f"Domain_hash: <b>{domain_hash.hex()}</b>"))
-            print_formatted_text(HTML(f"Message_hash: <b>{message_hash.hex()}</b>"))
+            print_formatted_text(
+                HTML(f"Domain_hash: <b>{to_0x_hex_str(domain_hash)}</b>")
+            )
+            print_formatted_text(
+                HTML(f"Message_hash: <b>{to_0x_hex_str(message_hash)}</b>")
+            )
             signature = wallet.sign_typed_hash(domain_hash, message_hash)
             safe_signatures.append(SafeSignatureEOA(signature, eip712_message_hash))
 

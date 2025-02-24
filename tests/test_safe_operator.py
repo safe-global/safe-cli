@@ -12,6 +12,7 @@ from safe_eth.eth import EthereumClient
 from safe_eth.eth.eip712 import eip712_encode
 from safe_eth.safe import Safe
 from safe_eth.safe.multi_send import MultiSend
+from safe_eth.util.util import to_0x_hex_str
 from web3 import Web3
 from web3.types import Wei
 
@@ -69,7 +70,9 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         random_address = Account.create().address
         safe_operator = SafeOperator(random_address, self.ethereum_node_url)
         random_accounts = [Account.create() for _ in range(3)]
-        random_accounts_keys = [account.key.hex() for account in random_accounts]
+        random_accounts_keys = [
+            to_0x_hex_str(account.key) for account in random_accounts
+        ]
         self.assertFalse(safe_operator.accounts)
         safe_operator.load_cli_owners(random_accounts_keys)
         self.assertEqual(len(safe_operator.accounts), len(random_accounts_keys))
@@ -77,7 +80,9 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         safe_operator.load_cli_owners(random_accounts_keys)
         self.assertEqual(len(safe_operator.accounts), len(random_accounts_keys))
         # Test invalid accounts don't make the method break
-        safe_operator.load_cli_owners(["aloha", Account.create().key.hex(), "bye"])
+        safe_operator.load_cli_owners(
+            ["aloha", to_0x_hex_str(Account.create().key), "bye"]
+        )
         self.assertEqual(len(safe_operator.accounts), len(random_accounts_keys) + 1)
         # TODO Test setting default sender, mock getBalance
 
@@ -230,7 +235,7 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         with self.assertRaises(NonExistingOwnerException):
             safe_operator.remove_owner(random_address)
 
-        safe_operator.load_cli_owners([self.ethereum_test_account.key.hex()])
+        safe_operator.load_cli_owners([to_0x_hex_str(self.ethereum_test_account.key)])
         new_owner = Account.create().address
         safe = Safe(safe_address, self.ethereum_client)
         self.assertTrue(safe_operator.add_owner(new_owner))

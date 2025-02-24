@@ -3,6 +3,7 @@ import unittest
 
 from eth_account import Account
 from hexbytes import HexBytes
+from safe_eth.util.util import to_0x_hex_str
 
 from safe_cli.argparse_validators import (
     check_ethereum_address,
@@ -35,7 +36,9 @@ class TestArgparseValidators(SafeCliTestCaseMixin, unittest.TestCase):
 
     def test_check_private_key(self):
         account = Account.create()
-        self.assertEqual(check_private_key(account.key.hex()), account.key.hex())
+        self.assertEqual(
+            check_private_key(to_0x_hex_str(account.key)), to_0x_hex_str(account.key)
+        )
 
         with self.assertRaises(argparse.ArgumentTypeError):
             check_private_key("Random")

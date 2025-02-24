@@ -1,13 +1,12 @@
 art==6.4
 colorama==0.4.6
-hexbytes==0.3.1
 ledgereth==0.10.0
-packaging>=23.1
+packaging>=24.2
 prompt_toolkit==3.0.50
 pygments==2.19.1
 requests==2.32.3
-safe-eth-py==6.3.0
+safe-eth-py==7.1.1
 tabulate==0.9.0
-trezor==0.13.9
+trezor==0.13.10
 typer==0.15.1
-web3==6.20.2
+web3==7.8.0

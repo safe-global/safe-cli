@@ -226,7 +226,7 @@ class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
             safe_tx.tx, safe_tx.ethereum_client.get_chain_id()
         )  # return raw signed transaction
         mock_sign_tx.assert_called_once()
-        self.assertEqual(signed_fields.rawTransaction, HexBytes(raw_signed_tx))
+        self.assertEqual(signed_fields.raw_transaction, HexBytes(raw_signed_tx))
 
         # EIP1559 transaction
         tx_parameters = {
@@ -250,7 +250,7 @@ class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
             safe_tx.tx, safe_tx.ethereum_client.get_chain_id()
         )  # return raw signed transaction
         mock_sign_tx_eip1559.assert_called_once()
-        self.assertEqual(signed_fields.rawTransaction, HexBytes(raw_signed_tx))
+        self.assertEqual(signed_fields.raw_transaction, HexBytes(raw_signed_tx))
 
     @mock.patch(
         "safe_cli.operators.hw_wallets.trezor_wallet.sign_message",

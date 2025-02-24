@@ -4,6 +4,7 @@ import typer
 from eth_account import Account
 from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
+from safe_eth.util.util import to_0x_hex_str
 
 from safe_cli.typer_validators import (
     ChecksumAddressParser,
@@ -26,7 +27,10 @@ class TestTyperValidators(unittest.TestCase):
 
     def test_check_private_keys(self):
         account = Account.create()
-        self.assertEqual(check_private_keys([account.key.hex()]), [account.key.hex()])
+        self.assertEqual(
+            check_private_keys([to_0x_hex_str(account.key)]),
+            [to_0x_hex_str(account.key)],
+        )
 
         with self.assertRaises(typer.BadParameter):
             check_private_keys(["Random"])

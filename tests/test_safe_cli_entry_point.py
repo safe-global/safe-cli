@@ -11,6 +11,7 @@ from safe_eth.eth.constants import NULL_ADDRESS
 from safe_eth.safe import Safe
 from safe_eth.safe.api import TransactionServiceApi
 from safe_eth.safe.safe import SafeInfo
+from safe_eth.util.util import to_0x_hex_str
 from typer.testing import CliRunner
 
 from safe_cli import VERSION
@@ -51,7 +52,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 random_address,
                 "20",
                 "--private-key",
-                safe_owner.key.hex(),
+                to_0x_hex_str(safe_owner.key),
             ],
         )
         exception, _, _ = result.exc_info
@@ -70,13 +71,13 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 random_address,
                 "20",
                 "--private-key",
-                safe_owner.key.hex(),
+                to_0x_hex_str(safe_owner.key),
             ],
         )
         self.assertEqual(result.exit_code, 0)
 
         # Test key from env
-        os.environ["random_key"] = safe_owner.key.hex()
+        os.environ["random_key"] = to_0x_hex_str(safe_owner.key)
         result = runner.invoke(
             app,
             [
@@ -102,7 +103,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 random_address,
                 "20",
                 "--private-key",
-                safe_owner.key.hex(),
+                to_0x_hex_str(safe_owner.key),
             ],
         )
         self.assertEqual(result.exit_code, 1)
@@ -116,7 +117,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 random_address,
                 "20",
                 "--private-key",
-                safe_owner.key.hex(),
+                to_0x_hex_str(safe_owner.key),
                 "--non-interactive",
             ],
         )
@@ -141,7 +142,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 random_token_address,
                 "20",
                 "--private-key",
-                safe_owner.key.hex(),
+                to_0x_hex_str(safe_owner.key),
             ],
         )
         exception, _, _ = result.exc_info
@@ -161,7 +162,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 random_token_address,
                 "20",
                 "--private-key",
-                safe_owner.key.hex(),
+                to_0x_hex_str(safe_owner.key),
             ],
         )
         self.assertEqual(result.exit_code, 0)
@@ -185,7 +186,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 random_token_address,
                 "1",
                 "--private-key",
-                safe_owner.key.hex(),
+                to_0x_hex_str(safe_owner.key),
             ],
         )
         exception, _, _ = result.exc_info
@@ -205,7 +206,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 random_token_address,
                 "1",
                 "--private-key",
-                safe_owner.key.hex(),
+                to_0x_hex_str(safe_owner.key),
             ],
         )
         self.assertEqual(result.exit_code, 0)
@@ -231,7 +232,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 "0",
                 data,
                 "--private-key",
-                safe_owner.key.hex(),
+                to_0x_hex_str(safe_owner.key),
             ],
         )
         exception, _, _ = result.exc_info
@@ -251,7 +252,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 "0",
                 data,
                 "--private-key",
-                safe_owner.key.hex(),
+                to_0x_hex_str(safe_owner.key),
             ],
         )
         self.assertEqual(result.exit_code, 0)
@@ -271,7 +272,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 "http://localhost:8545",
                 "tests/mocks/tx_builder/empty_txs.json",
                 "--private-key",
-                safe_owner.key.hex(),
+                to_0x_hex_str(safe_owner.key),
             ],
         )
         self.assertEqual(result.exit_code, 2)
@@ -285,7 +286,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 "http://localhost:8545",
                 "tests/mocks/tx_builder/single_tx.json",
                 "--private-key",
-                safe_owner.key.hex(),
+                to_0x_hex_str(safe_owner.key),
             ],
         )
         self.assertEqual(result.exit_code, 0)
@@ -299,7 +300,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 "http://localhost:8545",
                 "tests/mocks/tx_builder/batch_txs.json",
                 "--private-key",
-                safe_owner.key.hex(),
+                to_0x_hex_str(safe_owner.key),
                 "--non-interactive",
             ],
         )

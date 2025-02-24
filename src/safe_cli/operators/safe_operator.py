@@ -32,6 +32,7 @@ from safe_eth.safe import InvalidInternalTx, Safe, SafeOperationEnum, SafeTx
 from safe_eth.safe.api import TransactionServiceApi
 from safe_eth.safe.multi_send import MultiSend, MultiSendOperation, MultiSendTx
 from safe_eth.safe.safe_deployments import safe_deployments
+from safe_eth.util.util import to_0x_hex_str
 from web3 import Web3
 from web3.contract import Contract
 from web3.exceptions import BadFunctionCallOutput
@@ -250,7 +251,7 @@ class SafeOperator:
             for index in range(100):  # Try first accounts of seed phrase
                 account = get_account_from_words(parsed_words, index=index)
                 if account.address in self.safe_cli_info.owners:
-                    self.load_cli_owners([account.key.hex()])
+                    self.load_cli_owners([to_0x_hex_str(account.key)])
             if not index:
                 print_formatted_text(
                     HTML(
@@ -442,11 +443,11 @@ class SafeOperator:
                     transaction_to_send
                 )
                 tx_hash = self.ethereum_client.send_raw_transaction(
-                    signed_transaction["rawTransaction"]
+                    signed_transaction["raw_transaction"]
                 )
                 print_formatted_text(
                     HTML(
-                        f"<ansigreen>Sent tx with tx-hash {tx_hash.hex()} from owner "
+                        f"<ansigreen>Sent tx with tx-hash {to_0x_hex_str(tx_hash)} from owner "
                         f"{self.default_sender.address}, waiting for receipt</ansigreen>"
                     )
                 )
@@ -455,7 +456,7 @@ class SafeOperator:
                 else:
                     print_formatted_text(
                         HTML(
-                            f"<ansired>Tx with tx-hash {tx_hash.hex()} still not mined</ansired>"
+                            f"<ansired>Tx with tx-hash {to_0x_hex_str(tx_hash)} still not mined</ansired>"
                         )
                     )
                     return False
@@ -494,7 +495,9 @@ class SafeOperator:
             operation=SafeOperationEnum.DELEGATE_CALL,
         ):
             print_formatted_text(
-                HTML(f"Message was signed correctly: {safe_message_hash.hex()}")
+                HTML(
+                    f"Message was signed correctly: {to_0x_hex_str(safe_message_hash)}"
+                )
             )
 
     def confirm_message(self, safe_message_hash: bytes, sender: ChecksumAddress):
@@ -954,10 +957,10 @@ class SafeOperator:
                     tx_hash, tx = self.hw_wallet_manager.execute_safe_tx(
                         safe_tx, eip1559_speed=TxSpeed.NORMAL
                     )
-                self.executed_transactions.append(tx_hash.hex())
+                self.executed_transactions.append(to_0x_hex_str(tx_hash))
                 print_formatted_text(
                     HTML(
-                        f"<ansigreen>Sent tx with tx-hash {tx_hash.hex()} "
+                        f"<ansigreen>Sent tx with tx-hash {to_0x_hex_str(tx_hash)} "
                         f"and safe-nonce {safe_tx.safe_nonce}, waiting for receipt</ansigreen>"
                     )
                 )
@@ -981,7 +984,7 @@ class SafeOperator:
                 else:
                     print_formatted_text(
                         HTML(
-                            f"<ansired>Tx with tx-hash {tx_hash.hex()} still not mined</ansired>"
+                            f"<ansired>Tx with tx-hash {to_0x_hex_str(tx_hash)} still not mined</ansired>"
                         )
                     )
         except InvalidInternalTx as invalid_internal_tx:
