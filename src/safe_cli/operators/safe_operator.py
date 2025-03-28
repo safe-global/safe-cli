@@ -846,7 +846,7 @@ class SafeOperator:
             print_formatted_text(
                 HTML(
                     "<b><ansigreen>Ledger</ansigreen></b>="
-                    "<ansired>Disabled </ansired> <b>Optional ledger library is not installed, run pip install safe-cli[ledger] </b>"
+                    '<ansired>Disabled </ansired> <b>Optional ledger library is not installed, run pip install "safe-cli[ledger]" </b>'
                 )
             )
         else:
@@ -861,7 +861,7 @@ class SafeOperator:
             print_formatted_text(
                 HTML(
                     "<b><ansigreen>Trezor</ansigreen></b>="
-                    "<ansired>Disabled </ansired> <b>Optional trezor library is not installed, run pip install safe-cli[trezor] </b>"
+                    '<ansired>Disabled </ansired> <b>Optional trezor library is not installed, run pip install "safe-cli[trezor]" </b>'
                 )
             )
         else:
