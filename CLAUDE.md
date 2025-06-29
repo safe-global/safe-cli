@@ -1,0 +1,1 @@
+Instead of using `python` in the CLI, use `uv python` and let `uv` manage the Python version and dependencies. This ensures that the correct Python version and dependencies are used, as specified in the `pyproject.toml` file.
