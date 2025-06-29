@@ -1,15 +1,15 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
 name = "safe-cli"
-dynamic = ["version"]
+dynamic = [
+    "version",
+]
 description = "Command Line Interface for Safe"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.8"
-authors = [{ name = "Uxío Fuentefría", email = "uxio@safe.global" }]
+requires-python = ">=3.10" # Cannot use 3.8 & 3.9 due to dependency issues
+authors = [
+    { name = "Uxío Fuentefría", email = "uxio@safe.global" },
+]
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
@@ -31,9 +31,37 @@ dependencies = [
     "typer>=0.14.0",
 ]
 
+[build-system]
+requires = [
+    "hatchling",
+]
+build-backend = "hatchling.build"
+
+[tool.uv]
+managed = true
+package = true
+dev-dependencies = [
+    "coverage==7.8.0",
+    "flake8==7.2.0",
+    "pytest==8.3.5",
+    "pytest-sugar==1.0.0",
+    "hatch",
+    "ipdb",
+    "ipython",
+    "isort",
+    "pre-commit",
+    "ledgereth==0.10.0",
+    "trezor==0.13.10",
+
+]
+
 [project.optional-dependencies]
-ledger = ["ledgereth==0.10.0"]
-trezor = ["trezor==0.13.10"]
+ledger = [
+    "ledgereth==0.10.0",
+]
+trezor = [
+    "trezor==0.13.10",
+]
 
 [project.scripts]
 safe-cli = "safe_cli.main:main"
@@ -47,30 +75,45 @@ Homepage = "https://github.com/gnosis/safe-cli"
 path = "src/safe_cli/__init__.py"
 
 [tool.hatch.envs.types]
-extra-dependencies = ["mypy>=1.0.0"]
+extra-dependencies = [
+    "mypy>=1.0.0",
+]
 
 [tool.hatch.envs.types.scripts]
 check = "mypy --install-types --non-interactive {args:src/safe_cli tests}"
 
 [tool.hatch.build.targets.sdist]
-include = ["/src/safe_cli"]
+include = [
+    "/src/safe_cli",
+]
 
 [tool.hatch.build.targets.wheel]
-packages = ["/src/safe_cli"]
+packages = [
+    "/src/safe_cli",
+]
 
 [tool.coverage.run]
-source_pkgs = ["safe_cli", "tests"]
+source_pkgs = [
+    "safe_cli",
+    "tests",
+]
 branch = true
 parallel = true
 omit = [
     "*__init__.py*",
     "*tests*",
-    "*/migrations/*"
+    "*/migrations/*",
 ]
 
 [tool.coverage.paths]
-safe_cli = ["src/safe_cli", "*/safe-cli/src/safe_cli"]
-tests = ["tests", "*/safe-cli/tests"]
+safe_cli = [
+    "src/safe_cli",
+    "*/safe-cli/src/safe_cli",
+]
+tests = [
+    "tests",
+    "*/safe-cli/tests",
+]
 
 [tool.coverage.report]
 exclude_lines = [
@@ -86,7 +129,10 @@ exclude_lines = [
 profile = "black"
 default_section = "THIRDPARTY"
 known_first_party = "safe_cli"
-known_safe_foundation = ["py_eth_sig_utils", "gnosis"]
+known_safe_foundation = [
+    "py_eth_sig_utils",
+    "gnosis",
+]
 known_django = "django"
 sections = [
     "FUTURE",

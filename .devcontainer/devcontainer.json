@@ -1,0 +1,28 @@
+{
+    "name": "Safe-CLI DevContainer",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "features": {},
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "charliermarsh.ruff"
+            ],
+            "settings": {
+                "terminal.integrated.defaultProfile.linux": "zsh",
+                "terminal.integrated.profiles.linux": {
+                    "zsh": {
+                        "path": "/usr/bin/zsh"
+                    }
+                },
+                "python.terminal.activateEnvironment": true,
+                "python.defaultInterpreterPath": ".venv/bin/python"
+            }
+        }
+    },
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+    "workspaceFolder": "/workspace",
+    "postCreateCommand": "zsh -c 'uv venv && source .venv/bin/activate && uv sync --all-extras'"
+}
