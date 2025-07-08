@@ -29,7 +29,7 @@ class TestSafeCreator(SafeCliTestCaseMixin, unittest.TestCase):
             salt_nonce=4815,
             safe_contract=self.safe_contract.address,
             proxy_factory=self.proxy_factory_contract.address,
-            callback_handler=self.compatibility_fallback_handler.address,
+            callback_handler=self.compatibility_fallback_handler_V1_4_1.address,
             without_events=False,
             generate_vanity_addresses=False,
         )
@@ -41,7 +41,8 @@ class TestSafeCreator(SafeCliTestCaseMixin, unittest.TestCase):
         self.assertEqual(safe_info.threshold, 1)
         self.assertEqual(safe_info.master_copy, self.safe_contract.address)
         self.assertEqual(
-            safe_info.fallback_handler, self.compatibility_fallback_handler.address
+            safe_info.fallback_handler,
+            self.compatibility_fallback_handler_V1_4_1.address,
         )
 
         # If contract is deployed script should exit with code 1

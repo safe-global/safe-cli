@@ -26,7 +26,7 @@ class GetMultisigTxRequestMock:
                 if self.executed
                 else None
             ),
-            "safeTxHash": "0xeb5fa8e85dd530397172da07792c5d05dff9ffe5816fc0a260d672e924825b01",
+            "safeTxHash": "0xae1c18dd9fca652b83743fc0b0ac2d396c68d523b49f4d41af5b00dc2f995bf6",
             "proposer": None,
             "executor": "0x5aC255889882aCd3da2aA939679E3f3d4cea221e",
             "isExecuted": True,

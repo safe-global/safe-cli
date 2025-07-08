@@ -170,6 +170,14 @@ class SafeOperator:
             self.safe_tx_service = TransactionServiceApi.from_ethereum_client(
                 self.ethereum_client
             )
+            if not self.safe_tx_service.api_key:
+                print_formatted_text(
+                    HTML(
+                        "<ansired>To use tx-service mode, you must set the following environment variable with your API key. You can obtain your key from </ansired>"
+                        "<ansiblue>https://developer.safe.global/</ansiblue><ansired>.</ansired>"
+                    )
+                )
+
         except EthereumNetworkNotSupported:
             self.safe_tx_service = None
 
