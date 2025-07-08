@@ -342,7 +342,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
         )
         self.assertEqual(result.exit_code, 0)
 
-    @mock.patch.object(EthereumClient, "get_chain_id", return_value=5)
+    @mock.patch.object(EthereumClient, "get_chain_id", return_value=11155111)
     @mock.patch.object(TransactionServiceApi, "get_safes_for_owner")
     @mock.patch.object(Safe, "retrieve_all_info")
     def test_build_safe_cli_for_owner(
