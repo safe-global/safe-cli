@@ -38,7 +38,7 @@ class SafeCliTestCaseMixin(SafeTestCaseMixin):
             safe_operator = SafeOperator(safe.address, self.ethereum_node_url)
         else:
             with mock.patch.object(
-                EthereumClient, "get_network", return_value=EthereumNetwork.GOERLI
+                EthereumClient, "get_network", return_value=EthereumNetwork.SEPOLIA
             ):
                 safe_operator = SafeTxServiceOperator(
                     safe.address, self.ethereum_node_url

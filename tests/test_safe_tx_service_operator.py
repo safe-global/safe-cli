@@ -170,7 +170,7 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
         post_signatures_mock.return_value = None
 
         safe_tx_hash = HexBytes(
-            "0xeb5fa8e85dd530397172da07792c5d05dff9ffe5816fc0a260d672e924825b01"
+            "0xae1c18dd9fca652b83743fc0b0ac2d396c68d523b49f4d41af5b00dc2f995bf6"
         )
         safe_operator = self.setup_operator(
             number_owners=1, mode=SafeOperatorMode.TX_SERVICE
@@ -225,7 +225,7 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
             executed=False
         )
         safe_tx_hash = HexBytes(
-            "0xeb5fa8e85dd530397172da07792c5d05dff9ffe5816fc0a260d672e924825b01"
+            "0xae1c18dd9fca652b83743fc0b0ac2d396c68d523b49f4d41af5b00dc2f995bf6"
         )
         safe_nonce = 0
         safe_operator.batch_txs(safe_nonce, [safe_tx_hash])

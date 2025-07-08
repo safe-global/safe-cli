@@ -344,7 +344,7 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
     ):
         last_safe_contract_address_mock.return_value = self.safe_contract_V1_4_1.address
         last_default_fallback_handler_address.return_value = (
-            self.compatibility_fallback_handler.address
+            self.compatibility_fallback_handler_V1_4_1.address
         )
 
         safe_operator_v130 = self.setup_operator(version="1.3.0")
@@ -378,7 +378,7 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
                 "1.3.0": {
                     "GnosisSafeL2": {"1337": [self.safe_contract_V1_3_0.address]},
                     "CompatibilityFallbackHandler": {
-                        "1337": [self.compatibility_fallback_handler.address]
+                        "1337": [self.compatibility_fallback_handler_V1_3_0.address]
                     },
                 }
             },
@@ -391,7 +391,7 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
             )
             self.assertEqual(
                 safe_operator_v111.safe.retrieve_fallback_handler(),
-                self.compatibility_fallback_handler.address,
+                self.compatibility_fallback_handler_V1_3_0.address,
             )
 
     def test_update_to_l2_v130(self):

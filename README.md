@@ -95,6 +95,14 @@ safe-cli tx-builder 0xsafeaddress https://sepolia.drpc.org  ./path/to/exported/t
 
 It is possible to use the environment variable `SAFE_CLI_INTERACTIVE=0` to avoid user interactions. The `--non-interactive` option have more priority than environment variable.
 
+**Note:** To use tx-service mode, set your API key as follows:
+
+```bash
+export SAFE_TRANSACTION_SERVICE_API_KEY=your_api_key_here
+```
+You can obtain your API key from [https://developer.safe.global](https://developer.safe.global).
+
+
 ### Safe-Creator
 
 ```bash
