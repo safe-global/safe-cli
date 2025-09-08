@@ -2,7 +2,7 @@ art==6.5
 colorama==0.4.6
 ledgereth==0.10.0
 packaging>=24.2
-prompt_toolkit==3.0.51
+prompt_toolkit==3.0.52
 pygments==2.19.2
 requests==2.32.4
 safe-eth-py==7.6.1
