@@ -214,7 +214,7 @@ class SafeProposedTx:
 
 
 def convert_to_proposed_transactions(
-    batch_file: Dict[str, Any]
+    batch_file: Dict[str, Any],
 ) -> List[SafeProposedTx]:
     proposed_transactions = []
     for index, transaction in enumerate(batch_file["transactions"]):
