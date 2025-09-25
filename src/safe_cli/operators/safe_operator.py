@@ -18,7 +18,7 @@ from safe_eth.eth import (
     EthereumNetworkNotSupported,
     TxSpeed,
 )
-from safe_eth.eth.clients import EtherscanClient, EtherscanClientConfigurationProblem
+from safe_eth.eth.clients import EtherscanClientV2, EtherscanClientConfigurationProblem
 from safe_eth.eth.constants import NULL_ADDRESS, SENTINEL_ADDRESS
 from safe_eth.eth.contracts import (
     get_erc20_contract,
@@ -141,7 +141,7 @@ class SafeOperator:
     ethereum_client: EthereumClient
     ens: ENS
     network: EthereumNetwork
-    etherscan: Optional[EtherscanClient]
+    etherscan: Optional[EtherscanClientV2]
     safe_tx_service: Optional[TransactionServiceApi]
     safe: Safe
     safe_contract: Contract
@@ -162,7 +162,7 @@ class SafeOperator:
         self.ens = ENS.from_web3(self.ethereum_client.w3)
         self.network: EthereumNetwork = self.ethereum_client.get_network()
         try:
-            self.etherscan = EtherscanClient(self.network)
+            self.etherscan = EtherscanClientV2(self.network)
         except EtherscanClientConfigurationProblem:
             self.etherscan = None
 
