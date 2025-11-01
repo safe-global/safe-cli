@@ -18,7 +18,7 @@ from safe_eth.eth import (
     EthereumNetworkNotSupported,
     TxSpeed,
 )
-from safe_eth.eth.clients import EtherscanClient, EtherscanClientConfigurationProblem
+from safe_eth.eth.clients import EtherscanClientV2 as EtherscanClient, EtherscanClientConfigurationProblem
 from safe_eth.eth.constants import NULL_ADDRESS, SENTINEL_ADDRESS
 from safe_eth.eth.contracts import (
     get_erc20_contract,
