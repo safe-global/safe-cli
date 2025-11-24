@@ -340,6 +340,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
                 "--history",
             ],
         )
+        print(result.exception)
         self.assertEqual(result.exit_code, 0)
 
     @mock.patch.object(EthereumClient, "get_chain_id", return_value=11155111)
