@@ -376,16 +376,16 @@ def default_attended_mode(
 
 def _is_safe_cli_default_command(arguments: List[str]) -> bool:
     # safe-cli
-    if len(sys.argv) == 1:
+    if len(arguments) == 1:
         return True
 
-    if sys.argv[1] == "--help":
+    if arguments[1] == "--help":
         return True
 
     # Only added if is not a valid command, and it is an address. safe-cli 0xaddress http://url
-    if sys.argv[1] not in [
+    if arguments[1] not in [
         get_command_name(key) for key in get_command(app).commands.keys()
-    ] and Web3.is_checksum_address(sys.argv[1]):
+    ] and Web3.is_checksum_address(arguments[1]):
         return True
 
     return False

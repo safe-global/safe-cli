@@ -256,11 +256,13 @@ class SafeOperator:
             words = os.environ.get(words[0], default="").strip().split(" ")
         parsed_words = " ".join(words)
         try:
-            for index in range(100):  # Try first accounts of seed phrase
+            accounts = []
+            for index in range(100):  # Try first 100 accounts of seed phrase
                 account = get_account_from_words(parsed_words, index=index)
                 if account.address in self.safe_cli_info.owners:
                     self.load_cli_owners([to_0x_hex_str(account.key)])
-            if not index:
+                    accounts.append(account)
+            if not accounts:
                 print_formatted_text(
                     HTML(
                         "<ansired>Cannot generate any valid owner for this Safe</ansired>"
@@ -416,58 +418,57 @@ class SafeOperator:
                 )
 
     def approve_hash(self, hash_to_approve: HexBytes, sender: str) -> bool:
-        sender_account = [
+        sender_accounts = [
             account for account in self.accounts if account.address == sender
         ]
-        if not sender_account:
+        if not sender_accounts:
             raise AccountNotLoadedException(sender)
-        elif sender not in self.safe_cli_info.owners:
+
+        sender_account = sender_accounts[0]
+        sender_account_address = sender_account.address
+        if sender_account_address not in self.safe_cli_info.owners:
             raise NonExistingOwnerException(sender)
         elif self.safe.retrieve_is_hash_approved(
-            self.default_sender.address, hash_to_approve
+            sender_account_address, hash_to_approve
         ):
-            raise HashAlreadyApproved(hash_to_approve, self.default_sender.address)
-        else:
-            sender_account = sender_account[0]
-            transaction_to_send = self.safe_contract.functions.approveHash(
-                hash_to_approve
-            ).build_transaction(
-                {
-                    "from": sender_account.address,
-                    "nonce": self.ethereum_client.get_nonce_for_account(
-                        sender_account.address
-                    ),
-                }
+            raise HashAlreadyApproved(hash_to_approve, sender)
+        transaction_to_send = self.safe_contract.functions.approveHash(
+            hash_to_approve
+        ).build_transaction(
+            {
+                "from": sender_account_address,
+                "nonce": self.ethereum_client.get_nonce_for_account(
+                    sender_account_address
+                ),
+            }
+        )
+        if self.ethereum_client.is_eip1559_supported():
+            transaction_to_send = self.ethereum_client.set_eip1559_fees(
+                transaction_to_send
             )
-            if self.ethereum_client.is_eip1559_supported():
-                transaction_to_send = self.ethereum_client.set_eip1559_fees(
-                    transaction_to_send
+        call_result = self.ethereum_client.w3.eth.call(transaction_to_send)
+        if call_result:  # There's revert message
+            return False
+        else:
+            signed_transaction = sender_account.sign_transaction(transaction_to_send)
+            tx_hash = self.ethereum_client.send_raw_transaction(
+                signed_transaction["raw_transaction"]
+            )
+            print_formatted_text(
+                HTML(
+                    f"<ansigreen>Sent tx with tx-hash {to_0x_hex_str(tx_hash)} from owner "
+                    f"{sender_account_address}, waiting for receipt</ansigreen>"
                 )
-            call_result = self.ethereum_client.w3.eth.call(transaction_to_send)
-            if call_result:  # There's revert message
-                return False
+            )
+            if self.ethereum_client.get_transaction_receipt(tx_hash, timeout=120):
+                return True
             else:
-                signed_transaction = sender_account.sign_transaction(
-                    transaction_to_send
-                )
-                tx_hash = self.ethereum_client.send_raw_transaction(
-                    signed_transaction["raw_transaction"]
-                )
                 print_formatted_text(
                     HTML(
-                        f"<ansigreen>Sent tx with tx-hash {to_0x_hex_str(tx_hash)} from owner "
-                        f"{self.default_sender.address}, waiting for receipt</ansigreen>"
+                        f"<ansired>Tx with tx-hash {to_0x_hex_str(tx_hash)} still not mined</ansired>"
                     )
                 )
-                if self.ethereum_client.get_transaction_receipt(tx_hash, timeout=120):
-                    return True
-                else:
-                    print_formatted_text(
-                        HTML(
-                            f"<ansired>Tx with tx-hash {to_0x_hex_str(tx_hash)} still not mined</ansired>"
-                        )
-                    )
-                    return False
+                return False
 
     def sign_message(
         self,
@@ -489,7 +490,9 @@ class SafeOperator:
         sign_message_lib_address = get_last_sign_message_lib_address(
             self.ethereum_client
         )
-        contract = get_sign_message_lib_contract(self.ethereum_client.w3, self.address)
+        contract = get_sign_message_lib_contract(
+            self.ethereum_client.w3, sign_message_lib_address
+        )
         sign_message_data = HexBytes(
             contract.functions.signMessage(message_bytes).build_transaction(
                 get_empty_tx_params(),
@@ -907,14 +910,20 @@ class SafeOperator:
             safe_info.version,
         )
 
-    def get_threshold(self):
-        print_formatted_text(self.safe.retrieve_threshold())
+    def get_threshold(self) -> int:
+        threshold = self.safe.retrieve_threshold()
+        print_formatted_text(threshold)
+        return threshold
 
-    def get_nonce(self):
-        print_formatted_text(self.safe.retrieve_nonce())
+    def get_nonce(self) -> int:
+        nonce = self.safe.retrieve_nonce()
+        print_formatted_text(nonce)
+        return nonce
 
-    def get_owners(self):
-        print_formatted_text(self.safe.retrieve_owners())
+    def get_owners(self) -> List[ChecksumAddress]:
+        owners = self.safe.retrieve_owners()
+        print_formatted_text(owners)
+        return owners
 
     def execute_safe_internal_transaction(self, data: bytes) -> bool:
         return self.prepare_and_execute_safe_transaction(self.address, 0, data)
