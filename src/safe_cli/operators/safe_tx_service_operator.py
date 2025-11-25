@@ -1,6 +1,5 @@
 import json
-from itertools import chain
-from typing import Any, Dict, Optional, Sequence, Set, Union
+from typing import Any, Dict, Optional, Sequence, Set
 
 from colorama import Fore, Style
 from eth_account.messages import defunct_hash_message
@@ -24,7 +23,6 @@ from tabulate import tabulate
 from ..utils import get_input, yes_or_no_question
 from . import SafeServiceNotAvailable
 from .exceptions import AccountNotLoadedException, NonExistingOwnerException
-from .hw_wallets.hw_wallet import HwWallet
 from .safe_operator import SafeOperator
 
 
@@ -48,7 +46,8 @@ class SafeTxServiceOperator(SafeOperator):
     ) -> bool:
         if eip712_message_path:
             try:
-                message = json.load(open(eip712_message_path, "r"))
+                with open(eip712_message_path, "r") as message_file:
+                    message = json.load(message_file)
                 message_hash = eip712_encode_hash(message)
             except ValueError:
                 raise ValueError
@@ -146,15 +145,12 @@ class SafeTxServiceOperator(SafeOperator):
         return rows
 
     def add_delegate(self, delegate_address: str, label: str, signer_address: str):
-        signer_account = [
-            account for account in self.accounts if account.address == signer_address
-        ]
-        if not signer_account:
+        signer_account = self.search_account(signer_address)
+        if not signer_account or not isinstance(signer_account, LocalAccount):
             raise AccountNotLoadedException(signer_address)
         elif signer_address not in self.safe_cli_info.owners:
             raise NonExistingOwnerException(signer_address)
         else:
-            signer_account = signer_account[0]
             try:
                 hash_to_sign = self.safe_tx_service.create_delegate_message_hash(
                     delegate_address
@@ -172,15 +168,12 @@ class SafeTxServiceOperator(SafeOperator):
                 return False
 
     def remove_delegate(self, delegate_address: str, signer_address: str):
-        signer_account = [
-            account for account in self.accounts if account.address == signer_address
-        ]
-        if not signer_account:
+        signer_account = self.search_account(signer_address)
+        if not signer_account or not isinstance(signer_account, LocalAccount):
             raise AccountNotLoadedException(signer_address)
         elif signer_address not in self.safe_cli_info.owners:
             raise NonExistingOwnerException(signer_address)
         else:
-            signer_account = signer_account[0]
             try:
                 hash_to_sign = self.safe_tx_service.create_delegate_message_hash(
                     delegate_address
@@ -463,19 +456,6 @@ class SafeTxServiceOperator(SafeOperator):
             print_formatted_text(
                 HTML("<ansigreen>Safe account is currently empty</ansigreen>")
             )
-
-    def search_account(
-        self, address: ChecksumAddress
-    ) -> Optional[Union[LocalAccount, HwWallet]]:
-        """
-        Search the provided address between loaded owners
-
-        :param address:
-        :return: LocalAccount or HwWallet of the provided address
-        """
-        for account in chain(self.accounts, self.hw_wallet_manager.wallets):
-            if account.address == address:
-                return account
 
     def remove_proposed_transaction(self, safe_tx_hash: bytes):
         eip712_message = get_remove_transaction_message(

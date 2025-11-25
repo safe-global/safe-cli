@@ -2,7 +2,7 @@ import dataclasses
 import json
 import os
 from functools import cached_property, wraps
-from typing import List, Optional, Sequence, Set, Tuple
+from typing import List, Optional, Sequence, Set, Tuple, Union
 
 from ens import ENS
 from eth_account import Account
@@ -418,13 +418,10 @@ class SafeOperator:
                 )
 
     def approve_hash(self, hash_to_approve: HexBytes, sender: str) -> bool:
-        sender_accounts = [
-            account for account in self.accounts if account.address == sender
-        ]
-        if not sender_accounts:
+        sender_account = self.search_account(sender)
+        if not sender_account:
             raise AccountNotLoadedException(sender)
 
-        sender_account = sender_accounts[0]
         sender_account_address = sender_account.address
         if sender_account_address not in self.safe_cli_info.owners:
             raise NonExistingOwnerException(sender)
@@ -476,7 +473,8 @@ class SafeOperator:
     ) -> bool:
         if eip712_message_path:
             try:
-                message = json.load(open(eip712_message_path, "r"))
+                with open(eip712_message_path, "r") as message_file:
+                    message = json.load(message_file)
                 message_bytes = b"".join(eip712_encode(message))
             except ValueError:
                 raise ValueError
@@ -924,6 +922,20 @@ class SafeOperator:
         owners = self.safe.retrieve_owners()
         print_formatted_text(owners)
         return owners
+
+    def search_account(
+        self, address: ChecksumAddress
+    ) -> Optional[Union[LocalAccount, HwWallet]]:
+        """
+        Search the provided address between loaded owners.
+
+        :param address:
+        :return: LocalAccount or HwWallet of the provided address
+        """
+        for account in list(self.accounts) + list(self.hw_wallet_manager.wallets):
+            if account.address == address:
+                return account
+        return None
 
     def execute_safe_internal_transaction(self, data: bytes) -> bool:
         return self.prepare_and_execute_safe_transaction(self.address, 0, data)
