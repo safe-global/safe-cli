@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "Command Line Interface for Safe"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 authors = [{ name = "Uxío Fuentefría", email = "uxio@safe.global" }]
 classifiers = [
     "License :: OSI Approved :: MIT License",
