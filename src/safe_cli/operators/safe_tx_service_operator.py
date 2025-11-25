@@ -247,6 +247,7 @@ class SafeTxServiceOperator(SafeOperator):
                     "batching txs</ansired>"
                 )
             )
+            return False
 
         multisend_txs = []
         for safe_tx_hash in safe_tx_hashes:
