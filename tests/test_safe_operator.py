@@ -278,7 +278,7 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
 
         safe_operator = self.setup_operator(version="1.4.1")
         safe = Safe(safe_operator.address, self.ethereum_client)
-        current_guard = safe.retrieve_guard()
+        current_guard = safe.retrieve_transaction_guard()
         with self.assertRaises(SameGuardException):
             safe_operator.change_guard(current_guard)
 
@@ -286,10 +286,10 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         with self.assertRaises(InvalidGuardException):  # Contract does not exist
             self.assertTrue(safe_operator.change_guard(not_valid_guard))
 
-        new_guard = self.deploy_example_guard()
+        new_guard = self.deploy_example_transaction_guard()
         self.assertTrue(safe_operator.change_guard(new_guard))
         self.assertEqual(safe_operator.safe_cli_info.guard, new_guard)
-        self.assertEqual(safe.retrieve_guard(), new_guard)
+        self.assertEqual(safe.retrieve_transaction_guard(), new_guard)
 
     def test_change_master_copy(self):
         safe_operator = self.setup_operator(version="1.3.0")

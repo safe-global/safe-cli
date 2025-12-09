@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "Command Line Interface for Safe"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.8"
+requires-python = ">=3.10"
 authors = [{ name = "Uxío Fuentefría", email = "uxio@safe.global" }]
 classifiers = [
     "License :: OSI Approved :: MIT License",
@@ -26,7 +26,7 @@ dependencies = [
     "prompt_toolkit>=3",
     "pygments>=2",
     "requests>=2",
-    "safe-eth-py>=7",
+    "safe-eth-py==7.17.0",
     "tabulate>=0.8",
     "typer>=0.14.0",
 ]

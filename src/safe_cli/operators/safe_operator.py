@@ -18,7 +18,7 @@ from safe_eth.eth import (
     EthereumNetworkNotSupported,
     TxSpeed,
 )
-from safe_eth.eth.clients import EtherscanClient, EtherscanClientConfigurationProblem
+from safe_eth.eth.clients import EtherscanClientV2
 from safe_eth.eth.constants import NULL_ADDRESS, SENTINEL_ADDRESS
 from safe_eth.eth.contracts import (
     get_erc20_contract,
@@ -112,7 +112,7 @@ def require_tx_service(f):
                 )
             )
             if self.etherscan:
-                url = f"{self.etherscan.base_url}/address/{self.address}"
+                url = f"{self.etherscan.get_base_url()}address/{self.address}"
                 print_formatted_text(HTML(f"<b>Try Etherscan instead</b> {url}"))
         else:
             return f(self, *args, **kwargs)
@@ -141,7 +141,6 @@ class SafeOperator:
     ethereum_client: EthereumClient
     ens: ENS
     network: EthereumNetwork
-    etherscan: Optional[EtherscanClient]
     safe_tx_service: Optional[TransactionServiceApi]
     safe: Safe
     safe_contract: Contract
@@ -161,11 +160,6 @@ class SafeOperator:
         self.ethereum_client = EthereumClient(self.node_url)
         self.ens = ENS.from_web3(self.ethereum_client.w3)
         self.network: EthereumNetwork = self.ethereum_client.get_network()
-        try:
-            self.etherscan = EtherscanClient(self.network)
-        except EtherscanClientConfigurationProblem:
-            self.etherscan = None
-
         try:
             self.safe_tx_service = TransactionServiceApi.from_ethereum_client(
                 self.ethereum_client
@@ -195,6 +189,12 @@ class SafeOperator:
         )
         self.hw_wallet_manager = get_hw_wallet_manager()
         self.interactive = interactive  # Disable prompt dialogs
+
+    @cached_property
+    def etherscan(self) -> Optional[EtherscanClientV2]:
+        if EtherscanClientV2.is_supported_network(self.network):
+            return EtherscanClientV2(self.network)
+        return None
 
     @cached_property
     def last_default_fallback_handler_address(self) -> ChecksumAddress:
@@ -843,7 +843,7 @@ class SafeOperator:
             )
 
         if self.etherscan:
-            url = f"{self.etherscan.base_url}/address/{self.address}"
+            url = f"{self.etherscan.get_base_url()}/address/{self.address}"
             print_formatted_text(
                 HTML(
                     f"<b><ansigreen>Etherscan</ansigreen></b>="
@@ -903,7 +903,7 @@ class SafeOperator:
             safe_info.master_copy,
             safe_info.modules,
             safe_info.fallback_handler,
-            safe_info.guard,
+            safe_info.transaction_guard,
             balance_ether,
             safe_info.version,
         )
