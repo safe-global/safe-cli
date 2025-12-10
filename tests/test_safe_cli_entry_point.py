@@ -13,6 +13,7 @@ from safe_eth.safe.api import TransactionServiceApi
 from safe_eth.safe.safe import SafeInfo
 from safe_eth.util.util import to_0x_hex_str
 from typer.testing import CliRunner
+from web3.constants import CHECKSUM_ADDRESSS_ZERO
 
 from safe_cli import VERSION
 from safe_cli.main import app
@@ -330,6 +331,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [safe_owner],
             1,
             "1.4.1",
+            CHECKSUM_ADDRESSS_ZERO,
         )
         result = runner.invoke(
             app,
@@ -362,6 +364,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [safe_owner],
             1,
             "1.4.1",
+            CHECKSUM_ADDRESSS_ZERO,
         )
         get_safes_for_owner_mock.return_value = []
 
@@ -396,6 +399,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [safe_owner],
             1,
             "1.4.1",
+            CHECKSUM_ADDRESSS_ZERO,
         )
         get_command_mock.side_effect = ["tx-service", "exit"]
 
