@@ -17,13 +17,16 @@ def _parse_types_to_encoding_types(contract_fields: List[Dict[str, Any]]) -> Lis
     types = []
 
     for field in contract_fields:
-        if is_tuple_field_type(field["type"]):
+        field_type = field["type"]
+        if is_tuple_field_type(field_type):
             component_types = ",".join(
                 component["type"] for component in field["components"]
             )
-            types.append(f"({component_types})")
+            # preserve array suffix (e.g., "[]" for tuple[], "[5]" for tuple[5])
+            suffix = field_type[5:]  # everything after "tuple"
+            types.append(f"({component_types}){suffix}")
         else:
-            types.append(field["type"])
+            types.append(field_type)
 
     return types
 
