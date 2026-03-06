@@ -1,0 +1,15 @@
+services:
+  safe-cli:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+
+  ganache:
+    image: trufflesuite/ganache:latest
+    ports:
+      - "8545:8545"
+    command: --defaultBalanceEther 10000 --gasLimit 10000000 -a 10 --chain.chainId 1337 --chain.networkId 1337 -d --host 0.0.0.0
+    healthcheck:
+      test: bash -c "echo 'hello' > /dev/tcp/localhost/8545"
+    profiles:
+      - develop

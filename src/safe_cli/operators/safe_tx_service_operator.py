@@ -102,6 +102,7 @@ class SafeTxServiceOperator(SafeOperator):
                     f"<ansired>Message with hash {to_0x_hex_str(safe_message_hash)} does not exist</ansired>"
                 )
             )
+            return False
         if not yes_or_no_question(
             f"Message: {safe_message['message']} \n Do you want to sign the following message?:"
         ):
@@ -300,6 +301,7 @@ class SafeTxServiceOperator(SafeOperator):
                     f"has already been executed on {to_0x_hex_str(tx_hash)}</ansired>"
                 )
             )
+            return False
         elif len(safe_tx.signers) < self.safe_cli_info.threshold:
             print_formatted_text(
                 HTML(
@@ -307,6 +309,7 @@ class SafeTxServiceOperator(SafeOperator):
                     f"must reach the threshold {self.safe_cli_info.threshold}</ansired>"
                 )
             )
+            return False
         else:
             if executed := self.execute_safe_transaction(safe_tx):
                 self.refresh_safe_cli_info()
@@ -416,18 +419,18 @@ class SafeTxServiceOperator(SafeOperator):
     def drain(self, to: ChecksumAddress):
         balances = self.safe_tx_service.get_balances(self.address)
         safe_txs = []
-        safe_tx = None
         for balance in balances:
             amount = int(balance["balance"])
+            if amount == 0:
+                continue
             if balance["tokenAddress"] is None:  # Then is ether
-                if amount != 0:
-                    safe_tx = self.prepare_safe_transaction(
-                        to,
-                        amount,
-                        b"",
-                        SafeOperationEnum.CALL,
-                        safe_nonce=None,
-                    )
+                safe_tx = self.prepare_safe_transaction(
+                    to,
+                    amount,
+                    b"",
+                    SafeOperationEnum.CALL,
+                    safe_nonce=None,
+                )
             else:
                 transaction = (
                     get_erc20_contract(self.ethereum_client.w3, balance["tokenAddress"])
@@ -441,10 +444,9 @@ class SafeTxServiceOperator(SafeOperator):
                     SafeOperationEnum.CALL,
                     safe_nonce=None,
                 )
-            if safe_tx:
-                safe_txs.append(safe_tx)
+            safe_txs.append(safe_tx)
         if len(safe_txs) > 0:
-            multisend_tx = self.batch_safe_txs(safe_tx.safe_nonce, safe_txs)
+            multisend_tx = self.batch_safe_txs(safe_txs[0].safe_nonce, safe_txs)
             if multisend_tx is not None:
                 self.post_transaction_to_tx_service(multisend_tx)
                 print_formatted_text(

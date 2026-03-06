@@ -744,6 +744,8 @@ class SafeOperator:
                     safe_l2_singleton[0], fallback_handler[0]
                 ).build_transaction(get_empty_tx_params())["data"]
             )
+            safe_l2_singleton = safe_l2_singleton[0]
+            fallback_handler = fallback_handler[0]
         elif safe_version in ("1.3.0", "1.4.1"):
             safe_l2_singleton = safe_deployments[safe_version]["GnosisSafeL2"][
                 str(chain_id)
@@ -754,6 +756,7 @@ class SafeOperator:
                     safe_l2_singleton[0]
                 ).build_transaction(get_empty_tx_params())["data"]
             )
+            safe_l2_singleton = safe_l2_singleton[0]
         else:
             raise InvalidMasterCopyException(
                 "Current version is not supported to migrate to L2"
@@ -1215,7 +1218,7 @@ class SafeOperator:
             safe_txs.append(safe_tx)
 
         if safe_txs:
-            multisend_tx = self.batch_safe_txs(self.get_nonce(), safe_txs)
+            multisend_tx = self.batch_safe_txs(self.safe.retrieve_nonce(), safe_txs)
             if multisend_tx is not None:
                 if self.execute_safe_transaction(multisend_tx):
                     print_formatted_text(
