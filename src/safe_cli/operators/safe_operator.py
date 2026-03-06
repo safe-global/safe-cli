@@ -24,6 +24,7 @@ from safe_eth.eth.contracts import (
     get_erc20_contract,
     get_erc721_contract,
     get_safe_V1_1_1_contract,
+    get_safe_V1_5_0_contract,
     get_sign_message_lib_contract,
 )
 from safe_eth.eth.eip712 import eip712_encode
@@ -48,7 +49,9 @@ from safe_cli.operators.exceptions import (
     InvalidGuardException,
     InvalidMasterCopyException,
     InvalidMigrationContractException,
+    InvalidModuleGuardException,
     InvalidNonceException,
+    ModuleGuardNotSupportedException,
     NonExistingOwnerException,
     NotEnoughEtherToSend,
     NotEnoughSignatures,
@@ -58,6 +61,7 @@ from safe_cli.operators.exceptions import (
     SameFallbackHandlerException,
     SameGuardException,
     SameMasterCopyException,
+    SameModuleGuardException,
     SenderRequiredException,
     ThresholdLimitException,
     UpdateAddressesNotValid,
@@ -90,6 +94,7 @@ class SafeCliInfo:
     modules: List[str]
     fallback_handler: str
     guard: str
+    module_guard: str
     balance_ether: int
     version: str
 
@@ -630,6 +635,31 @@ class SafeOperator:
                 self.safe_cli_info.version = self.safe.retrieve_version()
                 return True
 
+    def change_module_guard(self, module_guard: str) -> bool:
+        if module_guard == self.safe_cli_info.module_guard:
+            raise SameModuleGuardException(module_guard)
+        elif semantic_version.parse(
+            self.safe_cli_info.version
+        ) < semantic_version.parse("1.5.0"):
+            raise ModuleGuardNotSupportedException()
+        elif module_guard != NULL_ADDRESS and not self.ethereum_client.is_contract(
+            module_guard
+        ):
+            raise InvalidModuleGuardException(
+                f"{module_guard} address is not a contract"
+            )
+        else:
+            safe_v1_5_0_contract = get_safe_V1_5_0_contract(
+                self.ethereum_client.w3, address=self.address
+            )
+            transaction = safe_v1_5_0_contract.functions.setModuleGuard(
+                module_guard
+            ).build_transaction({"from": self.address, "gas": 0, "gasPrice": 0})
+            if self.execute_safe_internal_transaction(transaction["data"]):
+                self.safe_cli_info.module_guard = module_guard
+                self.safe_cli_info.version = self.safe.retrieve_version()
+                return True
+
     def change_master_copy(self, new_master_copy: str) -> bool:
         if new_master_copy == self.safe_cli_info.master_copy:
             raise SameMasterCopyException(new_master_copy)
@@ -906,7 +936,8 @@ class SafeOperator:
             safe_info.master_copy,
             safe_info.modules,
             safe_info.fallback_handler,
-            safe_info.transaction_guard,
+            safe_info.guard,
+            safe_info.module_guard,
             balance_ether,
             safe_info.version,
         )

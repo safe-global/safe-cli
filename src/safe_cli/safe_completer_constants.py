@@ -12,6 +12,7 @@ safe_commands_arguments = {
     "batch-txs": "<safe-nonce> <safe-tx-hash> [ <safe-tx-hash> ... ]",
     "change_fallback_handler": "<address>",
     "change_guard": "<address>",
+    "change_module_guard": "<address>",
     "change_master_copy": "<address>",
     "change_threshold": "<address>",
     "disable_module": "<address>",
@@ -197,6 +198,12 @@ meta = {
     "change_guard": HTML(
         "Command <b>change_guard</b> will change the current "
         "guard for Safes with version >= 1.3.0 "
+        "<b>[DO NOT CALL THIS FUNCTION, UNLESS YOU KNOW WHAT YOU ARE DOING. "
+        "ALL YOUR FUNDS COULD BE LOST]</b>."
+    ),
+    "change_module_guard": HTML(
+        "Command <b>change_module_guard</b> will change the current "
+        "module guard for Safes with version >= 1.5.0 "
         "<b>[DO NOT CALL THIS FUNCTION, UNLESS YOU KNOW WHAT YOU ARE DOING. "
         "ALL YOUR FUNDS COULD BE LOST]</b>."
     ),
