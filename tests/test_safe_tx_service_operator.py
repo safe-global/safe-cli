@@ -602,9 +602,83 @@ class TestSafeTxServiceOperator(SafeCliTestCaseMixin, unittest.TestCase):
             safe_operator.confirm_message(safe_message_hash, sender.address)
         )
 
-    def test_drain(self):
-        # TODO Drain is a complex to mock
-        pass
+        # When get_message itself raises SafeAPIException, confirm_message must return
+        # False instead of raising NameError (safe_message would be unbound)
+        post_message_signature.side_effect = None
+        get_message.side_effect = SafeAPIException("Message not found")
+        self.assertFalse(
+            safe_operator.confirm_message(safe_message_hash, sender.address)
+        )
+
+    @mock.patch.object(
+        SafeTx, "safe_version", return_value="1.4.1", new_callable=mock.PropertyMock
+    )
+    @mock.patch.object(TransactionServiceApi, "_get_request")
+    def test_execute_tx_returns_false(
+        self,
+        _get_request_mock: MagicMock,
+        safe_version_mock: mock.PropertyMock,
+    ):
+        safe_operator = self.setup_operator(
+            number_owners=1, mode=SafeOperatorMode.TX_SERVICE
+        )
+        safe_tx_hash = HexBytes(
+            "0xae1c18dd9fca652b83743fc0b0ac2d396c68d523b49f4d41af5b00dc2f995bf6"
+        )
+
+        # Already-executed tx must return False, not None
+        _get_request_mock.return_value = GetMultisigTxRequestMock(executed=True)
+        self.assertIs(safe_operator.execute_tx(safe_tx_hash), False)
+
+        # Not enough signatures must return False, not None.
+        # Force threshold above the single signer present in the mock.
+        safe_operator.safe_cli_info.threshold = 2
+        _get_request_mock.return_value = GetMultisigTxRequestMock(executed=False)
+        self.assertIs(safe_operator.execute_tx(safe_tx_hash), False)
+
+    @mock.patch.object(TransactionServiceApi, "get_balances")
+    @mock.patch("safe_cli.operators.safe_tx_service_operator.get_erc20_contract")
+    def test_drain(
+        self, get_erc20_contract_mock: MagicMock, get_balances_mock: MagicMock
+    ):
+        safe_operator = self.setup_operator(
+            number_owners=1, mode=SafeOperatorMode.TX_SERVICE
+        )
+        to = Account.create().address
+        token_address = "0x6B175474E89094C44Da98b954EedeAC495271d0F"
+
+        # Token balance followed by zero ether balance.  The previous bug caused the
+        # token safe_tx to be appended twice because the loop variable was not reset
+        # when ether amount == 0.
+        get_balances_mock.return_value = [
+            {"tokenAddress": token_address, "balance": "1000000000000000000"},
+            {"tokenAddress": None, "balance": "0"},
+        ]
+        mock_contract = MagicMock()
+        mock_contract.functions.transfer.return_value.build_transaction.return_value = {
+            "data": b"\x00"
+        }
+        get_erc20_contract_mock.return_value = mock_contract
+
+        safe_tx_mock = MagicMock()
+        safe_tx_mock.safe_nonce = 0
+        batch_safe_txs_mock = MagicMock(return_value=None)
+
+        with (
+            mock.patch.object(
+                safe_operator, "prepare_safe_transaction", return_value=safe_tx_mock
+            ),
+            mock.patch.object(safe_operator, "batch_safe_txs", batch_safe_txs_mock),
+        ):
+            safe_operator.drain(to)
+
+        batch_safe_txs_mock.assert_called_once()
+        _, safe_txs_passed = batch_safe_txs_mock.call_args[0]
+        self.assertEqual(
+            len(safe_txs_passed),
+            1,
+            "drain must not duplicate transactions when ether balance is zero",
+        )
 
 
 if __name__ == "__main__":

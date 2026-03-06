@@ -393,6 +393,19 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
                 safe_operator_v111.safe.retrieve_fallback_handler(),
                 self.compatibility_fallback_handler_V1_3_0.address,
             )
+            # safe_cli_info must cache addresses (strings), not the raw deployment lists
+            self.assertIsInstance(safe_operator_v111.safe_cli_info.master_copy, str)
+            self.assertEqual(
+                safe_operator_v111.safe_cli_info.master_copy,
+                self.safe_contract_V1_3_0.address,
+            )
+            self.assertIsInstance(
+                safe_operator_v111.safe_cli_info.fallback_handler, str
+            )
+            self.assertEqual(
+                safe_operator_v111.safe_cli_info.fallback_handler,
+                self.compatibility_fallback_handler_V1_3_0.address,
+            )
 
     def test_update_to_l2_v130(self):
         migration_contract_address = self._deploy_l2_migration_contract()
@@ -429,6 +442,12 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
             self.assertEqual(
                 safe_operator_v130.safe.retrieve_fallback_handler(),
                 previous_fallback_handler,
+            )
+            # safe_cli_info must cache an address (string), not the raw deployment list
+            self.assertIsInstance(safe_operator_v130.safe_cli_info.master_copy, str)
+            self.assertEqual(
+                safe_operator_v130.safe_cli_info.master_copy,
+                safe_contract_l2_130_address,
             )
 
     def test_drain(self):
