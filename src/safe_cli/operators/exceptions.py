@@ -42,6 +42,18 @@ class GuardNotSupportedException(SafeOperatorException):
     pass
 
 
+class SameModuleGuardException(SafeOperatorException):
+    pass
+
+
+class InvalidModuleGuardException(SafeOperatorException):
+    pass
+
+
+class ModuleGuardNotSupportedException(SafeOperatorException):
+    pass
+
+
 class SameMasterCopyException(SafeOperatorException):
     pass
 

@@ -27,6 +27,8 @@ from safe_cli.operators.exceptions import (
     InvalidFallbackHandlerException,
     InvalidGuardException,
     InvalidMasterCopyException,
+    InvalidModuleGuardException,
+    ModuleGuardNotSupportedException,
     NonExistingOwnerException,
     NotEnoughEtherToSend,
     NotEnoughSignatures,
@@ -34,6 +36,7 @@ from safe_cli.operators.exceptions import (
     SameFallbackHandlerException,
     SameGuardException,
     SameMasterCopyException,
+    SameModuleGuardException,
     SenderRequiredException,
 )
 from safe_cli.operators.safe_operator import SafeOperator
@@ -290,6 +293,26 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         self.assertTrue(safe_operator.change_guard(new_guard))
         self.assertEqual(safe_operator.safe_cli_info.guard, new_guard)
         self.assertEqual(safe.retrieve_transaction_guard(), new_guard)
+
+    def test_change_module_guard(self):
+        safe_operator = self.setup_operator(version="1.4.1")
+        with self.assertRaises(ModuleGuardNotSupportedException):
+            safe_operator.change_module_guard(Account.create().address)
+
+        safe_operator = self.setup_operator(version="1.5.0")
+        safe = Safe(safe_operator.address, self.ethereum_client)
+        current_module_guard = safe.retrieve_module_guard()
+        with self.assertRaises(SameModuleGuardException):
+            safe_operator.change_module_guard(current_module_guard)
+
+        not_valid_module_guard = Account.create().address
+        with self.assertRaises(InvalidModuleGuardException):  # Contract does not exist
+            safe_operator.change_module_guard(not_valid_module_guard)
+
+        new_module_guard = self.deploy_example_module_guard()
+        self.assertTrue(safe_operator.change_module_guard(new_module_guard))
+        self.assertEqual(safe_operator.safe_cli_info.module_guard, new_module_guard)
+        self.assertEqual(safe.retrieve_module_guard(), new_module_guard)
 
     def test_change_master_copy(self):
         safe_operator = self.setup_operator(version="1.3.0")

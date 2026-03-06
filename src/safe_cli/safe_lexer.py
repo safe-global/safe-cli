@@ -25,6 +25,7 @@ class SafeLexer(BashLexer):
         "change_threshold",
         "change_fallback_handler",
         "change_guard",
+        "change_module_guard",
         "remove_owner",
         "change_master_copy",
         "add_delegate",
