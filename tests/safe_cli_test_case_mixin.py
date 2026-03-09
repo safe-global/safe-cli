@@ -32,6 +32,10 @@ class SafeCliTestCaseMixin(SafeTestCaseMixin):
             safe = self.deploy_test_safe_v1_4_1(
                 owners=[self.ethereum_test_account.address]
             )
+        elif version == "1.5.0":
+            safe = self.deploy_test_safe_v1_5_0(
+                owners=[self.ethereum_test_account.address]
+            )
         else:
             raise ValueError(f"{version} not supported")
         if mode == SafeOperatorMode.BLOCKCHAIN:
