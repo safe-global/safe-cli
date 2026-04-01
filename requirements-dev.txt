@@ -1,8 +1,0 @@
--r requirements.txt
--r requirements-test.txt
-flake8
-hatch
-ipdb
-ipython
-isort
-pre-commit

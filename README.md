@@ -30,11 +30,12 @@ docker run -it safeglobal/safe-cli safe-cli <checksummed_safe_address> <ethereum
 
 ## Using Python PIP
 
-**Prerequisite:** [Python](https://www.python.org/downloads/) >= 3.10 (Python 3.13 is recommended).
+**Prerequisite:** [Python](https://www.python.org/downloads/) >= 3.10 (Python 3.13 is recommended) and [uv](https://docs.astral.sh/uv).
 
-Once Python is installed on your system, run the following command to install Safe CLI:
+Once `Python` and `uv` are installed on your system, install Safe CLI:
+
 ```bash
-pip3 install -U safe-cli
+uv tool install safe-cli
 ```
 
 ## Usage
@@ -155,15 +156,16 @@ If you miss something and want to send us a PR:
 ```bash
 git clone https://github.com/safe-global/safe-cli.git
 cd safe-cli
-stat venv 2>/dev/null || python3 -m venv venv
-source venv/bin/activate && pip install -r requirements-dev.txt
+uv sync --group dev --frozen
+source .venv/bin/activate
 pre-commit install -f
 ```
 
-To run the local version you can install it using:
+To run `safe-cli` or `safe-creator`:
 
 ```bash
-pip install .
+uv run safe-cli
+uv run safe-creator
 ```
 
 ## Contributors
@@ -171,3 +173,4 @@ pip install .
 - [Pedro Arias Ruiz](https://github.com/AsiganTheSunk)
 - [Uxío Fuentefría](https://github.com/uxio0)
 - [Moisés Fernández](https://github.com/moisses89)
+- [Felipe Alvarado](https://github.com/falvaradorodriguez)

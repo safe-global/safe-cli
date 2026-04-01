@@ -31,6 +31,7 @@ dependencies = [
     "typer>=0.14.0",
 ]
 
+
 [project.optional-dependencies]
 ledger = ["ledgereth==0.10.0"]
 trezor = ["trezor==0.13.10"]
@@ -42,6 +43,19 @@ safe-creator = "safe_cli.safe_creator:main"
 [project.urls]
 Download = "https://github.com/gnosis/safe-cli/releases"
 Homepage = "https://github.com/gnosis/safe-cli"
+
+[dependency-groups]
+dev = [
+    "coverage==7.13.4",
+    "flake8==7.3.0",
+    "hatch",
+    "ipdb",
+    "ipython",
+    "isort",
+    "pre-commit",
+    "pytest==9.0.2",
+    "pytest-sugar==1.1.1",
+]
 
 [tool.hatch.version]
 path = "src/safe_cli/__init__.py"
@@ -97,6 +111,11 @@ sections = [
     "FIRSTPARTY",
     "LOCALFOLDER",
 ]
+
+[tool.uv]
+# Reject packages published less than 7 days ago to avoid supply-chain attacks
+exclude-newer = "7 days"
+compile-bytecode = true
 
 [tool.mypy]
 python_version = "3.12"

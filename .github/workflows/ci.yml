@@ -12,14 +12,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
         with:
           python-version: "3.13"
+          enable-cache: true
+          cache-dependency-glob: "uv.lock"
       - name: Install dependencies
-        run: pip install pre-commit
+        run: uv sync --group dev --frozen
       - name: Run pre-commit
-        run: pre-commit run --all-files
+        run: uv run pre-commit run --all-files
 
   test-app:
     runs-on: ubuntu-latest
@@ -32,25 +34,23 @@ jobs:
     - name: Setup and run ganache
       run: docker run --detach --publish 8545:8545 --network ganache -e DOCKER=true trufflesuite/ganache:latest --defaultBalanceEther 10000 --gasLimit 10000000 -a 30 --chain.chainId 1337 --chain.networkId 1337 -d
     - uses: actions/checkout@v6
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v6
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
       with:
         python-version: ${{ matrix.python-version }}
-        cache: 'pip'
-        cache-dependency-path: 'requirements*.txt'
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
     - name: Install dependencies
-      run: |
-        pip install -r requirements-test.txt coveralls pre-commit
-        pip install -e .
-      env:
-        PIP_USE_MIRRORS: true
+      run: uv sync --group dev --all-extras --frozen
     - name: Run tests and coverage
       run: |
-        coverage run -m pytest -rxXs
-        coverage combine
+        uv run coverage run -m pytest -rxXs
+        uv run coverage combine
+        uv run coverage lcov -o coverage.lcov
     - name: Coveralls Parallel
       uses: coverallsapp/github-action@v2
       with:
+        file: coverage.lcov
         flag-name: run-${{ matrix.python-version }}
         parallel: true
 
@@ -70,21 +70,16 @@ jobs:
     if: github.event_name == 'release' && github.event.action == 'released'
     steps:
     - uses: actions/checkout@v6
-    - name: Set up Python
-      uses: actions/setup-python@v6
+    - name: Install uv
+      uses: astral-sh/setup-uv@v6
       with:
         python-version: '3.13'
-        cache: 'pip'
-        cache-dependency-path: 'requirements*.txt'
     - name: Deploy Package
       run: |
-        python -m pip install --upgrade build twine pip
-        python -m build
-        twine check dist/*
-        twine upload dist/*
+        uv build
+        uv publish
       env:
-        TWINE_USERNAME: __token__
-        TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        UV_PUBLISH_PASSWORD: ${{ secrets.PYPI_TOKEN }}
 
   docker-deploy:
     runs-on: ubuntu-latest
