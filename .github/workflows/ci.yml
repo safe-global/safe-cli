@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
         with:
           python-version: "3.13"
           enable-cache: true
@@ -35,7 +35,7 @@ jobs:
       run: docker run --detach --publish 8545:8545 --network ganache -e DOCKER=true trufflesuite/ganache:latest --defaultBalanceEther 10000 --gasLimit 10000000 -a 30 --chain.chainId 1337 --chain.networkId 1337 -d
     - uses: actions/checkout@v6
     - name: Install uv
-      uses: astral-sh/setup-uv@v6
+      uses: astral-sh/setup-uv@v7
       with:
         python-version: ${{ matrix.python-version }}
         enable-cache: true
@@ -71,7 +71,7 @@ jobs:
     steps:
     - uses: actions/checkout@v6
     - name: Install uv
-      uses: astral-sh/setup-uv@v6
+      uses: astral-sh/setup-uv@v7
       with:
         python-version: '3.13'
     - name: Deploy Package
