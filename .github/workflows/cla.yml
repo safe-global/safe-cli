@@ -12,7 +12,7 @@ jobs:
       - name: "CLA Assistant"
         if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA') || github.event_name == 'pull_request_target'
         # Beta Release
-        uses: cla-assistant/github-action@v2.6.1
+        uses: cla-assistant/github-action@ca4a40a7d1004f18d9960b404b97e5f30a505a08 # v2.6.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # the below token should have repo scope and must be manually added by you in the repository's secret
@@ -22,7 +22,7 @@ jobs:
           path-to-document: 'https://safe.global/cla'
           # branch should not be protected
           branch: 'cla-signatures'
-          allowlist: moisses89,luarx,luarx,rmeissner,Uxio0,*bot # may need to update this expression if we add new bots
+          allowlist: moisses89,luarx,rmeissner,Uxio0,*bot # may need to update this expression if we add new bots
 
           #below are the optional inputs - If the optional inputs are not given, then default values will be taken
           #remote-organization-name: enter the remote organization name where the signatures should be stored (Default is storing the signatures in the same repository)
