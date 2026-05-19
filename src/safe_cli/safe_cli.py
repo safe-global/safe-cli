@@ -1,7 +1,6 @@
 import argparse
 import os
 import sys
-from typing import Optional
 
 from eth_typing import ChecksumAddress
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
@@ -54,7 +53,7 @@ class SafeCli:
         )
 
     def get_prompt_text(self):
-        mode: Optional[str] = "blockchain"
+        mode: str | None = "blockchain"
         if isinstance(self.prompt_parser.safe_operator, SafeTxServiceOperator):
             mode = "tx-service"
 
@@ -68,7 +67,7 @@ class SafeCli:
             f"{self.safe_operator.safe_cli_info}</style></b>"
         )
 
-    def parse_operator_mode(self, command: str) -> Optional[SafeOperator]:
+    def parse_operator_mode(self, command: str) -> SafeOperator | None:
         """
         Parse operator mode to switch between blockchain (default) and tx-service
         :param command:

@@ -1,6 +1,5 @@
 from enum import Enum
-from functools import lru_cache
-from typing import Dict, List, Optional, Set, Tuple
+from functools import cache
 
 from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
@@ -24,16 +23,16 @@ class HwWalletType(Enum):
     LEDGER = 1
 
 
-@lru_cache(maxsize=None)
+@cache
 def get_hw_wallet_manager():
     return HwWalletManager()
 
 
 class HwWalletManager:
     def __init__(self):
-        self.wallets: Set[HwWallet] = set()
-        self.supported_hw_wallet_types: Dict[str, HwWallet] = {}
-        self.sender: Optional[HwWallet] = None
+        self.wallets: set[HwWallet] = set()
+        self.supported_hw_wallet_types: dict[str, HwWallet] = {}
+        self.sender: HwWallet | None = None
         try:
             from .ledger_wallet import LedgerWallet
 
@@ -51,7 +50,7 @@ class HwWalletManager:
     def is_supported_hw_wallet(self, hw_wallet_type: HwWalletType) -> bool:
         return hw_wallet_type in self.supported_hw_wallet_types
 
-    def get_hw_wallet(self, hw_wallet_type: HwWalletType) -> Optional[HwWallet]:
+    def get_hw_wallet(self, hw_wallet_type: HwWalletType) -> HwWallet | None:
         if hw_wallet_type in self.supported_hw_wallet_types:
             return self.supported_hw_wallet_types[hw_wallet_type]
 
@@ -59,8 +58,8 @@ class HwWalletManager:
         self,
         hw_wallet_type: HwWalletType,
         template_derivation_path: str,
-        number_accounts: Optional[int] = 5,
-    ) -> List[Tuple[ChecksumAddress, str]]:
+        number_accounts: int | None = 5,
+    ) -> list[tuple[ChecksumAddress, str]]:
         """
 
         :param hw_wallet: Trezor or Ledger
@@ -101,7 +100,7 @@ class HwWalletManager:
         hw_wallet = self.get_hw_wallet(hw_wallet_type)
         self.sender = hw_wallet(derivation_path)
 
-    def delete_accounts(self, addresses: List[ChecksumAddress]) -> Set:
+    def delete_accounts(self, addresses: list[ChecksumAddress]) -> set:
         """
         Remove ledger accounts from address
 
@@ -119,8 +118,8 @@ class HwWalletManager:
         return accounts_to_remove
 
     def sign_eip712(
-        self, eip712_message: Dict, wallets: List[HwWallet]
-    ) -> List[SafeSignature]:
+        self, eip712_message: dict, wallets: list[HwWallet]
+    ) -> list[SafeSignature]:
         """
         Sign an EIP712 message
 
@@ -130,7 +129,7 @@ class HwWalletManager:
         """
         _, domain_hash, message_hash = eip712_encode(eip712_message)
         eip712_message_hash = eip712_encode_hash(eip712_message)
-        safe_signatures: List[SafeSignature] = []
+        safe_signatures: list[SafeSignature] = []
         for wallet in wallets:
             print_formatted_text(
                 HTML(
@@ -148,7 +147,7 @@ class HwWalletManager:
 
         return safe_signatures
 
-    def sign_safe_tx(self, safe_tx: SafeTx, wallets: List[HwWallet]) -> SafeTx:
+    def sign_safe_tx(self, safe_tx: SafeTx, wallets: list[HwWallet]) -> SafeTx:
         """
         Sign a safe transaction with the provided hardware wallets
 
@@ -169,11 +168,11 @@ class HwWalletManager:
     def execute_safe_tx(
         self,
         safe_tx: SafeTx,
-        tx_gas: Optional[int] = None,
-        tx_gas_price: Optional[int] = None,
-        tx_nonce: Optional[int] = None,
-        eip1559_speed: Optional[TxSpeed] = None,
-    ) -> Tuple[HexBytes, TxParams]:
+        tx_gas: int | None = None,
+        tx_gas_price: int | None = None,
+        tx_nonce: int | None = None,
+        eip1559_speed: TxSpeed | None = None,
+    ) -> tuple[HexBytes, TxParams]:
         """
         Send multisig tx to the Safe
 
@@ -223,8 +222,8 @@ class HwWalletManager:
         return safe_tx.tx_hash, safe_tx.tx
 
     def sign_message(
-        self, message: bytes, wallets: List[HwWallet]
-    ) -> List[SafeSignature]:
+        self, message: bytes, wallets: list[HwWallet]
+    ) -> list[SafeSignature]:
         """
         Sign a message for all the provided wallets
 
@@ -232,7 +231,7 @@ class HwWalletManager:
         :param wallets:
         :return:
         """
-        signatures: List[SafeSignature] = []
+        signatures: list[SafeSignature] = []
         for wallet in wallets:
             print_formatted_text(
                 HTML(

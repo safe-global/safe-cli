@@ -1,6 +1,5 @@
 import json
 import unittest
-from functools import lru_cache
 from unittest import mock
 from unittest.mock import MagicMock, PropertyMock
 
@@ -47,17 +46,21 @@ from .safe_cli_test_case_mixin import SafeCliTestCaseMixin
 
 
 class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
-    @lru_cache(maxsize=None)
-    def _deploy_l2_migration_contract(self) -> ChecksumAddress:
-        # Deploy L2 migration contract
-        safe_to_l2_migration_contract = self.w3.eth.contract(
-            abi=safe_to_l2_migration["abi"], bytecode=safe_to_l2_migration["bytecode"]
-        )
-        tx_hash = safe_to_l2_migration_contract.constructor().transact(
-            {"from": self.ethereum_test_account.address}
-        )
-        tx_receipt = self.w3.eth.wait_for_transaction_receipt(tx_hash)
-        return tx_receipt["contractAddress"]
+    _l2_migration_contract_address: ChecksumAddress | None = None
+
+    @classmethod
+    def _deploy_l2_migration_contract(cls) -> ChecksumAddress:
+        if cls._l2_migration_contract_address is None:
+            contract = cls.w3.eth.contract(
+                abi=safe_to_l2_migration["abi"],
+                bytecode=safe_to_l2_migration["bytecode"],
+            )
+            tx_hash = contract.constructor().transact(
+                {"from": cls.ethereum_test_account.address}
+            )
+            tx_receipt = cls.w3.eth.wait_for_transaction_receipt(tx_hash)
+            cls._l2_migration_contract_address = tx_receipt["contractAddress"]
+        return cls._l2_migration_contract_address
 
     def test_setup_operator(self):
         for number_owners in range(1, 4):
@@ -197,7 +200,7 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
 
         self.assertTrue(safe_operator.safe.retrieve_is_message_signed(message_hash))
         eip712_path = "tests/mocks/mock_eip712.json"
-        message = json.load(open(eip712_path, "r"))
+        message = json.load(open(eip712_path))
         message_hash = safe_operator.safe.get_message_hash(
             b"".join(eip712_encode(message))
         )

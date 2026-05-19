@@ -1,5 +1,4 @@
 import os
-from typing import List, Optional
 
 from eth_typing import ChecksumAddress
 from prompt_toolkit import HTML, print_formatted_text
@@ -55,8 +54,8 @@ def yes_or_no_question(question: str, default_no: bool = True) -> bool:
 
 
 def choose_option_from_list(
-    question: str, options: List, default_option: int = 0
-) -> Optional[int]:
+    question: str, options: list, default_option: int = 0
+) -> int | None:
     if "PYTEST_CURRENT_TEST" in os.environ:
         return default_option  # Ignore confirmations when running tests
     number_options = len(options)

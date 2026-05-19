@@ -1,6 +1,5 @@
 import os
 from binascii import Error
-from typing import List
 
 import click
 import typer
@@ -29,7 +28,7 @@ class ChecksumAddressParser(click.ParamType):
         return ChecksumAddress(value)
 
 
-def check_private_keys(private_keys: List[str]) -> List[str]:
+def check_private_keys(private_keys: list[str]) -> list[str]:
     """
     Private Keys validator
     """
@@ -39,7 +38,9 @@ def check_private_keys(private_keys: List[str]) -> List[str]:
         try:
             Account.from_key(os.environ.get(private_key, default=private_key))
         except (ValueError, Error):
-            raise typer.BadParameter(f"{private_key} is not a valid private key")
+            raise typer.BadParameter(
+                f"{private_key} is not a valid private key"
+            ) from None
     return private_keys
 
 
@@ -50,7 +51,9 @@ def check_hex_str(hex_str: str) -> HexBytes:
     try:
         return HexBytes(hex_str)
     except ValueError:
-        raise typer.BadParameter(f"{hex_str} is not a valid hexadecimal string")
+        raise typer.BadParameter(
+            f"{hex_str} is not a valid hexadecimal string"
+        ) from None
 
 
 class HexBytesParser(click.ParamType):

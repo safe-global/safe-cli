@@ -2,7 +2,6 @@
 import argparse
 import secrets
 import sys
-from typing import List
 
 from art import text2art
 from eth_account import Account
@@ -121,7 +120,7 @@ def main(*args, **kwargs) -> EthereumTxSent | None:
     node_url: URI = args.node_url
     account: LocalAccount = Account.from_key(args.private_key)
     no_confirm: bool = args.no_confirm
-    owners: List[str] = args.owners if args.owners else [account.address]
+    owners: list[str] = args.owners if args.owners else [account.address]
     threshold: int = args.threshold
     salt_nonce: int = args.salt_nonce
     without_events: bool = args.without_events

@@ -16,7 +16,6 @@ from safe_cli.typer_validators import (
 
 
 class TestTyperValidators(unittest.TestCase):
-
     def test_check_ethereum_address(self):
         address = "0x4127839cdf4F73d9fC9a2C2861d8d1799e9DF40C"
         self.assertEqual(check_ethereum_address(address), ChecksumAddress(address))

@@ -1,7 +1,7 @@
 import dataclasses
 import json
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from eth_abi import encode as encode_abi
 from hexbytes import HexBytes
@@ -13,7 +13,7 @@ from .exceptions import SoliditySyntaxError, TxBuilderEncodingError
 NON_VALID_CONTRACT_METHODS = ["receive", "fallback"]
 
 
-def _parse_types_to_encoding_types(contract_fields: List[Dict[str, Any]]) -> List[Any]:
+def _parse_types_to_encoding_types(contract_fields: list[dict[str, Any]]) -> list[Any]:
     types = []
 
     for field in contract_fields:
@@ -29,8 +29,8 @@ def _parse_types_to_encoding_types(contract_fields: List[Dict[str, Any]]) -> Lis
 
 
 def encode_contract_method_to_hex_data(
-    contract_method: Dict[str, Any], contract_fields_values: Dict[str, Any]
-) -> Optional[HexBytes]:
+    contract_method: dict[str, Any], contract_fields_values: dict[str, Any]
+) -> HexBytes | None:
     contract_method_name = contract_method.get("name") if contract_method else None
     contract_fields = contract_method.get("inputs", []) if contract_method else []
 
@@ -59,7 +59,7 @@ def encode_contract_method_to_hex_data(
     except Exception as error:
         raise TxBuilderEncodingError(
             "Error encoding current form values to hex data:", error
-        )
+        ) from error
 
 
 def parse_boolean_value(value: str) -> bool:
@@ -88,10 +88,10 @@ def parse_int_value(value: str) -> int:
 
         return int(trimmed_value)
     except ValueError:
-        raise SoliditySyntaxError("Invalid integer value")
+        raise SoliditySyntaxError("Invalid integer value") from None
 
 
-def parse_string_to_array(value: str) -> List[Any]:
+def parse_string_to_array(value: str) -> list[Any]:
     number_of_items = 0
     number_of_other_arrays = 0
     result = []
@@ -132,7 +132,7 @@ def _is_array(values: str) -> bool:
     return trimmed_value.startswith("[") and trimmed_value.endswith("]")
 
 
-def parse_array_of_values(values: str, field_type: str) -> List[Any]:
+def parse_array_of_values(values: str, field_type: str) -> list[Any]:
     if not _is_array(values):
         raise SoliditySyntaxError("Invalid Array value")
 
@@ -214,8 +214,8 @@ class SafeProposedTx:
 
 
 def convert_to_proposed_transactions(
-    batch_file: Dict[str, Any],
-) -> List[SafeProposedTx]:
+    batch_file: dict[str, Any],
+) -> list[SafeProposedTx]:
     proposed_transactions = []
     for index, transaction in enumerate(batch_file["transactions"]):
         data_value = transaction.get("data")

@@ -70,8 +70,7 @@ def safe_exception(function):
         except NonExistingOwnerException as e:
             print_formatted_text(
                 HTML(
-                    f"<ansired>Owner {e.args[0]} is not an owner of the Safe"
-                    f"</ansired>"
+                    f"<ansired>Owner {e.args[0]} is not an owner of the Safe</ansired>"
                 )
             )
         except HashAlreadyApproved as e:
