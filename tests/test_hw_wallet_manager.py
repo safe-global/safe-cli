@@ -51,7 +51,7 @@ class Testledger_wallet(SafeTestCaseMixin, unittest.TestCase):
         )
         self.assertEqual(len(hw_wallets), 2)
         for hw_wallet, expected_address, expected_derivation_path in zip(
-            hw_wallets, addresses, derivation_paths
+            hw_wallets, addresses, derivation_paths, strict=False
         ):
             address, derivation_path = hw_wallet
             self.assertEqual(expected_address, address)

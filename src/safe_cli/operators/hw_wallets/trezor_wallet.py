@@ -1,4 +1,4 @@
-from functools import lru_cache
+from functools import cache
 
 import rlp
 from eth_typing import ChecksumAddress
@@ -20,7 +20,7 @@ from .hw_wallet import HwWallet
 from .trezor_exceptions import raise_trezor_exception_as_hw_wallet_exception
 
 
-@lru_cache(maxsize=None)
+@cache
 @raise_trezor_exception_as_hw_wallet_exception
 def get_trezor_client() -> TrezorClient:
     """

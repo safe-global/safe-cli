@@ -48,14 +48,14 @@ Homepage = "https://github.com/gnosis/safe-cli"
 [dependency-groups]
 dev = [
     "coverage",
-    "flake8",
     "hatch",
     "ipdb",
     "ipython",
-    "isort",
+    "mypy",
     "pre-commit",
     "pytest",
     "pytest-sugar",
+    "ruff",
 ]
 
 [tool.hatch.version]
@@ -103,21 +103,31 @@ exclude_lines = [
     "pass",
 ]
 
-[tool.isort]
-profile = "black"
-default_section = "THIRDPARTY"
-known_first_party = "safe_cli"
-known_safe_foundation = ["py_eth_sig_utils", "gnosis"]
-known_django = "django"
-sections = [
-    "FUTURE",
-    "STDLIB",
-    "DJANGO",
-    "THIRDPARTY",
-    "SAFE_FOUNDATION",
-    "FIRSTPARTY",
-    "LOCALFOLDER",
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+exclude = [
+    ".tox", ".git", "*/static/CACHE/*",
+    "docs", "node_modules", ".venv"
 ]
+
+[tool.ruff.lint]
+extend-select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "I",  # isort
+    "B",  # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+]
+ignore = ["E501", "B008"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["safe_cli"]
+known-third-party = ["py_eth_sig_utils", "safe", "fastapi", "pydantic"]
+combine-as-imports = true
+force-wrap-aliases = true
 
 [tool.mypy]
 python_version = "3.13"

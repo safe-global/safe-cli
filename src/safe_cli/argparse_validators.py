@@ -46,7 +46,9 @@ def check_private_key(private_key: str) -> str:
     try:
         Account.from_key(private_key)
     except (ValueError, Error):  # TODO Report `Error` exception as a bug of eth_account
-        raise argparse.ArgumentTypeError(f"{private_key} is not a valid private key")
+        raise argparse.ArgumentTypeError(
+            f"{private_key} is not a valid private key"
+        ) from None
     return private_key
 
 
@@ -60,7 +62,9 @@ def check_hex_str(hex_str: str) -> HexBytes:
     try:
         return HexBytes(hex_str)
     except ValueError:
-        raise argparse.ArgumentTypeError(f"{hex_str} is not a valid hexadecimal string")
+        raise argparse.ArgumentTypeError(
+            f"{hex_str} is not a valid hexadecimal string"
+        ) from None
 
 
 def check_keccak256_hash(hex_str: str) -> HexBytes:

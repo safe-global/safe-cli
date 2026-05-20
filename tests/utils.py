@@ -13,7 +13,7 @@ def generate_transfers_erc20(
     num_tokens_to_send: int = 3,
 ):
 
-    for i in range(num_contracts):
+    for _i in range(num_contracts):
         token_name = "MOI{i}"
         # Deploy ERC20
         erc20_contract = deploy_erc20(

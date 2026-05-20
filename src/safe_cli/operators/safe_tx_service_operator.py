@@ -1,5 +1,6 @@
 import json
-from typing import Any, Dict, Optional, Sequence, Set
+from collections.abc import Sequence
+from typing import Any
 
 from colorama import Fore, Style
 from eth_account.messages import defunct_hash_message
@@ -42,15 +43,15 @@ class SafeTxServiceOperator(SafeOperator):
 
     def sign_message(
         self,
-        eip712_message_path: Optional[str] = None,
+        eip712_message_path: str | None = None,
     ) -> bool:
         if eip712_message_path:
             try:
-                with open(eip712_message_path, "r") as message_file:
+                with open(eip712_message_path) as message_file:
                     message = json.load(message_file)
                 message_hash = eip712_encode_hash(message)
             except ValueError:
-                raise ValueError
+                raise ValueError from None
         else:
             print_formatted_text("EIP191 message to sign:")
             message = get_input()
@@ -331,7 +332,7 @@ class SafeTxServiceOperator(SafeOperator):
             else:  # Ether
                 row = [
                     "ETHER",
-                    f"{int(balance['balance']) / 10 ** 18:.5f}",
+                    f"{int(balance['balance']) / 10**18:.5f}",
                     "Ξ",
                     18,
                     "",
@@ -347,7 +348,7 @@ class SafeTxServiceOperator(SafeOperator):
         last_executed_tx = False
         for transaction in transactions:
             row = [transaction[header] for header in headers]
-            data_decoded: Dict[str, Any] = transaction.get("dataDecoded")
+            data_decoded: dict[str, Any] = transaction.get("dataDecoded")
             if data_decoded:
                 row.append(self.safe_tx_service.data_decoded_to_text(data_decoded))
             if transaction["transactionHash"]:
@@ -380,7 +381,7 @@ class SafeTxServiceOperator(SafeOperator):
         value: int,
         data: bytes,
         operation: SafeOperationEnum = SafeOperationEnum.CALL,
-        safe_nonce: Optional[int] = None,
+        safe_nonce: int | None = None,
     ) -> bool:
         safe_tx = self.prepare_safe_transaction(
             to, value, data, operation, safe_nonce=safe_nonce
@@ -402,7 +403,7 @@ class SafeTxServiceOperator(SafeOperator):
         )
         return True
 
-    def get_permitted_signers(self) -> Set[ChecksumAddress]:
+    def get_permitted_signers(self) -> set[ChecksumAddress]:
         """
         :return: Owners and delegates, as they also can sign a transaction for the tx service
         """

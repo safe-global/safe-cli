@@ -1,5 +1,3 @@
-from typing import Optional
-
 from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
 from ledgerblue.Dongle import Dongle
@@ -16,7 +14,7 @@ from .ledger_exceptions import raise_ledger_exception_as_hw_wallet_exception
 class LedgerWallet(HwWallet):
     @raise_ledger_exception_as_hw_wallet_exception
     def __init__(self, derivation_path: str):
-        self.dongle: Optional[Dongle] = None
+        self.dongle: Dongle | None = None
         self.connect()
         super().__init__(derivation_path)
 

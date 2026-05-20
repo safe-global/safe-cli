@@ -1,8 +1,8 @@
 import dataclasses
 import json
 import os
+from collections.abc import Sequence
 from functools import cached_property, wraps
-from typing import List, Optional, Sequence, Set, Tuple, Union
 
 from ens import ENS
 from eth_account import Account
@@ -89,9 +89,9 @@ class SafeCliInfo:
     address: str
     nonce: int
     threshold: int
-    owners: List[str]
+    owners: list[str]
     master_copy: str
-    modules: List[str]
+    modules: list[str]
     fallback_handler: str
     guard: str
     module_guard: str
@@ -146,14 +146,14 @@ class SafeOperator:
     ethereum_client: EthereumClient
     ens: ENS
     network: EthereumNetwork
-    safe_tx_service: Optional[TransactionServiceApi]
+    safe_tx_service: TransactionServiceApi | None
     safe: Safe
     safe_contract: Contract
     safe_contract_1_1_0: Contract
-    accounts: Set[LocalAccount] = set()
-    default_sender: Optional[LocalAccount]
-    executed_transactions: List[str]
-    _safe_cli_info: Optional[SafeCliInfo]
+    accounts: set[LocalAccount] = set()
+    default_sender: LocalAccount | None
+    executed_transactions: list[str]
+    _safe_cli_info: SafeCliInfo | None
     require_all_signatures: bool
     interactive: bool
 
@@ -185,10 +185,10 @@ class SafeOperator:
         self.safe_contract_1_1_0 = get_safe_V1_1_1_contract(
             self.ethereum_client.w3, address=self.address
         )
-        self.accounts: Set[LocalAccount] = set()
-        self.default_sender: Optional[LocalAccount] = None
-        self.executed_transactions: List[str] = []
-        self._safe_cli_info: Optional[SafeCliInfo] = None  # Cache for SafeCliInfo
+        self.accounts: set[LocalAccount] = set()
+        self.default_sender: LocalAccount | None = None
+        self.executed_transactions: list[str] = []
+        self._safe_cli_info: SafeCliInfo | None = None  # Cache for SafeCliInfo
         self.require_all_signatures = (
             True  # Require all signatures to be present to send a tx
         )
@@ -196,7 +196,7 @@ class SafeOperator:
         self.interactive = interactive  # Disable prompt dialogs
 
     @cached_property
-    def etherscan(self) -> Optional[EtherscanClientV2]:
+    def etherscan(self) -> EtherscanClientV2 | None:
         if EtherscanClientV2.is_supported_network(self.network):
             return EtherscanClientV2(self.network)
         return None
@@ -219,7 +219,7 @@ class SafeOperator:
             return get_safe_l2_contract_address(self.ethereum_client)
 
     @cached_property
-    def ens_domain(self) -> Optional[str]:
+    def ens_domain(self) -> str | None:
         # FIXME After web3.py fixes the middleware copy
         if self.network == EthereumNetwork.MAINNET:
             return self.ens.name(self.address)
@@ -256,7 +256,7 @@ class SafeOperator:
                 self.safe_cli_info.version
             ) >= semantic_version.parse(safe_contract_version)
 
-    def load_cli_owners_from_words(self, words: List[str]):
+    def load_cli_owners_from_words(self, words: list[str]):
         if len(words) == 1:  # Reading seed from Environment Variable
             words = os.environ.get(words[0], default="").strip().split(" ")
         parsed_words = " ".join(words)
@@ -278,7 +278,7 @@ class SafeOperator:
                 HTML("<ansired>Cannot load owners from words</ansired>")
             )
 
-    def load_cli_owners(self, keys: List[str]):
+    def load_cli_owners(self, keys: list[str]):
         for key in keys:
             try:
                 account = Account.from_key(
@@ -289,7 +289,7 @@ class SafeOperator:
                 print_formatted_text(
                     HTML(
                         f"Loaded account <b>{account.address}</b> "
-                        f'with balance={Web3.from_wei(balance, "ether")} ether'
+                        f"with balance={Web3.from_wei(balance, 'ether')} ether"
                     )
                 )
                 if (
@@ -305,7 +305,7 @@ class SafeOperator:
                     self.default_sender = account
             except ValueError:
                 if not self.interactive:
-                    raise SafeOperatorException(f"Cannot load key={key}")
+                    raise SafeOperatorException(f"Cannot load key={key}") from None
                 print_formatted_text(HTML(f"<ansired>Cannot load key={key}</ansired>"))
 
     def load_hw_wallet(
@@ -335,7 +335,7 @@ class SafeOperator:
         print_formatted_text(
             HTML(
                 f"Loaded account <b>{address}</b> "
-                f'with balance={Web3.from_wei(balance, "ether")} ether.'
+                f"with balance={Web3.from_wei(balance, 'ether')} ether."
             )
         )
 
@@ -369,8 +369,8 @@ class SafeOperator:
                 HwWalletType.TREZOR, derivation_path, "44'/60'/0'/0/{i}"
             )
 
-    def unload_cli_owners(self, owners: List[str]):
-        accounts_to_remove: Set[Account] = set()
+    def unload_cli_owners(self, owners: list[str]):
+        accounts_to_remove: set[Account] = set()
         for owner in owners:
             for account in self.accounts:
                 if account.address == owner:
@@ -474,15 +474,15 @@ class SafeOperator:
 
     def sign_message(
         self,
-        eip712_message_path: Optional[str] = None,
+        eip712_message_path: str | None = None,
     ) -> bool:
         if eip712_message_path:
             try:
-                with open(eip712_message_path, "r") as message_file:
+                with open(eip712_message_path) as message_file:
                     message = json.load(message_file)
                 message_bytes = b"".join(eip712_encode(message))
             except ValueError:
-                raise ValueError
+                raise ValueError from None
         else:
             print_formatted_text("EIP191 message to sign:")
             message = get_input()
@@ -517,7 +517,7 @@ class SafeOperator:
     def confirm_message(self, safe_message_hash: bytes, sender: ChecksumAddress):
         return self._require_tx_service_mode()
 
-    def add_owner(self, new_owner: str, threshold: Optional[int] = None) -> bool:
+    def add_owner(self, new_owner: str, threshold: int | None = None) -> bool:
         threshold = threshold if threshold is not None else self.safe_cli_info.threshold
         if new_owner in self.safe_cli_info.owners:
             raise ExistingOwnerException(new_owner)
@@ -532,7 +532,7 @@ class SafeOperator:
                 return True
             return False
 
-    def remove_owner(self, owner_to_remove: str, threshold: Optional[int] = None):
+    def remove_owner(self, owner_to_remove: str, threshold: int | None = None):
         threshold = threshold if threshold is not None else self.safe_cli_info.threshold
         if owner_to_remove not in self.safe_cli_info.owners:
             raise NonExistingOwnerException(owner_to_remove)
@@ -559,7 +559,7 @@ class SafeOperator:
         to: str,
         value: int,
         data: bytes,
-        safe_nonce: Optional[int] = None,
+        safe_nonce: int | None = None,
         delegate_call: bool = False,
     ) -> bool:
         if value > 0:
@@ -675,7 +675,7 @@ class SafeOperator:
             try:
                 Safe(new_master_copy, self.ethereum_client).retrieve_version()
             except BadFunctionCallOutput:
-                raise InvalidMasterCopyException(new_master_copy)
+                raise InvalidMasterCopyException(new_master_copy) from None
 
             transaction = self.safe_contract_1_1_0.functions.changeMasterCopy(
                 new_master_copy
@@ -685,7 +685,7 @@ class SafeOperator:
                 self.safe_cli_info.version = self.safe.retrieve_version()
                 return True
 
-    def update_version(self) -> Optional[bool]:
+    def update_version(self) -> bool | None:
         """
         Update Safe Master Copy and Fallback handler to the last version
 
@@ -742,7 +742,7 @@ class SafeOperator:
 
     def update_version_to_l2(
         self, migration_contract_address: ChecksumAddress
-    ) -> Optional[bool]:
+    ) -> bool | None:
         """
         Update not L2 Safe to L2, so official UI supports it. Useful when replaying Safes deployed in
         non L2 networks (like mainnet) in L2 networks.
@@ -954,14 +954,14 @@ class SafeOperator:
         print_formatted_text(nonce)
         return nonce
 
-    def get_owners(self) -> List[ChecksumAddress]:
+    def get_owners(self) -> list[ChecksumAddress]:
         owners = self.safe.retrieve_owners()
         print_formatted_text(owners)
         return owners
 
     def search_account(
         self, address: ChecksumAddress
-    ) -> Optional[Union[LocalAccount, HwWallet]]:
+    ) -> LocalAccount | HwWallet | None:
         """
         Search the provided address between loaded owners.
 
@@ -982,7 +982,7 @@ class SafeOperator:
         value: int,
         data: bytes,
         operation: SafeOperationEnum = SafeOperationEnum.CALL,
-        safe_nonce: Optional[int] = None,
+        safe_nonce: int | None = None,
     ) -> SafeTx:
         safe_tx = self.safe.build_multisig_tx(
             to, value, data, operation=operation.value, safe_nonce=safe_nonce
@@ -996,7 +996,7 @@ class SafeOperator:
         value: int,
         data: bytes,
         operation: SafeOperationEnum = SafeOperationEnum.CALL,
-        safe_nonce: Optional[int] = None,
+        safe_nonce: int | None = None,
     ) -> bool:
         safe_tx = self.prepare_safe_transaction(
             to, value, data, operation, safe_nonce=safe_nonce
@@ -1061,7 +1061,7 @@ class SafeOperator:
     # Batch_transactions multisend
     def batch_safe_txs(
         self, safe_nonce: int, safe_txs: Sequence[SafeTx]
-    ) -> Optional[SafeTx]:
+    ) -> SafeTx | None:
         """
         Submit signatures to the tx service. It's recommended to be on Safe v1.3.0 to prevent issues
         with `safeTxGas` and gas estimation.
@@ -1075,7 +1075,7 @@ class SafeOperator:
             if not self.interactive:
                 raise SafeOperatorException(
                     "Multisend contract is not deployed on this network and it's required for batching txs"
-                )
+                ) from None
             multisend = None
             print_formatted_text(
                 HTML(
@@ -1131,7 +1131,7 @@ class SafeOperator:
         else:
             return safe_tx
 
-    def get_signers(self) -> Tuple[List[LocalAccount], List[HwWallet]]:
+    def get_signers(self) -> tuple[list[LocalAccount], list[HwWallet]]:
         """
         Get the signers necessary to sign a transaction, raise an exception if was not uploaded enough signers.
 
@@ -1139,9 +1139,9 @@ class SafeOperator:
         """
         permitted_signers = self.get_permitted_signers()
         threshold = self.safe_cli_info.threshold
-        eoa_signers: List[Account] = (
-            []
-        )  # Some accounts that are not an owner can be loaded
+        eoa_signers: list[
+            Account
+        ] = []  # Some accounts that are not an owner can be loaded
         for account in self.accounts:
             if account.address in permitted_signers:
                 eoa_signers.append(account)
@@ -1207,7 +1207,7 @@ class SafeOperator:
     def execute_tx(self, safe_tx_hash: Sequence[bytes]) -> bool:
         return self._require_tx_service_mode()
 
-    def get_permitted_signers(self) -> Set[ChecksumAddress]:
+    def get_permitted_signers(self) -> set[ChecksumAddress]:
         """
         :return: Accounts that can sign a transaction
         """
@@ -1267,7 +1267,7 @@ class SafeOperator:
     def remove_proposed_transaction(self, safe_tx_hash: bytes):
         return self._require_tx_service_mode()
 
-    def process_command(self, first_command: str, rest_command: List[str]) -> bool:
+    def process_command(self, first_command: str, rest_command: list[str]) -> bool:
         if first_command == "help":
             print_formatted_text("I still cannot help you")
         elif first_command == "refresh":

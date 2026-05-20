@@ -18,16 +18,18 @@ def raise_trezor_exception_as_hw_wallet_exception(function):
         try:
             return function(*args, **kwargs)
         except TrezorFailure as e:
-            raise HardwareWalletException(e.message)
+            raise HardwareWalletException(e.message) from e
         except OutdatedFirmwareError:
-            raise HardwareWalletException("Trezor firmware version is not supported")
+            raise HardwareWalletException(
+                "Trezor firmware version is not supported"
+            ) from None
         except PinException:
-            raise HardwareWalletException("Wrong PIN")
+            raise HardwareWalletException("Wrong PIN") from None
         except Cancelled:
-            raise HardwareWalletException("Trezor operation was cancelled")
+            raise HardwareWalletException("Trezor operation was cancelled") from None
         except TransportException:
-            raise HardwareWalletException("Trezor device is not connected")
+            raise HardwareWalletException("Trezor device is not connected") from None
         except InvalidDerivationPath as e:
-            raise HardwareWalletException(e.message)
+            raise HardwareWalletException(e.message) from e
 
     return wrapper

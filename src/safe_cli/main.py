@@ -3,7 +3,7 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Annotated, List
+from typing import Annotated
 
 import typer
 from art import text2art
@@ -32,7 +32,7 @@ app = typer.Typer(name="Safe CLI")
 def _build_safe_operator_and_load_keys(
     safe_address: ChecksumAddress,
     node_url: str,
-    private_keys: List[str],
+    private_keys: list[str],
     interactive: bool,
 ) -> SafeOperator:
     safe_operator = SafeOperator(safe_address, node_url, interactive=interactive)
@@ -98,7 +98,7 @@ def send_ether(
         int, typer.Argument(help="Amount of ether in wei to send.", show_default=False)
     ],
     private_key: Annotated[
-        List[str],
+        list[str],
         typer.Option(
             help="List of private keys of signers.",
             rich_help_panel="Optional Arguments",
@@ -143,7 +143,7 @@ def send_erc20(
         ),
     ],
     private_key: Annotated[
-        List[str],
+        list[str],
         typer.Option(
             help="List of private keys of signers.",
             rich_help_panel="Optional Arguments",
@@ -185,7 +185,7 @@ def send_erc721(
         int, typer.Argument(help="Erc721 token id.", show_default=False)
     ],
     private_key: Annotated[
-        List[str],
+        list[str],
         typer.Option(
             help="List of private keys of signers.",
             rich_help_panel="Optional Arguments",
@@ -225,7 +225,7 @@ def send_custom(
         ),
     ],
     private_key: Annotated[
-        List[str],
+        list[str],
         typer.Option(
             help="List of private keys of signers.",
             rich_help_panel="Optional Arguments",
@@ -276,7 +276,7 @@ def tx_builder(
         ),
     ],
     private_key: Annotated[
-        List[str],
+        list[str],
         typer.Option(
             help="List of private keys of signers.",
             rich_help_panel="Optional Arguments",
@@ -374,7 +374,7 @@ def default_attended_mode(
     safe_cli.loop()
 
 
-def _is_safe_cli_default_command(arguments: List[str]) -> bool:
+def _is_safe_cli_default_command(arguments: list[str]) -> bool:
     # safe-cli
     if len(arguments) == 1:
         return True
