@@ -1,10 +1,10 @@
 [![PyPI version](https://badge.fury.io/py/safe-cli.svg)](https://badge.fury.io/py/safe-cli)
 [![Build Status](https://github.com/safe-global/safe-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/safe-global/safe-cli/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/safe-global/safe-cli/badge.svg?branch=main)](https://coveralls.io/github/safe-global/safe-cli?branch=main)
-![Python 3.10](https://img.shields.io/badge/Python-3.10-blue.svg)
 ![Python 3.11](https://img.shields.io/badge/Python-3.11-blue.svg)
 ![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)
 ![Python 3.13](https://img.shields.io/badge/Python-3.13-blue.svg)
+![Python 3.14](https://img.shields.io/badge/Python-3.14-blue.svg)
 [![Docker Image Version (latest semver)](https://img.shields.io/docker/v/safeglobal/safe-cli?label=Docker&sort=semver)](https://hub.docker.com/r/safeglobal/safe-cli)
 
 # Safe CLI
@@ -30,7 +30,7 @@ docker run -it safeglobal/safe-cli safe-cli <checksummed_safe_address> <ethereum
 
 ## Using Python PIP
 
-**Prerequisite:** [Python](https://www.python.org/downloads/) >= 3.10 (Python 3.13 is recommended) and [uv](https://docs.astral.sh/uv).
+**Prerequisite:** [Python](https://www.python.org/downloads/) >= 3.11 (Python 3.13 is recommended) and [uv](https://docs.astral.sh/uv).
 
 Once `Python` and `uv` are installed on your system, install Safe CLI:
 

@@ -8,13 +8,12 @@ dynamic = ["version"]
 description = "Command Line Interface for Safe"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 authors = [{ name = "Uxío Fuentefría", email = "uxio@safe.global" }]
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -32,19 +31,6 @@ dependencies = [
     "typer>=0.14.0",
 ]
 
-
-[project.optional-dependencies]
-ledger = ["ledgereth==0.10.0"]
-trezor = ["trezor==0.13.10"]
-
-[project.scripts]
-safe-cli = "safe_cli.main:main"
-safe-creator = "safe_cli.safe_creator:main"
-
-[project.urls]
-Download = "https://github.com/gnosis/safe-cli/releases"
-Homepage = "https://github.com/gnosis/safe-cli"
-
 [dependency-groups]
 dev = [
     "coverage",
@@ -57,6 +43,19 @@ dev = [
     "pytest-sugar",
     "ruff",
 ]
+
+
+[project.optional-dependencies]
+ledger = ["ledgereth==0.10.0"]
+trezor = ["trezor==0.13.10"]
+
+[project.scripts]
+safe-cli = "safe_cli.main:main"
+safe-creator = "safe_cli.safe_creator:main"
+
+[project.urls]
+Download = "https://github.com/gnosis/safe-cli/releases"
+Homepage = "https://github.com/gnosis/safe-cli"
 
 [tool.hatch.version]
 path = "src/safe_cli/__init__.py"
@@ -105,7 +104,7 @@ exclude_lines = [
 
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py311"
 exclude = [
     ".tox", ".git", "*/static/CACHE/*",
     "docs", "node_modules", ".venv"
