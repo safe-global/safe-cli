@@ -5,13 +5,41 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    reviewers:
-      - "uxio0"
+    open-pull-requests-limit: 10
+    cooldown:
+      semver-major-days: 30
+      semver-minor-days: 7
+      semver-patch-days: 7
+      exclude:
+        - "safe-eth-py"
+    groups:
+      eth:
+        patterns:
+          - "safe-eth-py"
+          - "web3"
+          - "eth-*"
+        update-types:
+          - minor
+          - patch
+      dependencies:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
       interval: weekly
       day: monday
-    reviewers:
-      - "uxio0"
+    open-pull-requests-limit: 10
+    cooldown:
+      default-days: 7
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
