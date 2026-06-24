@@ -8,6 +8,7 @@ from safe_cli.tx_builder.exceptions import SoliditySyntaxError, TxBuilderEncodin
 from safe_cli.tx_builder.tx_builder_file_decoder import (
     SafeProposedTx,
     _get_base_field_type,
+    _parse_types_to_encoding_types,
     convert_to_proposed_transactions,
     encode_contract_method_to_hex_data,
     parse_array_of_values,
@@ -77,6 +78,23 @@ class TestTxBuilderFileDecoder(SafeCliTestCaseMixin, unittest.TestCase):
             _get_base_field_type("[int]")
         with self.assertRaises(SoliditySyntaxError):
             _get_base_field_type("")
+
+    def test_parse_types_to_encoding_types_tuple_array(self):
+        contract_fields = [
+            {
+                "type": "tuple[]",
+                "name": "ops",
+                "components": [
+                    {"type": "uint8", "name": "kind"},
+                    {"type": "address", "name": "asset"},
+                    {"type": "uint256", "name": "amount"},
+                    {"type": "address", "name": "sender"},
+                    {"type": "address", "name": "recipient"},
+                ],
+            }
+        ]
+        result = _parse_types_to_encoding_types(contract_fields)
+        self.assertEqual(result, ["(uint8,address,uint256,address,address)[]"])
 
     def test_parse_array_of_values(self):
         self.assertEqual(parse_array_of_values("[1,2,3]", "uint[]"), [1, 2, 3])
