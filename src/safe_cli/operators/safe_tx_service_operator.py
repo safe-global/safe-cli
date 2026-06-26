@@ -77,6 +77,7 @@ class SafeTxServiceOperator(SafeOperator):
             print_formatted_text(
                 HTML("<ansired>At least one owner must be loaded</ansired>")
             )
+            return False
 
         if self.safe_tx_service.post_message(self.address, message, signature):
             print_formatted_text(
@@ -114,6 +115,7 @@ class SafeTxServiceOperator(SafeOperator):
             print_formatted_text(
                 HTML(f"<ansired>Owner with address {sender} was not loaded</ansired>")
             )
+            return False
 
         if isinstance(signer, LocalAccount):
             signature = signer.unsafe_sign_hash(safe_message_hash).signature

@@ -259,7 +259,15 @@ class SafeOperator:
     def load_cli_owners_from_words(self, words: list[str]):
         if len(words) == 1:  # Reading seed from Environment Variable
             words = os.environ.get(words[0], default="").strip().split(" ")
-        parsed_words = " ".join(words)
+        parsed_words = " ".join(words).strip()
+        if not parsed_words:
+            print_formatted_text(
+                HTML(
+                    "<ansired>Cannot load owners from words: empty seed "
+                    "(check the mnemonic or the environment variable)</ansired>"
+                )
+            )
+            return
         try:
             accounts = []
             for index in range(100):  # Try first 100 accounts of seed phrase
@@ -600,7 +608,9 @@ class SafeOperator:
         elif semantic_version.parse(
             self.safe_cli_info.version
         ) < semantic_version.parse("1.1.0"):
-            raise FallbackHandlerNotSupportedException()
+            raise FallbackHandlerNotSupportedException(
+                "Fallback handler is not supported for Safes with version < 1.1.0"
+            )
         elif (
             new_fallback_handler != NULL_ADDRESS
             and not self.ethereum_client.is_contract(new_fallback_handler)
@@ -616,6 +626,7 @@ class SafeOperator:
                 self.safe_cli_info.fallback_handler = new_fallback_handler
                 self.safe_cli_info.version = self.safe.retrieve_version()
                 return True
+            return False
 
     def change_guard(self, guard: str) -> bool:
         if guard == self.safe_cli_info.guard:
@@ -623,7 +634,9 @@ class SafeOperator:
         elif semantic_version.parse(
             self.safe_cli_info.version
         ) < semantic_version.parse("1.3.0"):
-            raise GuardNotSupportedException()
+            raise GuardNotSupportedException(
+                "Guard is not supported for Safes with version < 1.3.0"
+            )
         elif guard != NULL_ADDRESS and not self.ethereum_client.is_contract(guard):
             raise InvalidGuardException(f"{guard} address is not a contract")
         else:
@@ -634,6 +647,7 @@ class SafeOperator:
                 self.safe_cli_info.guard = guard
                 self.safe_cli_info.version = self.safe.retrieve_version()
                 return True
+            return False
 
     def change_module_guard(self, module_guard: str) -> bool:
         if module_guard == self.safe_cli_info.module_guard:
@@ -661,6 +675,7 @@ class SafeOperator:
                 self.safe_cli_info.module_guard = module_guard
                 self.safe_cli_info.version = self.safe.retrieve_version()
                 return True
+            return False
 
     def change_master_copy(self, new_master_copy: str) -> bool:
         if new_master_copy == self.safe_cli_info.master_copy:
@@ -684,6 +699,7 @@ class SafeOperator:
                 self.safe_cli_info.master_copy = new_master_copy
                 self.safe_cli_info.version = self.safe.retrieve_version()
                 return True
+            return False
 
     def update_version(self) -> bool | None:
         """
@@ -739,6 +755,8 @@ class SafeOperator:
                 self.last_default_fallback_handler_address
             )
             self.safe_cli_info.version = self.safe.retrieve_version()
+            return True
+        return False
 
     def update_version_to_l2(
         self, migration_contract_address: ChecksumAddress
@@ -803,11 +821,17 @@ class SafeOperator:
             self.safe_cli_info.master_copy = safe_l2_singleton
             self.safe_cli_info.fallback_handler = fallback_handler
             self.safe_cli_info.version = self.safe.retrieve_version()
+            return True
+        return False
 
     def change_threshold(self, threshold: int):
         if threshold == self.safe_cli_info.threshold:
             print_formatted_text(
                 HTML(f"<ansired>Threshold is already {threshold}</ansired>")
+            )
+        elif threshold < 1:
+            print_formatted_text(
+                HTML("<ansired>Threshold must be at least 1</ansired>")
             )
         elif threshold > len(self.safe_cli_info.owners):
             print_formatted_text(
@@ -1044,7 +1068,7 @@ class SafeOperator:
                             f"deducted={fees}</ansigreen>"
                         )
                     )
-                    self.safe_cli_info.nonce += 1
+                    self.safe_cli_info.nonce = safe_tx.safe_nonce + 1
                     return True
                 else:
                     print_formatted_text(

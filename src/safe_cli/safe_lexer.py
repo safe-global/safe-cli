@@ -8,7 +8,7 @@ class SafeLexer(BashLexer):
     name = "SafeLexer"
     aliases = ["safe_lexer"]
 
-    ADDRESS = r"^0x[aA-zZ,0-9]{40}$|^0x[aA-zZ,0-9]{62}$"
+    ADDRESS = r"^0x[a-fA-F0-9]{40}$|^0x[a-fA-F0-9]{64}$"
     EXTRA_KEYWORDS = {
         "refresh",
         "get_nonce",

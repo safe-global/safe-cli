@@ -17,7 +17,9 @@ def get_account_from_words(
     :raises: eth_utils.ValidationError
     """
     Account.enable_unaudited_hdwallet_features()
-    if index:
+    # Derive from the base path by index only when the caller did not
+    # supply a custom hd_path; otherwise honor the provided hd_path
+    if index and hd_path == ETHEREUM_DEFAULT_PATH:
         hd_path = f"{ETHEREUM_BASE_PATH}/{index}"
     return Account.from_mnemonic(words, account_path=hd_path)
 

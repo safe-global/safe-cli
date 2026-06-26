@@ -116,7 +116,7 @@ class TrezorWallet(HwWallet):
                 gas_limit=tx_parameters["gas"],
                 to=tx_parameters["to"],
                 value=tx_parameters["value"],
-                data=HexBytes(tx_parameters.get("data")),
+                data=HexBytes(tx_parameters["data"]),
                 chain_id=chain_id,
             )
 

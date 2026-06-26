@@ -21,7 +21,10 @@ def _parse_types_to_encoding_types(contract_fields: list[dict[str, Any]]) -> lis
             component_types = ",".join(
                 component["type"] for component in field["components"]
             )
-            types.append(f"({component_types})")
+            # Preserve any array suffix (e.g. tuple[], tuple[2]) so the
+            # function selector and ABI encoding target the right signature
+            array_suffix = field["type"].removeprefix("tuple")
+            types.append(f"({component_types}){array_suffix}")
         else:
             types.append(field["type"])
 
@@ -42,14 +45,16 @@ def encode_contract_method_to_hex_data(
     if not is_valid_contract_method:
         return None
 
+    contract_fields_values = contract_fields_values or {}
     try:
         encoding_types = _parse_types_to_encoding_types(contract_fields)
-        values = [
-            parse_input_value(
-                field["type"], contract_fields_values.get(field["name"], "")
+        values = []
+        for field in contract_fields:
+            if field["name"] not in contract_fields_values:
+                raise SoliditySyntaxError(f"Missing value for input '{field['name']}'")
+            values.append(
+                parse_input_value(field["type"], contract_fields_values[field["name"]])
             )
-            for field in contract_fields
-        ]
 
         function_signature = f"{contract_method_name}({','.join(encoding_types)})"
         function_selector = Web3.keccak(text=function_signature)[:4]
@@ -81,9 +86,7 @@ def parse_int_value(value: str) -> int:
     if trimmed_value == "":
         raise SoliditySyntaxError("Invalid empty strings for integers")
     try:
-        if not trimmed_value.isdigit() and bool(
-            re.fullmatch(r"0[xX][0-9a-fA-F]+|[0-9a-fA-F]+$", trimmed_value)
-        ):
+        if re.fullmatch(r"0[xX][0-9a-fA-F]+", trimmed_value):
             return int(trimmed_value, 16)
 
         return int(trimmed_value)
@@ -176,18 +179,26 @@ def is_multi_dimensional_array_field_type(field_type: str) -> bool:
     return field_type.count("[") > 1
 
 
+def is_any_array_field_type(field_type: str) -> bool:
+    return is_array_field_type(field_type) or is_multi_dimensional_array_field_type(
+        field_type
+    )
+
+
 def parse_input_value(field_type: str, value: str) -> Any:
     trimmed_value = value.strip() if isinstance(value, str) else value
 
     if is_tuple_field_type(field_type):
-        return tuple(json.loads(trimmed_value))
+        parsed = json.loads(trimmed_value)
+        if is_any_array_field_type(field_type):
+            # Array of tuples (e.g. tuple[]): a list of tuples, not one tuple
+            return [tuple(item) for item in parsed]
+        return tuple(parsed)
 
     if is_array_of_strings_field_type(field_type):
         return json.loads(trimmed_value)
 
-    if is_array_field_type(field_type) or is_multi_dimensional_array_field_type(
-        field_type
-    ):
+    if is_any_array_field_type(field_type):
         return parse_array_of_values(trimmed_value, field_type)
 
     if is_boolean_field_type(field_type):
@@ -228,11 +239,14 @@ def convert_to_proposed_transactions(
                 to_0x_hex_str(encoded_data) if encoded_data is not None else "0x"
             )
 
+        raw_value = transaction.get("value")
+        value = parse_int_value(str(raw_value)) if raw_value not in (None, "") else 0
+
         proposed_transactions.append(
             SafeProposedTx(
                 id=index,
                 to=transaction.get("to"),
-                value=transaction.get("value"),
+                value=value,
                 data=data_value,
             )
         )
