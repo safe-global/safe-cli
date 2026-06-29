@@ -14,7 +14,7 @@ safe_commands_arguments = {
     "change_guard": "<address>",
     "change_module_guard": "<address>",
     "change_master_copy": "<address>",
-    "change_threshold": "<address>",
+    "change_threshold": "<integer>",
     "disable_module": "<address>",
     "enable_module": "<address>",
     "execute-tx": "<safe-tx-hash>",
@@ -51,18 +51,6 @@ safe_commands_arguments = {
 }
 
 safe_commands = list(safe_commands_arguments.keys())
-
-safe_color_arguments = {
-    "(read-only)": SAFE_ARGUMENT_COLOR,
-    "<account-private-key>": SAFE_ARGUMENT_COLOR,
-    "<address>": SAFE_ARGUMENT_COLOR,
-    "<hex-str>": SAFE_ARGUMENT_COLOR,
-    "<integer>": SAFE_ARGUMENT_COLOR,
-    "<safe-tx-hash>": SAFE_ARGUMENT_COLOR,
-    "<token-address>": SAFE_ARGUMENT_COLOR,
-    "<token-id>": SAFE_ARGUMENT_COLOR,
-    "<value-wei>": SAFE_ARGUMENT_COLOR,
-}
 
 meta = {
     "approve_hash": HTML(
@@ -104,10 +92,6 @@ meta = {
     ),
     "get_delegates": HTML(
         "Command <b>get_delegates</b> will return information about the current delegates."
-    ),
-    "change_owner": HTML(
-        "Command <b>change_owner</b> will change an old account <u>&lt;address&gt;</u> for the new "
-        "check-summed <u>&lt;address&gt;</u> account."
     ),
     "add_owner": HTML(
         "Command <b>add_owner</b> will add a check-summed <u>&lt;address&gt;</u> owner account."

@@ -17,6 +17,7 @@ from . import VERSION
 from .argparse_validators import check_hex_str
 from .operators import SafeOperator
 from .safe_cli import SafeCli
+from .tx_builder.exceptions import SoliditySyntaxError, TxBuilderEncodingError
 from .tx_builder.tx_builder_file_decoder import convert_to_proposed_transactions
 from .typer_validators import (
     ChecksumAddressParser,
@@ -46,7 +47,7 @@ def _check_interactive_mode(interactive_mode: bool) -> bool:
 
     # --non-interactive arg > env var.
     env_var = os.getenv("SAFE_CLI_INTERACTIVE")
-    if env_var:
+    if env_var is not None:
         return env_var.lower() in ("true", "1", "yes")
 
     return True
@@ -289,11 +290,19 @@ def tx_builder(
     safe_operator = _build_safe_operator_and_load_keys(
         safe_address, node_url, private_key, interactive
     )
-    data = json.loads(file_path.read_text())
-    safe_txs = [
-        safe_operator.prepare_safe_transaction(tx.to, tx.value, tx.data)
-        for tx in convert_to_proposed_transactions(data)
-    ]
+    try:
+        data = json.loads(file_path.read_text())
+        safe_txs = [
+            safe_operator.prepare_safe_transaction(tx.to, tx.value, tx.data)
+            for tx in convert_to_proposed_transactions(data)
+        ]
+    except (
+        json.JSONDecodeError,
+        KeyError,
+        SoliditySyntaxError,
+        TxBuilderEncodingError,
+    ) as e:
+        raise typer.BadParameter(f"Invalid tx-builder file: {e}") from e
 
     if len(safe_txs) == 0:
         raise typer.BadParameter("No transactions found.")
@@ -385,7 +394,7 @@ def _is_safe_cli_default_command(arguments: list[str]) -> bool:
     # Only added if is not a valid command, and it is an address. safe-cli 0xaddress http://url
     if arguments[1] not in [
         get_command_name(key) for key in get_command(app).commands.keys()
-    ] and Web3.is_checksum_address(arguments[1]):
+    ] and Web3.is_address(arguments[1]):
         return True
 
     return False

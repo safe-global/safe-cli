@@ -3,8 +3,9 @@ from prompt_toolkit.completion import CompleteEvent, Completer, Completion
 from prompt_toolkit.document import Document
 
 from .safe_completer_constants import (
+    SAFE_ARGUMENT_COLOR,
+    SAFE_EMPTY_ARGUMENT_COLOR,
     meta,
-    safe_color_arguments,
     safe_commands,
     safe_commands_arguments,
 )
@@ -32,8 +33,10 @@ class SafeCompleter(Completer):
                 if command.startswith(word.lower()):
                     if command in safe_commands_arguments:
                         safe_command = safe_commands_arguments[command]
-                        safe_argument_color = safe_color_arguments.get(
-                            safe_command, "default"
+                        safe_argument_color = (
+                            SAFE_ARGUMENT_COLOR
+                            if safe_command
+                            else SAFE_EMPTY_ARGUMENT_COLOR
                         )
                         display = HTML(
                             "<b><ansired> &gt; </ansired>%s</b> <"

@@ -1,5 +1,6 @@
 import argparse
 import functools
+import shlex
 
 from prompt_toolkit import HTML, print_formatted_text
 from prompt_toolkit.formatted_text import html
@@ -134,7 +135,8 @@ def safe_exception(function):
                 HTML(f"<ansired>HwDevice exception: {e.args[0]}</ansired>")
             )
         except SafeOperatorException as e:
-            print_formatted_text(HTML(f"<ansired>{e.args[0]}</ansired>"))
+            message = e.args[0] if e.args else type(e).__name__
+            print_formatted_text(HTML(f"<ansired>{message}</ansired>"))
 
     return wrapper
 
@@ -146,7 +148,14 @@ class PromptParser:
         self.prompt_parser = build_prompt_parser(safe_operator)
 
     def process_command(self, command: str):
-        args = self.prompt_parser.parse_args(command.split())
+        try:
+            split_command = shlex.split(command)
+        except ValueError as e:
+            print_formatted_text(
+                HTML(f"<ansired>Invalid command syntax: {e}</ansired>")
+            )
+            return
+        args = self.prompt_parser.parse_args(split_command)
         return args.func(args)
 
 

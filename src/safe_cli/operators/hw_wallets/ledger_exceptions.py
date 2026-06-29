@@ -27,7 +27,7 @@ def raise_ledger_exception_as_hw_wallet_exception(function):
         except InvalidDerivationPath as e:
             raise HardwareWalletException(e.message) from e
         except BaseException as e:
-            if "Error while writing" in e.args:
+            if "Error while writing" in str(e):
                 raise HardwareWalletException(
                     "Ledger error writing, restart safe-cli"
                 ) from e
