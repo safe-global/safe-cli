@@ -9,11 +9,9 @@ from safe_eth.eth.eip712 import eip712_encode
 from safe_eth.safe import SafeTx
 from safe_eth.safe.signatures import signature_split, signature_to_bytes
 from safe_eth.safe.tests.safe_test_case import SafeTestCaseMixin
-from trezorlib.client import TrezorClient
 from trezorlib.exceptions import Cancelled, OutdatedFirmwareError, PinException
 from trezorlib.messages import EthereumTypedDataSignature
 from trezorlib.transport import TransportException
-from trezorlib.ui import ClickUI
 
 from safe_cli.operators.exceptions import HardwareWalletException
 from safe_cli.operators.hw_wallets.trezor_wallet import TrezorWallet
@@ -21,7 +19,7 @@ from safe_cli.operators.hw_wallets.trezor_wallet import TrezorWallet
 
 class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
     @mock.patch(
-        "safe_cli.operators.hw_wallets.trezor_wallet.get_trezor_client",
+        "safe_cli.operators.hw_wallets.trezor_wallet.get_trezor_session",
         return_value=None,
     )
     @mock.patch(
@@ -29,10 +27,10 @@ class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
         return_value=None,
     )
     def test_setup_trezor_wallet(
-        self, mock_trezor_client: MagicMock, mock_get_address: MagicMock
+        self, mock_trezor_session: MagicMock, mock_get_address: MagicMock
     ):
         trezor_wallet = TrezorWallet("44'/60'/0'/0")
-        self.assertIsNone(trezor_wallet.client)
+        self.assertIsNone(trezor_wallet.session)
 
     @mock.patch(
         "safe_cli.operators.hw_wallets.trezor_wallet.sign_typed_data_hash",
@@ -43,21 +41,16 @@ class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
         autospec=True,
     )
     @mock.patch(
-        "safe_cli.operators.hw_wallets.trezor_wallet.get_trezor_client",
+        "safe_cli.operators.hw_wallets.trezor_wallet.get_trezor_session",
         autospec=True,
     )
     def test_hw_device_exception(
         self,
-        mock_trezor_client: MagicMock,
+        mock_trezor_session: MagicMock,
         mock_trezor_get_address: MagicMock,
         mock_trezor_sign: MagicMock,
     ):
         derivation_path = "44'/60'/0'/0"
-        transport_mock = MagicMock(auto_spec=True)
-        mock_trezor_client.return_value = TrezorClient(
-            transport_mock, ui=ClickUI(), _init_device=False
-        )
-        mock_trezor_client.return_value.is_outdated = MagicMock(return_value=False)
         random_domain_bytes = os.urandom(32)
         random_message_bytes = os.urandom(32)
 
@@ -104,19 +97,14 @@ class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
         autospec=True,
     )
     @mock.patch(
-        "safe_cli.operators.hw_wallets.trezor_wallet.get_trezor_client",
+        "safe_cli.operators.hw_wallets.trezor_wallet.get_trezor_session",
         autospec=True,
     )
     def test_sign_typed_hash(
-        self, mock_trezor_client: MagicMock, mock_get_address: MagicMock
+        self, mock_trezor_session: MagicMock, mock_get_address: MagicMock
     ):
         owner = Account.create()
         to = Account.create()
-        transport_mock = MagicMock(auto_spec=True)
-        mock_trezor_client.return_value = TrezorClient(
-            transport_mock, ui=ClickUI(), _init_device=False
-        )
-        mock_trezor_client.return_value.is_outdated = MagicMock(return_value=False)
         mock_get_address.return_value = owner.address
         trezor_wallet = TrezorWallet("44'/60'/0'/0")
 
@@ -145,9 +133,7 @@ class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
         trezor_return_signature = EthereumTypedDataSignature(
             signature=expected_signature, address=trezor_wallet.address
         )
-        mock_trezor_client.return_value.call = MagicMock(
-            return_value=trezor_return_signature
-        )
+        mock_trezor_session.return_value.call.return_value = trezor_return_signature
         signature = trezor_wallet.sign_typed_hash(encode_hash[1], encode_hash[2])
         self.assertEqual(expected_signature, signature)
 
@@ -164,23 +150,18 @@ class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
         autospec=True,
     )
     @mock.patch(
-        "safe_cli.operators.hw_wallets.trezor_wallet.get_trezor_client",
+        "safe_cli.operators.hw_wallets.trezor_wallet.get_trezor_session",
         autospec=True,
     )
     def test_get_signed_raw_transaction(
         self,
-        mock_trezor_client: MagicMock,
+        mock_trezor_session: MagicMock,
         mock_get_address: MagicMock,
         mock_sign_tx_eip1559: MagicMock,
         mock_sign_tx: MagicMock,
     ):
         owner = Account.create()
         to = Account.create()
-        transport_mock = MagicMock(auto_spec=True)
-        mock_trezor_client.return_value = TrezorClient(
-            transport_mock, ui=ClickUI(), _init_device=False
-        )
-        mock_trezor_client.return_value.is_outdated = MagicMock(return_value=False)
         mock_get_address.return_value = owner.address
         trezor_wallet = TrezorWallet("44'/60'/0'/0")
 
@@ -261,21 +242,16 @@ class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
         autospec=True,
     )
     @mock.patch(
-        "safe_cli.operators.hw_wallets.trezor_wallet.get_trezor_client",
+        "safe_cli.operators.hw_wallets.trezor_wallet.get_trezor_session",
         autospec=True,
     )
     def test_get_sign_message(
         self,
-        mock_trezor_client: MagicMock,
+        mock_trezor_session: MagicMock,
         mock_get_address: MagicMock,
         mock_sign_message: MagicMock,
     ):
         owner = Account.create()
-        transport_mock = MagicMock(auto_spec=True)
-        mock_trezor_client.return_value = TrezorClient(
-            transport_mock, ui=ClickUI(), _init_device=False
-        )
-        mock_trezor_client.return_value.is_outdated = MagicMock(return_value=False)
         mock_get_address.return_value = owner.address
         trezor_wallet = TrezorWallet("44'/60'/0'/0")
         expected_signature = HexBytes(

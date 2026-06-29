@@ -2,6 +2,7 @@ import functools
 
 from trezorlib.exceptions import (
     Cancelled,
+    DeviceLockedError,
     OutdatedFirmwareError,
     PinException,
     TrezorFailure,
@@ -27,6 +28,8 @@ def raise_trezor_exception_as_hw_wallet_exception(function):
             raise HardwareWalletException("Wrong PIN") from None
         except Cancelled:
             raise HardwareWalletException("Trezor operation was cancelled") from None
+        except DeviceLockedError:
+            raise HardwareWalletException("Trezor device is locked") from None
         except TransportException:
             raise HardwareWalletException("Trezor device is not connected") from None
         except InvalidDerivationPath as e:
