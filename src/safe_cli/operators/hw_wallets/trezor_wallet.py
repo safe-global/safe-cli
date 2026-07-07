@@ -8,9 +8,9 @@ from trezorlib import tools
 from trezorlib.cli import get_code_entry_code, get_passphrase
 from trezorlib.cli.ui import ClickUI
 from trezorlib.client import (
+    PassphraseSetting,
     Session,
     get_default_client,
-    get_default_session,
 )
 from trezorlib.ethereum import (
     get_address,
@@ -29,7 +29,7 @@ from .trezor_exceptions import raise_trezor_exception_as_hw_wallet_exception
 @raise_trezor_exception_as_hw_wallet_exception
 def get_trezor_session() -> Session:
     """
-    Return a default Trezor session, entering the passphrase on the host unless the device requires on-device entry.
+    Return a Trezor session, entering the passphrase on the host unless the device requires on-device entry.
     This method is cached to share the same session between trezor calls while the class is not instantiated.
     :return:
     """
@@ -40,7 +40,19 @@ def get_trezor_session() -> Session:
         pin_callback=ui.get_pin,
         code_entry_callback=get_code_entry_code,
     )
-    return get_default_session(client, passphrase_callback=get_passphrase)
+    # `get_default_session` forces on-device passphrase entry for devices that
+    # advertise the `PassphraseEntry` capability (e.g. Trezor T/Safe), ignoring
+    # the host callback entirely. Build the session ourselves so the passphrase
+    # keeps being entered on the host, unless the device only allows on-device
+    # entry (`passphrase_always_on_device`).
+    client.ensure_unlocked()
+    if not client.features.passphrase_protection:
+        passphrase = PassphraseSetting.STANDARD_WALLET
+    elif client.features.passphrase_always_on_device:
+        passphrase = PassphraseSetting.ON_DEVICE
+    else:
+        passphrase = get_passphrase()
+    return client.get_session(passphrase=passphrase)
 
 
 class TrezorWallet(HwWallet):
