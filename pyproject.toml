@@ -47,7 +47,7 @@ dev = [
 
 [project.optional-dependencies]
 ledger = ["ledgereth==0.10.0"]
-trezor = ["trezor==0.13.10"]
+trezor = ["trezor==0.20.1"]
 
 [project.scripts]
 safe-cli = "safe_cli.main:main"
