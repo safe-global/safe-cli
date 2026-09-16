@@ -5,7 +5,7 @@
 ![Python 3.12](https://img.shields.io/badge/Python-3.12-blue.svg)
 ![Python 3.13](https://img.shields.io/badge/Python-3.13-blue.svg)
 ![Python 3.14](https://img.shields.io/badge/Python-3.14-blue.svg)
-[![Docker Image Version (latest semver)](https://img.shields.io/docker/v/safeglobal/safe-cli?label=Docker&sort=semver)](https://hub.docker.com/r/safeglobal/safe-cli)
+[![Container image](https://img.shields.io/badge/ghcr.io-safe--global%2Fsafe--cli-0b5d52?logo=github&logoColor=white)](https://github.com/safe-global/safe-cli/pkgs/container/safe-cli)
 
 # Safe CLI
 
@@ -20,12 +20,12 @@ It does not rely on Safe{Core} API and can also be used in networks where Safe s
 Once Docker is installed on your system, run the following command to create new Safe accounts:
 
 ```bash
-docker run -it safeglobal/safe-cli safe-creator
+docker run -it ghcr.io/safe-global/safe-cli safe-creator
 ```
 
 You can also run the following command to run the Safe CLI with an existing Safe:
 ```bash
-docker run -it safeglobal/safe-cli safe-cli <checksummed_safe_address> <ethereum_node_url>
+docker run -it ghcr.io/safe-global/safe-cli safe-cli <checksummed_safe_address> <ethereum_node_url>
 ```
 
 ## Using Python PIP
