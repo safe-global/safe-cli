@@ -39,12 +39,8 @@ class SafeCompleter(Completer):
                             else SAFE_EMPTY_ARGUMENT_COLOR
                         )
                         display = HTML(
-                            "<b><ansired> &gt; </ansired>%s</b> <"
-                            + safe_argument_color
-                            + ">%s</"
-                            + safe_argument_color
-                            + ">"
-                        ) % (command, safe_command)
+                            f"<b><ansired> &gt; </ansired>{command}</b> <{safe_argument_color}>{safe_command}</{safe_argument_color}>"
+                        )
                         yield Completion(
                             command,
                             start_position=-len(word),
