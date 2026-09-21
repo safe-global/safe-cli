@@ -1536,7 +1536,7 @@ name = "importlib-metadata"
 version = "9.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "zipp", marker = "python_full_version < '3.15'" },
+    { name = "zipp" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/a9/01/15bb152d77b21318514a96f43af312635eb2500c96b55398d020c93d86ea/importlib_metadata-9.0.0.tar.gz", hash = "sha256:a4f57ab599e6a2e3016d7595cfd72eb4661a5106e787a95bcc90c7105b831efc", size = 56405, upload-time = "2026-03-20T06:42:56.999Z" }
 wheels = [
@@ -3214,7 +3214,7 @@ dev = [
 
 [[package]]
 name = "safe-eth-py"
-version = "7.21.0"
+version = "7.25.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
@@ -3223,9 +3223,9 @@ dependencies = [
     { name = "safe-pysha3" },
     { name = "web3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ce/e0/36d6cf327c2fc3c147cc180045f64c36ece11fffaafb7b37a59c73280720/safe_eth_py-7.21.0.tar.gz", hash = "sha256:eae30ddb1ac70e1c08dc47e42eccfcc7958f4b72b0a4ee27eaeecc73afcecc42", size = 843797, upload-time = "2026-04-22T16:02:10.59Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/21/19/82dd708bc75f55d2fa8a2b21eceff2fe033fd3c046b9e78bd1124bc7e39e/safe_eth_py-7.25.0.tar.gz", hash = "sha256:98aaa21b21bb8455f8089f834bbcb25f28da1aa06bb7a045e348ed95484efbfd", size = 886691, upload-time = "2026-09-08T13:48:13.958Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/18/57/bbc0f1038d2aa253008657d07195feede76f8445fc087b02cc3362e4decd/safe_eth_py-7.21.0-py3-none-any.whl", hash = "sha256:f7c40a705c427450e49f535496f9d8b5538f7c360f88525fb97cd37d1741742e", size = 965477, upload-time = "2026-04-22T16:02:12.204Z" },
+    { url = "https://files.pythonhosted.org/packages/0e/eb/4bec9c909c3264664b3c57679df956ac4847c995f83cf50901f673bd5405/safe_eth_py-7.25.0-py3-none-any.whl", hash = "sha256:ed6e38e97cc5c2e31ba503eecdc3c456ed43852478ce7ef4884cfe6d2f3b783a", size = 1009419, upload-time = "2026-09-08T13:48:11.992Z" },
 ]
 
 [[package]]
