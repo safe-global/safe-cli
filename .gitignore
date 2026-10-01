@@ -106,3 +106,6 @@ venv.bak/
 
 # Don't push history file
 .history
+
+# Claude Code worktrees
+/.claude/worktrees/

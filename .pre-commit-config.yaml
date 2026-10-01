@@ -1,5 +1,7 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+# `language: unsupported` needs pre-commit 4.4.0
+minimum_pre_commit_version: "4.4.0"
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -8,14 +10,29 @@ repos:
       - id: check-merge-conflict
       - id: debug-statements
       - id: detect-private-key
-      - id: requirements-txt-fixer
       - id: check-toml
       - id: check-yaml
       - id: check-added-large-files
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.18
+    rev: v0.16.9
     hooks:
-    -   id: ruff
-        args:
-        - --fix
-    -   id: ruff-format
+      - id: ruff-check
+        types_or: [python, pyi]
+        args: [--fix]
+      - id: ruff-format
+        types_or: [python, pyi]
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.12.21
+    hooks:
+      - id: uv-lock
+  # Enable once uv run mypy . passes
+  # - repo: local
+  #   hooks:
+  #     - id: mypy
+  #       name: mypy
+  #       entry: uv run mypy .
+  #       language: unsupported
+  #       types: [python]
+  #       pass_filenames: false

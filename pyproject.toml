@@ -41,7 +41,6 @@ dev = [
     "pre-commit",
     "pytest",
     "pytest-sugar",
-    "ruff",
 ]
 
 
@@ -65,12 +64,6 @@ path = "src/safe_cli/__init__.py"
 exclude-newer = "7 days"
 compile-bytecode = true
 exclude-newer-package = { safe-eth-py = false }
-
-[tool.hatch.envs.types]
-extra-dependencies = ["mypy>=1.0.0"]
-
-[tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/safe_cli tests}"
 
 [tool.hatch.build.targets.sdist]
 include = ["/src/safe_cli"]
@@ -111,7 +104,7 @@ exclude = [
 ]
 
 [tool.ruff.lint]
-extend-select = [
+select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
     "F",  # pyflakes
