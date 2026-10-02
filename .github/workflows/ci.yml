@@ -60,6 +60,31 @@ jobs:
         flag-name: run-${{ matrix.python-version }}
         parallel: true
 
+  e2e:
+    name: end-to-end (ganache + Ledger emulator)
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+    - name: Install uv
+      uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+      with:
+        python-version: "3.13"
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
+    - name: Install dependencies with the hardware wallet extras
+      run: uv sync --group dev --all-extras --frozen
+    - name: Cache the Ledger Ethereum app binary
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ~/.cache/safe-cli-tests
+        key: ledger-app-ethereum-1.22.3
+    # Containers (ganache, Speculos) are started by testcontainers.
+    # Trezor e2e (-m e2e_trezor) is local only: its image is 5.5 GB
+    - name: Run the end-to-end tests
+      run: uv run pytest -m e2e -v
+
   finish:
     permissions:
       contents: read
