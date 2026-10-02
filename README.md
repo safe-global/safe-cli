@@ -168,6 +168,21 @@ uv run safe-cli
 uv run safe-creator
 ```
 
+### Hardware wallet end-to-end tests
+
+The tests in `tests/e2e` run the Ledger and Trezor wallets against emulators. Docker must be
+running: testcontainers starts ganache and the emulators and stops them at the end. They are
+not part of the default `pytest` run.
+
+```bash
+uv sync --group dev --all-extras --frozen
+# Ledger: the Speculos emulator with the Ethereum app (runs in CI)
+uv run pytest -m e2e -v
+# Trezor: Safe 5 and Model One emulators from trezor-user-env (local only, 5.5 GB image).
+# It uses host networking, so ports 9001 and 21324-21328 must be free
+uv run pytest -m e2e_trezor -v
+```
+
 ## Contributors
 
 - [Pedro Arias Ruiz](https://github.com/AsiganTheSunk)
