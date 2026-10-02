@@ -142,7 +142,7 @@ class HwWalletManager:
             print_formatted_text(
                 HTML(f"Message_hash: <b>{to_0x_hex_str(message_hash)}</b>")
             )
-            signature = wallet.sign_typed_hash(domain_hash, message_hash)
+            signature = wallet.sign_typed_data(eip712_message)
             safe_signatures.append(SafeSignatureEOA(signature, eip712_message_hash))
 
         return safe_signatures

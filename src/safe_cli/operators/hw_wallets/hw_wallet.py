@@ -1,6 +1,8 @@
 import re
 from abc import ABC, abstractmethod
+from typing import Any
 
+from safe_eth.eth.eip712 import eip712_encode
 from web3.types import TxParams
 
 from .constants import BIP32_ETH_PATTERN, BIP32_LEGACY_LEDGER_PATTERN
@@ -46,6 +48,17 @@ class HwWallet(ABC):
         :param message_hash:
         :return: signature bytes
         """
+
+    def sign_typed_data(self, typed_data: dict[str, Any]) -> bytes:
+        """
+        Sign EIP-712 typed data. By default only the domain and message hashes go
+        to the device. Wallets that can show every field on the device override it.
+
+        :param typed_data: EIP-712 typed data
+        :return: signature bytes
+        """
+        _, domain_hash, message_hash = eip712_encode(typed_data)
+        return self.sign_typed_hash(domain_hash, message_hash)
 
     @abstractmethod
     def get_signed_raw_transaction(
