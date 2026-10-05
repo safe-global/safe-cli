@@ -3197,7 +3197,7 @@ dev = [
 
 [[package]]
 name = "safe-eth-py"
-version = "7.25.0"
+version = "7.26.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "packaging" },
@@ -3206,9 +3206,9 @@ dependencies = [
     { name = "safe-pysha3" },
     { name = "web3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/21/19/82dd708bc75f55d2fa8a2b21eceff2fe033fd3c046b9e78bd1124bc7e39e/safe_eth_py-7.25.0.tar.gz", hash = "sha256:98aaa21b21bb8455f8089f834bbcb25f28da1aa06bb7a045e348ed95484efbfd", size = 886691, upload-time = "2026-09-08T13:48:13.958Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/3d/91/bd8224dcad283bbd45387200bb9117690e3856945e11a35ffc00c60e6d85/safe_eth_py-7.26.1.tar.gz", hash = "sha256:aac60b4d041b930906a3a04deef9b6418b34578d4f44ce7c10e854c6c444154b", size = 892158, upload-time = "2026-09-23T12:36:04.345Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/0e/eb/4bec9c909c3264664b3c57679df956ac4847c995f83cf50901f673bd5405/safe_eth_py-7.25.0-py3-none-any.whl", hash = "sha256:ed6e38e97cc5c2e31ba503eecdc3c456ed43852478ce7ef4884cfe6d2f3b783a", size = 1009419, upload-time = "2026-09-08T13:48:11.992Z" },
+    { url = "https://files.pythonhosted.org/packages/85/18/f2c4f08cbd84eb14dd48d684d5d5c9b5230c7363f033738167328fe457ec/safe_eth_py-7.26.1-py3-none-any.whl", hash = "sha256:70380336f5c4005d5827c5f6e3d9656739e2287b35758fc417db93011906913f", size = 1015540, upload-time = "2026-09-23T12:36:02.461Z" },
 ]
 
 [[package]]
