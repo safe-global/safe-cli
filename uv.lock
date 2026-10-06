@@ -3137,6 +3137,7 @@ name = "safe-cli"
 source = { editable = "." }
 dependencies = [
     { name = "art" },
+    { name = "click" },
     { name = "colorama" },
     { name = "hexbytes" },
     { name = "prompt-toolkit" },
@@ -3170,6 +3171,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "art", specifier = ">=6" },
+    { name = "click", specifier = ">=8" },
     { name = "colorama", specifier = ">=0.4" },
     { name = "hexbytes", specifier = ">1" },
     { name = "ledgereth", marker = "extra == 'ledger'", specifier = "==0.10.0" },
