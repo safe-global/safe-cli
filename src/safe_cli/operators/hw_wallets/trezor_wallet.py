@@ -7,7 +7,10 @@ Trezor support on top of `trezorlib` 0.20 (clients, sessions and callbacks).
   capability), otherwise on the host. An empty passphrase opens the standard
   wallet.
 - Pairing: new models pair through the Trezor Host Protocol. The first
-  connection shows a code on the device that must be typed on the host.
+  connection shows a code on the device that must be typed on the host. The
+  pairing credential is then kept in the system keyring (like `trezorctl`), so
+  the next runs only ask to confirm the connection on the device. Set
+  `SAFE_CLI_TREZOR_FORGET_PAIRING=1` to delete it and not store a new one.
 - EIP-712: the Model One only signs the domain and message hashes. The other
   models get the full typed data, so every SafeTx field is shown on the device.
 
@@ -15,6 +18,7 @@ Trezor support on top of `trezorlib` 0.20 (clients, sessions and callbacks).
 emulator). Without it the first connected device is used.
 """
 
+import os
 from functools import cache, wraps
 from typing import Any
 
@@ -31,9 +35,10 @@ from safe_eth.safe.signatures import (
 )
 from trezorlib import messages, models, tools
 from trezorlib.client import (
+    AppManifest,
     Session,
     TrezorClient,
-    get_default_client,
+    get_client,
     get_default_session as get_trezor_default_session,
 )
 from trezorlib.ethereum import (
@@ -45,7 +50,9 @@ from trezorlib.ethereum import (
     sign_typed_data_hash,
 )
 from trezorlib.exceptions import Cancelled, InvalidSessionError
-from trezorlib.transport import TransportException
+from trezorlib.thp.credentials import Credential, StaticCredential
+from trezorlib.thp.pairing import default_pairing_flow
+from trezorlib.transport import TransportException, get_transport
 from web3.types import TxParams
 
 from ..exceptions import HardwareWalletException
@@ -53,6 +60,7 @@ from .hw_wallet import HwWallet
 from .trezor_exceptions import raise_trezor_exception_as_hw_wallet_exception
 
 APP_NAME = "Safe CLI"
+FORGET_PAIRING_ENV = "SAFE_CLI_TREZOR_FORGET_PAIRING"
 
 
 def cancel_pin(reason: str):
@@ -103,6 +111,57 @@ def ask_pairing_code() -> str:
         print_formatted_text(HTML("<ansired>The pairing code has 6 digits</ansired>"))
 
 
+def print_pairing_warning(action: str, error: Exception) -> None:
+    print_formatted_text(
+        HTML(f"<ansiyellow>Cannot {action} the Trezor pairing: {error}</ansiyellow>")
+    )
+
+
+def get_pairing_store():
+    """
+    Same storage as `trezorctl`: secrets in the system keyring, their ids in
+    `thp-credentials.json` in the safe-cli config directory.
+    Imported here because `trezorlib.cli` is slow to import.
+
+    :return: trezorlib CredentialStore for safe-cli
+    """
+    from trezorlib.cli.credentials import CredentialStore
+
+    return CredentialStore(APP_NAME, config_appname="safe-cli")
+
+
+def load_pairing_credentials() -> list[Credential]:
+    """
+    Read every stored credential now: a missing keyring entry must not break the
+    connection, it only means the pairing code is asked again.
+
+    :return: stored pairing credentials, empty if forgotten or unreadable
+    """
+    try:
+        store = get_pairing_store()
+        if os.environ.get(FORGET_PAIRING_ENV):
+            store.clear()
+            return []
+        return [
+            StaticCredential(
+                trezor_pubkey=credential.trezor_pubkey,
+                host_privkey=credential.host_privkey,
+                credential=credential.credential,
+            )
+            for credential in store.list()
+        ]
+    except Exception as e:
+        print_pairing_warning("read", e)
+        return []
+
+
+def save_pairing_credential(credential: Credential) -> None:
+    try:
+        get_pairing_store().add(credential)
+    except Exception as e:
+        print_pairing_warning("store", e)
+
+
 @cache
 def get_trezor_client() -> TrezorClient:
     """
@@ -110,9 +169,23 @@ def get_trezor_client() -> TrezorClient:
 
     :return: client for the connected Trezor
     """
-    return get_default_client(
-        APP_NAME, pin_callback=ask_pin, code_entry_callback=ask_pairing_code
+    transport = get_transport(os.environ.get("TREZOR_PATH"), prefix_search=True)
+    app = AppManifest(
+        app_name=APP_NAME,
+        pin_callback=ask_pin,
+        credentials=load_pairing_credentials(),
     )
+    client = get_client(app, transport)
+    if not client.pairing.is_paired():
+        store_pairing = not os.environ.get(FORGET_PAIRING_ENV)
+        credential = default_pairing_flow(
+            client.pairing,
+            code_entry_callback=ask_pairing_code,
+            request_credential=store_pairing,
+        )
+        if credential is not None:
+            save_pairing_credential(credential)
+    return client
 
 
 @cache

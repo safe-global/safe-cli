@@ -20,6 +20,7 @@ from trezorlib.exceptions import (
     TrezorFailure,
 )
 from trezorlib.messages import EthereumTypedDataSignature
+from trezorlib.thp.credentials import StaticCredential
 from trezorlib.transport import DeviceIsBusy, TransportException
 
 from safe_cli.operators.exceptions import HardwareWalletException
@@ -470,3 +471,68 @@ class TestTrezorHelpers(unittest.TestCase):
             )
         finally:
             get_trezor_session.cache_clear()
+
+
+@mock.patch.object(trezor_wallet_module, "get_transport", autospec=True)
+@mock.patch.object(trezor_wallet_module, "get_client", autospec=True)
+@mock.patch.object(trezor_wallet_module, "default_pairing_flow", autospec=True)
+@mock.patch.object(trezor_wallet_module, "get_pairing_store", autospec=True)
+class TestTrezorPairing(unittest.TestCase):
+    def setUp(self):
+        trezor_wallet_module.get_trezor_client.cache_clear()
+        self.addCleanup(trezor_wallet_module.get_trezor_client.cache_clear)
+        self.stored = StaticCredential(
+            trezor_pubkey=b"t" * 32, host_privkey=b"h" * 32, credential=b"c" * 32
+        )
+
+    def get_client(self, mock_get_client: MagicMock, paired: bool) -> MagicMock:
+        client = mock_get_client.return_value
+        client.pairing.is_paired.return_value = paired
+        self.assertIs(trezor_wallet_module.get_trezor_client(), client)
+        return mock_get_client.call_args.args[0]  # AppManifest
+
+    def test_stored_pairing_is_used(
+        self, mock_store, mock_pairing_flow, mock_get_client, mock_get_transport
+    ):
+        mock_store.return_value.list.return_value = [self.stored]
+        app = self.get_client(mock_get_client, paired=True)
+        self.assertEqual(list(app.get_credentials()), [self.stored])
+        mock_pairing_flow.assert_not_called()
+
+    def test_new_pairing_is_stored(
+        self, mock_store, mock_pairing_flow, mock_get_client, mock_get_transport
+    ):
+        mock_store.return_value.list.return_value = []
+        self.get_client(mock_get_client, paired=False)
+        mock_pairing_flow.assert_called_once_with(
+            mock_get_client.return_value.pairing,
+            code_entry_callback=trezor_wallet_module.ask_pairing_code,
+            request_credential=True,
+        )
+        mock_store.return_value.add.assert_called_once_with(
+            mock_pairing_flow.return_value
+        )
+
+    def test_forget_pairing(
+        self, mock_store, mock_pairing_flow, mock_get_client, mock_get_transport
+    ):
+        mock_pairing_flow.return_value = None
+        with mock.patch.dict(
+            os.environ, {trezor_wallet_module.FORGET_PAIRING_ENV: "1"}
+        ):
+            app = self.get_client(mock_get_client, paired=False)
+        self.assertEqual(list(app.get_credentials()), [])
+        mock_store.return_value.clear.assert_called_once()
+        mock_store.return_value.list.assert_not_called()
+        self.assertFalse(mock_pairing_flow.call_args.kwargs["request_credential"])
+        mock_store.return_value.add.assert_not_called()
+
+    def test_keyring_errors_only_warn(
+        self, mock_store, mock_pairing_flow, mock_get_client, mock_get_transport
+    ):
+        mock_store.return_value.list.side_effect = ValueError("Not found in keyring")
+        mock_store.return_value.add.side_effect = RuntimeError("Keyring locked")
+        with mock.patch.object(trezor_wallet_module, "print_formatted_text"):
+            app = self.get_client(mock_get_client, paired=False)
+        self.assertEqual(list(app.get_credentials()), [])
+        mock_store.return_value.add.assert_called_once()
