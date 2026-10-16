@@ -216,6 +216,13 @@ class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
             encode_hash[2],
         )
 
+        # A signature from another key (e.g. another passphrase wallet) is refused
+        mock_sign_typed_data_hash.return_value = EthereumTypedDataSignature(
+            signature=safe_tx.sign(Account.create().key), address=owner.address
+        )
+        with self.assertRaisesRegex(HardwareWalletException, "not from"):
+            trezor_wallet.sign_typed_hash(encode_hash[1], encode_hash[2])
+
     @mock.patch(
         "safe_cli.operators.hw_wallets.trezor_wallet.sign_typed_data_hash",
         autospec=True,

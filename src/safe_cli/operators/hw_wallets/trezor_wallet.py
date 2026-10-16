@@ -23,8 +23,12 @@ from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
 from prompt_toolkit import HTML, print_formatted_text, prompt
 from safe_eth.eth.eip712 import eip712_encode
-from safe_eth.eth.utils import fast_to_checksum_address
-from safe_eth.safe.signatures import signature_split, signature_to_bytes
+from safe_eth.eth.utils import fast_keccak, fast_to_checksum_address
+from safe_eth.safe.signatures import (
+    get_signing_address,
+    signature_split,
+    signature_to_bytes,
+)
 from trezorlib import messages, models, tools
 from trezorlib.client import (
     Session,
@@ -44,6 +48,7 @@ from trezorlib.exceptions import Cancelled, InvalidSessionError
 from trezorlib.transport import TransportException
 from web3.types import TxParams
 
+from ..exceptions import HardwareWalletException
 from .hw_wallet import HwWallet
 from .trezor_exceptions import raise_trezor_exception_as_hw_wallet_exception
 
@@ -187,6 +192,26 @@ class TrezorWallet(HwWallet):
     def is_legacy_model(self) -> bool:
         return self.client.model in models.LEGACY_MODELS
 
+    def check_eip712_signer(
+        self, signature: bytes, domain_hash: bytes, message_hash: bytes
+    ) -> bytes:
+        """
+        The device signs with the wallet of the open session and hashes the typed
+        data itself. A signature from another wallet (e.g. another passphrase) or
+        over another hash would be rejected by the Safe, so fail early and clearly.
+
+        :return: the same signature
+        """
+        v, r, s = signature_split(signature)
+        signer = get_signing_address(
+            fast_keccak(b"\x19\x01" + domain_hash + message_hash), v, r, s
+        )
+        if signer != self.address:
+            raise HardwareWalletException(
+                f"Trezor signature is from {signer}, not from {self.address}"
+            )
+        return signature
+
     @trezor_call
     def get_address(self) -> ChecksumAddress:
         """
@@ -210,7 +235,7 @@ class TrezorWallet(HwWallet):
             domain_hash,
             message_hash,
         )
-        return signed.signature
+        return self.check_eip712_signer(signed.signature, domain_hash, message_hash)
 
     @trezor_call
     def sign_typed_data(self, typed_data: dict[str, Any]) -> bytes:
@@ -223,7 +248,7 @@ class TrezorWallet(HwWallet):
         """
         if self.is_legacy_model():
             return super().sign_typed_data(typed_data)
-        _, _, message_hash = eip712_encode(typed_data)
+        _, domain_hash, message_hash = eip712_encode(typed_data)
         signed = sign_typed_data(
             self.session,
             self.address_n,
@@ -231,7 +256,7 @@ class TrezorWallet(HwWallet):
             metamask_v4_compat=True,
             show_message_hash=message_hash,
         )
-        return signed.signature
+        return self.check_eip712_signer(signed.signature, domain_hash, message_hash)
 
     @trezor_call
     def get_signed_raw_transaction(
