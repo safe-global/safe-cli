@@ -83,7 +83,19 @@ def ask_passphrase() -> str:
 
 
 def ask_pairing_code() -> str:
-    return prompt("Enter the pairing code shown on the Trezor: ")
+    """
+    trezorlib raises `ValueError` for anything but 6 digits, so spaces are
+    dropped and the code is asked again until it has 6 digits.
+    """
+    while True:
+        code = "".join(
+            digit
+            for digit in prompt("Enter the pairing code shown on the Trezor: ")
+            if digit.isdigit()
+        )
+        if len(code) == 6:
+            return code
+        print_formatted_text(HTML("<ansired>The pairing code has 6 digits</ansired>"))
 
 
 @cache

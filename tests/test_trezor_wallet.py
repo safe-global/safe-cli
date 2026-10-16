@@ -17,6 +17,7 @@ from trezorlib.exceptions import (
     PassphraseError,
     PinException,
     TrezorException,
+    TrezorFailure,
 )
 from trezorlib.messages import EthereumTypedDataSignature
 from trezorlib.transport import DeviceIsBusy, TransportException
@@ -144,6 +145,13 @@ class TestTrezorManager(SafeTestCaseMixin, unittest.TestCase):
 
         # Only a lost connection drops the cached client and session
         self.assertEqual(mock_forget_trezor.call_count, 3)
+
+        # A failure without message is reported with its code, not "None"
+        mock_trezor_sign.side_effect = TrezorFailure(
+            messages.Failure(code=messages.FailureType.DataError)
+        )
+        with self.assertRaisesRegex(HardwareWalletException, "DataError"):
+            trezor_wallet.sign_typed_hash(random_domain_bytes, random_message_bytes)
 
     @mock.patch(
         "safe_cli.operators.hw_wallets.trezor_wallet.forget_trezor",
@@ -398,6 +406,13 @@ class TestTrezorHelpers(unittest.TestCase):
                 },
             },
         )
+
+    def test_ask_pairing_code(self):
+        with mock.patch.object(
+            trezor_wallet_module, "prompt", side_effect=["12 34", " 123 456 "]
+        ) as mock_prompt:
+            self.assertEqual(trezor_wallet_module.ask_pairing_code(), "123456")
+            self.assertEqual(mock_prompt.call_count, 2)
 
     def test_ask_pin(self):
         # Cancelled is what makes trezorlib cancel the PIN flow on the device

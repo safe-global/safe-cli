@@ -20,7 +20,8 @@ def raise_trezor_exception_as_hw_wallet_exception(function):
         try:
             return function(*args, **kwargs)
         except TrezorFailure as e:
-            raise HardwareWalletException(e.message) from e
+            # Some failures have no message, only a code
+            raise HardwareWalletException(e.message or str(e)) from e
         except OutdatedFirmwareError:
             raise HardwareWalletException(
                 "Trezor firmware version is not supported"
