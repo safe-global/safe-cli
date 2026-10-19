@@ -1,52 +1,300 @@
-from functools import cache
+"""
+Trezor support on top of `trezorlib` 0.20 (clients, sessions and callbacks).
+
+- PIN: the Model One asks the host for the PIN as positions on a scrambled
+  matrix shown on the device. The other models take it on the device screen.
+- Passphrase: typed on the device when it supports it (`PassphraseEntry`
+  capability), otherwise on the host. An empty passphrase opens the standard
+  wallet.
+- Pairing: new models pair through the Trezor Host Protocol. The first
+  connection shows a code on the device that must be typed on the host. The
+  pairing credential is then kept in the system keyring (like `trezorctl`), so
+  the next runs only ask to confirm the connection on the device. Set
+  `SAFE_CLI_TREZOR_FORGET_PAIRING=1` to delete it and not store a new one.
+- EIP-712: the Model One only signs the domain and message hashes. The other
+  models get the full typed data, so every SafeTx field is shown on the device.
+
+`TREZOR_PATH` selects the transport (e.g. `udp:127.0.0.1:21324` for the
+emulator). Without it the first connected device is used.
+"""
+
+import os
+from functools import cache, wraps
+from typing import Any
 
 import rlp
 from eth_typing import ChecksumAddress
 from hexbytes import HexBytes
-from safe_eth.safe.signatures import signature_split, signature_to_bytes
-from trezorlib import tools
-from trezorlib.client import TrezorClient, get_default_client
+from prompt_toolkit import HTML, print_formatted_text, prompt
+from safe_eth.eth.eip712 import eip712_encode
+from safe_eth.eth.utils import fast_keccak, fast_to_checksum_address
+from safe_eth.safe.signatures import (
+    get_signing_address,
+    signature_split,
+    signature_to_bytes,
+)
+from trezorlib import messages, models, tools
+from trezorlib.client import (
+    AppManifest,
+    Session,
+    TrezorClient,
+    get_client,
+    get_default_session as get_trezor_default_session,
+)
 from trezorlib.ethereum import (
     get_address,
     sign_message,
     sign_tx,
     sign_tx_eip1559,
+    sign_typed_data,
     sign_typed_data_hash,
 )
-from trezorlib.ui import ClickUI
+from trezorlib.exceptions import Cancelled, InvalidSessionError
+from trezorlib.thp.credentials import Credential, StaticCredential
+from trezorlib.thp.pairing import default_pairing_flow
+from trezorlib.transport import TransportException, get_transport
 from web3.types import TxParams
 
+from ..exceptions import HardwareWalletException
 from .hw_wallet import HwWallet
 from .trezor_exceptions import raise_trezor_exception_as_hw_wallet_exception
 
+APP_NAME = "Safe CLI"
+FORGET_PAIRING_ENV = "SAFE_CLI_TREZOR_FORGET_PAIRING"
+
+
+def cancel_pin(reason: str):
+    """
+    trezorlib only cancels the PIN flow on the device for `Cancelled`. Any other
+    error leaves the device waiting for a PIN, and the next call fails.
+    """
+    print_formatted_text(HTML(f"<ansired>{reason}</ansired>"))
+    raise Cancelled()
+
+
+def ask_pin(request: messages.PinMatrixRequest) -> str:
+    if request.type in (
+        messages.PinMatrixRequestType.NewFirst,
+        messages.PinMatrixRequestType.NewSecond,
+    ):
+        cancel_pin("Trezor asks to set a new PIN, do it in Trezor Suite")
+    pin = prompt(
+        "Enter the Trezor PIN using the matrix positions shown on the device "
+        "(7 8 9 / 4 5 6 / 1 2 3): ",
+        is_password=True,
+    )
+    if not pin or any(digit not in "123456789" for digit in pin):
+        cancel_pin("The PIN must be matrix positions, digits 1 to 9")
+    return pin
+
+
+def ask_passphrase() -> str:
+    return prompt(
+        "Enter the Trezor passphrase (empty for the standard wallet): ",
+        is_password=True,
+    )
+
+
+def ask_pairing_code() -> str:
+    """
+    trezorlib raises `ValueError` for anything but 6 digits, so spaces are
+    dropped and the code is asked again until it has 6 digits.
+    """
+    while True:
+        code = "".join(
+            digit
+            for digit in prompt("Enter the pairing code shown on the Trezor: ")
+            if digit.isdigit()
+        )
+        if len(code) == 6:
+            return code
+        print_formatted_text(HTML("<ansired>The pairing code has 6 digits</ansired>"))
+
+
+def print_pairing_warning(action: str, error: Exception) -> None:
+    print_formatted_text(
+        HTML(f"<ansiyellow>Cannot {action} the Trezor pairing: {error}</ansiyellow>")
+    )
+
+
+def get_pairing_store():
+    """
+    Same storage as `trezorctl`: secrets in the system keyring, their ids in
+    `thp-credentials.json` in the safe-cli config directory.
+    Imported here because `trezorlib.cli` is slow to import.
+
+    :return: trezorlib CredentialStore for safe-cli
+    """
+    from trezorlib.cli.credentials import CredentialStore
+
+    return CredentialStore(APP_NAME, config_appname="safe-cli")
+
+
+def load_pairing_credentials() -> list[Credential]:
+    """
+    Read every stored credential now: a missing keyring entry must not break the
+    connection, it only means the pairing code is asked again.
+
+    :return: stored pairing credentials, empty if forgotten or unreadable
+    """
+    try:
+        store = get_pairing_store()
+        if os.environ.get(FORGET_PAIRING_ENV):
+            store.clear()
+            return []
+        return [
+            StaticCredential(
+                trezor_pubkey=credential.trezor_pubkey,
+                host_privkey=credential.host_privkey,
+                credential=credential.credential,
+            )
+            for credential in store.list()
+        ]
+    except Exception as e:
+        print_pairing_warning("read", e)
+        return []
+
+
+def save_pairing_credential(credential: Credential) -> None:
+    try:
+        get_pairing_store().add(credential)
+    except Exception as e:
+        print_pairing_warning("store", e)
+
 
 @cache
-@raise_trezor_exception_as_hw_wallet_exception
 def get_trezor_client() -> TrezorClient:
     """
-    Return default trezor configuration that store passphrase on host.
-    This method is cached to share the same configuration between trezor calls while the class is not instantiated.
-    :return:
+    Cached to share one connection between all the TrezorWallet instances.
+
+    :return: client for the connected Trezor
     """
-    ui = ClickUI(passphrase_on_host=True, always_prompt=True)
-    client = get_default_client(ui=ui)
+    transport = get_transport(os.environ.get("TREZOR_PATH"), prefix_search=True)
+    app = AppManifest(
+        app_name=APP_NAME,
+        pin_callback=ask_pin,
+        credentials=load_pairing_credentials(),
+    )
+    client = get_client(app, transport)
+    if not client.pairing.is_paired():
+        store_pairing = not os.environ.get(FORGET_PAIRING_ENV)
+        credential = default_pairing_flow(
+            client.pairing,
+            code_entry_callback=ask_pairing_code,
+            request_credential=store_pairing,
+        )
+        if credential is not None:
+            save_pairing_credential(credential)
     return client
+
+
+@cache
+def get_trezor_session() -> Session:
+    """
+    Cached so the passphrase is asked once and every derivation path uses the
+    same wallet.
+
+    :return: session for the standard or the passphrase wallet
+    """
+    return get_trezor_default_session(
+        get_trezor_client(), passphrase_callback=ask_passphrase
+    )
+
+
+def forget_trezor() -> None:
+    get_trezor_session.cache_clear()
+    get_trezor_client.cache_clear()
+
+
+def trezor_call(function):
+    """
+    Map Trezor errors to HardwareWalletException.
+
+    - An unplugged Trezor leaves a dead client and session in the cache, so they
+      are dropped and the next call connects again.
+    - A session becomes invalid when the device locks or restarts. The call is
+      retried once with a new session, which asks for PIN and passphrase again.
+    """
+
+    @wraps(function)
+    @raise_trezor_exception_as_hw_wallet_exception
+    def wrapper(*args, **kwargs):
+        try:
+            try:
+                return function(*args, **kwargs)
+            except InvalidSessionError:
+                get_trezor_session.cache_clear()
+                return function(*args, **kwargs)
+        except (TransportException, InvalidSessionError):
+            forget_trezor()
+            raise
+
+    return wrapper
+
+
+def typed_data_for_trezor(value: Any) -> Any:
+    """
+    trezorlib encodes `bytes` fields from hex strings. It walks the declared
+    `types` itself, so keys that are not declared never reach the device.
+
+    :param value: EIP-712 typed data, or a part of it
+    :return: the same data with bytes values as hex strings
+    """
+    if isinstance(value, dict):
+        return {key: typed_data_for_trezor(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [typed_data_for_trezor(item) for item in value]
+    if isinstance(value, (bytes, bytearray, memoryview)):
+        return "0x" + bytes(value).hex()
+    return value
 
 
 class TrezorWallet(HwWallet):
     def __init__(self, derivation_path: str):
-        self.client: TrezorClient = get_trezor_client()
         self.address_n = tools.parse_path(derivation_path)
         super().__init__(derivation_path)
 
-    @raise_trezor_exception_as_hw_wallet_exception
+    @property
+    def client(self) -> TrezorClient:
+        return get_trezor_client()
+
+    @property
+    def session(self) -> Session:
+        return get_trezor_session()
+
+    def is_legacy_model(self) -> bool:
+        return self.client.model in models.LEGACY_MODELS
+
+    def check_eip712_signer(
+        self, signature: bytes, domain_hash: bytes, message_hash: bytes
+    ) -> bytes:
+        """
+        The device signs with the wallet of the open session and hashes the typed
+        data itself. A signature from another wallet (e.g. another passphrase) or
+        over another hash would be rejected by the Safe, so fail early and clearly.
+
+        :return: the same signature
+        """
+        v, r, s = signature_split(signature)
+        signer = get_signing_address(
+            fast_keccak(b"\x19\x01" + domain_hash + message_hash), v, r, s
+        )
+        if signer != self.address:
+            raise HardwareWalletException(
+                f"Trezor signature is from {signer}, not from {self.address}"
+            )
+        return signature
+
+    @trezor_call
     def get_address(self) -> ChecksumAddress:
         """
         :return: public address for derivation_path
         """
-        return get_address(client=self.client, n=self.address_n)
+        return fast_to_checksum_address(
+            get_address(self.session, self.address_n, show_display=False)
+        )
 
-    @raise_trezor_exception_as_hw_wallet_exception
+    @trezor_call
     def sign_typed_hash(self, domain_hash: bytes, message_hash: bytes) -> bytes:
         """
 
@@ -55,14 +303,35 @@ class TrezorWallet(HwWallet):
         :return: signature bytes
         """
         signed = sign_typed_data_hash(
-            self.client,
-            n=self.address_n,
-            domain_hash=domain_hash,
-            message_hash=message_hash,
+            self.session,
+            self.address_n,
+            domain_hash,
+            message_hash,
         )
-        return signed.signature
+        return self.check_eip712_signer(signed.signature, domain_hash, message_hash)
 
-    @raise_trezor_exception_as_hw_wallet_exception
+    @trezor_call
+    def sign_typed_data(self, typed_data: dict[str, Any]) -> bytes:
+        """
+        The Model One cannot parse typed data, so it signs the hashes. The other
+        models show every field, and also the message hash the CLI prints.
+
+        :param typed_data: EIP-712 typed data
+        :return: signature bytes
+        """
+        if self.is_legacy_model():
+            return super().sign_typed_data(typed_data)
+        _, domain_hash, message_hash = eip712_encode(typed_data)
+        signed = sign_typed_data(
+            self.session,
+            self.address_n,
+            typed_data_for_trezor(typed_data),
+            metamask_v4_compat=True,
+            show_message_hash=message_hash,
+        )
+        return self.check_eip712_signer(signed.signature, domain_hash, message_hash)
+
+    @trezor_call
     def get_signed_raw_transaction(
         self, tx_parameters: TxParams, chain_id: int
     ) -> bytes:
@@ -75,8 +344,8 @@ class TrezorWallet(HwWallet):
         if tx_parameters.get("maxPriorityFeePerGas"):
             # EIP1559
             v, r, s = sign_tx_eip1559(
-                self.client,
-                n=self.address_n,
+                self.session,
+                self.address_n,
                 nonce=tx_parameters["nonce"],
                 gas_limit=tx_parameters["gas"],
                 to=tx_parameters["to"],
@@ -109,8 +378,8 @@ class TrezorWallet(HwWallet):
         else:
             # Legacy transaction
             v, r, s = sign_tx(
-                self.client,
-                n=self.address_n,
+                self.session,
+                self.address_n,
                 nonce=tx_parameters["nonce"],
                 gas_price=tx_parameters["gasPrice"],
                 gas_limit=tx_parameters["gas"],
@@ -136,7 +405,7 @@ class TrezorWallet(HwWallet):
 
         return encoded_transaction
 
-    @raise_trezor_exception_as_hw_wallet_exception
+    @trezor_call
     def sign_message(self, message: bytes) -> bytes:
         """
         Call sign message of Trezor wallet
@@ -144,7 +413,7 @@ class TrezorWallet(HwWallet):
         :param message:
         :return: bytes signature
         """
-        signed = sign_message(self.client, self.address_n, message)
+        signed = sign_message(self.session, self.address_n, message)
         # V field must be greater than 30 for signed messages. https://github.com/safe-global/safe-smart-account/blob/main/contracts/Safe.sol#L309
         v, r, s = signature_split(signed.signature)
         return signature_to_bytes(v + 4, r, s)
