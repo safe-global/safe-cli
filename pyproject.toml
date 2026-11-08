@@ -41,12 +41,13 @@ dev = [
     "pre-commit",
     "pytest",
     "pytest-sugar",
+    "testcontainers",
 ]
 
 
 [project.optional-dependencies]
 ledger = ["ledgereth==0.10.0"]
-trezor = ["trezor==0.13.10"]
+trezor = ["trezor==0.20.2"]
 
 [project.scripts]
 safe-cli = "safe_cli.main:main"
@@ -128,3 +129,12 @@ ignore_missing_imports = true
 warn_unused_ignores = true
 warn_redundant_casts = true
 warn_unused_configs = true
+
+[tool.pytest.ini_options]
+# End-to-end tests start containers (ganache, the Ledger and Trezor emulators)
+# through testcontainers. They are opt-in: `uv run pytest -m e2e` or `-m e2e_trezor`
+addopts = "-m 'not e2e and not e2e_trezor' --strict-markers"
+markers = [
+    "e2e: needs Docker; runs ganache and the Ledger emulator through testcontainers",
+    "e2e_trezor: needs Docker and the 5.5 GB trezor-user-env image; local only",
+]
