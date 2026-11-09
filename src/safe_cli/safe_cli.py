@@ -2,11 +2,19 @@ import argparse
 import os
 import sys
 
+import requests
 from eth_typing import ChecksumAddress
 from prompt_toolkit import HTML, PromptSession, print_formatted_text
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
+from prompt_toolkit.formatted_text import html
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.lexers import PygmentsLexer
+from web3.exceptions import (
+    ContractLogicError,
+    ProviderConnectionError,
+    TimeExhausted,
+    Web3RPCError,
+)
 
 from .operators import (
     SafeCliTerminationException,
@@ -17,6 +25,23 @@ from .operators import (
 from .prompt_parser import PromptParser
 from .safe_completer import SafeCompleter
 from .safe_lexer import SafeLexer
+
+NODE_ERRORS = (
+    Web3RPCError,
+    ContractLogicError,
+    TimeExhausted,
+    ProviderConnectionError,
+    requests.exceptions.RequestException,
+)
+
+
+def print_node_error(node_error: Exception) -> None:
+    print_formatted_text(
+        HTML(
+            f"<ansired>{type(node_error).__name__}: "
+            f"{html.html_escape(str(node_error))}</ansired>"
+        )
+    )
 
 
 class SafeCli:
@@ -76,11 +101,16 @@ class SafeCli:
         split_command = command.split()
         try:
             if (split_command[0]) == "tx-service":
+                tx_service_operator = SafeTxServiceOperator(
+                    self.safe_address, self.node_url
+                )
+                tx_service_operator.refresh_safe_cli_info()
                 print_formatted_text(
                     HTML("<b><ansigreen>Sending txs to tx service</ansigreen></b>")
                 )
-                return SafeTxServiceOperator(self.safe_address, self.node_url)
+                return tx_service_operator
             elif split_command[0] == "blockchain":
+                self.safe_operator.refresh_safe_cli_info()
                 print_formatted_text(
                     HTML("<b><ansigreen>Sending txs to blockchain</ansigreen></b>")
                 )
@@ -109,7 +139,6 @@ class SafeCli:
                 new_operator = self.parse_operator_mode(command)
                 if new_operator:
                     self.prompt_parser = PromptParser(new_operator)
-                    new_operator.refresh_safe_cli_info()  # ClI info needs to be initialized
                 else:
                     self.prompt_parser.process_command(command)
             except SafeCliTerminationException:
@@ -120,3 +149,5 @@ class SafeCli:
                 continue
             except (argparse.ArgumentError, argparse.ArgumentTypeError, SystemExit):
                 pass
+            except NODE_ERRORS as node_error:
+                print_node_error(node_error)

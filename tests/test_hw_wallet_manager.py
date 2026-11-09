@@ -187,7 +187,7 @@ class Testledger_wallet(SafeTestCaseMixin, unittest.TestCase):
         tx_parameters = {
             "from": owner.address,
             "gasPrice": safe_tx.w3.eth.gas_price,
-            "nonce": 0,
+            "nonce": self.ethereum_client.get_nonce_for_account(owner.address),
             "gas": safe_tx.recommended_gas(),
         }
         safe_tx.tx = safe_tx.w3_tx.build_transaction(tx_parameters)
@@ -196,7 +196,7 @@ class Testledger_wallet(SafeTestCaseMixin, unittest.TestCase):
         )
 
         mocked_signed_transaction_response = SignedTransaction(
-            nonce=0,
+            nonce=safe_tx.tx["nonce"],
             gas_price=safe_tx.tx["gasPrice"],
             gas_limit=safe_tx.tx["gas"],
             destination=HexBytes(safe_tx.tx["to"]),
@@ -210,6 +210,5 @@ class Testledger_wallet(SafeTestCaseMixin, unittest.TestCase):
         mock_ledger_create_transaction.return_value = mocked_signed_transaction_response
         tx_hash, tx = hw_wallet_manager.execute_safe_tx(safe_tx)
         self.assertEqual(tx["data"], safe_tx.tx["data"])
-        self.assertIsNotNone(
-            self.ethereum_client.w3.eth.get_transaction_receipt(tx_hash)
-        )
+        self.assertEqual(tx["nonce"], tx_parameters["nonce"])
+        self.assertEqual(self.wait_for_receipt(tx_hash)["status"], 1)

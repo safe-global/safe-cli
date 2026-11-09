@@ -49,7 +49,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "send-ether",
                 safe_operator.safe.address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 random_address,
                 "20",
                 "--private-key",
@@ -68,7 +68,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "send-ether",
                 safe_operator.safe.address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 random_address,
                 "20",
                 "--private-key",
@@ -84,7 +84,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "send-ether",
                 safe_operator.safe.address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 random_address,
                 "20",
                 "--private-key",
@@ -100,7 +100,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "send-ether",
                 safe_operator.safe.address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 random_address,
                 "20",
                 "--private-key",
@@ -114,7 +114,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "send-ether",
                 safe_operator.safe.address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 random_address,
                 "20",
                 "--private-key",
@@ -138,7 +138,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "send-erc20",
                 safe_operator.safe.address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 random_address,
                 random_token_address,
                 "20",
@@ -158,7 +158,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "send-erc20",
                 safe_operator.safe.address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 random_address,
                 random_token_address,
                 "20",
@@ -182,7 +182,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "send-erc721",
                 safe_operator.safe.address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 random_address,
                 random_token_address,
                 "1",
@@ -202,7 +202,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "send-erc721",
                 safe_operator.safe.address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 random_address,
                 random_token_address,
                 "1",
@@ -228,7 +228,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "send-custom",
                 safe_operator.safe.address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 random_address,
                 "0",
                 data,
@@ -248,7 +248,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "send-custom",
                 safe_operator.safe.address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 random_address,
                 "0",
                 data,
@@ -270,7 +270,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "tx-builder",
                 safe_operator.safe.address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 "tests/mocks/tx_builder/empty_txs.json",
                 "--private-key",
                 to_0x_hex_str(safe_owner.key),
@@ -284,7 +284,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "tx-builder",
                 safe_operator.safe.address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 "tests/mocks/tx_builder/single_tx.json",
                 "--private-key",
                 to_0x_hex_str(safe_owner.key),
@@ -298,7 +298,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "tx-builder",
                 safe_operator.safe.address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 "tests/mocks/tx_builder/batch_txs.json",
                 "--private-key",
                 to_0x_hex_str(safe_owner.key),
@@ -338,7 +338,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "attended-mode",
                 self.random_safe_address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 "--history",
             ],
         )
@@ -373,7 +373,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "attended-mode",
                 safe_owner,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 "--history",
                 "--get-safes-from-owner",
             ],
@@ -408,7 +408,7 @@ class TestSafeCliEntryPoint(SafeCliTestCaseMixin, unittest.TestCase):
             [
                 "attended-mode",
                 self.random_safe_address,
-                "http://localhost:8545",
+                self.ethereum_node_url,
                 "--history",
             ],
         )
