@@ -5,6 +5,8 @@ updates:
     schedule:
       interval: weekly
       day: monday
+      time: "06:00"
+      timezone: "Etc/UTC"
     open-pull-requests-limit: 10
     cooldown:
       semver-major-days: 30
@@ -33,6 +35,8 @@ updates:
     schedule:
       interval: weekly
       day: monday
+      time: "06:00"
+      timezone: "Etc/UTC"
     open-pull-requests-limit: 10
     cooldown:
       default-days: 7
