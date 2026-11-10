@@ -14,7 +14,12 @@ def check_positive_integer(number: str) -> int:
     :param number:
     :return: Positive integer
     """
-    number = int(number)
+    try:
+        number = int(number)
+    except (TypeError, ValueError):
+        raise argparse.ArgumentTypeError(
+            f"{number} is not a valid threshold. Must be > 0"
+        ) from None
     if number <= 0:
         raise argparse.ArgumentTypeError(
             f"{number} is not a valid threshold. Must be > 0"
