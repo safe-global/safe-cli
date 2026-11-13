@@ -25,7 +25,9 @@ def get_erc_20_list(
     addresses = set()
     for i in range(from_block, to_block + 1, block_step):
         events = ethereum_client.erc20.get_total_transfer_history(
-            from_block=i, to_block=i + (block_step - 1), addresses=[safe_address]
+            from_block=i,
+            to_block=min(i + block_step - 1, to_block),
+            addresses=[safe_address],
         )
         for event in events:
             if "value" in event["args"]:

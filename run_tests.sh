@@ -1,5 +1,5 @@
-#/usr/bin/env sh
-docker compose --profile develop up -d ganache
-pip install -e .
-pytest
-docker compose down --profile develop
+#!/usr/bin/env sh
+trap 'docker compose --profile develop down' EXIT
+docker compose --profile develop up --detach --wait anvil || exit 1
+uv sync --frozen --group dev --all-extras || exit 1
+uv run --frozen pytest

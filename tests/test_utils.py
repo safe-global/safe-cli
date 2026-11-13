@@ -5,7 +5,11 @@ from unittest.mock import MagicMock
 
 from eth_account import Account
 
-from safe_cli.utils import choose_option_from_list, yes_or_no_question
+from safe_cli.utils import (
+    choose_option_from_list,
+    get_erc_20_list,
+    yes_or_no_question,
+)
 
 
 class TestUtils(unittest.TestCase):
@@ -53,6 +57,19 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(choose_option_from_list("", options), 1)
 
         os.environ["PYTEST_CURRENT_TEST"] = pytest_current_test
+
+    def test_get_erc_20_list_does_not_query_past_to_block(self):
+        """Log ranges are split by block_step and the last range ends at to_block."""
+        ethereum_client = MagicMock()
+        ethereum_client.erc20.get_total_transfer_history.return_value = []
+
+        get_erc_20_list(ethereum_client, Account.create().address, 1, 25, block_step=10)
+
+        requested_block_ranges = [
+            (call.kwargs["from_block"], call.kwargs["to_block"])
+            for call in ethereum_client.erc20.get_total_transfer_history.call_args_list
+        ]
+        self.assertEqual(requested_block_ranges, [(1, 10), (11, 20), (21, 25)])
 
 
 if __name__ == "__main__":

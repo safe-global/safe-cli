@@ -498,7 +498,7 @@ class TestSafeOperator(SafeCliTestCaseMixin, unittest.TestCase):
         generate_transfers_erc20(
             self.w3, safe_operator, account, num_contracts_erc20, num_transactions
         )
-        # Deploying multisend contract on ganache
+        # Deploying multisend contract
         _, _, contract_address = MultiSend.deploy_contract(
             self.ethereum_client, account
         )

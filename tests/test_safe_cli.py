@@ -1,13 +1,17 @@
 import unittest
+from unittest import mock
 
+import requests
 from eth_account import Account
 from safe_eth.safe import Safe
 from safe_eth.util.util import to_0x_hex_str
 from web3 import Web3
+from web3.exceptions import Web3RPCError
 
 from safe_cli.operators import SafeCliTerminationException
 from safe_cli.operators.safe_operator import SafeOperator
 from safe_cli.prompt_parser import PromptParser
+from safe_cli.safe_cli import SafeCli
 
 from .safe_cli_test_case_mixin import SafeCliTestCaseMixin
 
@@ -80,6 +84,70 @@ class SafeCliTestCase(SafeCliTestCaseMixin, unittest.TestCase):
         # Terminate cli
         with self.assertRaises(SafeCliTerminationException):
             prompt_parser.process_command("exit")
+
+    def test_node_error_keeps_prompt_running(self):
+        """A node or connection error in a command is printed and the prompt keeps running."""
+        safe_cli = SafeCli(
+            self.setup_operator().address, self.ethereum_node_url, history=False
+        )
+        node_errors = [
+            Web3RPCError("block <height> is out of range"),
+            requests.exceptions.ConnectionError("node <down>"),
+        ]
+
+        for node_error in node_errors:
+            with (
+                self.subTest(node_error=type(node_error).__name__),
+                mock.patch.object(
+                    SafeCli,
+                    "get_command",
+                    side_effect=[f"drain {Account.create().address}", "exit"],
+                ),
+                mock.patch.object(SafeOperator, "drain", side_effect=node_error),
+                mock.patch("safe_cli.safe_cli.print_formatted_text") as print_mock,
+            ):
+                safe_cli.loop()
+
+                printed_texts = [
+                    call.args[0].value for call in print_mock.call_args_list
+                ]
+                node_error_texts = [
+                    printed_text
+                    for printed_text in printed_texts
+                    if type(node_error).__name__ in printed_text
+                ]
+                self.assertEqual(len(node_error_texts), 1)
+                # The node message is escaped, so it does not break the HTML formatting
+                self.assertIn("&lt;", node_error_texts[0])
+
+    def test_node_error_on_operator_switch_keeps_current_mode(self):
+        """A node error while switching operator mode is printed, no switch message is shown and the prompt keeps the current mode."""
+        safe_cli = SafeCli(
+            self.setup_operator().address, self.ethereum_node_url, history=False
+        )
+        previous_prompt_parser = safe_cli.prompt_parser
+
+        with (
+            mock.patch.object(
+                SafeCli, "get_command", side_effect=["blockchain", "exit"]
+            ),
+            mock.patch.object(
+                SafeOperator,
+                "refresh_safe_cli_info",
+                side_effect=requests.exceptions.ConnectionError("node down"),
+            ),
+            mock.patch("safe_cli.safe_cli.print_formatted_text") as print_mock,
+        ):
+            safe_cli.loop()
+
+        printed_texts = [call.args[0].value for call in print_mock.call_args_list]
+        self.assertTrue(
+            any("ConnectionError" in printed_text for printed_text in printed_texts)
+        )
+        self.assertFalse(
+            any("Sending txs to" in printed_text for printed_text in printed_texts)
+        )
+        self.assertIs(safe_cli.prompt_parser, previous_prompt_parser)
 
 
 if __name__ == "__main__":
