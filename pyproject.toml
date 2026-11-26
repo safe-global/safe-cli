@@ -26,7 +26,7 @@ dependencies = [
     "prompt_toolkit>=3",
     "pygments>=2",
     "requests>=2",
-    "safe-eth-py>=7.29.1",
+    "safe-eth-py>=8.0.0",
     "tabulate>=0.8",
     "typer>=0.14.0",
 ]
@@ -63,7 +63,8 @@ path = "src/safe_cli/__init__.py"
 # Reject packages published less than 7 days ago to avoid supply-chain attacks
 exclude-newer = "7 days"
 compile-bytecode = true
-exclude-newer-package = { safe-eth-py = false }
+# Safe publishes both, and a safe-eth-py release can need a safe-eth-native release of the same day
+exclude-newer-package = { safe-eth-py = false, safe-eth-native = false }
 
 [tool.hatch.build.targets.sdist]
 include = ["/src/safe_cli"]
