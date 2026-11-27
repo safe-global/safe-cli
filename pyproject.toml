@@ -21,6 +21,7 @@ classifiers = [
 ]
 dependencies = [
     "art>=6",
+    "click>=8",
     "colorama>=0.4",
     "hexbytes>1",
     "prompt_toolkit>=3",

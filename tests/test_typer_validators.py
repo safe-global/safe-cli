@@ -1,4 +1,5 @@
 import unittest
+from importlib.metadata import requires
 
 import typer
 from eth_account import Account
@@ -50,6 +51,17 @@ class TestTyperValidators(unittest.TestCase):
 
     def test_parse_hex_str(self):
         self.assertEqual(HexBytesParser().convert("0x12", None, None), HexBytes("0x12"))
+
+    def test_click_is_a_required_dependency(self):
+        # The parsers above subclass `click.ParamType`, and typer>=0.26 no
+        # longer depends on click, so it must be declared for installs
+        # without the `trezor` extra (which also pulls it in)
+        required = [
+            r.split(";")[0].strip().lower()
+            for r in requires("safe-cli") or []
+            if "extra ==" not in r
+        ]
+        self.assertTrue(any(r.startswith("click") for r in required), required)
 
 
 if __name__ == "__main__":
