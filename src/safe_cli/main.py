@@ -20,8 +20,6 @@ from .safe_cli import SafeCli
 from .tx_builder.exceptions import SoliditySyntaxError, TxBuilderEncodingError
 from .tx_builder.tx_builder_file_decoder import convert_to_proposed_transactions
 from .typer_validators import (
-    ChecksumAddressParser,
-    HexBytesParser,
     check_ethereum_address,
     check_private_keys,
 )
@@ -59,7 +57,7 @@ safe_address_option = Annotated[
     typer.Argument(
         help="The address of the Safe.",
         callback=check_ethereum_address,
-        click_type=ChecksumAddressParser(),
+        parser=ChecksumAddress,
         show_default=False,
     ),
 ]
@@ -71,7 +69,7 @@ to_option = Annotated[
     typer.Argument(
         help="The address of destination.",
         callback=check_ethereum_address,
-        click_type=ChecksumAddressParser(),
+        parser=ChecksumAddress,
         show_default=False,
     ),
 ]
@@ -133,7 +131,7 @@ def send_erc20(
         typer.Argument(
             help="Erc20 token address.",
             callback=check_ethereum_address,
-            click_type=ChecksumAddressParser(),
+            parser=ChecksumAddress,
             show_default=False,
         ),
     ],
@@ -178,7 +176,7 @@ def send_erc721(
         typer.Argument(
             help="Erc721 token address.",
             callback=check_ethereum_address,
-            click_type=ChecksumAddressParser(),
+            parser=ChecksumAddress,
             show_default=False,
         ),
     ],
@@ -221,7 +219,7 @@ def send_custom(
         typer.Argument(
             help="HexBytes data to send.",
             callback=check_hex_str,
-            click_type=HexBytesParser(),
+            parser=HexBytes,
             show_default=False,
         ),
     ],
@@ -351,7 +349,7 @@ def default_attended_mode(
         typer.Argument(
             help="The address of the Safe, or an owner address if --get-safes-from-owner is specified.",
             callback=check_ethereum_address,
-            click_type=ChecksumAddressParser(),
+            parser=ChecksumAddress,
             show_default=False,
         ),
     ],
